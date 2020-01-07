@@ -1,0 +1,25 @@
+From 561503ce5c5cf06e399df93d73d6fbc8938ae76f Mon Sep 17 00:00:00 2001
+From: "pingkai.pk" <pingkai.pk@alibaba-inc.com>
+Date: Wed, 25 Dec 2019 18:26:19 +0800
+Subject: [PATCH 4/4] chore: fix Linux build
+
+Signed-off-by: pingkai.pk <pingkai.pk@alibaba-inc.com>
+---
+ configure | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/configure b/configure
+index b390ce5ab8..eebf0aef57 100755
+--- a/configure
++++ b/configure
+@@ -6357,6 +6357,7 @@ enabled openssl           && { check_pkg_config openssl openssl openssl/ssl.h OP
+                                check_pkg_config openssl openssl openssl/ssl.h SSL_library_init ||
+                                check_lib openssl openssl/ssl.h OPENSSL_init_ssl -lssl32 -leay32 ||
+                                check_lib openssl openssl/ssl.h OPENSSL_init_ssl -lssl -lcrypto ||
++                               check_lib openssl openssl/ssl.h OPENSSL_init_ssl -lssl -lcrypto -lpthread -ldl||
+                                check_lib openssl openssl/ssl.h OPENSSL_init_ssl -lssl -lcrypto -lws2_32 -lgdi32 ||
+                                check_lib openssl openssl/ssl.h SSL_library_init -lssl32 -leay32 ||
+                                check_lib openssl openssl/ssl.h SSL_library_init -lssl -lcrypto ||
+-- 
+2.17.1
+
