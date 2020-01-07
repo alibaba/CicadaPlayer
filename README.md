@@ -2,7 +2,7 @@
 
 [![HitCount](http://hits.dwyl.io/aliyun/CicadaPlayer.svg)](http://hits.dwyl.io/aliyun/CicadaPlayer)
 [![Build Status](https://api.travis-ci.org/aliyun/CicadaPlayer.svg?branch=develop)](https://travis-ci.org/aliyun/CicadaPlayer)
-![LICENSE](https://img.shields.io/badge/license-MIT-orange.svg)
+[![LICENSE](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
 
 <h1 align="center">
   Keep the world free of difficult videos to play!
