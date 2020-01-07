@@ -1,11 +1,8 @@
 ![Cicada Logo](doc/Cicada.svg)
 
-<p align="center">
-  <a href=""><img alt="HitCount" src="http://hits.dwyl.io/aliyun/CicadaPlayer.svg"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square"></a>
-  <a href="#how-to-contribute"><img alt="Contributions Welcome" src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat-square"></a>
-  <a href=""> <img alt="Supported OS" src="https://img.shields.io/badge/Supported%20OS-Linux%20Android%20iOS%20macOS%20Windows%20WebAssemble-yellow.svg?style=flat-square"></a>
-</p>
+[![HitCount](http://hits.dwyl.io/aliyun/CicadaPlayer.svg)](http://hits.dwyl.io/aliyun/CicadaPlayer)
+[![Build Status](https://api.travis-ci.org/aliyun/CicadaPlayer.svg?branch=develop)](https://travis-ci.org/aliyun/CicadaPlayer)
+![LICENSE](https://img.shields.io/badge/license-MIT-orange.svg)
 
 <h1 align="center">
   Keep the world free of difficult videos to play!
