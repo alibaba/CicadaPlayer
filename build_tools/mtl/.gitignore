@@ -1,0 +1,8 @@
+external/
+build/
+install/
+ffbuild/
+*_ffmpeg_config.sh
+*_git_source_list.sh
+
+

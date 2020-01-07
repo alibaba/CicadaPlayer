@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include layout="@layout/view_title" />
+
+    <com.cicada.player.demo.view.CicadaVodPlayerView
+        android:id="@+id/video_view"
+        android:layout_width="match_parent"
+        android:layout_height="200dp" />
+
+    <!-- 准备，播放，停止，暂停按钮 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@android:color/white"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/prepare"
+            style="@style/btn_bordless_style"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/prepare_button" />
+
+        <Button
+            android:id="@+id/play"
+            style="@style/btn_bordless_style"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/start_button" />
+
+
+        <Button
+            android:id="@+id/pause"
+            style="@style/btn_bordless_style"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/pause_button" />
+        <Button
+            android:id="@+id/stop"
+            style="@style/btn_bordless_style"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/stop_button" />
+
+        <Button
+            android:id="@+id/snapshot"
+            style="@style/btn_bordless_style"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/screenshot_button" />
+
+        <Button
+            android:id="@+id/retry"
+            style="@style/btn_bordless_style"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:enabled="false"
+            android:visibility="gone"
+            android:textColor="@drawable/selector_button"
+            android:text="@string/retry_button" />
+
+    </LinearLayout>
+    <!-- 准备，播放，停止，暂停按钮 End -->
+
+    <FrameLayout
+        android:id="@+id/cicada_player_fm"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/cicada_white">
+
+    </FrameLayout>
+
+    <!-- 底部tag -->
+    <RadioGroup
+        android:id="@+id/radio_group_player"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/checkbox_player_options"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:button="@null"
+            android:gravity="center"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:text="options"
+            android:textColor="@color/selector_tab_text_color" />
+
+        <RadioButton
+            android:id="@+id/checkbox_player_config"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:button="@null"
+            android:gravity="center"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:text="playerConfig"
+            android:textColor="@color/selector_tab_text_color" />
+
+        <RadioButton
+            android:id="@+id/checkbox_cache_config"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:button="@null"
+            android:gravity="center"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:text="cacheConfig"
+            android:textColor="@color/selector_tab_text_color" />
+
+        <RadioButton
+            android:id="@+id/checkbox_player_track"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:button="@null"
+            android:gravity="center"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:text="track"
+            android:textColor="@color/selector_tab_text_color" />
+
+    </RadioGroup>
+
+</LinearLayout>

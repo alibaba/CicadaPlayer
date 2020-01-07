@@ -1,0 +1,9 @@
+.idea/
+cmake-build-debug*/
+build_ios/
+build_android/
+.akconfig
+_generated/
+build_Windows/
+*.orig
+aliplayerdemo/

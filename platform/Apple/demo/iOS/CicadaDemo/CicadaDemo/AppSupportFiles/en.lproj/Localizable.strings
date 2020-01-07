@@ -1,0 +1,105 @@
+/* 
+  Localizable.strings
+  CicadaDemo
+
+  Created by ToT on 2019/12/31.
+  Copyright © 2019 com.alibaba. All rights reserved.
+*/
+
+
+"播放" = "Play";
+"当前为流量网络，是否继续?" = "It is currently a traffic network. Do you want to continue?";
+"确认" = "Sure";
+"取消" = "Cancel";
+"清晰度:" = "Video:";
+"音轨:" = "Audio:";
+"字幕:" = "Subtitle";
+"媒体信息暂缺" = "Information lost";
+"使用成功" = "Use succeeded";
+"打开外挂字幕" = "Open subtitle";
+"关闭外挂字幕" = "Close subtitle";
+"准备完成" = "Prepare done";
+"首帧显示" = "First rendered start";
+"播放完成" = "Play completion";
+"缓冲开始" = "Loading start";
+"缓冲完成" = "Loading end";
+"跳转完成" = "Seek end";
+"循环播放开始" = "Looping start";
+"重连失败" = "Reconnect failed";
+"外挂字幕" = "Ext subtitle";
+"添加成功" = "Added successfully";
+"切换成功" = "Switch succeeded";
+"资源选择" = "Source selection";
+"进入播放" = "Enter play";
+"准备" = "Prepare";
+"开始" = "Start";
+"暂停" = "Pause";
+"停止" = "Stop";
+"多实例播放" = "Multi instance play";
+"扫码" = "Scan";
+"加载中..." = "Loading...";
+"信息暂缺" = "Information lost";
+"自动播放" = "AutoPlay";
+"静音" = "Muted";
+"循环" = "Loop";
+"硬解码" = "Hardware";
+"精准seek" = "AccurateSeek";
+"后台播放" = "Background";
+"音量" = "Volume";
+"缩放模式" = "Scaling";
+"镜像模式" = "Mirror";
+"旋转模式" = "Rotate";
+"倍速播放" = "Rate";
+"比例填充" = "Aspect fit";
+"比例全屏" = "Aspect fill";
+"拉伸全屏" = "To fill";
+"无镜像" = "None";
+"水平镜像" = "Horizontal";
+"垂直镜像" = "Vertical";
+"正常" = "Normal";
+"0.5倍速" = "0.5 rate";
+"1.5倍速" = "1.5 rate";
+"2倍速" = "2 rate";
+"媒体信息" = "Media information";
+"启播缓冲时长" = "StartBuffer";
+"卡顿恢复" = "HighBuffer";
+"最大缓冲时长" = "MaxBuffer";
+"直播最大延迟" = "MaxDelayTime";
+"网络超时" = "NetworkTimeout";
+"probe大小" = "ProbeSize";
+"请求refer" = "Referer";
+"httpProxy代理" = "HttpProxy";
+"重连次数" = "NetRetryCount";
+"停止隐藏最后帧" = "ClearWhenStop";
+"应用配置" = "Use setting";
+"最大时长(单位s)" = "maxDuration(s)";
+"最大size(单位MB)" = "maxSizeMB(MB)";
+"开启缓存配置" = "Enable cache";
+"---- 清晰度 ----" = "---- Video ----";
+"---- 音轨 ----" = "---- Audio ----";
+"---- 字幕 ----" = "---- Subtitle ----";
+"---- 外挂字幕 ----" = "---- ExtSubtitle ----";
+"全屏" = "Change";
+"截图" = "SnapShot";
+"半屏" = "Change";
+"截图为空" = "SnapShot nil";
+"因为系统原因, 保存到相册失败" = "Save to album failed for system reason";
+"保存图片失败!" = "Failed to save picture!";
+"创建相簿失败!" = "Failed to create album!";
+"保存图片成功!" = "Save picture successfully!";
+"没有权限" = "No permission";
+"创建或者获取相册失败" = "Failed to create or get album";
+"十六进制" = "Hex";
+//source.json
+"mp4播放展示" = "MP4 show";
+"阿里云视频解决方案" = "Alicloud video solutions";
+"阿里巴巴20周年年会" = "Alibaba's 20th anniversary annual meeting";
+"hls播放展示" = "HLS show";
+"hls 单码率" = "HLS single rate";
+"hls 多码率" = "HLS multi rate";
+"直播展示" = "Live show";
+"HEVC解码展示" = "Hevc decoding display";
+"字幕展示" = "Subtitle display";
+"内置webvtt" = "Inside webvtt";
+"外挂webvtt" = "Outside webvtt";
+

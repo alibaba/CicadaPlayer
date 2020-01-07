@@ -1,0 +1,10 @@
+
+platform :ios, '8.0'
+
+target 'CicadaDemo' do
+    pod 'AFNetworking'
+    pod 'IQKeyboardManager'
+    pod 'MJExtension'
+    pod 'MBProgressHUD'
+end
+

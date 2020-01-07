@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 视频播放 start-->
+    <dimen name="video_play_icon_width">50dp</dimen>
+    <dimen name="video_play_icon_height">50dp</dimen>
+    <dimen name="video_content_padding_left">16dp</dimen>
+    <dimen name="video_content_margin_bottom">74dp</dimen>
+    <!-- 视频播放 end-->
+
+    <!-- loading view height-->
+    <dimen name="cicada_loading_view_height">2dp</dimen>
+    <dimen name="cicada_loading_view_margin_bottom">10dp</dimen>
+
+    <dimen name="cicada_titlebar_title_left_margin">8dp</dimen>
+    <dimen name="cicada_titlebar_font_size">18sp</dimen>
+    <dimen name="cicada_screen_lock_left_margin">10dp</dimen>
+    <dimen name="cicada_info_text_large_size">12sp</dimen>
+    <dimen name="cicada_info_text_small_size">10sp</dimen>
+    <dimen name="cicada_info_bar_height">46dp</dimen>
+    <dimen name="cicada_info_seekbar_height">3dp</dimen>
+    <dimen name="cicada_info_seekbar_offset">8dp</dimen>
+    <dimen name="cicada_info_large_rate_font_size">14sp</dimen>
+    <dimen name="cicada_info_small_bottom_margin">7dp</dimen>
+
+    <!--rate-->
+    <dimen name="cicada_rate_item_height">32dp</dimen>
+    <dimen name="cicada_rete_font_size">14sp</dimen>
+
+    <dimen name="cicada_gesture_text_size">29sp</dimen>
+    <dimen name="cicada_gesture_dialog_size">155dp</dimen>
+    <dimen name="cicada_loading_font_size">14sp</dimen>
+    <dimen name="cicada_error_font_size">15sp</dimen>
+    <dimen name="cicada_error_retry_padding">5dp</dimen>
+
+    <!--error-->
+    <dimen name="cicada_dialog_err_width">220dp</dimen>
+    <dimen name="cicada_dialog_err_height">120dp</dimen>
+
+    <!--loading-->
+    <dimen name="cicada_loading_height">120dp</dimen>
+    <dimen name="cicada_loading_width">130dp</dimen>
+    <dimen name="cicada_loading_pbar_height">28dp</dimen>
+    <dimen name="cicada_dialog_loading_width">200dp</dimen>
+    <dimen name="cicada_dialog_loading_height">200dp</dimen>
+
+    <!--netError-->
+    <dimen name="cicada_dialog_netchange_width">280dp</dimen>
+    <dimen name="cicada_dialog_netchange_height">120dp</dimen>
+</resources>

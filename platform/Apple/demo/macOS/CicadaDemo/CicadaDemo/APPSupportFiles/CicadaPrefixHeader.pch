@@ -1,0 +1,11 @@
+
+#ifndef CicadaPrefixHeader_pch
+#define CicadaPrefixHeader_pch
+
+#import <CicadaPlayerSDK/CicadaPlayer.h>
+#import "HudTool.h"
+#define VIEWTAG 1817560
+//#import "CicadaTool.h"
+//#import "CicadaMacro.h"
+
+#endif /* CicadaPrefixHeader_pch */

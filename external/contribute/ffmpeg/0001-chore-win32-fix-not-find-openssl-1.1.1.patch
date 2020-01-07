@@ -1,0 +1,30 @@
+From 798a12dd2eb4b2dc949b06b5caa267f1fd0eee2e Mon Sep 17 00:00:00 2001
+From: "pingkai.pk" <pingkai.pk@alibaba-inc.com>
+Date: Wed, 17 Jul 2019 15:59:16 +0800
+Subject: [PATCH 1/2] chore(win32): fix not find openssl 1.1.1
+
+Signed-off-by: pingkai.pk <pingkai.pk@alibaba-inc.com>
+---
+ configure | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/configure b/configure
+index 34c2adb4a4..b390ce5ab8 100755
+--- a/configure
++++ b/configure
+@@ -6355,8 +6355,11 @@ enabled omx_rpi           && { check_headers OMX_Core.h ||
+                                die "ERROR: OpenMAX IL headers not found"; } && enable omx
+ enabled openssl           && { check_pkg_config openssl openssl openssl/ssl.h OPENSSL_init_ssl ||
+                                check_pkg_config openssl openssl openssl/ssl.h SSL_library_init ||
+-                               check_lib openssl openssl/ssl.h SSL_library_init -lssl -lcrypto ||
++                               check_lib openssl openssl/ssl.h OPENSSL_init_ssl -lssl32 -leay32 ||
++                               check_lib openssl openssl/ssl.h OPENSSL_init_ssl -lssl -lcrypto ||
++                               check_lib openssl openssl/ssl.h OPENSSL_init_ssl -lssl -lcrypto -lws2_32 -lgdi32 ||
+                                check_lib openssl openssl/ssl.h SSL_library_init -lssl32 -leay32 ||
++                               check_lib openssl openssl/ssl.h SSL_library_init -lssl -lcrypto ||
+                                check_lib openssl openssl/ssl.h SSL_library_init -lssl -lcrypto -lws2_32 -lgdi32 ||
+                                die "ERROR: openssl not found"; }
+ enabled pocketsphinx      && require_pkg_config pocketsphinx pocketsphinx pocketsphinx/pocketsphinx.h ps_init
+-- 
+2.14.1
+

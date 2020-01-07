@@ -1,0 +1,20 @@
+
+import os ;
+
+local IPHONEOS_SDK_VERSION = [ os.environ IPHONEOS_SDK_VERSION ] ;
+local XCODE_ROOT = [ os.environ DEVELOPER ] ;
+
+local CPU_ARCH = [ os.environ CPU_ARCH ] ;
+
+ECHO XCODE_ROOT is $(XCODE_ROOT) ;
+
+using darwin : $(IPHONEOS_SDK_VERSION)~iphone
+: $(XCODE_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++ -arch $(CPU_ARCH) -DBOOST_AC_USE_PTHREADS -DBOOST_SP_USE_PTHREADS -stdlib=libc++
+: <striper> <root>$(XCODE_ROOT)/Platforms/iPhoneOS.platform/Developer
+: <architecture>arm <target-os>iphone
+;
+using darwin : $(IPHONEOS_SDK_VERSION)~iphonesim
+: $(XCODE_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++ -arch $(CPU_ARCH) -DBOOST_AC_USE_PTHREADS -DBOOST_SP_USE_PTHREADS -stdlib=libc++
+: <striper> <root>$(XCODE_ROOT)/Platforms/iPhoneSimulator.platform/Developer
+: <architecture>ia64 <target-os>iphone
+;

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<level-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:drawable="@mipmap/cicada_volume_mute"
+        android:maxLevel="5" />
+    <item
+        android:drawable="@mipmap/cicada_volume_unmute"
+        android:maxLevel="100" />
+
+</level-list>

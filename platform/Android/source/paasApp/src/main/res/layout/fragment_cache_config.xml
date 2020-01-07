@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/cicada_white"
+        android:orientation="vertical"
+        android:paddingRight="10dp">
+
+        <!--启播-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cicada_cache_config_max_duration" />
+
+            <EditText
+                android:id="@+id/et_max_duration"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="2"
+                android:background="@drawable/shape_edit_bg"
+                android:inputType="number"
+                android:maxLength="18"
+                android:singleLine="true" />
+
+        </LinearLayout>
+
+        <!--卡顿恢复-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cicada_cache_config_max_size" />
+
+            <EditText
+                android:id="@+id/et_max_size"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="2"
+                android:background="@drawable/shape_edit_bg"
+                android:inputType="number"
+                android:maxLength="18"
+                android:singleLine="true" />
+
+        </LinearLayout>
+
+        <!--最大值-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cicada_cache_config_dir" />
+
+            <EditText
+                android:id="@+id/et_cache_dir"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="2"
+                android:background="@drawable/shape_edit_bg" />
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp">
+
+            <CheckBox
+                android:id="@+id/checkbox_cache_config_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_margin="5dp"
+                android:button="@null"
+                android:drawableRight="@drawable/switch_bkg"
+                android:drawablePadding="10dp"
+                android:text="@string/cicada_cache_config_switch" />
+
+            <TextView
+                android:id="@+id/tv_save_config"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="20dp"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:text="@string/cicada_config_refresh"
+                android:textColor="@color/colorPrimary" />
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+
+</ScrollView>

@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/cicada_white"
+        android:orientation="vertical"
+        android:paddingRight="10dp">
+
+        <!--启播-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cicada_config_start" />
+
+            <EditText
+                android:id="@+id/et_first_start_buffer_level"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="2"
+                android:background="@drawable/shape_edit_bg"
+                android:inputType="number"
+                android:maxLength="18"
+                android:singleLine="true" />
+
+        </LinearLayout>
+
+        <!--卡顿恢复-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cicada_config_katun_recovery" />
+
+            <EditText
+                android:id="@+id/et_high_buffer_level"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="2"
+                android:background="@drawable/shape_edit_bg"
+                android:inputType="number"
+                android:maxLength="18"
+                android:singleLine="true" />
+
+        </LinearLayout>
+
+        <!--最大值-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cicada_config_max" />
+
+            <EditText
+                android:id="@+id/et_max_buffer_packet_duration"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="2"
+                android:background="@drawable/shape_edit_bg"
+                android:inputType="number"
+                android:maxLength="18"
+                android:singleLine="true" />
+
+        </LinearLayout>
+
+        <!--直播最大延迟-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cicada_config_live_delay" />
+
+            <EditText
+                android:id="@+id/et_max_delay_time"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="2"
+                android:background="@drawable/shape_edit_bg"
+                android:inputType="number"
+                android:maxLength="18"
+                android:singleLine="true" />
+
+        </LinearLayout>
+
+        <!--网络超时-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cicada_config_net_time_out" />
+
+            <EditText
+                android:id="@+id/et_net_work_time_out"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="2"
+                android:background="@drawable/shape_edit_bg"
+                android:inputType="number"
+                android:maxLength="18"
+                android:singleLine="true" />
+
+        </LinearLayout>
+
+        <!--probe大小-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cicada_config_probe" />
+
+            <EditText
+                android:id="@+id/et_probe_size"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="2"
+                android:background="@drawable/shape_edit_bg"
+                android:inputType="number"
+                android:maxLength="18"
+                android:singleLine="true" />
+
+        </LinearLayout>
+
+        <!--请求referer-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cicada_config_request_referer" />
+
+            <EditText
+                android:id="@+id/et_referrer"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="2"
+                android:background="@drawable/shape_edit_bg"
+                android:singleLine="true" />
+
+        </LinearLayout>
+
+        <!--httpProxy代理-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cicada_config_http_proxy" />
+
+            <EditText
+                android:id="@+id/et_http_proxy"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="2"
+                android:background="@drawable/shape_edit_bg"
+                android:singleLine="true" />
+
+        </LinearLayout>
+
+        <!--重试-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cicada_config_retry_count" />
+
+            <EditText
+                android:id="@+id/et_retry_count"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="2"
+                android:hint="2"
+                android:inputType="number"
+                android:background="@drawable/shape_edit_bg"
+                android:singleLine="true" />
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp">
+
+            <CheckBox
+                android:id="@+id/checkbox_clear_frame_when_stop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:button="@null"
+                android:layout_centerVertical="true"
+                android:drawablePadding="10dp"
+                android:drawableRight="@drawable/switch_bkg"
+                android:text="@string/cicada_config_clear_Frame_when_stop" />
+
+            <TextView
+                android:id="@+id/tv_save_config"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="20dp"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:text="@string/cicada_config_refresh"
+                android:textColor="@color/colorPrimary" />
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+
+</ScrollView>

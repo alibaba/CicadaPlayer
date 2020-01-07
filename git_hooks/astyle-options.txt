@@ -1,0 +1,263 @@
+# Allman style uses broken braces.
+#
+# int Foo(bool isBar)
+# {
+#     if (isBar)
+#     {
+#         bar();
+#         return 1;
+#     }
+#     else
+#         return 0;
+# }
+--style=kr
+
+--attach-namespaces
+--indent-switches
+--keep-one-line-blocks
+
+# --indent=tab / --indent=tab=# / -t / -t#
+# Indent using tabs for indentation, and spaces for continuation line alignment. This ensures that the code is displayed correctly  regardless of the viewer???s tab size. Treat each indent as # spaces (e.g. -t6 / --indent=tab=6). # must be between 2 and 20. If no # is set, treats indents as 4 spaces.
+#
+# with indent=tab:
+#
+# void Foo() {
+# >   if (isBar1
+# >   ........&& isBar2)    // indent of this line can be changed with min-conditional-indent
+# >   >   bar();
+# }
+# with style=linux, indent=tab=8:
+#
+# void Foo()
+# {
+# >       if (isBar1
+# >       ....&& isBar2)    // indent of this line can NOT be changed with style=linux
+# >       >       bar();
+# }
+#--indent=tab=4
+
+# --indent-namespaces / -N
+# Add extra indentation to namespace blocks. This option has no effect on Java files. It will also indent CORBA IDL module statements.
+#
+# namespace foospace
+# {
+# class Foo
+# {
+#     public:
+#         Foo();
+#         virtual ~Foo();
+# };
+# }
+# becomes:
+#
+# namespace foospace
+# {
+#     class Foo
+#     {
+#         public:
+#             Foo();
+#             virtual ~Foo();
+#     };
+# }
+--indent-namespaces
+
+# --indent-preproc-block / -xW
+# Indent preprocessor blocks at brace level zero and immediately within a namespace. There are restrictions on what will be indented. Blocks within methods, classes, arrays, etc., will not be indented. Blocks containing braces or multi-line define statements will not be indented. Without this option the preprocessor block is not indented.
+#
+# #ifdef _WIN32
+# #include <windows.h>
+# #ifndef NO_EXPORT
+# #define EXPORT
+# #endif
+# #endif
+# becomes:
+#
+# #ifdef _WIN32
+#     #include <windows.h>
+#     #ifndef NO_EXPORT
+#         #define EXPORT
+#     #endif
+# #endif
+--indent-preproc-block
+
+# --indent-preproc-define / -w
+# Indent multi-line preprocessor definitions ending with a backslash. Should be used with --convert-tabs for proper results. Does a pretty good job, but cannot perform miracles in obfuscated preprocessor definitions. Without this option the preprocessor statements remain unchanged.
+#
+# #define Is_Bar(arg,a,b) \
+# (Is_Foo((arg), (a)) \
+# || Is_Foo((arg), (b)))
+# becomes:
+#
+# #define Is_Bar(arg,a,b) \
+#     (Is_Foo((arg), (a)) \
+#      || Is_Foo((arg), (b)))
+--indent-preproc-define
+
+# --break-blocks / -f
+# Pad empty lines around header blocks (e.g. 'if', 'for', 'while'...).
+#
+# isFoo = true;
+# if (isFoo) {
+#     bar();
+# } else {
+#     anotherBar();
+# }
+# isBar = false;
+# becomes:
+#
+# isFoo = true;
+#
+# if (isFoo) {
+#     bar();
+# } else {
+#     anotherBar();
+# }
+#
+# isBar = false;
+--break-blocks
+
+# --pad-oper / -p
+# Insert space padding around operators. This will also pad commas. Any end of line comments will remain in the original column, if possible. Note that there is no option to unpad. Once padded, they stay padded.
+#
+# if (foo==2)
+#     a=bar((b-c)*a,d--);
+# becomes:
+#
+# if (foo == 2)
+#     a = bar((b - c) * a, d--);
+--pad-oper
+
+# --pad-comma / -xg
+# Insert space padding after commas. This is not needed if pad-oper is used. Any end of line comments will remain in the original column, if possible. Note that there is no option to unpad. Once padded, they stay padded.
+#
+# if (isFoo(a,b))
+#     bar(a,b);
+# becomes:
+#
+# if (isFoo(a, b))
+#     bar(a, b);
+--pad-comma
+
+# --pad-paren-in / -D
+# Insert space padding around paren on the inside only. Any end of line comments will remain in the original column, if possible. This can be used with unpad-paren below to remove unwanted spaces.
+#
+# if (isFoo((a+2), b))
+#     bar(a, b);
+# becomes:
+#
+# if ( isFoo( ( a+2 ), b ) )
+#     bar( a, b );
+#--pad-paren-in
+
+# --pad-header / -H
+# Insert space padding between a header (e.g. 'if', 'for', 'while'...) and the following paren. Any end of line comments will remain in the original column, if possible. This can be used with unpad-paren to remove unwanted spaces.
+#
+# if(isFoo((a+2), b))
+#     bar(a, b);
+# becomes:
+#
+# if (isFoo((a+2), b))
+#     bar(a, b);
+--pad-header
+
+# --delete-empty-lines / -xe
+# Delete empty lines within a function or method. Empty lines outside of functions or methods are NOT deleted. If used with break-blocks or break-blocks=all it will delete all lines EXCEPT the lines added by the break-blocks options.
+#
+# void Foo()
+# {
+#
+#     foo1 = 1;
+#
+#     foo2 = 2;
+#
+# }
+# becomes:
+#
+# void Foo()
+# {
+#     foo1 = 1;
+#     foo2 = 2;
+# }
+--delete-empty-lines
+
+# --align-pointer=type   / -k1
+# --align-pointer=middle / -k2
+# --align-pointer=name   / -k3
+# Attach a pointer or reference operator (*, &, or ^) to either the variable type (left) or variable name (right), or place it between the type and name (middle). The spacing between the type and name will be preserved, if possible. This option is for C/C++, C++/CLI, and C# files. To format references separately, use the following align-reference option.
+#
+# char* foo1;
+# char & foo2;
+# string ^s1;
+# becomes (with align-pointer=type):
+#
+# char* foo1;
+# char& foo2;
+# string^ s1;
+# char* foo1;
+# char & foo2;
+# string ^s1;
+# becomes (with align-pointer=middle):
+#
+# char * foo1;
+# char & foo2;
+# string ^ s1;
+# char* foo1;
+# char & foo2;
+# string ^s1;
+# becomes (with align-pointer=name):
+#
+# char *foo1;
+# char &foo2;
+# string ^s1;
+--align-pointer=name
+
+# --attach-return-type      / -xf
+# --attach-return-type-decl / -xh
+# Attach the return type to the function name. The two options are for the function definitions (-xf), and the function declarations or signatures (-xh). They are intended to undo the --break-return-type options. If used with --break-return-type, the result will be to break the return type. This option has no effect on Objective-C functions.
+#
+# void
+# Foo(bool isFoo);
+# becomes:
+#
+# void Foo(bool isFoo);
+--attach-return-type
+
+# --max-code-length=#   / -xC#
+# --break-after-logical / -xL
+# The option max???code???length will break a line if the code exceeds # characters. The valid values are 50 thru 200. Lines without logical conditionals will break on a logical conditional (||, &&, ...), comma, paren, semicolon, or space.
+#
+# Some code will not be broken, such as comments, quotes, and arrays. If used with keep???one???line???blocks or add-one-line-braces the blocks will NOT be broken. If used with keep???one???line???statements the statements will be broken at a semicolon if the line goes over the maximum length. If there is no available break point within the max code length, the line will be broken at the first available break point after the max code length.
+#
+# By default logical conditionals will be placed first in the new line. The option break???after???logical will cause the logical conditionals to be placed last on the previous line. This option has no effect without max???code???length.
+#
+# if (thisVariable1 == thatVariable1 || thisVariable2 == thatVariable2 || thisVariable3 == thatVariable3)
+#     bar();
+# becomes:
+#
+# if (thisVariable1 == thatVariable1
+#         || thisVariable2 == thatVariable2
+#         || thisVariable3 == thatVariable3)
+#     bar();
+# becomes (with break???after???logical):
+#
+# if (thisVariable1 == thatVariable1 ||
+#         thisVariable2 == thatVariable2 ||
+#         thisVariable3 == thatVariable3)
+#     bar();
+
+--add-braces
+#--add-braces / -j
+
+#Add braces to unbraced one line conditional statements (e.g. 'if', 'for', 'while'...). The statement must be on a single line. The braces will be added according to the requested brace style. If no style is requested the braces will be attached.
+
+#Braces will NOT be added to a multi-statement line if keep-one-line-statements is requested. Braces will NOT be added to a one line block if keep-one-line-blocks is requested. If used with --add-one-line-braces, the result will be one line braces.
+
+#if (isFoo)
+#    isFoo = false;
+#becomes:
+
+#if (isFoo) {
+#    isFoo = false;
+#}
+
+--max-code-length=140

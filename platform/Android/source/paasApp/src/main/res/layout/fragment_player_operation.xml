@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/cicada_white"
+        android:orientation="vertical">
+
+        <!-- 自动播放,静音,循环 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/cicada_white"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+
+            <CheckBox
+                android:id="@+id/autoPlayON"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:button="@null"
+                android:drawableTop="@drawable/switch_bkg"
+                android:gravity="center"
+                android:text="@string/auto_play" />
+
+
+            <CheckBox
+                android:id="@+id/muteOn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:button="@null"
+                android:drawableTop="@drawable/switch_bkg"
+                android:gravity="center"
+                android:text="@string/mute_label" />
+
+            <CheckBox
+                android:id="@+id/loopOn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:button="@null"
+                android:drawableTop="@drawable/switch_bkg"
+                android:gravity="center"
+                android:text="@string/player_loop" />
+
+            <CheckBox
+                android:id="@+id/hardwaredecoder"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:clickable="false"
+                android:button="@null"
+                android:drawableTop="@drawable/switch_bkg"
+                android:gravity="center"
+                android:text="@string/hardware_decoder" />
+
+            <CheckBox
+                android:id="@+id/blacklist"
+                android:layout_width="0dp"
+                android:visibility="gone"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:drawableTop="@drawable/switch_bkg"
+                android:gravity="center"
+                android:text="@string/black_list"
+                android:button="@null" />
+
+            <CheckBox
+                android:id="@+id/accurate_seek"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:button="@null"
+                android:drawableTop="@drawable/switch_bkg"
+                android:gravity="center"
+                android:text="@string/accurate_seek" />
+
+        </LinearLayout>
+        <!-- 自动播放,静音,循环,自动码率 End -->
+
+        <!--音量-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:background="@color/cicada_white"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/text_style"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/volume_label" />
+
+            <com.cicada.player.demo.view.IndicatorSeekBar
+                android:id="@+id/volumeProgress"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5" />
+        </LinearLayout>
+        <!--音量 end-->
+
+        <!--缩放模式-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@color/cicada_white"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/text_style"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/scale_model" />
+
+            <RadioGroup
+                android:id="@+id/scalingMode"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="4"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/fit"
+                    style="@style/radio_style"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/aspect_fit" />
+
+                <RadioButton
+                    android:id="@+id/fill"
+                    style="@style/radio_style"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/aspect_fill" />
+
+                <RadioButton
+                    android:id="@+id/fill_only"
+                    style="@style/radio_style"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/fill" />
+            </RadioGroup>
+
+        </LinearLayout>
+        <!--缩放模式 end-->
+
+        <!--镜像模式-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@color/cicada_white"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/text_style"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/mirror" />
+
+            <RadioGroup
+                android:id="@+id/mirrorMode"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="4"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/mirror_none"
+                    style="@style/radio_style"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/mirror_none" />
+
+                <RadioButton
+                    android:id="@+id/mirror_h"
+                    style="@style/radio_style"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/mirror_h" />
+
+                <RadioButton
+                    android:id="@+id/mirror_v"
+                    style="@style/radio_style"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/mirror_v" />
+            </RadioGroup>
+
+        </LinearLayout>
+        <!--镜像模式 end-->
+
+        <!--旋转模式-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@color/cicada_white"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/text_style"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/rotation" />
+
+            <RadioGroup
+                android:id="@+id/rotationMode"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="4"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/rotate0"
+                    style="@style/radio_style"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/roate_0" />
+
+                <RadioButton
+                    android:id="@+id/rotate90"
+                    style="@style/radio_style"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/roate_90" />
+
+                <RadioButton
+                    android:id="@+id/rotate180"
+                    style="@style/radio_style"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/roate_180" />
+
+                <RadioButton
+                    android:id="@+id/rotate270"
+                    style="@style/radio_style"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/roate_270" />
+            </RadioGroup>
+
+        </LinearLayout>
+        <!--旋转模式 end-->
+
+        <!--倍速播放-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@color/cicada_white"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/text_style"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cicada_speed_mode" />
+
+            <RadioGroup
+                android:id="@+id/speedMode"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="4"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/speed10"
+                    style="@style/radio_style"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:singleLine="true"
+                    android:text="@string/cicada_speed_one_times" />
+
+                <RadioButton
+                    android:id="@+id/speed05"
+                    style="@style/radio_style"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:singleLine="true"
+                    android:text="@string/cicada_speed_optf_times" />
+
+                <RadioButton
+                    android:id="@+id/speed15"
+                    style="@style/radio_style"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:singleLine="true"
+                    android:text="@string/cicada_speed_opt_times" />
+
+                <RadioButton
+                    android:id="@+id/speed20"
+                    style="@style/radio_style"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:singleLine="true"
+                    android:text="@string/cicada_speed_twice_times" />
+            </RadioGroup>
+
+        </LinearLayout>
+        <!--倍速播放 end-->
+
+        <TextView
+            android:id="@+id/tv_show_mediainfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginTop="30dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="20dp"
+            android:text="@string/cicada_media_info"
+            android:textColor="@color/colorPrimary" />
+
+    </LinearLayout>
+
+</ScrollView>

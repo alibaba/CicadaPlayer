@@ -1,0 +1,6 @@
+*contents.xcworkspacedata
+*xcshareddata/
+*xcuserdata/ 
+Podfile.lock
+Pods/
+CicadaDemo.xcworkspace

@@ -1,0 +1,10 @@
+.idea/
+Xcode
+.akconfig
+.build
+install/
+Mac/
+_generated/
+*.akconfig
+cmake-build-*
+*.orig

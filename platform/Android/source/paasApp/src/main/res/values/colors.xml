@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="cicada_little_download_bg">#B3373D41</color>
+    <color name="cicada_white">#e7e7e7</color>
+    <color name="cicada_info_text_duration">#9f9e9e</color>
+    <color name="cicada_color_rate_item">#4c000000</color>
+
+    <color name="cicada_blue">#379DF2</color>
+    <color name="cicada_green">#57AB44</color>
+    <color name="cicada_orange">#EE7C33</color>
+    <color name="cicada_red">#E94033</color>
+
+
+    <color name="cicada_dialog_error_bg">#b2000000</color>
+    <color name="cicada_dialog_gesture_bg">#66ffffff</color>
+    <color name="cicada_subtitle_view_bg">#6fa9a9a9</color>
+    <color name="cicada_gesture_text_color">#333333</color>
+</resources>

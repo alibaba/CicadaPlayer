@@ -1,0 +1,45 @@
+package com.cicada.player.demo.util;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+
+public class SharedPreferenceUtils {
+
+    public static final String CICADA_PLAYER_HARDWARE_DECODER = "cicada_player_hardware_decoder";
+
+    private static SharedPreferences mInstance = null;
+
+    private SharedPreferenceUtils(){
+
+    }
+
+    public static SharedPreferences init(Context context){
+        if(context == null){
+            return null;
+        }
+        if(mInstance == null){
+            synchronized (SharedPreferenceUtils.class){
+                if(mInstance == null){
+                    mInstance = context.getSharedPreferences("cicada_player",Context.MODE_PRIVATE);
+                }
+            }
+        }
+        return mInstance;
+    }
+
+    public static void putBooleanExtra(String key,boolean value){
+        if(mInstance == null){
+            return ;
+        }
+        SharedPreferences.Editor edit = mInstance.edit();
+        edit.putBoolean(key,value);
+        edit.commit();
+    }
+
+    public static boolean getBooleanExtra(String key){
+        if(mInstance == null){
+            return false;
+        }
+        return mInstance.getBoolean(key, true);
+    }
+}

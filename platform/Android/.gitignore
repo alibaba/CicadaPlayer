@@ -1,0 +1,14 @@
+.idea
+*.so
+source/releaseLibs/
+
+*.akconfig
+CMakeFiles/
+CMakeCache*.txt
+Makefile*
+cmake_install*.cmake
+*.json
+source/listapp/wrap_add_dir/
+motuAsan/app/wrap_add_dir/
+motuAsan/releaseLibs/
+release/

@@ -1,0 +1,48 @@
+
+/* Class = "UIBarButtonItem"; title = "扫码"; ObjectID = "IF3-fM-URu"; */
+"IF3-fM-URu.title" = "扫码";
+
+/* Class = "UINavigationItem"; title = "本地视频列表"; ObjectID = "JJe-v1-btG"; */
+"JJe-v1-btG.title" = "本地视频列表";
+
+/* Class = "UILabel"; text = "是否硬解码："; ObjectID = "JpD-db-T97"; */
+"JpD-db-T97.text" = "是否硬解码：";
+
+/* Class = "UIViewController"; title = "设置"; ObjectID = "L0m-4t-Rt7"; */
+"L0m-4t-Rt7.title" = "设置";
+
+/* Class = "UIBarButtonItem"; title = "设置"; ObjectID = "Mbb-HE-qMt"; */
+"Mbb-HE-qMt.title" = "设置";
+
+/* Class = "UINavigationItem"; title = "设置"; ObjectID = "TDM-sH-pY6"; */
+"TDM-sH-pY6.title" = "设置";
+
+/* Class = "UINavigationItem"; title = "CicadaPlayer"; ObjectID = "XfW-yx-i0R"; */
+"XfW-yx-i0R.title" = "CicadaPlayer";
+
+/* Class = "UILabel"; text = "当前版本号：        "; ObjectID = "h7c-Fj-Ogw"; */
+"h7c-Fj-Ogw.text" = "当前版本号：        ";
+
+/* Class = "UIButton"; normalTitle = "多实例测试"; ObjectID = "lKl-GQ-onz"; */
+"lKl-GQ-onz.normalTitle" = "多实例测试";
+
+/* Class = "UISegmentedControl"; nuN-e5-Zwf.segmentTitles[0] = "ERROR"; ObjectID = "nuN-e5-Zwf"; */
+"nuN-e5-Zwf.segmentTitles[0]" = "ERROR";
+
+/* Class = "UISegmentedControl"; nuN-e5-Zwf.segmentTitles[1] = "INFO"; ObjectID = "nuN-e5-Zwf"; */
+"nuN-e5-Zwf.segmentTitles[1]" = "INFO";
+
+/* Class = "UISegmentedControl"; nuN-e5-Zwf.segmentTitles[2] = "DEBUG"; ObjectID = "nuN-e5-Zwf"; */
+"nuN-e5-Zwf.segmentTitles[2]" = "DEBUG";
+
+/* Class = "UIButton"; normalTitle = "本地视频列表"; ObjectID = "u6S-Fk-Q1T"; */
+"u6S-Fk-Q1T.normalTitle" = "本地视频列表";
+
+/* Class = "UINavigationItem"; title = "输入URL"; ObjectID = "u6d-wJ-BQS"; */
+"u6d-wJ-BQS.title" = "输入URL";
+
+/* Class = "UIButton"; normalTitle = "输入URL"; ObjectID = "vpx-Sk-FbH"; */
+"vpx-Sk-FbH.normalTitle" = "输入URL";
+
+/* Class = "UIButton"; normalTitle = "    进入URL播放    "; ObjectID = "xq1-aX-uBv"; */
+"xq1-aX-uBv.normalTitle" = "    进入URL播放    ";

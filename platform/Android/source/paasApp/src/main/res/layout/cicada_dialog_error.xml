@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/cicada_dialog_error_bg"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/msg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:text="@string/cicada_error_msg"
+        android:textColor="@color/cicada_white"
+        android:textSize="@dimen/cicada_loading_font_size" />
+
+    <TextView
+        android:id="@+id/code"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:text="@string/cicada_error_code"
+        android:textColor="@color/cicada_white"
+        android:textSize="@dimen/cicada_loading_font_size" />
+
+    <RelativeLayout
+        android:id="@+id/retry"
+        android:layout_width="82dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/cicada_rr_bg_blue">
+
+        <TextView
+            android:id="@+id/retry_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:drawableLeft="@mipmap/cicada_refresh_blue"
+            android:drawablePadding="@dimen/cicada_error_retry_padding"
+            android:gravity="center"
+            android:text="@string/cicada_retry"
+            android:textColor="@color/cicada_blue"
+            android:textSize="@dimen/cicada_error_font_size" />
+    </RelativeLayout>
+</LinearLayout>

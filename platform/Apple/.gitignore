@@ -1,0 +1,13 @@
+*.xcuserdatad
+xcshareddata
+xcuserdata
+.akconfig
+*.zip
+lib/
+demo/iOS/SDK
+demo/macOS/SDK
+demo/macOS/Debug
+demo/macOS/Release
+source/.idea/
+source/MacOS/
+source/cmake-build-debug/

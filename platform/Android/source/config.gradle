@@ -1,0 +1,8 @@
+def getSdkVersion() {
+    def SDK_VERSION = "4.0.0";
+    return SDK_VERSION;
+}
+
+ext{
+    sdkVersion = this.&getSdkVersion
+}

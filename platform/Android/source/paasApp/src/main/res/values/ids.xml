@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="custom_id_min" type="id"/>
+    <item name="cicada_player_subtitle" type="id" />
+
+</resources>

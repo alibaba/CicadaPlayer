@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.v7.widget.Toolbar
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/actionBarSize"
+    android:background="#333">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/scanner_toolbar_back"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingLeft="10dp"
+            android:paddingRight="20dp"
+            android:src="@mipmap/abc_ic_ab_back_mtrl_am_alpha"/>
+
+        <TextView
+            android:id="@+id/scanner_toolbar_title"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:text="二维码/条码"
+            android:textColor="#fff"
+            android:textSize="16sp"/>
+
+        <!--<ImageView-->
+            <!--android:id="@+id/scanner_toolbar_more"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:paddingRight="20dp"-->
+            <!--android:src="@mipmap/abc_ic_menu_moreoverflow_mtrl_alpha"/>-->
+
+    </LinearLayout>
+
+
+</android.support.v7.widget.Toolbar>

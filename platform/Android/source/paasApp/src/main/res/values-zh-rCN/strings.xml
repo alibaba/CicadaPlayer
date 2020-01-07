@@ -1,0 +1,180 @@
+<resources>
+    <string name="app_name">CicadaPlayerDemo</string>
+    <string name="cicada_success">成功</string>
+
+    <!--title-->
+    <string name="title_player">播放</string>
+    <string name="title_screen_shot">截图</string>
+    <string name="title_choose_item">选择URL界面</string>
+    <string name="title_input_url_item">输入URL界面</string>
+    <string name="title_scanning">二维码扫描</string>
+    <string name="title_setting">设置</string>
+
+    <!--setting-->
+    <string name="setting_version">版本号 : </string>
+
+    <!-- 无权限提醒 -->
+    <string name="no_camera_permission">没有权限使用摄像头，请开启摄像头权限</string>
+    <string name="no_record_bluetooth_permission">没有权限使用蓝牙，请开启蓝牙权限</string>
+    <string name="no_record_audio_permission">没有权限使用录音，请开启录音权限</string>
+    <string name="no_read_phone_state_permission">没有读取用户数据的权限，请开启该权限</string>
+    <string name="no_write_external_storage_permission">没有文件写权限，请开启该权限</string>
+    <string name="no_read_external_storage_permission">没有文件读权限，请开启该权限</string>
+
+    <!--提示内容-->
+
+    <!--倍速播放-->
+    <string name="cicada_speed_mode">倍速播放</string>
+    <string name="cicada_speed_one_times">正常</string>
+    <string name="cicada_speed_optf_times">0.5倍速</string>
+    <string name="cicada_speed_opt_times">1.5倍速</string>
+    <string name="cicada_speed_twice_times">2.0倍速</string>
+    <string name="cicada_speed_tips">当前视频已切换为%1$s播放</string>
+
+    <!--手势引导-->
+    <string name="cicada_left_side">左侧</string>
+    <string name="cicada_brightness">亮度</string>
+    <string name="cicada_control">调节</string>
+    <string name="cicada_center">中心</string>
+    <string name="cicada_progress">进度</string>
+    <string name="cicada_right_side">右侧</string>
+    <string name="cicada_volume">音量</string>
+    <string name="cicada_screen_model_small">全屏</string>
+    <string name="cicada_screen_model_large">缩放</string>
+
+    <!--错误-->
+    <string name="cicada_error_msg">错误消息</string>
+    <string name="cicada_error_code">错误码:</string>
+    <string name="cicada_retry">重试</string>
+
+    <string name="cicada_replay_msg">视频播放结束</string>
+    <string name="cicada_replay">重播</string>
+
+    <!--loading-->
+    <string name="cicada_loading">Loading...</string>
+    <string name="cicada_loading_tips">Video is loading...</string>
+    <!--netError-->
+    <string name="cicada_net_disable">无网络连接，检查网络后点击重新播放</string>
+    <string name="cicada_net_state_mobile">当前为移动网络，请点击播放</string>
+    <string name="cicada_net_state_mobile_yes">继续播放</string>
+    <string name="cicada_net_state_mobile_no">退出播放</string>
+
+    <!-- CicadaPlayer -->
+    <string name="prepare_start_button">开始</string>
+    <string name="prepare_button">准备</string>
+    <string name="start_button">播放</string>
+    <string name="stop_button">停止</string>
+    <string name="pause_button">暂停</string>
+    <string name="screenshot_button">截图</string>
+    <string name="retry_button">重试</string>
+    <string name="mute_label">静音</string>
+    <string name="auto_play">自动播放</string>
+    <string name="accurate_seek">精准seek</string>
+    <string name="player_loop">循环</string>
+    <string name="hardware_decoder">硬解码</string>
+    <string name="black_list">黑名单</string>
+    <string name="volume_label">音量</string>
+    <string name="auto_bitrate">自动码率</string>
+    <string name="scale_model">缩放模式</string>
+    <string name="aspect_fit">比例填充</string>
+    <string name="aspect_fill">比例全屏</string>
+    <string name="fill">拉伸全屏</string>
+    <string name="cicada_tip_network_reconnect_failed">网络重连失败</string>
+    <string name="cicada_tip_network_connect_success">网络连接成功</string>
+    <string name="cicada_cancel_subtitle_ext">取消外挂字幕</string>
+
+    <!--镜像模式-->
+    <string name="mirror">镜像模式</string>
+    <string name="mirror_none">无镜像</string>
+    <string name="mirror_h">水平镜像</string>
+    <string name="mirror_v">垂直镜像</string>
+
+    <!--旋转模式-->
+    <string name="rotation">旋转模式</string>
+    <string name="roate_0">0°</string>
+    <string name="roate_90">90°</string>
+    <string name="roate_180">180°</string>
+    <string name="roate_270">270°</string>
+
+    <!--track 信息-->
+    <string name="media_info_track_bit_rate">码率</string>
+    <string name="media_info_track_subtitle">字幕</string>
+    <string name="media_info_track_subtitle_ext">外挂字幕</string>
+    <string name="media_info_track_sound_track">音轨</string>
+    <string name="media_info_track_definition">清晰度</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="cicada_media_info">媒体信息</string>
+    <string name="cicada_config_start">启播缓冲时长</string>
+    <string name="cicada_config_katun_recovery">卡顿恢复</string>
+    <string name="cicada_config_max">最大缓冲时长</string>
+    <string name="cicada_config_live_delay">直播最大延迟</string>
+    <string name="cicada_config_net_time_out">网络超时</string>
+    <string name="cicada_config_probe">probe大小</string>
+    <string name="cicada_config_request_referer">请求referer</string>
+    <string name="cicada_config_http_proxy">httpProxy代理</string>
+    <string name="cicada_config_retry_count">重连次数</string>
+    <string name="cicada_config_refresh">应用配置</string>
+    <string name="cicada_config_clear_Frame_when_stop">停止隐藏最后帧</string>
+
+    <string name="cicada_cache_config_switch">开启缓存配置</string>
+    <string name="cicada_cache_config_max_duration">最大时长(单位s)</string>
+    <string name="cicada_cache_config_max_size">最大size(单位MB)</string>
+    <string name="cicada_cache_config_dir">保存路径</string>
+
+    <string name="cicada_sts_clear">清除</string>
+    <string name="btn_exoplayer">ExoPlayer</string>
+    <string name="btn_input_url">输入URL</string>
+
+    <!--download-->
+
+    <!--清晰度-->
+    <string name="cicada_fd_definition">流畅</string>
+    <string name="cicada_ld_definition">标清</string>
+    <string name="cicada_sd_definition">高清</string>
+    <string name="cicada_hd_definition">超清</string>
+    <string name="cicada_k2_definition">2k</string>
+    <string name="cicada_k4_definition">4k</string>
+    <string name="cicada_od_definition">原画</string>
+    <string name="cicada_hq_definition">高品质音频</string>
+    <string name="cicada_sq_definition">低品质音频</string>
+
+    <string name="cicada_mts_xld_definition">极速</string>
+    <string name="cicada_mts_ld_definition">流畅</string>
+    <string name="cicada_mts_sd_definition">标清</string>
+    <string name="cicada_mts_fhd_definition">超清</string>
+    <string name="cicada_mts_hd_definition">高清</string>
+
+
+    <string name="cicada_get_mediainfo_failure">获取MediaInfo失败</string>
+    <string name="cicada_multiple_instances">多实例</string>
+    <string name="cicada_change_to_soft_decoder">切换到软解</string>
+    <string name="cicada_change_track_failure">切换失败</string>
+    <string name="cicada_change_subtitle_track">切换字幕</string>
+    <string name="cicada_change_audio_track">切换音轨</string>
+    <string name="cicada_change_bitate_track">切换码率</string>
+
+    <string name="cicada_refresh_config_success">刷新配置成功</string>
+    <string name="cicada_none_mediainfo">暂无媒体信息</string>
+    <string name="cicada_resolution">分辨率</string>
+    <string name="cicada_definition">清晰度</string>
+    <string name="cicada_subtitle">字幕</string>
+    <string name="cicada_bitrate">码率</string>
+    <string name="cicada_audio">音轨</string>
+    <string name="cicada_scale">缩放模式:</string>
+    <string name="cicada_mirror">镜像模式:</string>
+    <string name="cicada_rotate">旋转模式:</string>
+
+    <string name="cicada_setting">去设置</string>
+    <string name="cicada_setting_cancel">暂不设置</string>
+
+    <string name="cicada_prepare_success">准备完成</string>
+    <string name="cicada_snap_shot_failure">获取截图失败</string>
+    <string name="cicada_snap_shotting">正在截图中,请稍后</string>
+    <string name="cicada_unable_start_hardware_decoder">无法开启硬解</string>
+    <string name="cicada_copy_file_failure">拷贝文件失败</string>
+
+
+</resources>

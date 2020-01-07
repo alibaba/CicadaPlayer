@@ -1,0 +1,180 @@
+<resources>
+    <string name="app_name">CicadaPlayerDemo</string>
+    <string name="cicada_success">Success</string>
+
+    <!--title-->
+    <string name="title_player">Play</string>
+    <string name="title_screen_shot">SnapShot</string>
+    <string name="title_choose_item">URL</string>
+    <string name="title_input_url_item">Input URL</string>
+    <string name="title_scanning">QR code Scanning</string>
+    <string name="title_setting">Setting</string>
+
+    <!--setting-->
+    <string name="setting_version">VersionCode : </string>
+
+    <!-- 无权限提醒 -->
+    <string name="no_camera_permission">Not Camera Permission</string>
+    <string name="no_record_bluetooth_permission">Not Bluetooth Permission</string>
+    <string name="no_record_audio_permission">Not Recording Permission</string>
+    <string name="no_read_phone_state_permission">Not Read Phone State Permission</string>
+    <string name="no_write_external_storage_permission">Not WRITE_EXTERNAL_STORAGE Permission</string>
+    <string name="no_read_external_storage_permission">Not READ_EXTERNAL_STORAGE Permission</string>
+
+    <!--提示内容-->
+
+    <!--倍速播放-->
+    <string name="cicada_speed_mode">Speed Mode</string>
+    <string name="cicada_speed_one_times">Normal</string>
+    <string name="cicada_speed_optf_times">0.5</string>
+    <string name="cicada_speed_opt_times">1.5</string>
+    <string name="cicada_speed_twice_times">2.0</string>
+    <string name="cicada_speed_tips">has changed %1$s </string>
+
+    <!--手势引导-->
+    <string name="cicada_left_side">Left</string>
+    <string name="cicada_brightness">Brightness</string>
+    <string name="cicada_control">Regulation</string>
+    <string name="cicada_center">Center</string>
+    <string name="cicada_progress">Progress</string>
+    <string name="cicada_right_side">Right</string>
+    <string name="cicada_volume">Volume</string>
+    <string name="cicada_screen_model_small">Full Screen</string>
+    <string name="cicada_screen_model_large">Scale Screen</string>
+
+    <!--错误-->
+    <string name="cicada_error_msg">Error message</string>
+    <string name="cicada_error_code">Error Code:</string>
+    <string name="cicada_retry">Retry</string>
+
+    <string name="cicada_replay_msg">Completion</string>
+    <string name="cicada_replay">Replay</string>
+
+    <!--loading-->
+    <string name="cicada_loading">Loading...</string>
+    <string name="cicada_loading_tips">Video is loading...</string>
+    <!--netError-->
+    <string name="cicada_net_disable">NetWork Error</string>
+    <string name="cicada_net_state_mobile">You are connected to a mobile network. Continue?</string>
+    <string name="cicada_net_state_mobile_yes">Continue</string>
+    <string name="cicada_net_state_mobile_no">Exit</string>
+
+    <!-- CicadaPlayer -->
+    <string name="prepare_start_button">Start</string>
+    <string name="prepare_button">Prepare</string>
+    <string name="start_button">Play</string>
+    <string name="stop_button">Stop</string>
+    <string name="pause_button">Pause</string>
+    <string name="screenshot_button">ScreenShot</string>
+    <string name="retry_button">Retry</string>
+    <string name="mute_label">Mute</string>
+    <string name="auto_play">Auto Play</string>
+    <string name="accurate_seek">Accurate Seek</string>
+    <string name="player_loop">Loop</string>
+    <string name="hardware_decoder">Hardware Decoder</string>
+    <string name="black_list">Black Lit</string>
+    <string name="volume_label">Volume</string>
+    <string name="auto_bitrate">Auto Bitrate</string>
+    <string name="scale_model">Scale Model</string>
+    <string name="aspect_fit">Aspect Fit</string>
+    <string name="aspect_fill">Aspect Fill</string>
+    <string name="fill">Fill</string>
+    <string name="cicada_tip_network_reconnect_failed">NetWork Reconnect Failed</string>
+    <string name="cicada_tip_network_connect_success">NetWork Reconnect Success</string>
+    <string name="cicada_cancel_subtitle_ext">Cancel Subtitle</string>
+
+    <!--镜像模式-->
+    <string name="mirror">Mirror</string>
+    <string name="mirror_none">None</string>
+    <string name="mirror_h">Horizontal</string>
+    <string name="mirror_v">Vertical</string>
+
+    <!--旋转模式-->
+    <string name="rotation">Rotation</string>
+    <string name="roate_0">0°</string>
+    <string name="roate_90">90°</string>
+    <string name="roate_180">180°</string>
+    <string name="roate_270">270°</string>
+
+    <!--track 信息-->
+    <string name="media_info_track_bit_rate">Bitrate</string>
+    <string name="media_info_track_subtitle">Subtitle</string>
+    <string name="media_info_track_subtitle_ext">External Subtitle</string>
+    <string name="media_info_track_sound_track">Audio</string>
+    <string name="media_info_track_definition">Definition</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="cicada_media_info">MediaInfo</string>
+    <string name="cicada_config_start">Start Buffer Level</string>
+    <string name="cicada_config_katun_recovery">High Buffer Level</string>
+    <string name="cicada_config_max">Max Buffer Duration</string>
+    <string name="cicada_config_live_delay">Max Delay Time</string>
+    <string name="cicada_config_net_time_out">NetWork TimeOut</string>
+    <string name="cicada_config_probe">Probe Size</string>
+    <string name="cicada_config_request_referer">Request Referer</string>
+    <string name="cicada_config_http_proxy">httpProxy</string>
+    <string name="cicada_config_retry_count">Retry Count</string>
+    <string name="cicada_config_refresh">Setting Config</string>
+    <string name="cicada_config_clear_Frame_when_stop">Clear Frame When Stop</string>
+
+    <string name="cicada_cache_config_switch">Open Cache Config</string>
+    <string name="cicada_cache_config_max_duration">Max Duration(s)</string>
+    <string name="cicada_cache_config_max_size">Max Size(MB)</string>
+    <string name="cicada_cache_config_dir">Save Path</string>
+
+    <string name="cicada_sts_clear">Clear</string>
+    <string name="btn_exoplayer">ExoPlayer</string>
+    <string name="btn_input_url">Input Url</string>
+
+    <!--download-->
+
+    <!--清晰度-->
+    <string name="cicada_fd_definition">FD</string>
+    <string name="cicada_ld_definition">LD</string>
+    <string name="cicada_sd_definition">SD</string>
+    <string name="cicada_hd_definition">HD</string>
+    <string name="cicada_k2_definition">2k</string>
+    <string name="cicada_k4_definition">4k</string>
+    <string name="cicada_od_definition">OD</string>
+    <string name="cicada_hq_definition">HQ</string>
+    <string name="cicada_sq_definition">SQ</string>
+
+    <string name="cicada_mts_xld_definition">XLD</string>
+    <string name="cicada_mts_ld_definition">LD</string>
+    <string name="cicada_mts_sd_definition">SD</string>
+    <string name="cicada_mts_fhd_definition">FHD</string>
+    <string name="cicada_mts_hd_definition">HD</string>
+
+
+    <string name="cicada_get_mediainfo_failure">Get MediaInfo Failure</string>
+    <string name="cicada_multiple_instances">Multiple instances</string>
+    <string name="cicada_change_to_soft_decoder">change to soft decoder</string>
+    <string name="cicada_change_track_failure">change failure</string>
+    <string name="cicada_change_subtitle_track">change subtitle</string>
+    <string name="cicada_change_audio_track">change audio</string>
+    <string name="cicada_change_bitate_track">change bitrate</string>
+
+    <string name="cicada_refresh_config_success">Set Config Success</string>
+    <string name="cicada_none_mediainfo">None</string>
+    <string name="cicada_resolution">Resolution</string>
+    <string name="cicada_definition">Definition</string>
+    <string name="cicada_subtitle">Subtitle</string>
+    <string name="cicada_bitrate">Bitrate</string>
+    <string name="cicada_audio">Audio</string>
+    <string name="cicada_scale">Scale:</string>
+    <string name="cicada_mirror">Mirror:</string>
+    <string name="cicada_rotate">Rotate:</string>
+
+    <string name="cicada_setting">Setting</string>
+    <string name="cicada_setting_cancel">Cancel</string>
+
+    <string name="cicada_prepare_success">Prepare Success</string>
+    <string name="cicada_snap_shot_failure">SnapShot Failure</string>
+    <string name="cicada_snap_shotting">Waitting...</string>
+    <string name="cicada_unable_start_hardware_decoder">hardware decoder failure</string>
+    <string name="cicada_copy_file_failure">copy file failure\</string>
+
+
+</resources>

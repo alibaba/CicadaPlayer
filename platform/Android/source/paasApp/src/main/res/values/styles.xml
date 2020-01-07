@@ -1,0 +1,51 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="NoActionTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="windowActionBarOverlay">true</item>
+    </style>
+
+    <!--seekBar-->
+    <style name="cicada_info_seekbar" parent="@android:style/Widget.SeekBar">
+        <item name="android:indeterminateOnly">false</item>
+        <item name="android:maxHeight">@dimen/cicada_info_seekbar_height</item>
+        <item name="android:minHeight">@dimen/cicada_info_seekbar_height</item>
+        <item name="android:paddingLeft">@dimen/cicada_info_seekbar_offset</item>
+        <item name="android:paddingRight">@dimen/cicada_info_seekbar_offset</item>
+        <item name="android:thumbOffset">@dimen/cicada_info_seekbar_offset</item>
+    </style>
+
+    <!--准备，播放，停止，暂停Button-->
+    <style name="btn_bordless_style" parent="@android:style/Widget.Holo.Button.Borderless.Small">
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:layout_margin">5dp</item>
+    </style>
+
+    <!--音量-->
+    <style name="text_style">
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:layout_margin">5dp</item>
+    </style>
+
+    <!--RadioButton-->
+    <style name="radio_style">
+        <item name="android:gravity">center</item>
+        <item name="android:button">@null</item>
+        <item name="android:padding">@dimen/cicada_loading_view_margin_bottom</item>
+        <item name="android:textColor">@color/radio_txt_color</item>
+        <item name="android:background">@drawable/radio_rect_bkg</item>
+    </style>
+</resources>

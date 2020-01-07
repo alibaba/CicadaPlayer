@@ -1,0 +1,829 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1F940544239DF28F00F07BEE /* alivcffmpeg.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F94053E239DF28700F07BEE /* alivcffmpeg.framework */; };
+		1F940545239DF28F00F07BEE /* alivcffmpeg.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1F94053E239DF28700F07BEE /* alivcffmpeg.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		1F940546239DF29100F07BEE /* CicadaPlayerSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F94053D239DF28700F07BEE /* CicadaPlayerSDK.framework */; };
+		1F940547239DF29100F07BEE /* CicadaPlayerSDK.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1F94053D239DF28700F07BEE /* CicadaPlayerSDK.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		1F940552239DFA9F00F07BEE /* CicadaSourceChooserModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F94054B239DFA9F00F07BEE /* CicadaSourceChooserModel.m */; };
+		1F940553239DFA9F00F07BEE /* source.json in Resources */ = {isa = PBXBuildFile; fileRef = 1F94054C239DFA9F00F07BEE /* source.json */; };
+		1F940554239DFA9F00F07BEE /* CicadaCacheConfig+refresh.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F94054E239DFA9F00F07BEE /* CicadaCacheConfig+refresh.m */; };
+		1F940555239DFA9F00F07BEE /* CicadaConfig+refresh.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F940550239DFA9F00F07BEE /* CicadaConfig+refresh.m */; };
+		92560B6321FEB1B6001244CA /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 92560B6221FEB1B6001244CA /* AppDelegate.m */; };
+		92560B6621FEB1B6001244CA /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92560B6521FEB1B6001244CA /* ViewController.m */; };
+		92560B6821FEB1B7001244CA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 92560B6721FEB1B7001244CA /* Assets.xcassets */; };
+		92560B6B21FEB1B7001244CA /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 92560B6921FEB1B7001244CA /* Main.storyboard */; };
+		92560B6E21FEB1B7001244CA /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 92560B6D21FEB1B7001244CA /* main.m */; };
+		92560B8A21FEB2AE001244CA /* AVPBaseViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92560B8921FEB2AE001244CA /* AVPBaseViewController.m */; };
+		92560B8D21FED4E4001244CA /* AliPlayerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92560B8C21FED4E4001244CA /* AliPlayerViewController.m */; };
+		92560B9321FEE28C001244CA /* AVBottomView.m in Sources */ = {isa = PBXBuildFile; fileRef = 92560B9221FEE28C001244CA /* AVBottomView.m */; };
+		92560BC621FF1B5A001244CA /* AVSettingAndConfigView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 92560BC521FF1B5A001244CA /* AVSettingAndConfigView.xib */; };
+		92560BE622002C1A001244CA /* AVTopView.m in Sources */ = {isa = PBXBuildFile; fileRef = 92560BE322002C19001244CA /* AVTopView.m */; };
+		92560BE722002C1A001244CA /* AVTopView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 92560BE422002C19001244CA /* AVTopView.xib */; };
+		92560BFA22019810001244CA /* AVSettingAndConfigController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92560BF822019810001244CA /* AVSettingAndConfigController.m */; };
+		92560BFD22019EC5001244CA /* AVTopController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92560BFC22019EC5001244CA /* AVTopController.m */; };
+		9261125A2205410500B2654D /* AVPShowImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 926112592205410500B2654D /* AVPShowImageView.m */; };
+		927261FF2202DEF5006AB773 /* HudTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 927261FD2202DEF5006AB773 /* HudTool.m */; };
+		927262022202EE1B006AB773 /* NSLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 927262012202EE1B006AB773 /* NSLabel.m */; };
+		927AE7E32225249E0091DC4E /* ConfigSetView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 927AE7E22225249E0091DC4E /* ConfigSetView.xib */; };
+		9282EB41221650010032F3DF /* RootViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9282EB40221650010032F3DF /* RootViewController.m */; };
+		9282EB46221659570032F3DF /* LeftScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9282EB45221659570032F3DF /* LeftScrollView.m */; };
+		9282EB4822165AAE0032F3DF /* LeftScrollView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9282EB4722165AAE0032F3DF /* LeftScrollView.xib */; };
+		9282EB4C22168F410032F3DF /* RightView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9282EB4B22168F410032F3DF /* RightView.m */; };
+		9282EB4E22168F520032F3DF /* RightView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9282EB4D22168F520032F3DF /* RightView.xib */; };
+		92B040CD222788C800FFA403 /* ConfigSetView.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B040CC222788C800FFA403 /* ConfigSetView.m */; };
+		A81A9BB14C9600DA3D81778C /* libPods-AliPlayerDemo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0753A2CA8BE4F3711851FF43 /* libPods-AliPlayerDemo.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1F760BA623A384BC0026AFFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 93A779ECE52C45F6B08B227C;
+			remoteInfo = AliMuxer;
+		};
+		1F760BA823A384BC0026AFFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = DF159C06FA7F4BC19FEDA14E;
+			remoteInfo = CicadaPlayerSDK;
+		};
+		1F760BAA23A384BC0026AFFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F1137BCA8A074173B694BB23;
+			remoteInfo = alivcffmpeg;
+		};
+		1F760BAC23A384BC0026AFFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 2DD0B175C16B44D493BB1885;
+			remoteInfo = apsara_player;
+		};
+		1F760BAE23A384BC0026AFFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 2C4AF76A518D4111B4E849E8;
+			remoteInfo = bitStreamDecoder;
+		};
+		1F760BB023A384BC0026AFFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 91FFD21F14E1439199769F1C;
+			remoteInfo = cacheModule;
+		};
+		1F760BB223A384BC0026AFFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 10C5FCD4A8A7425BA35276D8;
+			remoteInfo = data_source;
+		};
+		1F760BB423A384BC0026AFFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4F6E1C87CC4742E482F963BB;
+			remoteInfo = demuxer;
+		};
+		1F760BB623A384BC0026AFFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 2FEC1A0766E04AD794B06347;
+			remoteInfo = framework_filter;
+		};
+		1F760BB823A384BC0026AFFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7BADFFCD092C4457948AB310;
+			remoteInfo = framework_utils;
+		};
+		1F760BBA23A384BC0026AFFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 8B2D5FA5A4BD434BAF1128F6;
+			remoteInfo = plugin;
+		};
+		1F760BBC23A384BC0026AFFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 59C41C7856AC4BC581164738;
+			remoteInfo = render;
+		};
+		1F760BBE23A384BC0026AFFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 74253BED679A4FB78DC0DEB2;
+			remoteInfo = videodec;
+		};
+		1F760BC023A3852B0026AFFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = ED5CF35F3892472381614F84;
+			remoteInfo = install;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1FA8E1B8225C7089003DFAD1 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				1F940545239DF28F00F07BEE /* alivcffmpeg.framework in Embed Frameworks */,
+				1F940547239DF29100F07BEE /* CicadaPlayerSDK.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0753A2CA8BE4F3711851FF43 /* libPods-AliPlayerDemo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AliPlayerDemo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = CicadaPlayerSDK.xcodeproj; path = ../SDK/CicadaPlayerSDK.xcodeproj; sourceTree = "<group>"; };
+		1F94053D239DF28700F07BEE /* CicadaPlayerSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CicadaPlayerSDK.framework; path = ../SDK/CicadaPlayerSDK.framework; sourceTree = "<group>"; };
+		1F94053E239DF28700F07BEE /* alivcffmpeg.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = alivcffmpeg.framework; path = ../SDK/alivcffmpeg.framework; sourceTree = "<group>"; };
+		1F94054B239DFA9F00F07BEE /* CicadaSourceChooserModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CicadaSourceChooserModel.m; sourceTree = "<group>"; };
+		1F94054C239DFA9F00F07BEE /* source.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = source.json; sourceTree = "<group>"; };
+		1F94054D239DFA9F00F07BEE /* CicadaConfig+refresh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CicadaConfig+refresh.h"; sourceTree = "<group>"; };
+		1F94054E239DFA9F00F07BEE /* CicadaCacheConfig+refresh.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "CicadaCacheConfig+refresh.m"; sourceTree = "<group>"; };
+		1F94054F239DFA9F00F07BEE /* CicadaSourceChooserModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CicadaSourceChooserModel.h; sourceTree = "<group>"; };
+		1F940550239DFA9F00F07BEE /* CicadaConfig+refresh.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "CicadaConfig+refresh.m"; sourceTree = "<group>"; };
+		1F940551239DFA9F00F07BEE /* CicadaCacheConfig+refresh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CicadaCacheConfig+refresh.h"; sourceTree = "<group>"; };
+		92560B5E21FEB1B6001244CA /* CicadaDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CicadaDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		92560B6121FEB1B6001244CA /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		92560B6221FEB1B6001244CA /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		92560B6421FEB1B6001244CA /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		92560B6521FEB1B6001244CA /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		92560B6721FEB1B7001244CA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		92560B6A21FEB1B7001244CA /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		92560B6C21FEB1B7001244CA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		92560B6D21FEB1B7001244CA /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		92560B6F21FEB1B7001244CA /* AliPlayerDemo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AliPlayerDemo.entitlements; sourceTree = "<group>"; };
+		92560B8821FEB2AE001244CA /* AVPBaseViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AVPBaseViewController.h; sourceTree = "<group>"; };
+		92560B8921FEB2AE001244CA /* AVPBaseViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AVPBaseViewController.m; sourceTree = "<group>"; };
+		92560B8B21FED4E4001244CA /* AliPlayerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AliPlayerViewController.h; sourceTree = "<group>"; };
+		92560B8C21FED4E4001244CA /* AliPlayerViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AliPlayerViewController.m; sourceTree = "<group>"; };
+		92560B9121FEE28C001244CA /* AVBottomView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AVBottomView.h; sourceTree = "<group>"; };
+		92560B9221FEE28C001244CA /* AVBottomView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AVBottomView.m; sourceTree = "<group>"; };
+		92560BC521FF1B5A001244CA /* AVSettingAndConfigView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AVSettingAndConfigView.xib; sourceTree = "<group>"; };
+		92560BE322002C19001244CA /* AVTopView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AVTopView.m; sourceTree = "<group>"; };
+		92560BE422002C19001244CA /* AVTopView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = AVTopView.xib; sourceTree = "<group>"; };
+		92560BE522002C1A001244CA /* AVTopView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVTopView.h; sourceTree = "<group>"; };
+		92560BF822019810001244CA /* AVSettingAndConfigController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AVSettingAndConfigController.m; sourceTree = "<group>"; };
+		92560BF922019810001244CA /* AVSettingAndConfigController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVSettingAndConfigController.h; sourceTree = "<group>"; };
+		92560BFB22019EC5001244CA /* AVTopController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AVTopController.h; sourceTree = "<group>"; };
+		92560BFC22019EC5001244CA /* AVTopController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AVTopController.m; sourceTree = "<group>"; };
+		926112582205410500B2654D /* AVPShowImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVPShowImageView.h; sourceTree = "<group>"; };
+		926112592205410500B2654D /* AVPShowImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AVPShowImageView.m; sourceTree = "<group>"; };
+		927261FD2202DEF5006AB773 /* HudTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HudTool.m; sourceTree = "<group>"; };
+		927261FE2202DEF5006AB773 /* HudTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HudTool.h; sourceTree = "<group>"; };
+		927262002202EE1B006AB773 /* NSLabel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NSLabel.h; sourceTree = "<group>"; };
+		927262012202EE1B006AB773 /* NSLabel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NSLabel.m; sourceTree = "<group>"; };
+		927262062202F93D006AB773 /* CicadaPrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CicadaPrefixHeader.pch; sourceTree = "<group>"; };
+		927AE7E22225249E0091DC4E /* ConfigSetView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ConfigSetView.xib; sourceTree = "<group>"; };
+		9282EB3F221650010032F3DF /* RootViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RootViewController.h; sourceTree = "<group>"; };
+		9282EB40221650010032F3DF /* RootViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RootViewController.m; sourceTree = "<group>"; };
+		9282EB44221659570032F3DF /* LeftScrollView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LeftScrollView.h; sourceTree = "<group>"; };
+		9282EB45221659570032F3DF /* LeftScrollView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LeftScrollView.m; sourceTree = "<group>"; };
+		9282EB4722165AAE0032F3DF /* LeftScrollView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = LeftScrollView.xib; sourceTree = "<group>"; };
+		9282EB4A22168F410032F3DF /* RightView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RightView.h; sourceTree = "<group>"; };
+		9282EB4B22168F410032F3DF /* RightView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RightView.m; sourceTree = "<group>"; };
+		9282EB4D22168F520032F3DF /* RightView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = RightView.xib; sourceTree = "<group>"; };
+		92B040CB222788C800FFA403 /* ConfigSetView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigSetView.h; sourceTree = "<group>"; };
+		92B040CC222788C800FFA403 /* ConfigSetView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConfigSetView.m; sourceTree = "<group>"; };
+		B97ADCAB94193F6589D4DA69 /* Pods-AliPlayerDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AliPlayerDemo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AliPlayerDemo/Pods-AliPlayerDemo.debug.xcconfig"; sourceTree = "<group>"; };
+		E9E63D7913B0D1BB3B3E4672 /* Pods-AliPlayerDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AliPlayerDemo.release.xcconfig"; path = "Pods/Target Support Files/Pods-AliPlayerDemo/Pods-AliPlayerDemo.release.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		92560B5B21FEB1B6001244CA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A81A9BB14C9600DA3D81778C /* libPods-AliPlayerDemo.a in Frameworks */,
+				1F940546239DF29100F07BEE /* CicadaPlayerSDK.framework in Frameworks */,
+				1F940544239DF28F00F07BEE /* alivcffmpeg.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1F760B9423A384BC0026AFFE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1F760BA723A384BC0026AFFE /* libAliMuxer.a */,
+				1F760BA923A384BC0026AFFE /* CicadaPlayerSDK.framework/CicadaPlayerSDK */,
+				1F760BAB23A384BC0026AFFE /* alivcffmpeg.framework/alivcffmpeg */,
+				1F760BAD23A384BC0026AFFE /* libapsara_player.a */,
+				1F760BAF23A384BC0026AFFE /* libbitStreamDecoder.a */,
+				1F760BB123A384BC0026AFFE /* libcacheModule.a */,
+				1F760BB323A384BC0026AFFE /* libdata_source.a */,
+				1F760BB523A384BC0026AFFE /* libdemuxer.a */,
+				1F760BB723A384BC0026AFFE /* libframework_filter.a */,
+				1F760BB923A384BC0026AFFE /* libframework_utils.a */,
+				1F760BBB23A384BC0026AFFE /* libplugin.a */,
+				1F760BBD23A384BC0026AFFE /* librender.a */,
+				1F760BBF23A384BC0026AFFE /* libvideodec.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1F94054A239DFA9F00F07BEE /* common */ = {
+			isa = PBXGroup;
+			children = (
+				1F94054B239DFA9F00F07BEE /* CicadaSourceChooserModel.m */,
+				1F94054C239DFA9F00F07BEE /* source.json */,
+				1F94054D239DFA9F00F07BEE /* CicadaConfig+refresh.h */,
+				1F94054E239DFA9F00F07BEE /* CicadaCacheConfig+refresh.m */,
+				1F94054F239DFA9F00F07BEE /* CicadaSourceChooserModel.h */,
+				1F940550239DFA9F00F07BEE /* CicadaConfig+refresh.m */,
+				1F940551239DFA9F00F07BEE /* CicadaCacheConfig+refresh.h */,
+			);
+			path = common;
+			sourceTree = "<group>";
+		};
+		2FB8C1890063D14B256BEB6C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1F94053E239DF28700F07BEE /* alivcffmpeg.framework */,
+				1F94053D239DF28700F07BEE /* CicadaPlayerSDK.framework */,
+				0753A2CA8BE4F3711851FF43 /* libPods-AliPlayerDemo.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		6C073BFB5F6D5A67DF87CD0C /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				B97ADCAB94193F6589D4DA69 /* Pods-AliPlayerDemo.debug.xcconfig */,
+				E9E63D7913B0D1BB3B3E4672 /* Pods-AliPlayerDemo.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		92560B5521FEB1B6001244CA = {
+			isa = PBXGroup;
+			children = (
+				1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */,
+				92560B6021FEB1B6001244CA /* CicadaDemo */,
+				92560B5F21FEB1B6001244CA /* Products */,
+				6C073BFB5F6D5A67DF87CD0C /* Pods */,
+				2FB8C1890063D14B256BEB6C /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		92560B5F21FEB1B6001244CA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				92560B5E21FEB1B6001244CA /* CicadaDemo.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		92560B6021FEB1B6001244CA /* CicadaDemo */ = {
+			isa = PBXGroup;
+			children = (
+				927262052202F921006AB773 /* APPSupportFiles */,
+				92560B7521FEB1F1001244CA /* CicadaCode */,
+				92560B6121FEB1B6001244CA /* AppDelegate.h */,
+				92560B6221FEB1B6001244CA /* AppDelegate.m */,
+				92560B6421FEB1B6001244CA /* ViewController.h */,
+				92560B6521FEB1B6001244CA /* ViewController.m */,
+				92560B6721FEB1B7001244CA /* Assets.xcassets */,
+				92560B6921FEB1B7001244CA /* Main.storyboard */,
+				92560B6C21FEB1B7001244CA /* Info.plist */,
+				92560B6D21FEB1B7001244CA /* main.m */,
+				92560B6F21FEB1B7001244CA /* AliPlayerDemo.entitlements */,
+			);
+			path = CicadaDemo;
+			sourceTree = "<group>";
+		};
+		92560B7521FEB1F1001244CA /* CicadaCode */ = {
+			isa = PBXGroup;
+			children = (
+				1F94054A239DFA9F00F07BEE /* common */,
+				92560B7721FEB1F1001244CA /* controller */,
+				92560B8121FEB1F1001244CA /* view */,
+			);
+			path = CicadaCode;
+			sourceTree = "<group>";
+		};
+		92560B7721FEB1F1001244CA /* controller */ = {
+			isa = PBXGroup;
+			children = (
+				92560B8821FEB2AE001244CA /* AVPBaseViewController.h */,
+				92560B8921FEB2AE001244CA /* AVPBaseViewController.m */,
+				92560B8B21FED4E4001244CA /* AliPlayerViewController.h */,
+				92560B8C21FED4E4001244CA /* AliPlayerViewController.m */,
+				9282EB3F221650010032F3DF /* RootViewController.h */,
+				9282EB40221650010032F3DF /* RootViewController.m */,
+			);
+			path = controller;
+			sourceTree = "<group>";
+		};
+		92560B8121FEB1F1001244CA /* view */ = {
+			isa = PBXGroup;
+			children = (
+				926112582205410500B2654D /* AVPShowImageView.h */,
+				926112592205410500B2654D /* AVPShowImageView.m */,
+				927262002202EE1B006AB773 /* NSLabel.h */,
+				927262012202EE1B006AB773 /* NSLabel.m */,
+				927261FE2202DEF5006AB773 /* HudTool.h */,
+				927261FD2202DEF5006AB773 /* HudTool.m */,
+				92560BFB22019EC5001244CA /* AVTopController.h */,
+				92560BFC22019EC5001244CA /* AVTopController.m */,
+				92560BE522002C1A001244CA /* AVTopView.h */,
+				92560BE322002C19001244CA /* AVTopView.m */,
+				92560BE422002C19001244CA /* AVTopView.xib */,
+				92560BF922019810001244CA /* AVSettingAndConfigController.h */,
+				92560BF822019810001244CA /* AVSettingAndConfigController.m */,
+				92560B9121FEE28C001244CA /* AVBottomView.h */,
+				92560B9221FEE28C001244CA /* AVBottomView.m */,
+				92560BC521FF1B5A001244CA /* AVSettingAndConfigView.xib */,
+				9282EB44221659570032F3DF /* LeftScrollView.h */,
+				9282EB45221659570032F3DF /* LeftScrollView.m */,
+				9282EB4722165AAE0032F3DF /* LeftScrollView.xib */,
+				9282EB4A22168F410032F3DF /* RightView.h */,
+				9282EB4B22168F410032F3DF /* RightView.m */,
+				9282EB4D22168F520032F3DF /* RightView.xib */,
+				927AE7E22225249E0091DC4E /* ConfigSetView.xib */,
+				92B040CB222788C800FFA403 /* ConfigSetView.h */,
+				92B040CC222788C800FFA403 /* ConfigSetView.m */,
+			);
+			path = view;
+			sourceTree = "<group>";
+		};
+		927262052202F921006AB773 /* APPSupportFiles */ = {
+			isa = PBXGroup;
+			children = (
+				927262062202F93D006AB773 /* CicadaPrefixHeader.pch */,
+			);
+			path = APPSupportFiles;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		92560B5D21FEB1B6001244CA /* CicadaDemo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 92560B7221FEB1B7001244CA /* Build configuration list for PBXNativeTarget "CicadaDemo" */;
+			buildPhases = (
+				76BCC7E22800782955A1C08B /* [CP] Check Pods Manifest.lock */,
+				92560B5A21FEB1B6001244CA /* Sources */,
+				92560B5B21FEB1B6001244CA /* Frameworks */,
+				92560B5C21FEB1B6001244CA /* Resources */,
+				1FA8E1B8225C7089003DFAD1 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1F760BC123A3852B0026AFFE /* PBXTargetDependency */,
+			);
+			name = CicadaDemo;
+			productName = AliPlayerDemo;
+			productReference = 92560B5E21FEB1B6001244CA /* CicadaDemo.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		92560B5621FEB1B6001244CA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1010;
+				ORGANIZATIONNAME = com.alibaba;
+				TargetAttributes = {
+					92560B5D21FEB1B6001244CA = {
+						CreatedOnToolsVersion = 10.1;
+					};
+				};
+			};
+			buildConfigurationList = 92560B5921FEB1B6001244CA /* Build configuration list for PBXProject "CicadaDemo" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 92560B5521FEB1B6001244CA;
+			productRefGroup = 92560B5F21FEB1B6001244CA /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 1F760B9423A384BC0026AFFE /* Products */;
+					ProjectRef = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				92560B5D21FEB1B6001244CA /* CicadaDemo */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		1F760BA723A384BC0026AFFE /* libAliMuxer.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libAliMuxer.a;
+			remoteRef = 1F760BA623A384BC0026AFFE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1F760BA923A384BC0026AFFE /* CicadaPlayerSDK.framework/CicadaPlayerSDK */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			name = CicadaPlayerSDK.framework/CicadaPlayerSDK;
+			path = CicadaPlayerSDK.framework;
+			remoteRef = 1F760BA823A384BC0026AFFE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1F760BAB23A384BC0026AFFE /* alivcffmpeg.framework/alivcffmpeg */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			name = alivcffmpeg.framework/alivcffmpeg;
+			path = alivcffmpeg.framework;
+			remoteRef = 1F760BAA23A384BC0026AFFE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1F760BAD23A384BC0026AFFE /* libapsara_player.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libapsara_player.a;
+			remoteRef = 1F760BAC23A384BC0026AFFE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1F760BAF23A384BC0026AFFE /* libbitStreamDecoder.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libbitStreamDecoder.a;
+			remoteRef = 1F760BAE23A384BC0026AFFE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1F760BB123A384BC0026AFFE /* libcacheModule.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcacheModule.a;
+			remoteRef = 1F760BB023A384BC0026AFFE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1F760BB323A384BC0026AFFE /* libdata_source.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libdata_source.a;
+			remoteRef = 1F760BB223A384BC0026AFFE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1F760BB523A384BC0026AFFE /* libdemuxer.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libdemuxer.a;
+			remoteRef = 1F760BB423A384BC0026AFFE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1F760BB723A384BC0026AFFE /* libframework_filter.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libframework_filter.a;
+			remoteRef = 1F760BB623A384BC0026AFFE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1F760BB923A384BC0026AFFE /* libframework_utils.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libframework_utils.a;
+			remoteRef = 1F760BB823A384BC0026AFFE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1F760BBB23A384BC0026AFFE /* libplugin.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libplugin.a;
+			remoteRef = 1F760BBA23A384BC0026AFFE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1F760BBD23A384BC0026AFFE /* librender.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = librender.a;
+			remoteRef = 1F760BBC23A384BC0026AFFE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1F760BBF23A384BC0026AFFE /* libvideodec.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libvideodec.a;
+			remoteRef = 1F760BBE23A384BC0026AFFE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		92560B5C21FEB1B6001244CA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9282EB4822165AAE0032F3DF /* LeftScrollView.xib in Resources */,
+				92560B6821FEB1B7001244CA /* Assets.xcassets in Resources */,
+				9282EB4E22168F520032F3DF /* RightView.xib in Resources */,
+				927AE7E32225249E0091DC4E /* ConfigSetView.xib in Resources */,
+				92560BE722002C1A001244CA /* AVTopView.xib in Resources */,
+				92560BC621FF1B5A001244CA /* AVSettingAndConfigView.xib in Resources */,
+				1F940553239DFA9F00F07BEE /* source.json in Resources */,
+				92560B6B21FEB1B7001244CA /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		76BCC7E22800782955A1C08B /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-AliPlayerDemo-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		92560B5A21FEB1B6001244CA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				927262022202EE1B006AB773 /* NSLabel.m in Sources */,
+				92560B6621FEB1B6001244CA /* ViewController.m in Sources */,
+				1F940552239DFA9F00F07BEE /* CicadaSourceChooserModel.m in Sources */,
+				92560B6E21FEB1B7001244CA /* main.m in Sources */,
+				927261FF2202DEF5006AB773 /* HudTool.m in Sources */,
+				9282EB4C22168F410032F3DF /* RightView.m in Sources */,
+				92560BE622002C1A001244CA /* AVTopView.m in Sources */,
+				92560BFA22019810001244CA /* AVSettingAndConfigController.m in Sources */,
+				92560B6321FEB1B6001244CA /* AppDelegate.m in Sources */,
+				9282EB46221659570032F3DF /* LeftScrollView.m in Sources */,
+				9261125A2205410500B2654D /* AVPShowImageView.m in Sources */,
+				92B040CD222788C800FFA403 /* ConfigSetView.m in Sources */,
+				92560BFD22019EC5001244CA /* AVTopController.m in Sources */,
+				9282EB41221650010032F3DF /* RootViewController.m in Sources */,
+				1F940554239DFA9F00F07BEE /* CicadaCacheConfig+refresh.m in Sources */,
+				1F940555239DFA9F00F07BEE /* CicadaConfig+refresh.m in Sources */,
+				92560B8D21FED4E4001244CA /* AliPlayerViewController.m in Sources */,
+				92560B9321FEE28C001244CA /* AVBottomView.m in Sources */,
+				92560B8A21FEB2AE001244CA /* AVPBaseViewController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1F760BC123A3852B0026AFFE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = install;
+			targetProxy = 1F760BC023A3852B0026AFFE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		92560B6921FEB1B7001244CA /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92560B6A21FEB1B7001244CA /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		92560B7021FEB1B7001244CA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		92560B7121FEB1B7001244CA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		92560B7321FEB1B7001244CA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B97ADCAB94193F6589D4DA69 /* Pods-AliPlayerDemo.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AliPlayerDemo/AliPlayerDemo.entitlements;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "../$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../SDK\"",
+				);
+				GCC_PREFIX_HEADER = "$(SRCROOT)/CicadaDemo/AppSupportFiles/CicadaPrefixHeader.pch";
+				INFOPLIST_FILE = CicadaDemo/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/AFNetworking\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/MJExtension\"",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				PRODUCT_BUNDLE_IDENTIFIER = alibaba.AliPlayerDemo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		92560B7421FEB1B7001244CA /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = E9E63D7913B0D1BB3B3E4672 /* Pods-AliPlayerDemo.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AliPlayerDemo/AliPlayerDemo.entitlements;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "../$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../SDK\"",
+				);
+				GCC_PREFIX_HEADER = "$(SRCROOT)/CicadaDemo/AppSupportFiles/CicadaPrefixHeader.pch";
+				INFOPLIST_FILE = CicadaDemo/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/AFNetworking\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/MJExtension\"",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				PRODUCT_BUNDLE_IDENTIFIER = alibaba.AliPlayerDemo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		92560B5921FEB1B6001244CA /* Build configuration list for PBXProject "CicadaDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				92560B7021FEB1B7001244CA /* Debug */,
+				92560B7121FEB1B7001244CA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		92560B7221FEB1B7001244CA /* Build configuration list for PBXNativeTarget "CicadaDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				92560B7321FEB1B7001244CA /* Debug */,
+				92560B7421FEB1B7001244CA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 92560B5621FEB1B6001244CA /* Project object */;
+}

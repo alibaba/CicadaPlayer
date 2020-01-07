@@ -1,0 +1,25 @@
+From 415fb9c152e1a54b31fa760c5586525d3f5bfb36 Mon Sep 17 00:00:00 2001
+From: huang_jiafa <jiafa.hjf@alibaba-inc.com>
+Date: Thu, 25 Apr 2019 11:24:15 +0800
+Subject: [PATCH 2/2] chore(avformat): change MAX_PES_PAYLOAD to 5M
+
+---
+ libavformat/mpegts.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libavformat/mpegts.c b/libavformat/mpegts.c
+index 0415ceea02..fb8dfebb61 100644
+--- a/libavformat/mpegts.c
++++ b/libavformat/mpegts.c
+@@ -45,7 +45,7 @@
+  * synchronization is lost */
+ #define MAX_RESYNC_SIZE 65536
+ 
+-#define MAX_PES_PAYLOAD 200 * 1024
++#define MAX_PES_PAYLOAD 5000 * 1024
+ 
+ #define MAX_MP4_DESCR_COUNT 16
+ 
+-- 
+2.14.1
+

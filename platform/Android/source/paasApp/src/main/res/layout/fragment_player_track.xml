@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!--清晰度-->
+        <LinearLayout
+            android:id="@+id/ll_definition"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/cicada_white"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/text_style"
+                android:background="@color/white"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="@string/media_info_track_definition" />
+
+            <RadioGroup
+                android:id="@+id/definition"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:orientation="vertical">
+
+
+            </RadioGroup>
+
+        </LinearLayout>
+        <!--清晰度 end-->
+
+        <!--码率-->
+        <LinearLayout
+            android:id="@+id/ll_bitrate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/cicada_white"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/text_style"
+                android:background="@color/white"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="@string/media_info_track_bit_rate" />
+
+            <RadioGroup
+                android:id="@+id/bitrate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:orientation="vertical">
+
+
+            </RadioGroup>
+
+        </LinearLayout>
+        <!--码率 end-->
+
+        <!--音轨-->
+        <LinearLayout
+            android:id="@+id/ll_soundtrack"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/cicada_white"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/text_style"
+                android:background="@color/white"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="@string/media_info_track_sound_track" />
+
+            <RadioGroup
+                android:id="@+id/soundtrack"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:orientation="vertical">
+
+
+            </RadioGroup>
+
+        </LinearLayout>
+        <!--音轨 end-->
+
+        <!--外挂字幕-->
+        <LinearLayout
+            android:id="@+id/ll_subtitle_ext"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/text_style"
+                android:background="@color/white"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="@string/media_info_track_subtitle_ext" />
+
+            <RadioGroup
+                android:id="@+id/subtitle_ext"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:orientation="vertical">
+
+
+            </RadioGroup>
+
+        </LinearLayout>
+        <!--外挂字幕-->
+
+        <!--字幕-->
+        <LinearLayout
+            android:id="@+id/ll_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/cicada_white"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/text_style"
+                android:background="@color/white"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="@string/media_info_track_subtitle" />
+
+            <RadioGroup
+                android:id="@+id/subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:orientation="vertical">
+
+
+            </RadioGroup>
+
+        </LinearLayout>
+        <!--字幕 end-->
+    </LinearLayout>
+
+</ScrollView>

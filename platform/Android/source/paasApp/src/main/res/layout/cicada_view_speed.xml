@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/speed_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000"
+        android:orientation="vertical"
+        android:layout_alignParentRight="true"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:textSize="14sp"
+            android:text="@string/cicada_speed_mode"
+            android:textColor="#e7e7e7"/>
+
+        <RadioGroup
+            android:id="@+id/speed_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="60dp"
+            android:orientation="horizontal">
+
+
+            <RadioButton
+                android:id="@+id/normal"
+                android:layout_width="0dp"
+                android:gravity="center"
+                android:layout_weight="1"
+                android:textSize="16sp"
+                android:drawableTop="@mipmap/cicada_speed_dot_blue"
+                android:drawablePadding="10dp"
+                android:textColor="@color/cicada_speed_text_color_blue"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:text="@string/cicada_speed_one_times"/>
+
+            <RadioButton
+                android:id="@+id/one_quartern"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textColor="@color/cicada_speed_text_color_blue"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:textSize="16sp"
+                android:drawableTop="@mipmap/cicada_speed_dot_blue"
+                android:drawablePadding="10dp"
+                android:text="@string/cicada_speed_optf_times"/>
+
+            <RadioButton
+                android:id="@+id/one_half"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textColor="@color/cicada_speed_text_color_blue"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:textSize="16sp"
+                android:drawableTop="@mipmap/cicada_speed_dot_blue"
+                android:drawablePadding="10dp"
+                android:text="@string/cicada_speed_opt_times"/>
+
+            <RadioButton
+                android:id="@+id/two"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textSize="16sp"
+                android:drawableTop="@mipmap/cicada_speed_dot_blue"
+                android:drawablePadding="10dp"
+                android:gravity="center"
+                android:textColor="@color/cicada_speed_text_color_blue"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:text="@string/cicada_speed_twice_times"/>
+        </RadioGroup>
+
+    </LinearLayout>
+    <TextView
+        android:id="@+id/speed_tip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="#e7e7e7"
+        android:padding="15dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="75dp"
+        android:background="#99000000"/>
+</merge>

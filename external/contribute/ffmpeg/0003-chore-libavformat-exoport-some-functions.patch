@@ -1,0 +1,30 @@
+From 77fd680ca65160c019cd4379e8e4a108e2bc8ccc Mon Sep 17 00:00:00 2001
+From: "pingkai.pk" <pingkai.pk@alibaba-inc.com>
+Date: Fri, 20 Dec 2019 12:09:21 +0800
+Subject: [PATCH 3/3] chore(libavformat): exoport some functions
+
+Signed-off-by: pingkai.pk <pingkai.pk@alibaba-inc.com>
+---
+ libavformat/libavformat.v | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/libavformat/libavformat.v b/libavformat/libavformat.v
+index 47d5ddcdb1..20c3ed8795 100644
+--- a/libavformat/libavformat.v
++++ b/libavformat/libavformat.v
+@@ -1,6 +1,12 @@
+ LIBAVFORMAT_MAJOR {
+     global:
+         av*;
++        ff_avc_parse_nal_units_buf;
++        ff_hevc_annexb2mp4_buf;
++        ff_isom_write_*;
++        ffio_free_dyn_buf;
++        ffurl_*;
++
+     local:
+         *;
+ };
+-- 
+2.17.1
+
