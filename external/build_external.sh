@@ -18,6 +18,7 @@ function patch_ffmpeg() {
     fi
     git am ../../contribute/ffmpeg/0002-chore-avformat-change-MAX_PES_PAYLOAD-to-5M.patch
     git am ../../contribute/ffmpeg/0003-chore-libavformat-exoport-some-functions.patch
+    git am ../../contribute/ffmpeg/0004-chore-fix-Linux-build.patch
 }
 
 function load_source() {
