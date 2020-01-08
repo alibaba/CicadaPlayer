@@ -11,7 +11,6 @@ if (APPLE)
 endif ()
 
 cmake_policy(SET CMP0079 NEW)
-include(../GoogleTest.cmake)
 add_executable(dataSourceTest "")
 
 target_sources(dataSourceTest
@@ -57,9 +56,3 @@ else()
         )
 
 endif ()
-enable_testing()
-
-add_test(
-        NAME google_test
-        COMMAND $<TARGET_FILE:dataSourceTest>
-)
