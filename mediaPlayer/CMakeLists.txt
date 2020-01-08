@@ -136,4 +136,7 @@ endif ()
 
 add_library(media_player STATIC ${SOURCE_FILES})
 target_include_directories(media_player PUBLIC ../framework)
+if (HAVE_COVERAGE_CONFIG)
+    target_link_libraries(media_player PUBLIC coverage_config)
+endif ()
 

@@ -67,3 +67,7 @@ link_libraries(${LINNK_LIBRARYS})
 
 add_library(videodec ${TARGET_LIBRARY_TYPE} ${SOURCE_FILES})
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations")
+
+if (HAVE_COVERAGE_CONFIG)
+    target_link_libraries(videodec PUBLIC coverage_config)
+endif ()

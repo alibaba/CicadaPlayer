@@ -75,3 +75,6 @@ endif ()
 link_libraries(${LINNK_LIBRARYS})
 
 add_library(data_source ${TARGET_LIBRARY_TYPE} ${SOURCE_FILES})
+if (HAVE_COVERAGE_CONFIG)
+    target_link_libraries(data_source PUBLIC coverage_config)
+endif ()

@@ -145,3 +145,8 @@ if (ENABLE_GLRENDER)
             )
 
 endif ()
+
+
+if (HAVE_COVERAGE_CONFIG)
+    target_link_libraries(render PUBLIC coverage_config)
+endif ()

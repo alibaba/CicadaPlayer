@@ -33,3 +33,7 @@ add_library(cacheModule STATIC
         cache/CachePath.h
         cache/CacheRet.h
         )
+
+if (HAVE_COVERAGE_CONFIG)
+    target_link_libraries(cacheModule PUBLIC coverage_config)
+endif ()

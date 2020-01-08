@@ -91,3 +91,6 @@ endif ()
 link_libraries(${LINNK_LIBRARYS})
 
 add_library(demuxer ${TARGET_LIBRARY_TYPE} ${SOURCE_FILES})
+if (HAVE_COVERAGE_CONFIG)
+    target_link_libraries(demuxer PUBLIC coverage_config)
+endif ()
