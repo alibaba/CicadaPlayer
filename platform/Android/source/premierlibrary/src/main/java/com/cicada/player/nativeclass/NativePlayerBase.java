@@ -49,7 +49,6 @@ public class NativePlayerBase {
         System.loadLibrary("CicadaPlayer");
     }
 
-
     private static class MainHandler extends Handler {
         private WeakReference<NativePlayerBase> playerWeakReference;
 
@@ -336,17 +335,6 @@ public class NativePlayerBase {
         }
     }
 
-    public void enableLog(boolean enable) {
-        Log.i(TAG, "enableLog = " + enable);
-        mEnableLog = enable;
-        nEnableLog(enable);
-    }
-
-    public void setLogCallback(CicadaPlayer.LogLevel level, CicadaPlayer.OnLogCallback callback) {
-        log(TAG, "setLogCallback , level = " + level.name());
-        nSetLogCallback(level.getValue());
-        mOnLogCallback = callback;
-    }
 
     public void setRotateMode(CicadaPlayer.RotateMode rotateMode) {
         int rotateValue = rotateMode.getValue();
@@ -432,12 +420,6 @@ public class NativePlayerBase {
         nSetBlackType(type);
     }
 
-    private static CicadaPlayer.ConvertURLCallback sConvertURLCallback = null;
-
-    public static void setConvertURLCb(CicadaPlayer.ConvertURLCallback callback) {
-        sConvertURLCallback = callback;
-    }
-
     ////===============-------------------==================------------------////
 
     protected native void nConstruct();
@@ -500,8 +482,6 @@ public class NativePlayerBase {
 
     protected native boolean nIsLoop();
 
-    protected native void nEnableLog(boolean enable);
-
     protected native int nGetVideoWidth();
 
     protected native int nGetVideoHeight();
@@ -522,13 +502,11 @@ public class NativePlayerBase {
 
     protected native void nSetTraceID(String traceId);
 
-    protected native void nSetLibPath(String traceId);
+    protected native void nSetLibPath(String path);
 
     protected native void nSetOption(String key, String value);
 
     protected native void nSetAutoPlay(boolean autoPlay);
-
-    protected native void nSetLogCallback(int level);
 
     protected native boolean nIsAutoPlay();
 
@@ -556,7 +534,6 @@ public class NativePlayerBase {
     private CicadaPlayer.OnSubtitleDisplayListener mOnSubtitleDisplayListener = null;
     private CicadaPlayer.OnStateChangedListener mOnStateChangedListener = null;
     private CicadaPlayer.OnSnapShotListener mOnSnapShotListener = null;
-    private CicadaPlayer.OnLogCallback mOnLogCallback = null;
 
     public void setOnSubtitleDisplayListener(CicadaPlayer.OnSubtitleDisplayListener l) {
         log(TAG, "setOnSubtitleDisplayListener = " + l);
@@ -627,24 +604,6 @@ public class NativePlayerBase {
     }
 
     /////////////////=======================///////////////
-
-
-    protected void onNativeLog(int level, String msg) {
-        if (mOnLogCallback != null) {
-            CicadaPlayer.LogLevel finalLevel = mapLevel(level);
-            mOnLogCallback.onLog(finalLevel, msg);
-        }
-    }
-
-    private CicadaPlayer.LogLevel mapLevel(int level) {
-        for (CicadaPlayer.LogLevel levelItem : CicadaPlayer.LogLevel.values()) {
-            if (level == levelItem.getValue()) {
-                return levelItem;
-            }
-        }
-
-        return CicadaPlayer.LogLevel.AF_LOG_LEVEL_DEBUG;
-    }
 
     //底层回调
     protected void onPrepared() {
@@ -1001,14 +960,6 @@ public class NativePlayerBase {
 
     public String getCacheFilePath(String URL) {
         return nGetCacheFilePath(URL);
-    }
-
-    protected static String nConvertURLCallback(String srcURL, String srcFormat) {
-        if (sConvertURLCallback != null) {
-            return sConvertURLCallback.convertURL(srcURL, srcFormat);
-        } else {
-            return null;
-        }
     }
 
 }

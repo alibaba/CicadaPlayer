@@ -205,16 +205,6 @@ namespace Cicada {
         bool IsLoop();
 
         /*
-         * enable log or not
-         */
-        static void EnableLog(bool bEnabled);
-
-        /*
-         * set log callback function
-         */
-        static void SetLogCallback(CicadaLogCallback func, void *arg);
-
-        /*
          * get video width of current playing
          */
         int GetVideoWidth();
