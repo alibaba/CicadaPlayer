@@ -11,6 +11,7 @@
 
 #include <functional>
 #include <string>
+#include <utility>
 #include <utils/CicadaType.h>
 #include <base/media/IAFPacket.h>
 #include <utils/mediaTypeInternal.h>
@@ -34,7 +35,7 @@ namespace Cicada{
 
         explicit IDemuxer(string path);
 
-        virtual void setDataSourceConfig(IDataSource::SourceConfig config)
+        virtual void setDataSourceConfig(const IDataSource::SourceConfig &config)
         {
             sourceConfig = config;
         };

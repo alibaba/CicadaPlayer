@@ -75,6 +75,7 @@ void SDLEventReceiver::poll(bool &exit) {
                         AF_LOGW("unknown key %c", event.key.keysym.sym);
                         break;
                 }
+                break;
             }
 
             case SDL_MOUSEBUTTONDOWN: {

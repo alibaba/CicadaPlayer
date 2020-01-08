@@ -173,7 +173,7 @@ namespace Cicada {
         CicadaSwitchStreamIndex(handle, stream);
     }
 
-    void MediaPlayer::SetListener(playerListener Listener)
+    void MediaPlayer::SetListener(const playerListener &Listener)
     {
         mListener = Listener;
     }

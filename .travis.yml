@@ -38,7 +38,7 @@ addons:
       name: "aliyun/CicadaPlayer"
       description: "<Your project description here>"
     notification_email: pingkai010@gmail.com
-    build_command_prepend: . setup.env;cd external/;./build_external.sh Linux;cd ../;cd cmdline/;mkdir build;cd build;cmake ../;
+    build_command_prepend: . setup.env;cd external/;./build_external.sh Linux;cd ../;cd cmdline/build;cmake ../;
     build_command: make cicadaPlayer
     branch_pattern: coverity_scan
 

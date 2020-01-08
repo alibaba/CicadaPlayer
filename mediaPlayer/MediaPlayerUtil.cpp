@@ -150,9 +150,11 @@ namespace Cicada {
 
             case readEvent_timeOut:
                 mReadTimeOutIndex++;
+                break;
 
             case readEvent_Loop:
                 mReadLoopIndex++;
+                break;
         }
 
         int64_t time = af_gettime_relative();

@@ -38,7 +38,7 @@ StreamType CicadaSwitchStreamIndex(playerHandle *pHandle, int index)
     return ST_TYPE_UNKNOWN;
 }
 
-int CicadaSetListener(playerHandle *pHandle, playerListener Listener)
+int CicadaSetListener(playerHandle *pHandle, const playerListener &Listener)
 {
     GET_PLAYER;
 
