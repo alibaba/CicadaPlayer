@@ -26,11 +26,16 @@ before_script:
   - cd ../
 
 script:
-  - cd cmdline/
   - mkdir build
   - cd build
-  - cmake ../
-  - make cicadaPlayer -j8
+  - cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DCMAKE_BUILD_TYPE=Debug ../
+  - cmake --build . --config Debug -- -j8
+  - cd cmdline/mediaPlayer.out/framework.out/tests/
+  - ctest -j8 --output-on-failure
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -x "llvm-cov gcov" || echo "Codecov did not collect coverage reports"
+
 
 addons:
   coverity_scan:

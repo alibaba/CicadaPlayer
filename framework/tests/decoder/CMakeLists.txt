@@ -25,7 +25,7 @@ target_include_directories(
 )
 
 target_link_libraries(
-        decoderUnitTest
+        decoderUnitTest PRIVATE
         demuxer
         videodec
         data_source
@@ -44,16 +44,19 @@ target_link_libraries(
 
 if (APPLE)
     target_link_libraries(
-            decoderUnitTest
+            decoderUnitTest PUBLIC
             iconv
             bz2
             ${FRAMEWORK_LIBS}
     )
-else()
+else ()
     target_link_libraries(
-            decoderUnitTest
+            decoderUnitTest PUBLIC
             dl
             pthread
     )
 
+endif ()
+if (HAVE_COVERAGE_CONFIG)
+    target_link_libraries(decoderUnitTest PUBLIC coverage_config)
 endif ()

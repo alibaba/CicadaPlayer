@@ -41,3 +41,6 @@ endif ()
 link_libraries(${LINNK_LIBRARYS})
 
 add_library(muxer STATIC ${SOURCE_FILES})
+if (HAVE_COVERAGE_CONFIG)
+    target_link_libraries(muxer PUBLIC coverage_config)
+endif ()

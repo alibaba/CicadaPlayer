@@ -24,8 +24,7 @@ target_include_directories(
         ../../../plugin
         )
 
-target_link_libraries(
-        dataSourceTest
+target_link_libraries(dataSourceTest PRIVATE
         demuxer
         videodec
         data_source
@@ -43,16 +42,19 @@ target_link_libraries(
         gtest_main)
 if (APPLE)
         target_link_libraries(
-                dataSourceTest
+                dataSourceTest PUBLIC
                 iconv
                 bz2
                 ${FRAMEWORK_LIBS}
         )
-else()
+else ()
         target_link_libraries(
-                dataSourceTest
+                dataSourceTest PUBLIC
                 dl
                 pthread
         )
 
+endif ()
+if (HAVE_COVERAGE_CONFIG)
+        target_link_libraries(dataSourceTest PUBLIC coverage_config)
 endif ()

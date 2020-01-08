@@ -23,6 +23,10 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(TARGET_PLATFORM windows)
 endif ()
 
+# Code Coverage Configuration
+option(CODE_COVERAGE "Enable coverage reporting" OFF)
+
+include(../framework/code_coverage.cmake)
 add_subdirectory(../mediaPlayer mediaPlayer.out)
 
 include(../framework/${TARGET_PLATFORM}.cmake)
@@ -40,7 +44,7 @@ target_link_directories(cicadaPlayer PRIVATE
         ../external/install/openssl/${CMAKE_SYSTEM_NAME}/x86_64/lib
         ${COMMON_LIB_DIR})
 
-target_link_libraries(cicadaPlayer
+target_link_libraries(cicadaPlayer PRIVATE
         media_player
         demuxer
         data_source
@@ -63,21 +67,22 @@ target_link_libraries(cicadaPlayer
         ${FRAMEWORK_LIBS})
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_link_libraries(cicadaPlayer
+    target_link_libraries(cicadaPlayer PUBLIC
             bcrypt
             )
 else ()
-    target_link_libraries(cicadaPlayer
+    target_link_libraries(cicadaPlayer PUBLIC
             z
             dl
             )
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_libraries(cicadaPlayer
+    target_link_libraries(cicadaPlayer PUBLIC
             bz2
             )
 endif ()
+target_link_libraries(cicadaPlayer PUBLIC coverage_config)
 
 if (USEASAN)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope")
