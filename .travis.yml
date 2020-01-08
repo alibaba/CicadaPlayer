@@ -6,6 +6,10 @@ compiler:
 os:
   - linux
 
+env:
+  global:
+    - secure: "zG3JVI68R4oW+38qvm5vQVWnfhdoiQrJMqafLHoMIRcwtfSSRdkzTwZwp833SXasbnBQ9sZ+Gtfh3L35Nk+YzarAGVa55Lp8NgO9SGUyjzajbjIPFUQH48/FVqOuj1NAbrsQr+CTXnHg82cUgScSiNYCRcg8u49TvpoBT64RVfPF4/thLg8M67cdxa8+ycci8yK2OOraVLeY7ZbkbZmU4jQt5K2gEjgO0B/JWk2lq/aRlr3BrVkykU0QS1niWma114VJVL269Irh/bv+uuKS2LKeeVlQOxKeIhw3iigqen5oHRFHBtI7u3JIlTAaIh9c6HO05AqQvt3NTaApbFaayXq2kWRHXx4LVgDqPm97V9umDxS4LyPrvPVyFkc5i3KmwboE5naueGws5TT5GC0Z3weDfRUbWT0uGuMq6zmnOkRGoCzk6piyamr9tu4ssIR+Za0hwhEVu6OJPKu06ix6lcUZhpPy78vSURHBIAM+zD5ciER7YuhpysqtuYckRaQh6cofwf3pIzzm/zyszg3xaVDqUmCfhpm0MkzhSfFm9wSBDWkXVSLV2ZQK8lxKCIHaAiHdHm2l7KXCl7f/c/YgScihyUhSohjfZZIrCafd9Jo3RSY9XJ88kOerWYDwEZ+k99TDgoof/e3amOq1/zhqaiew7jii02EeXKea3LBf/ps="
+
 before_install:
   - sudo apt-get update
   - sudo apt-get install -y yasm
@@ -13,6 +17,7 @@ before_install:
   - wget "https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.16.2-Linux-x86_64.tar.gz"
   - tar zxvf cmake-3.16.2-Linux-x86_64.tar.gz
   - export PATH=`pwd`/cmake-3.16.2-Linux-x86_64/bin:$PATH
+  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 before_script:
   - . setup.env
@@ -26,4 +31,14 @@ script:
   - cd build
   - cmake ../
   - make cicadaPlayer -j8
+
+addons:
+  coverity_scan:
+    project:
+      name: "aliyun/CicadaPlayer"
+      description: "<Your project description here>"
+    notification_email: pingkai010@gmail.com
+    build_command_prepend: . setup.env;cd external/;./build_external.sh Linux;cd ../;cd cmdline/;mkdir build;cd build;cmake ../;
+    build_command: make cicadaPlayer
+    branch_pattern: coverity_scan
 
