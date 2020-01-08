@@ -214,7 +214,7 @@ namespace Cicada {
         uint64_t curNum = offset / mSliceSize;
         uint64_t startPos = offset % mSliceSize;
         uint8_t *readBuffer = nullptr;
-        int ret;
+        int ret = 0;
 //        AF_LOGD("readAt: size %d,where %lld", size, offset);
 
         if (curNum >= mSliceCount) {

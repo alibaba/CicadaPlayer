@@ -17,7 +17,7 @@ namespace Cicada{
 
     class SegmentTracker : public OptionOwner {
     public:
-        explicit SegmentTracker(Representation *rep, IDataSource::SourceConfig sourceConfig);
+        explicit SegmentTracker(Representation *rep, const IDataSource::SourceConfig &sourceConfig);
 
         ~SegmentTracker();
 

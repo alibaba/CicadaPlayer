@@ -1840,7 +1840,10 @@ namespace Cicada {
             return ret;
         }
 
-        duration = getPCMFrameDuration((dynamic_cast<AVAFFrame *> (mAudioFrameQue.front().get()))->ToAVFrame());
+        AVAFFrame *avafFrame = dynamic_cast<AVAFFrame *> (mAudioFrameQue.front().get());
+        if (avafFrame) {
+            duration = getPCMFrameDuration(avafFrame->ToAVFrame());
+        }
         render_ret = mAudioRender->renderFrame(mAudioFrameQue.front(), 0);
 
         if (render_ret == IAudioRender::FORMAT_NOT_SUPPORT) {
@@ -2249,7 +2252,6 @@ namespace Cicada {
                         AF_LOGD("get a video stream\n");
                         mCurrentVideoIndex = GEN_STREAM_ID(mMainStreamId, j);
                         mVideoInterlaced = meta->interlaced;
-                        mVideoInterlaced = InterlacedType_NO;
                     } else if (!mSet.bDisableAudio && meta->type == STREAM_TYPE_AUDIO && mCurrentAudioIndex < 0 &&
                                meta->channels > 0) {
                         AF_LOGD("get a audio stream\n");
@@ -2647,7 +2649,7 @@ namespace Cicada {
                     mBufferController.GetPacketPts(BUFFER_TYPE_VIDEO);
 
                 if (videoDuration <= 0) {
-                    videoDuration = mBufferController.GetPacketSize(BUFFER_TYPE_VIDEO) * 40 * 1000;
+                    videoDuration = (int64_t) mBufferController.GetPacketSize(BUFFER_TYPE_VIDEO) * 40 * 1000;
                 }
             }
         }
@@ -3327,7 +3329,6 @@ namespace Cicada {
 
                 mStreamInfoQueue.push_back(info);
                 mVideoInterlaced = meta->interlaced;
-                mVideoInterlaced = InterlacedType_NO;
 
                 if (mCurrentVideoIndex < 0 && !mMixMode && meta->attached_pic == 0) {
                     if (bandWidthNearStreamIndex == i) {
@@ -3430,11 +3431,10 @@ namespace Cicada {
         {
             std::lock_guard<std::mutex> locker(mCreateMutex);
             mDataSource = dataSourcePrototype::create(mSet.url, &mSet.mOptions);
-            mDataSource->Set_config(config);
         }
 
         if (mDataSource) {
-            //step1: dataSource open
+            mDataSource->Set_config(config);
             int ret = mDataSource->Open(0);
             return ret;
         }
@@ -3529,11 +3529,12 @@ namespace Cicada {
             }
         }
 
-//        if (i == count)
-//            return;
-        //TODO: different strategy
+        if (!willChangeInfo || !currentInfo) {
+            return;
+        }
         AF_LOGD("video change video bitrate before is %d,after is %d",
                 currentInfo->videoBandwidth, willChangeInfo->videoBandwidth);
+        //TODO: different strategy
         mWillChangedVideoStreamIndex = index;
         mVideoChangedFirstPts = INT64_MAX;
 
@@ -3874,7 +3875,7 @@ namespace Cicada {
         return mSet.bMute;
     }
 
-    int SuperMediaPlayer::SetListener(playerListener Listener)
+    int SuperMediaPlayer::SetListener(const playerListener &Listener)
     {
         mSet.mPlayerListener = Listener;
 

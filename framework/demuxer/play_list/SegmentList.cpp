@@ -130,15 +130,4 @@ namespace Cicada {
         return static_cast<uint64_t>(mFirstSeqNum);
     }
 
-    int64_t SegmentList::getSegmentStartTimeByNumber(uint64_t num)
-    {
-        std::lock_guard<std::mutex> uMutex(segmetsMuxtex);
-        shared_ptr<segment> seg = getSegmentByNumber(num);
-
-        if (seg) {
-            return seg->startTime;
-        }
-
-        return -1;
-    }
 }

@@ -210,8 +210,13 @@ void CacheModule::stop()
 
             if (mEos) {
                 // completion , rename file
-                FileUtils::Rename(cacheTmpPath.c_str(), cachePath.c_str());
-                mCacheRet = CacheStatus::success;
+                int ret = FileUtils::Rename(cacheTmpPath.c_str(), cachePath.c_str());
+                if(ret == 0) {
+                    mCacheRet = CacheStatus::success;
+                }else{
+                    FileUtils::rmrf(cacheTmpPath.c_str());
+                    mCacheRet = CacheStatus::fail;
+                }
             } else {
                 // not completion ,  need delete cached file
                 FileUtils::rmrf(cacheTmpPath.c_str());

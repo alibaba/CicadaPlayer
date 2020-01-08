@@ -21,8 +21,8 @@
 
 namespace Cicada {
 
-    SegmentTracker::SegmentTracker(Representation *rep, IDataSource::SourceConfig sourceConfig)
-        : mRep(rep), mSourceConfig(std::move(sourceConfig))
+    SegmentTracker::SegmentTracker(Representation *rep, const IDataSource::SourceConfig &sourceConfig)
+        : mRep(rep), mSourceConfig(sourceConfig)
     {
         mThread = NEW_AF_THREAD(threadFunction);
     }

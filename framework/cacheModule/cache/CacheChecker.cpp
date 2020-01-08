@@ -178,6 +178,8 @@ void CacheChecker::getAllCachedFiles(const string &cacheDir, vector<CacheFileInf
     }
 
     sort(cacheFileInfos.begin(), cacheFileInfos.end(), compare);
+
+    closedir(dir);
 }
 
 void CacheChecker::reset()

@@ -35,7 +35,7 @@ private:
     static const int VIDEO_CLEAR_LEAD = 32;
     static const int AUDIO_CLEAR_LEAD = 16;
     uint8_t mIvec[AES_BLOCK_SIZE]{0};
-    AES_KEY mAesKey;
+    AES_KEY mAesKey{0,};
     bool mValidKeyInfo{false};
 };
 
