@@ -71,7 +71,7 @@ namespace Cicada {
                 is >> length;
 
                 if (!is.eof()) {
-                    char c = is.get();
+                    char c = (char) is.get();
 
                     if (c == '@' && !is.eof()) {
                         is >> offset;
@@ -92,7 +92,7 @@ namespace Cicada {
                 is >> w;
 
                 if (!is.eof()) {
-                    char c = is.get();
+                    char c = (char) is.get();
 
                     if (c == 'x' && !is.eof()) {
                         is >> h;

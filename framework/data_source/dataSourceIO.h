@@ -35,7 +35,7 @@ namespace Cicada{ ;
 
         static int64_t seek_callback(void *arg, int64_t offset, int whence);
 
-        IDataSource *mPDataSource;
+        IDataSource *mPDataSource{nullptr};
         AVIOContext *mPb = nullptr;
     };
 }

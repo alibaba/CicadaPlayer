@@ -25,7 +25,7 @@ namespace Cicada {
         /*
         * 初始化;(同步)
         */
-        virtual int SetListener(playerListener Listener) = 0;
+        virtual int SetListener(const playerListener &Listener) = 0;
 
         /*
          *设置显示窗口

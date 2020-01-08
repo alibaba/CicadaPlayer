@@ -134,23 +134,6 @@ namespace Cicada {
         return packet;
     };
 
-    IAFPacket *MediaPacketQueue::GetPacket(bool popup)
-    {
-        ADD_LOCK;
-
-        if (mQueue.empty()) {
-            return nullptr;
-        }
-
-        IAFPacket *frame = mQueue.front().get()->clone().get();
-
-        if (popup) {
-            PopFrontPacket();
-        }
-
-        return frame;
-    }
-
     void MediaPacketQueue::PopFrontPacket()
     {
         ADD_LOCK;

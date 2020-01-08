@@ -212,7 +212,9 @@ static int sockopt_callback(void *clientp, curl_socket_t curlfd,
 
     if (purpose == CURLSOCKTYPE_IPCXN) {
         int rcv_buffer = connect->so_rcv_size;
-        setsockopt(curlfd, SOL_SOCKET, SO_RCVBUF, (const char *) &rcv_buffer, sizeof(rcv_buffer));
+        if (rcv_buffer > 0) {
+            setsockopt(curlfd, SOL_SOCKET, SO_RCVBUF, (const char *) &rcv_buffer, sizeof(rcv_buffer));
+        }
     }
 
     /* This return code was added in libcurl 7.21.5 */
@@ -777,7 +779,7 @@ namespace Cicada {
         }
 
         if (reSolveList) {
-            curl_slist_free_all(headerList);
+            curl_slist_free_all(reSolveList);
         }
     }
 

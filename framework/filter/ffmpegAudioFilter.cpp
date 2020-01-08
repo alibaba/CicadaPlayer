@@ -367,7 +367,10 @@ namespace Cicada {
                 avFrame->pts += mDeltaPts;
             }
 
-            dynamic_cast<AVAFFrame *> (frame)->updateInfo();
+            auto *tmp = dynamic_cast<AVAFFrame *> (frame);
+            if (tmp) {
+                tmp->updateInfo();
+            }
 
 #ifdef DUMP_PCM
             // int planar = av_sample_fmt_is_planar((enum AVSampleFormat) filt_frame->format);

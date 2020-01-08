@@ -75,7 +75,7 @@ namespace Cicada {
 
         ~SuperMediaPlayer() override;
 
-        int SetListener(playerListener Listener) override;
+        int SetListener(const playerListener &Listener) override;
 
         // TODO: use setParameters and setOpt to set
         void SetRefer(const char *refer) override;
