@@ -61,7 +61,7 @@ namespace Cicada {
         /*
          * set player listener
          */
-        void SetListener(playerListener Listener);
+        void SetListener(const playerListener &Listener);
 
         /*
          * enable hardware decoder or not

@@ -29,7 +29,7 @@ namespace Cicada{
 
         explicit playList_demuxer();
 
-        playList_demuxer(string path, playList_type type);
+        playList_demuxer(const string& path, playList_type type);
 
         ~playList_demuxer() override;
 
@@ -81,7 +81,7 @@ namespace Cicada{
         const std::string GetProperty(int index, const string &key);
 
     private:
-        playList_demuxer(int dummy) : IDemuxer("")
+        explicit playList_demuxer(int dummy) : IDemuxer("")
         {
             addPrototype(this);
         }
@@ -113,7 +113,7 @@ namespace Cicada{
 
         playList *mPPlayList = nullptr;
         playListParser *mParser = nullptr;
-        playList_type mType;
+        playList_type mType{playList_type_unknown};
         PlaylistManager *mPPlaylistManager = nullptr;
         proxyDataSource *mProxySource = nullptr;
 

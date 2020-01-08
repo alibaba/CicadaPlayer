@@ -119,17 +119,17 @@ namespace Cicada {
             bool mixedVideo = false;
             bool mixedAudio = false;
 
-            if ((codecAttr->value.find_first_of("avc")
-                    || codecAttr->value.find_first_of("hvc"))
-                    && !videoAttr) {
+            if ((codecAttr->value.find_first_of("avc") != std::string::npos
+                 || codecAttr->value.find_first_of("hvc") != std::string::npos)
+                && !videoAttr) {
                 mixedVideo = true;
             }
 
-            if ((codecAttr->value.find_first_of("mp4a")
-                    || codecAttr->value.find_first_of("ac-3")
-                    || codecAttr->value.find_first_of("ec-3")
+            if ((codecAttr->value.find_first_of("mp4a") != std::string::npos
+                 || codecAttr->value.find_first_of("ac-3") != std::string::npos
+                 || codecAttr->value.find_first_of("ec-3") != std::string::npos
                 )
-                    && !audioAttr) {
+                && !audioAttr) {
                 mixedAudio = true;
             }
 
@@ -361,7 +361,6 @@ namespace Cicada {
             const std::list<Tag *> &tagslist)
     {
         Representation *rep = createRepresentation(adaptSet, tag);
-        rep->mStreamType = STREAM_TYPE_MIXED;
 
         if (rep) {
             parseSegments(stream, rep, tagslist);
@@ -373,6 +372,7 @@ namespace Cicada {
             }
 
             adaptSet->addRepresentation(rep);
+            rep->mStreamType = STREAM_TYPE_MIXED;
         }
     }
 

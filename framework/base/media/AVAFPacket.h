@@ -73,13 +73,20 @@ private:
 
 static inline AVFrame *getAVFrame(IAFFrame *frame)
 {
-    return static_cast<AVFrame *>(*dynamic_cast<AVAFFrame *>(frame));
+    auto *avafFrame = dynamic_cast<AVAFFrame *>(frame);
+    if (avafFrame) {
+        return static_cast<AVFrame *>(*(avafFrame));
+    }
+    return nullptr;
 }
 
 static inline AVPacket *getAVPacket(IAFPacket *packet)
 {
-
-    return static_cast<AVPacket *>(*dynamic_cast<AVAFPacket *>(packet));
+    auto * avafPacket = dynamic_cast<AVAFPacket *>(packet);
+    if (avafPacket) {
+        return static_cast<AVPacket *>(*(avafPacket));
+    }
+    return nullptr;
 
 }
 

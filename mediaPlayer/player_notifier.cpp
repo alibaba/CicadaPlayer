@@ -158,7 +158,7 @@ namespace Cicada {
         Clean();
     }
 
-    void PlayerNotifier::setListener(playerListener listener)
+    void PlayerNotifier::setListener(const playerListener &listener)
     {
         mpThread->pause();
         mListener = listener;
