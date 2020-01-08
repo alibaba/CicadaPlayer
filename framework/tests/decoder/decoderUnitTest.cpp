@@ -76,12 +76,14 @@ int main(int argc, char **argv)
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
-
+#ifdef  __APPLE__
 TEST(hardCodec, H264)
 {
+
     std::string url = "http://player.alicdn.com/video/aliyunmedia.mp4";
     test_codec(url, AF_CODEC_ID_H264, DECFLAG_HW);
 }
+#endif
 
 TEST(softCodec, H264)
 {

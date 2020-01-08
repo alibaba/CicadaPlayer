@@ -3,6 +3,7 @@
 [![HitCount](http://hits.dwyl.io/aliyun/CicadaPlayer.svg)](http://hits.dwyl.io/aliyun/CicadaPlayer)
 [![Build Status](https://api.travis-ci.org/aliyun/CicadaPlayer.svg?branch=develop)](https://travis-ci.org/aliyun/CicadaPlayer)
 [![coverity Status](https://scan.coverity.com/projects/20151/badge.svg?flat=1)](https://scan.coverity.com/projects/aliyun-cicadaplayer)
+[![codecov](https://codecov.io/gh/aliyun/CicadaPlayer/branch/develop/graph/badge.svg)](https://codecov.io/gh/aliyun/CicadaPlayer/branch/develop)
 [![LICENSE](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
 
 <h1 align="center">
