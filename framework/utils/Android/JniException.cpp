@@ -11,7 +11,6 @@
 bool JniException::clearException(JNIEnv *env)
 {
     if (env->ExceptionCheck()) {
-        AF_LOGW("JNI has exception.");
         env->ExceptionClear();
         return true;
     } else {

@@ -52,7 +52,8 @@ set(SOURCE_FILES
         Md5Utils.cpp
         Md5Utils.h
         ../base/options.cpp
-        ../base/options.h)
+        ../base/options.h
+        )
 
 list(APPEND SOURCE_FILES
         ../base/media/IAFPacket.cpp

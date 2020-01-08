@@ -515,16 +515,6 @@ namespace Cicada {
         return mLoop;//CicadaGetLoop(handle);
     }
 
-    void MediaPlayer::EnableLog(bool bEnabled)
-    {
-        log_set_level(AF_LOG_LEVEL_DEBUG, bEnabled ? 1 : 0);
-    }
-
-    void MediaPlayer::SetLogCallback(CicadaLogCallback func, void *arg)
-    {
-        log_set_back(func, arg);
-    }
-
     int MediaPlayer::GetVideoWidth()
     {
         int width = 0;

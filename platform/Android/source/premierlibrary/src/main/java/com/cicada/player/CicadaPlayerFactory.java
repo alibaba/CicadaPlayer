@@ -160,15 +160,4 @@ public class CicadaPlayerFactory {
         }
     }
 
-    /**
-     * 设置转换URL回调
-     * @param callback URL回调。见{@linkplain CicadaPlayer.ConvertURLCallback}
-     */
-    /****
-     * URL conversion callback.
-     * @param callback The URL conversion callback. See {@linkplain CicadaPlayer.ConvertURLCallback}.
-     */
-    public static void setConvertURLCallback(CicadaPlayer.ConvertURLCallback callback){
-        NativePlayerBase.setConvertURLCb(callback);
-    }
 }

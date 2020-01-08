@@ -483,12 +483,6 @@ import java.lang.ref.WeakReference;
         return mOutMediaInfo;
     }
 
-
-    @Override
-    public void enableLog(boolean on) {
-        mCorePlayer.enableLog(on);
-    }
-
     @Override
     public void setCacheConfig(CacheConfig cacheConfig) {
         if (cacheConfig == null) {
@@ -989,11 +983,6 @@ import java.lang.ref.WeakReference;
     @Override
     public void reload() {
         mCorePlayer.reload();
-    }
-
-    @Override
-    public void setLogCallback(LogLevel logLevel, OnLogCallback callback) {
-        mCorePlayer.setLogCallback(logLevel, callback);
     }
 
     @Override

@@ -6,6 +6,7 @@
 #include <render/video/vsync/AndroidVSync.h>
 #include <render/video/glRender/platform/android/decoder_surface.h>
 #include <utils/Android/JniEnv.h>
+#include "utils/JavaLogger.h"
 #include "player/JavaPlayerConfig.h"
 #include "player/JavaCacheConfig.h"
 #include "player/JavaMediaInfo.h"
@@ -16,6 +17,7 @@ using namespace Cicada;
 
 int initJavaInfo(JNIEnv *env)
 {
+    JavaLogger::init(env);
     JavaCacheConfig::init(env);
     JavaMediaInfo::init(env);
     JavaTrackInfo::init(env);
@@ -23,8 +25,13 @@ int initJavaInfo(JNIEnv *env)
     JavaPlayerConfig::init(env);
     AndroidVSync::init(env);
     DecoderSurface::init(env);
-
     int result = NativeBase::registerMethod(env);
+
+    if (result == JNI_FALSE) {
+        return false;
+    }
+
+    result = JavaLogger::registerMethod(env);
 
     if (result == JNI_FALSE) {
         return false;
@@ -42,6 +49,7 @@ void unInitJavaInfo(JNIEnv *env)
     JavaPlayerConfig::unInit(env);
     AndroidVSync::unInit(env);
     DecoderSurface::unInit(env);
+    JavaLogger::unInit(env);
 }
 
 extern "C"
