@@ -7,7 +7,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 cmake_policy(SET CMP0079 NEW)
-include(../GoogleTest.cmake)
 add_executable(demuxerUnitTest "" demuxerUtils.cpp demuxerUtils.h)
 
 if (APPLE)
@@ -57,9 +56,3 @@ else()
     )
 
 endif ()
-enable_testing()
-
-add_test(
-        NAME google_test
-        COMMAND $<TARGET_FILE:demuxerUnitTest>
-)
