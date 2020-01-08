@@ -44,6 +44,7 @@ import com.cicada.player.nativeclass.PlayerConfig;
 import com.cicada.player.nativeclass.TrackInfo;
 import com.cicada.player.demo.util.NetWatchdog;
 import com.cicada.player.demo.util.VcPlayerLog;
+import com.cicada.player.utils.Logger;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -186,7 +187,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
     private CicadaPlayer.OnErrorListener mOutErrorListener = null;
     private CicadaPlayer.OnSnapShotListener mSnapShotListener = null;
     private CicadaPlayer.OnPreparedListener mOutPreparedListener = null;
-//    private CicadaPlayer.OnThumbnailListener mOnThumbnailListener = null;
+    //    private CicadaPlayer.OnThumbnailListener mOnThumbnailListener = null;
     private CicadaPlayer.OnCompletionListener mOutCompletionListener = null;
     private CicadaPlayer.OnSeekCompleteListener mOuterSeekCompleteListener = null;
     private CicadaPlayer.OnTrackChangedListener mOutTrackChangedListener = null;
@@ -274,7 +275,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
     /**
      * 初始化缩略图
      */
-    private void initThumbnailView(){
+    private void initThumbnailView() {
         mThumbnailView = new ThumbnailView(getContext());
         addSubViewByCenter(mThumbnailView);
     }
@@ -284,8 +285,8 @@ public class CicadaVodPlayerView extends RelativeLayout {
         VcPlayerLog.d(TAG, "onWifiTo4G");
         mNeedToRetry = false;
         if (mUrlSource != null) {
-            if(TextUtils.isEmpty(mUrlSource)){
-                return ;
+            if (TextUtils.isEmpty(mUrlSource)) {
+                return;
             }
             File file = new File(mUrlSource);
             if (file.exists()) {
@@ -325,7 +326,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
         if (mTipsView != null) {
             mTipsView.hideNetErrorTipView();
         }
-        if (mRetryTime<=0){
+        if (mRetryTime <= 0) {
             //切换网络的时候重新进行reload尝试
             mRetryTime = 3;
             networkRetry();
@@ -335,16 +336,17 @@ public class CicadaVodPlayerView extends RelativeLayout {
     /**
      * 进行网络重连
      */
-    private void networkRetry(){
-        if (mRetryTime>0){
-            if (mNeedToRetry){
+    private void networkRetry() {
+        if (mRetryTime > 0) {
+            if (mNeedToRetry) {
                 mCicadaVodPlayer.reload();
                 mRetryTime--;
             }
-        }else {
+        } else {
             Toast.makeText(getContext(), R.string.cicada_tip_network_reconnect_failed, Toast.LENGTH_SHORT).show();
         }
     }
+
     private void onNetDisconnected() {
         VcPlayerLog.d(TAG, "onNetDisconnected");
         mNeedToRetry = true;
@@ -369,7 +371,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
         }
 
         String path = mUrlSource;
-        if(TextUtils.isEmpty(path)){
+        if (TextUtils.isEmpty(path)) {
             path = "";
         }
         File file = new File(path);
@@ -381,6 +383,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
         prepareLocalSource(mUrlSource);
 
     }
+
     private void prepareLocalSource(String aliyunLocalSource) {
         if (mControlView != null) {
             mControlView.setForceQuality(true);
@@ -514,7 +517,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
             if (getLockPortraitMode() == null) {
                 //没有固定竖屏，就变化mode
                 if (fromLand) {
-                    changeScreenMode(CicadaScreenMode.Small,false);
+                    changeScreenMode(CicadaScreenMode.Small, false);
                 } else {
                     //如果没有转到过横屏，就不让他转了。防止竖屏的时候点横屏之后，又立即转回来的现象
                 }
@@ -553,7 +556,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
                 //继续播放。如果没有prepare或者stop了，需要重新prepare
                 mTipsView.hideAll();
                 mNeedToRetry = true;
-                if (mRetryTime<=0){
+                if (mRetryTime <= 0) {
                     //切换网络的时候重新进行reload尝试
                     mRetryTime = 3;
                     networkRetry();
@@ -562,7 +565,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
                         currentPlayState == CicadaPlayer.stopped) {
                     ////4G进入播放的时候，
                     //continuePlay = true;
-                    if(mUrlSource != null){
+                    if (mUrlSource != null) {
                         setDataSource(mUrlSource);
                     }
 
@@ -740,7 +743,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
 
                     inSeek = true;
 
-                    if(mThumbnailView != null){
+                    if (mThumbnailView != null) {
                         mThumbnailView.hideThumbnailView();
                     }
                 }
@@ -750,14 +753,14 @@ public class CicadaVodPlayerView extends RelativeLayout {
             public void onSeekStart() {
                 //拖动开始
                 inSeek = true;
-                if(mThumbnailView != null){
+                if (mThumbnailView != null) {
                     mThumbnailView.showThumbnailView();
                     //根据屏幕大小调整缩略图的大小
                     ImageView thumbnailImageView = mThumbnailView.getThumbnailImageView();
-                    if(thumbnailImageView != null){
+                    if (thumbnailImageView != null) {
                         ViewGroup.LayoutParams layoutParams = thumbnailImageView.getLayoutParams();
                         layoutParams.width = (int) (ScreenUtils.getWidth(getContext()) / 3);
-                        layoutParams.height = layoutParams.width / 2 - DensityUtils.px2dip(getContext(),10);
+                        layoutParams.height = layoutParams.width / 2 - DensityUtils.px2dip(getContext(), 10);
                         thumbnailImageView.setLayoutParams(layoutParams);
                     }
                 }
@@ -803,7 +806,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
                 } else {
                     targetMode = CicadaScreenMode.Small;
                 }
-                changeScreenMode(targetMode,false);
+                changeScreenMode(targetMode, false);
             }
         });
         //点击了标题栏的返回按钮
@@ -813,7 +816,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
 
                 if (mCurrentScreenMode == CicadaScreenMode.Full) {
                     //设置为小屏状态
-                    changeScreenMode(CicadaScreenMode.Small,false);
+                    changeScreenMode(CicadaScreenMode.Small, false);
                 } else if (mCurrentScreenMode == CicadaScreenMode.Small) {
                     //小屏状态下，就结束活动
                     Context context = getContext();
@@ -829,7 +832,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
     private void updateViewState(ControlView.PlayState playState) {
 
         mControlView.setPlayState(playState);
-        if(mTipsView != null){
+        if (mTipsView != null) {
             mTipsView.hideBufferLoadingTipView();
         }
 
@@ -1054,7 +1057,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
             @Override
             public void surfaceCreated(SurfaceHolder surfaceHolder) {
                 VcPlayerLog.d(TAG, " surfaceCreated = surfaceHolder = " + surfaceHolder);
-                if(mCicadaVodPlayer != null){
+                if (mCicadaVodPlayer != null) {
                     mCicadaVodPlayer.setDisplay(surfaceHolder);
                     //防止黑屏
                     mCicadaVodPlayer.redraw();
@@ -1087,12 +1090,13 @@ public class CicadaVodPlayerView extends RelativeLayout {
     }
 
     private boolean mThumbnailPrepareSuccess = false;
+
     /**
      * 初始化播放器
      */
     private void initCicadaPlayer() {
+        Logger.enableConsoleLog(true);
         mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext());
-        mCicadaVodPlayer.enableLog(true);
         mCicadaVodPlayer.enableHardwareDecoder(SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.CICADA_PLAYER_HARDWARE_DECODER));
 
         //设置准备回调
@@ -1120,8 +1124,8 @@ public class CicadaVodPlayerView extends RelativeLayout {
 
 
                 if (continuePlay) {
-                    if(mControlView != null){
-                        mCicadaVodPlayer.seekTo( mControlView.getVideoPosition(),mSeekMode);
+                    if (mControlView != null) {
+                        mCicadaVodPlayer.seekTo(mControlView.getVideoPosition(), mSeekMode);
                     }
 
                     start();
@@ -1134,7 +1138,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
                 }
 
                 //重播需要自动播放
-                if(isReplay){
+                if (isReplay) {
                     start();
                     isReplay = false;
                 }
@@ -1153,7 +1157,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
 
 
                 showErrorTipView(Integer.toHexString(errorInfo.getCode().getValue()),
-                        errorInfo.getCode().getValue()+"", errorInfo.getMsg());
+                        errorInfo.getCode().getValue() + "", errorInfo.getMsg());
 
                 if (mOutErrorListener != null) {
                     mOutErrorListener.onError(errorInfo);
@@ -1224,11 +1228,11 @@ public class CicadaVodPlayerView extends RelativeLayout {
                     if (mControlView != null) {
                         mControlView.setVideoPosition((int) infoBean.getExtraValue());
                     }
-                } else if(infoBean.getCode() == InfoCode.SwitchToSoftwareVideoDecoder){
-                    Toast.makeText(getContext(),getContext().getString(R.string.cicada_change_to_soft_decoder),Toast.LENGTH_SHORT).show();
-                }else if (infoBean.getCode() == InfoCode.NetworkRetry){
+                } else if (infoBean.getCode() == InfoCode.SwitchToSoftwareVideoDecoder) {
+                    Toast.makeText(getContext(), getContext().getString(R.string.cicada_change_to_soft_decoder), Toast.LENGTH_SHORT).show();
+                } else if (infoBean.getCode() == InfoCode.NetworkRetry) {
                     networkRetry();
-                }else if (infoBean.getCode() == InfoCode.NetworkRetrySuccess){
+                } else if (infoBean.getCode() == InfoCode.NetworkRetrySuccess) {
                     //重连成功后，恢复到默认重连次数
                     mRetryTime = 3;
                     Log.e(TAG, "NetworkRetrySuccess");
@@ -1294,10 +1298,10 @@ public class CicadaVodPlayerView extends RelativeLayout {
 //                if (trackInfo.getType() == TrackInfo.Type.TYPE_VOD) {
 //                    mControlView.setCurrentQuality(trackInfo.getVodDefinition());
 //                }
-                if(mOutTrackChangedListener != null){
+                if (mOutTrackChangedListener != null) {
                     mOutTrackChangedListener.onChangedSuccess(trackInfo);
                 }
-                showToast(trackInfo,true);
+                showToast(trackInfo, true);
                 start();
 
                 if (mTipsView != null) {
@@ -1310,10 +1314,10 @@ public class CicadaVodPlayerView extends RelativeLayout {
                 if (mTipsView != null) {
                     mTipsView.hideNetLoadingTipView();
                 }
-                if(mOutTrackChangedListener != null){
-                    mOutTrackChangedListener.onChangedFail(trackInfo,errorInfo);
+                if (mOutTrackChangedListener != null) {
+                    mOutTrackChangedListener.onChangedFail(trackInfo, errorInfo);
                 }
-                showToast(trackInfo,false);
+                showToast(trackInfo, false);
                 stop();
             }
         });
@@ -1344,8 +1348,8 @@ public class CicadaVodPlayerView extends RelativeLayout {
         mCicadaVodPlayer.setOnSnapShotListener(new CicadaPlayer.OnSnapShotListener() {
             @Override
             public void onSnapShot(Bitmap bitmap, int i, int i1) {
-                if(mSnapShotListener != null){
-                    mSnapShotListener.onSnapShot(bitmap,i,i1);
+                if (mSnapShotListener != null) {
+                    mSnapShotListener.onSnapShot(bitmap, i, i1);
                 }
             }
         });
@@ -1364,7 +1368,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
         }
 
         if (mAliyunMediaInfo == null) {
-            mAliyunMediaInfo =  new MediaInfoExt(mCicadaVodPlayer.getMediaInfo());
+            mAliyunMediaInfo = new MediaInfoExt(mCicadaVodPlayer.getMediaInfo());
             changed = true;
         }
 
@@ -1383,19 +1387,20 @@ public class CicadaVodPlayerView extends RelativeLayout {
 
     /**
      * 用于提示切换码率,音轨,字幕流成功/失败后的信息提示
-     * @param trackInfo     切换TrackInfo
-     * @param isSuccess     是否切换成功
+     *
+     * @param trackInfo 切换TrackInfo
+     * @param isSuccess 是否切换成功
      */
-    private void showToast(TrackInfo trackInfo,boolean isSuccess){
+    private void showToast(TrackInfo trackInfo, boolean isSuccess) {
         TrackInfo.Type type = trackInfo.getType();
         String result;
-        if(type == TrackInfo.Type.TYPE_SUBTITLE){
+        if (type == TrackInfo.Type.TYPE_SUBTITLE) {
             //字幕
             result = isSuccess ? getContext().getString(R.string.cicada_change_subtitle_track) + trackInfo.getSubtitleLang() : getContext().getString(R.string.cicada_change_track_failure);
-        }else if(type == TrackInfo.Type.TYPE_AUDIO){
+        } else if (type == TrackInfo.Type.TYPE_AUDIO) {
             //音轨
             result = isSuccess ? getContext().getString(R.string.cicada_change_audio_track) + trackInfo.getAudioLang() : getContext().getString(R.string.cicada_change_track_failure);
-        }else if(type == TrackInfo.Type.TYPE_VIDEO){
+        } else if (type == TrackInfo.Type.TYPE_VIDEO) {
             //码率
             result = isSuccess ? getContext().getString(R.string.cicada_change_bitate_track) + trackInfo.getVideoBitrate() : getContext().getString(R.string.cicada_change_track_failure);
         }
@@ -1403,7 +1408,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
 //            //清晰度
 //            result = isSuccess ? "切换清晰度 " + trackInfo.getVodDefinition() : "切换清晰度失败";
 //        }
-        else{
+        else {
             result = getContext().getString(R.string.cicada_change_track_failure);
         }
 
@@ -1515,7 +1520,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
     /**
      * 添加子View到布局中央
      */
-    private void addSubViewByCenter(View view){
+    private void addSubViewByCenter(View view) {
         LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         params.addRule(RelativeLayout.CENTER_IN_PARENT);
         addView(view, params);
@@ -1643,7 +1648,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
     /**
      * 设置码率切换监听
      */
-    public void setOnTrackChangedListener(CicadaPlayer.OnTrackChangedListener onTrackChangedListener){
+    public void setOnTrackChangedListener(CicadaPlayer.OnTrackChangedListener onTrackChangedListener) {
         this.mOutTrackChangedListener = onTrackChangedListener;
     }
 
@@ -1718,7 +1723,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
     /**
      * 设置截图监听
      */
-    public void setSnapShotListener(CicadaPlayer.OnSnapShotListener snapShotListener){
+    public void setSnapShotListener(CicadaPlayer.OnSnapShotListener snapShotListener) {
         this.mSnapShotListener = snapShotListener;
     }
 
@@ -1730,9 +1735,9 @@ public class CicadaVodPlayerView extends RelativeLayout {
         if (mIsFullScreenLocked) {
             int orientation = getResources().getConfiguration().orientation;
             if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-                changeScreenMode(CicadaScreenMode.Small,false);
+                changeScreenMode(CicadaScreenMode.Small, false);
             } else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                changeScreenMode(CicadaScreenMode.Full,false);
+                changeScreenMode(CicadaScreenMode.Full, false);
             }
         }
 
@@ -1874,7 +1879,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
     /**
      * 重新加载
      */
-    public void reload(){
+    public void reload() {
         if (mCicadaVodPlayer != null) {
             mCicadaVodPlayer.reload();
         }
@@ -1892,7 +1897,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
 
         inSeek = true;
         startSeekTime = System.currentTimeMillis();
-        mCicadaVodPlayer.seekTo(position,mSeekMode);
+        mCicadaVodPlayer.seekTo(position, mSeekMode);
     }
 
 
@@ -1923,9 +1928,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
      * 开启底层日志
      */
     public void enableNativeLog() {
-        if (mCicadaVodPlayer != null) {
-            mCicadaVodPlayer.enableLog(true);
-        }
+       Logger.enableConsoleLog(true);
     }
 
 
@@ -1933,9 +1936,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
      * 关闭底层日志
      */
     public void disableNativeLog() {
-        if (mCicadaVodPlayer != null) {
-            mCicadaVodPlayer.enableLog(false);
-        }
+        Logger.enableConsoleLog(false);
     }
 
     /**
@@ -2092,8 +2093,8 @@ public class CicadaVodPlayerView extends RelativeLayout {
      * @param clearFrameWhenStop      停止显示最后帧
      */
     public void setPlayerConfig(String referrer, String maxDelayTime, String httpProxy, String probeSize,
-                                String netWorkTimeOut,String hightBufferLevel, String firstStartBufferLevel,
-                                String maxBufferPackedDuration,boolean clearFrameWhenStop,String retryCount) {
+                                String netWorkTimeOut, String hightBufferLevel, String firstStartBufferLevel,
+                                String maxBufferPackedDuration, boolean clearFrameWhenStop, String retryCount) {
         if (mCicadaVodPlayer != null) {
             PlayerConfig config = mCicadaVodPlayer.getConfig();
 
@@ -2136,24 +2137,24 @@ public class CicadaVodPlayerView extends RelativeLayout {
     }
 
 
-
     /**
      * 设置CacheConfig
-     * @param maxDuration   最大时长
-     * @param maxSize       最大size
-     * @param cacheDir      缓存路径
+     *
+     * @param maxDuration 最大时长
+     * @param maxSize     最大size
+     * @param cacheDir    缓存路径
      */
-    public void setCacheConfig(String maxDuration,String maxSize,String cacheDir,boolean enableCache){
-        if(mCicadaVodPlayer != null){
+    public void setCacheConfig(String maxDuration, String maxSize, String cacheDir, boolean enableCache) {
+        if (mCicadaVodPlayer != null) {
             CacheConfig cacheConfig = new CacheConfig();
             cacheConfig.mEnable = enableCache;
-            if(!TextUtils.isEmpty(maxDuration)){
+            if (!TextUtils.isEmpty(maxDuration)) {
                 cacheConfig.mMaxDurationS = Long.valueOf(maxDuration);
             }
-            if(!TextUtils.isEmpty(maxSize)){
+            if (!TextUtils.isEmpty(maxSize)) {
                 cacheConfig.mMaxSizeMB = Integer.valueOf(maxSize);
             }
-            if(!TextUtils.isEmpty(cacheDir)){
+            if (!TextUtils.isEmpty(cacheDir)) {
                 cacheConfig.mDir = cacheDir;
             }
             mCicadaVodPlayer.setCacheConfig(cacheConfig);
@@ -2164,8 +2165,8 @@ public class CicadaVodPlayerView extends RelativeLayout {
     /**
      * 获取配置信息
      */
-    public PlayerConfig getPlayerConfig(){
-        if(mCicadaVodPlayer != null){
+    public PlayerConfig getPlayerConfig() {
+        if (mCicadaVodPlayer != null) {
             return mCicadaVodPlayer.getConfig();
         }
         return null;
@@ -2203,9 +2204,10 @@ public class CicadaVodPlayerView extends RelativeLayout {
 
     /**
      * 设置seek模式
+     *
      * @param isChecked true为精准seek,false为非精准seek
      */
-    public void setSeekMode(boolean isChecked){
+    public void setSeekMode(boolean isChecked) {
         mSeekMode = isChecked ? CicadaPlayer.SeekMode.Accurate : CicadaPlayer.SeekMode.Inaccurate;
     }
 
@@ -2215,37 +2217,37 @@ public class CicadaVodPlayerView extends RelativeLayout {
     public void showMediaInfo() {
         if (mCicadaVodPlayer != null) {
             TrackInfo videoBitrateInfo = mCicadaVodPlayer.currentTrack(TrackInfo.Type.TYPE_VIDEO.ordinal());
-            StringBuilder stringBuilder =  new StringBuilder();
+            StringBuilder stringBuilder = new StringBuilder();
 
             if (videoBitrateInfo != null) {
                 stringBuilder.append(getContext().getString(R.string.cicada_resolution) + ": ")
-                    .append(videoBitrateInfo.getVideoHeight())
-                    .append("x")
-                    .append(videoBitrateInfo.getVideoWidth())
-                    .append("\n" + getContext().getString(R.string.cicada_bitrate) + ": ")
-                    .append(videoBitrateInfo.getVideoBitrate());
+                        .append(videoBitrateInfo.getVideoHeight())
+                        .append("x")
+                        .append(videoBitrateInfo.getVideoWidth())
+                        .append("\n" + getContext().getString(R.string.cicada_bitrate) + ": ")
+                        .append(videoBitrateInfo.getVideoBitrate());
             }
             TrackInfo audioTrackInfo = mCicadaVodPlayer.currentTrack(TrackInfo.Type.TYPE_AUDIO.ordinal());
             if (audioTrackInfo != null) {
-                if (stringBuilder.length()>0){
+                if (stringBuilder.length() > 0) {
                     stringBuilder.append("\n");
                 }
                 stringBuilder.append(getContext().getString(R.string.cicada_audio) + ": ")
-                    .append(audioTrackInfo.getAudioLang());
+                        .append(audioTrackInfo.getAudioLang());
             }
 
             TrackInfo subtitleTrackInfo = mCicadaVodPlayer.currentTrack(TrackInfo.Type.TYPE_SUBTITLE.ordinal());
             if (subtitleTrackInfo != null) {
-                if (stringBuilder.length()>0){
+                if (stringBuilder.length() > 0) {
                     stringBuilder.append("\n");
                 }
                 stringBuilder.append(getContext().getString(R.string.cicada_subtitle) + ": ")
-                    .append(subtitleTrackInfo.getSubtitleLang());
+                        .append(subtitleTrackInfo.getSubtitleLang());
             }
-            if (stringBuilder.length()>0){
+            if (stringBuilder.length() > 0) {
                 Toast.makeText(getContext(), stringBuilder.toString(), Toast.LENGTH_SHORT).show();
-            }else {
-                Toast.makeText(getContext(), getContext().getString(R.string.cicada_none_mediainfo) , Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(), getContext().getString(R.string.cicada_none_mediainfo), Toast.LENGTH_SHORT).show();
 
             }
         }
@@ -2324,8 +2326,8 @@ public class CicadaVodPlayerView extends RelativeLayout {
     /**
      * 获取音量
      */
-    public float getVolume(){
-        if(mCicadaVodPlayer != null){
+    public float getVolume() {
+        if (mCicadaVodPlayer != null) {
             return mCicadaVodPlayer.getVolume();
         }
         return 0;
@@ -2335,7 +2337,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
      * 是否开启硬解
      */
     public void enableHardwareDecoder(boolean enable) {
-        if(mCicadaVodPlayer != null){
+        if (mCicadaVodPlayer != null) {
             mCicadaVodPlayer.enableHardwareDecoder(enable);
         }
     }

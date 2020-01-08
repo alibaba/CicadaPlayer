@@ -314,12 +314,22 @@ int __log_print(int prio, const char *tag, const char *fmt, ...)
     return 0;
 }
 
-void log_set_level(int level, int enable_console)
+void log_set_enable_console(int enable)
+{
+    logCtrl.disable_console = !enable;
+}
+
+void log_set_log_level(int level)
 {
     initLog();
     logCtrl.log_level = level;
-    logCtrl.disable_console = !enable_console;
     // cicada_set_log_level(level);
+}
+
+void log_set_level(int level, int enable_console)
+{
+    log_set_log_level(level);
+    log_set_enable_console(enable_console);
 }
 
 int log_get_level()

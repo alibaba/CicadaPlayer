@@ -42,7 +42,6 @@ jmethodID gj_NativePlayer_onCircleStart = nullptr;
 jmethodID gj_NativePlayer_onLoadingStart = nullptr;
 jmethodID gj_NativePlayer_onShowSubtitle = nullptr;
 jmethodID gj_NativePlayer_onHideSubtitle = nullptr;
-jmethodID gj_NativePlayer_onNativeLog = nullptr;
 jmethodID gj_NativePlayer_onStatusChanged = nullptr;
 jmethodID gj_NativePlayer_onAutoPlayStart = nullptr;
 jmethodID gj_NativePlayer_onStreamInfoGet = nullptr;
@@ -56,27 +55,7 @@ jmethodID gj_NativePlayer_onVideoSizeChanged = nullptr;
 jmethodID gj_NativePlayer_onSwitchStreamSuccess = nullptr;
 jmethodID gj_NativePlayer_onBufferPositionUpdate = nullptr;
 jmethodID gj_NativePlayer_onCurrentPositionUpdate = nullptr;
-jmethodID gj_NativePlayer_convertURLCallback = nullptr;
 jmethodID gj_NativePlayer_onSubtitleExtAdded = nullptr;
-
-void LogCallback(void *userData, int prio, const char *buf)
-{
-    if (userData == nullptr || buf == nullptr) {
-        return;
-    }
-
-    JniEnv Jenv;
-    JNIEnv *pEnv = Jenv.getEnv();
-
-    if (pEnv == nullptr) {
-        return;
-    }
-
-    NewStringUTF tmpMsg(pEnv, buf);
-    jstring jMsg = tmpMsg.getString();
-    pEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onNativeLog, (jint) prio, jMsg);
-    JniException::clearException(pEnv);
-}
 
 void NativeBase::java_Construct(JNIEnv *env, jobject instance)
 {
@@ -306,7 +285,6 @@ void NativeBase::java_Release(JNIEnv *env, jobject instance)
         player = nullptr;
     }
 
-    Cicada::MediaPlayer::SetLogCallback(nullptr, nullptr);
     PlayerPrivateData *privateData = getPlayerPrivateData(env, instance);
 
     if (privateData != nullptr) {
@@ -521,28 +499,6 @@ jboolean NativeBase::java_IsLoop(JNIEnv *env, jobject instance)
 
     return static_cast<jboolean>(player->IsLoop());
 }
-
-
-void NativeBase::java_EnableLog(JNIEnv *env, jobject instance, jboolean enable)
-{
-    AF_TRACE;
-    MediaPlayer::EnableLog(enable);
-}
-
-void NativeBase::java_SetLogCallback(JNIEnv *env, jobject instance, jint level)
-{
-    AF_TRACE;
-    MediaPlayer *player = getPlayer(env, instance);
-
-    if (player == nullptr) {
-        return;
-    }
-
-    PlayerPrivateData *playerPrivateData = getPlayerPrivateData(env, instance);
-    player->SetLogCallback(LogCallback, playerPrivateData->j_instance);
-    log_set_level((int) level, 1);
-}
-
 
 jint NativeBase::java_GetVideoWidth(JNIEnv *env, jobject instance)
 {
@@ -872,9 +828,6 @@ void NativeBase::init(JNIEnv *env)
         gj_NativePlayer_onHideSubtitle = env->GetMethodID(gj_NativePlayer_Class,
                                          "onHideSubtitle",
                                          "(IJ)V");
-        gj_NativePlayer_onNativeLog = env->GetMethodID(gj_NativePlayer_Class,
-                                      "onNativeLog",
-                                      "(ILjava/lang/String;)V");
         gj_NativePlayer_onStatusChanged = env->GetMethodID(gj_NativePlayer_Class,
                                           "onStatusChanged",
                                           "(II)V");
@@ -914,9 +867,6 @@ void NativeBase::init(JNIEnv *env)
         gj_NativePlayer_onAutoPlayStart = env->GetMethodID(gj_NativePlayer_Class,
                                           "onAutoPlayStart",
                                           "()V");
-        gj_NativePlayer_convertURLCallback = env->GetStaticMethodID(gj_NativePlayer_Class,
-                                             "nConvertURLCallback",
-                                             "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
         gj_NativePlayer_onSubtitleExtAdded = env->GetMethodID(gj_NativePlayer_Class,
                                              "onSubtitleExtAdded",
                                              "(ILjava/lang/String;)V");
@@ -963,8 +913,6 @@ static JNINativeMethod nativePlayer_method_table[] = {
     {"nGetScaleMode",           "()I",                                     (void *) NativeBase::java_GetScaleMode},
     {"nSetLoop",                "(Z)V",                                    (void *) NativeBase::java_SetLoop},
     {"nIsLoop",                 "()Z",                                     (void *) NativeBase::java_IsLoop},
-    {"nEnableLog",              "(Z)V",                                    (void *) NativeBase::java_EnableLog},
-    {"nSetLogCallback",         "(I)V",                                    (void *) NativeBase::java_SetLogCallback},
     {"nGetVideoWidth",          "()I",                                     (void *) NativeBase::java_GetVideoWidth},
     {"nGetVideoHeight",         "()I",                                     (void *) NativeBase::java_GetVideoHeight},
     {"nGetVideoRotation",       "()I",                                     (void *) NativeBase::java_GetVideoRotation},
@@ -1282,7 +1230,8 @@ void NativeBase::jni_onSubTitleExtAdd(int64_t index, const void *url, void *user
 
     NewStringUTF tmpmsg(pEnv, (char *) url);
     jstring jmsg = tmpmsg.getString();
-    pEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onSubtitleExtAdded, (jint) index, jmsg);
+    pEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onSubtitleExtAdded, (jint) index,
+                         jmsg);
     JniException::clearException(pEnv);
 }
 
@@ -1306,7 +1255,8 @@ void NativeBase::jni_onShowSubtitle(int64_t id, int64_t size, const void *conten
     srcContent[packet->getSize()] = 0;
     NewStringUTF tmpContent(pEnv, srcContent);
     jstring jContent = tmpContent.getString();
-    pEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onShowSubtitle, (jint)packet->getInfo().streamIndex, (jlong) packet->getInfo().pts,
+    pEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onShowSubtitle,
+                         (jint) packet->getInfo().streamIndex, (jlong) packet->getInfo().pts,
                          jContent,
                          nullptr);
     JniException::clearException(pEnv);
@@ -1327,7 +1277,8 @@ void NativeBase::jni_onHideSubtitle(int64_t id, int64_t size, const void *conten
     }
 
     IAFPacket *packet = (IAFPacket *) (content);
-    mEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onHideSubtitle, (jint)packet->getInfo().streamIndex,
+    mEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onHideSubtitle,
+                         (jint) packet->getInfo().streamIndex,
                          (jlong) packet->getInfo().pts);
     JniException::clearException(mEnv);
 }

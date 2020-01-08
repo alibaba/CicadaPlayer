@@ -97,10 +97,6 @@ public:
 
     static jboolean java_IsLoop(JNIEnv *env, jobject instance);
 
-    static void java_EnableLog(JNIEnv *env, jobject instance, jboolean enable);
-
-    static void java_SetLogCallback(JNIEnv *env, jobject instance, jint level);
-
     static jint java_GetVideoWidth(JNIEnv *env, jobject instance);
 
     static jint java_GetVideoHeight(JNIEnv *env, jobject instance);
