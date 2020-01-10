@@ -31,12 +31,21 @@ add_subdirectory(../mediaPlayer mediaPlayer.out)
 
 include(../framework/${TARGET_PLATFORM}.cmake)
 
-add_executable(cicadaPlayer
+list(APPEND SRC_FILE
         cicadaPlayer.cpp
-        SDLEventReceiver.cpp
-        SDLEventReceiver.h
         NetWorkEventReceiver.cpp
-        cicadaEventListener.cpp)
+        cicadaEventListener.cpp
+        )
+
+if (ENABLE_SDL)
+    list(APPEND SRC_FILE
+            SDLEventReceiver.cpp
+            SDLEventReceiver.h
+            )
+endif ()
+
+add_executable(cicadaPlayer
+        ${SRC_FILE})
 target_include_directories(cicadaPlayer PUBLIC ../mediaPlayer)
 target_link_directories(cicadaPlayer PRIVATE
         ../external/install/ffmpeg/${CMAKE_SYSTEM_NAME}/x86_64/lib
@@ -63,8 +72,12 @@ target_link_libraries(cicadaPlayer PRIVATE
         ssl
         crypto
         pthread
-        SDL2
         ${FRAMEWORK_LIBS})
+if (ENABLE_SDL)
+    target_link_libraries(cicadaPlayer PUBLIC
+            SDL2
+            )
+endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     target_link_libraries(cicadaPlayer PUBLIC

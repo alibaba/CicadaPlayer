@@ -38,6 +38,13 @@ if (ENABLE_SDL)
             )
 endif ()
 
+if (ENABLE_CHEAT_RENDER)
+    list(APPEND SRC_FILES
+            video/CheaterVideoRender.cpp
+            audio/CheaterAudioRender.cpp
+            )
+endif ()
+
 if (ANDROID)
     list(APPEND SRC_FILES
             audio/filterAudioRender.cpp
@@ -131,11 +138,15 @@ add_library(render STATIC ${SRC_FILES})
 
 target_include_directories(render PUBLIC ${COMMON_INC_DIR})
 if (ENABLE_SDL)
-    add_definitions(-DENABLE_SDL)
+    target_compile_definitions(render PUBLIC ENABLE_SDL)
     target_include_directories(render PUBLIC /usr/local/include/)
     target_link_directories(render PRIVATE ${COMMON_LIB_DIR})
     target_link_directories(render PUBLIC /usr/local/lib)
     target_link_libraries(render PUBLIC SDL2)
+endif ()
+
+if (ENABLE_CHEAT_RENDER)
+    target_compile_definitions(render PUBLIC ENABLE_CHEAT_RENDER)
 endif ()
 
 if (ENABLE_GLRENDER)

@@ -81,5 +81,11 @@ endif (USEMSAN)
 set(TARGET_LIBRARY_TYPE STATIC)
 
 set(ENABLE_GLRENDER OFF)
-set(ENABLE_SDL ON)
+
 set(BUILD_TEST ON)
+if (TRAVIS)
+    set(ENABLE_CHEAT_RENDER ON)
+else ()
+    set(ENABLE_SDL ON)
+endif ()
+

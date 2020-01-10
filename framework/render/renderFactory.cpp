@@ -17,18 +17,31 @@
 #endif
 #ifdef ENABLE_SDL
 
-    #include "audio/SdlAFAudioRender.h"
-    #include "video/SdlAFVideoRender.h"
+#include "audio/SdlAFAudioRender.h"
+#include "video/SdlAFVideoRender.h"
 
 #endif
 
 #ifdef GLRENDER
 
-    #include "video/glRender/GLRender.h"
+#include "video/glRender/GLRender.h"
+
+#endif
+
+#ifdef ENABLE_CHEAT_RENDER
+
+#include "video/CheaterVideoRender.h"
 
 #endif
 
 #include "audio/audioRenderPrototype.h"
+
+#ifdef ENABLE_CHEAT_RENDER
+
+#include "audio/CheaterAudioRender.h"
+
+#endif
+
 using namespace Cicada;
 
 std::unique_ptr<IAudioRender> AudioRenderFactory::create()
@@ -38,6 +51,9 @@ std::unique_ptr<IAudioRender> AudioRenderFactory::create()
     if (render) {
         return render;
     }
+#ifdef ENABLE_CHEAT_RENDER
+    return std::unique_ptr<IAudioRender>(new CheaterAudioRender());
+#endif
 
 #ifdef ANDROID
     return std::unique_ptr<IAudioRender>(new AudioTrackRender());
@@ -57,6 +73,8 @@ std::unique_ptr<IVideoRender> videoRenderFactory::create()
     return std::unique_ptr<IVideoRender>(new GLRender());
 #elif defined(ENABLE_SDL)
     return std::unique_ptr<IVideoRender>(new SdlAFVideoRender());
+#elif defined(ENABLE_CHEAT_RENDER)
+    return std::unique_ptr<IVideoRender>(new CheaterVideoRender());
 #endif
     return nullptr;
 }
