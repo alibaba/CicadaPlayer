@@ -14,8 +14,8 @@
 #include "abr/AbrBufferAlgoStrategy.h"
 #include "abr/AbrBufferRefererData.h"
 
-#include "AnalyticsCollectorFactory.h"
-#include "AnalyticsQueryListener.h"
+#include "analytics/AnalyticsCollectorFactory.h"
+#include "analytics/AnalyticsQueryListener.h"
 #include "media_player_error_def.h"
 #include "PlayerCacheDataSource.h"
 
