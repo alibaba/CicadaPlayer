@@ -8,9 +8,12 @@
 
 #include <MediaPlayer.h>
 #include <memory>
+#ifdef ENABLE_SDL
 #include <SDL2/SDL.h>
-#include <utils/timer.h>
 #include "SDLEventReceiver.h"
+#endif
+#include <utils/timer.h>
+#include "IEventReceiver.h"
 
 
 class cicadaEventListener : public IEventReceiver::Listener {
