@@ -7,11 +7,15 @@
 
 
 #include <jni.h>
+#include <string>
+#include <map>
 
 class Convertor {
 public:
     static char* jByteArrayToChars(JNIEnv *env, jbyteArray bytearray);
     static char* jByteArrayToChars_New(JNIEnv *env, jbyteArray bytearray);
+
+    static jobject cmap2Jmap(JNIEnv *env , std::map<std::string ,std::string> theMap);
 };
 
 
