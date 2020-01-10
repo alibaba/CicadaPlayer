@@ -113,15 +113,6 @@ endif ()
 #            )
 #endif ()
 
-include_directories(
-        ${COMMON_INC_DIR}
-        ./
-        ./audioRender
-        analytics
-        ${TOPDIR}/privateService/saasvidlibrary/sources
-        ${TOPDIR}/prebuild/windows/artp/include
-        ${CICADA_FRAMEWORK_INSTALL_BOOST_INC_DIR})
-
 if (TARGET_PLATFORM STREQUAL "windows")
 else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-inconsistent-missing-override -frtti")
@@ -135,8 +126,15 @@ if ($ENV{VERSION})
 endif ()
 
 add_library(media_player STATIC ${SOURCE_FILES})
-target_include_directories(media_player PUBLIC ../framework)
+target_include_directories(media_player PUBLIC
+        ../framework
+        ${COMMON_INC_DIR}
+        ./)
 if (HAVE_COVERAGE_CONFIG)
     target_link_libraries(media_player PUBLIC coverage_config)
+endif ()
+
+if (BUILD_TEST)
+    add_subdirectory(tests)
 endif ()
 
