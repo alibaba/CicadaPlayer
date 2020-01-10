@@ -10,7 +10,9 @@
 #include <demuxer/demuxer_service.h>
 #include <codec/decoderFactory.h>
 #include <utils/timer.h>
+#ifdef ENABLE_SDL
 #include <SDL2/SDL.h>
+#endif
 
 using namespace std;
 using namespace Cicada;
@@ -20,8 +22,10 @@ static void test_render(const string &url, Stream_type type, int flags, int samp
     unique_ptr<IDecoder> decoder{nullptr};
     unique_ptr<IAudioRender> audioRender{nullptr};
     unique_ptr<IVideoRender> videoRender{nullptr};
+#ifdef ENABLE_SDL
     SDL_Window *window = nullptr;
     SDL_Renderer *mVideoRender = nullptr;
+#endif
     int samples_rendered = 0;
     auto source = dataSourcePrototype::create(url);
     source->Open(0);
@@ -43,17 +47,20 @@ static void test_render(const string &url, Stream_type type, int flags, int samp
 
     std::unique_ptr<IAFPacket> packet{nullptr};
     unique_ptr<IAFFrame> frame{nullptr};
+#ifdef ENABLE_SDL
     SDL_Event event;
+#endif
 
     do {
         if (type == STREAM_TYPE_VIDEO) {
+#ifdef ENABLE_SDL
             if (SDL_PollEvent(&event)) {
                 if (event.type == SDL_QUIT) {
                     break;
                 }
             }
+#endif
         }
-
         if (frame == nullptr) {
             int decoder_ret;
             ret = demuxer->readPacket(packet, 0);
@@ -92,12 +99,17 @@ static void test_render(const string &url, Stream_type type, int flags, int samp
                 if (videoRender == nullptr) {
                     videoRender = videoRenderFactory::create();
                     ASSERT_TRUE(videoRender);
+#ifdef ENABLE_SDL
                     SDL_Init(SDL_INIT_VIDEO);
                     Uint32 flags = 0;
                     flags |= SDL_WINDOW_ALLOW_HIGHDPI;
                     flags |= SDL_WINDOW_RESIZABLE;
                     SDL_CreateWindowAndRenderer(1280, 720, flags, &window, &mVideoRender);
                     videoRender->setDisPlay(window);
+#else
+                    int x;
+                    videoRender->setDisPlay(&x);
+#endif
                     ret = videoRender->init();
                     ASSERT_GE(ret, 0);
                 }
@@ -118,6 +130,7 @@ static void test_render(const string &url, Stream_type type, int flags, int samp
 
     delete source;
     delete demuxer;
+#ifdef ENABLE_SDL
     if (mVideoRender != nullptr) {
         SDL_DestroyRenderer(mVideoRender);
         mVideoRender = nullptr;
@@ -127,6 +140,7 @@ static void test_render(const string &url, Stream_type type, int flags, int samp
         SDL_DestroyWindow(window);
         window = nullptr;
     }
+#endif
 }
 
 int main(int argc, char **argv)
