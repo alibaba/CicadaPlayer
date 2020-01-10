@@ -7,7 +7,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 cmake_policy(SET CMP0079 NEW)
-include(../GoogleTest.cmake)
 add_executable(demuxerUnitTest "" demuxerUtils.cpp demuxerUtils.h)
 
 if (APPLE)
@@ -25,7 +24,7 @@ target_include_directories(
 )
 
 target_link_libraries(
-        demuxerUnitTest
+        demuxerUnitTest PRIVATE
         demuxer
         videodec
         data_source
@@ -44,22 +43,19 @@ target_link_libraries(
 
 if (APPLE)
     target_link_libraries(
-            demuxerUnitTest
+            demuxerUnitTest PUBLIC
             iconv
             bz2
             ${FRAMEWORK_LIBS}
     )
-else()
+else ()
     target_link_libraries(
-            demuxerUnitTest
+            demuxerUnitTest PUBLIC
             dl
             pthread
     )
 
 endif ()
-enable_testing()
-
-add_test(
-        NAME google_test
-        COMMAND $<TARGET_FILE:demuxerUnitTest>
-)
+if (HAVE_COVERAGE_CONFIG)
+    target_link_libraries(demuxerUnitTest PUBLIC coverage_config)
+endif ()

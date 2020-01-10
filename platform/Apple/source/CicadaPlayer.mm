@@ -27,7 +27,12 @@ static AliyunLogCallbackBlock g_logBlock = nil;
 //void playerLogSetLevel(int level, int enableConsole)
 extern "C"
 {
+
+    void log_set_enable_console(int enable);
+
     void log_set_level(int level, int enable_console);
+
+    void log_set_back(log_back func, void *arg);
 };
 
 static void CicadaPlayer_log_print(void *userData, int prio, const char *buf)
@@ -87,7 +92,7 @@ static int logOutput = 1;
 {
     static dispatch_once_t disOnce;
     dispatch_once(&disOnce,^ {
-        MediaPlayer::SetLogCallback(CicadaPlayer_log_print, nullptr);
+        log_set_back(CicadaPlayer_log_print, nullptr);
     });
 
     log_set_level(logLevel, logOutput);
@@ -556,7 +561,7 @@ static int logOutput = 1;
 
 -(void)setEnableLog:(BOOL)enableLog
 {
-    MediaPlayer::EnableLog(enableLog);
+    log_set_enable_console(enableLog);
     _enableLog = enableLog;
     logOutput = enableLog;
     //IApsaraVideoPlayer::SetLogCallback(ApsaraLogCallbackF, nullptr);

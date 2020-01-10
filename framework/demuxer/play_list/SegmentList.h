@@ -36,8 +36,6 @@ namespace Cicada{
 
         uint64_t getFirstSeqNum();
 
-        int64_t getSegmentStartTimeByNumber(uint64_t num);
-
     private:
         std::list<std::shared_ptr<segment>> segments;
 

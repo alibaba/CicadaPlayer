@@ -20,8 +20,6 @@ namespace Cicada {
 
         void AddPacket(mediaPacket frame);
 
-        IAFPacket *GetPacket(bool popup);
-
         std::unique_ptr<IAFPacket> getPacket();
 
         void PopFrontPacket();

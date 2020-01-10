@@ -4,7 +4,9 @@
 
 #ifndef CICADAMEDIA_SDLEVENTRECEIVER_H
 #define CICADAMEDIA_SDLEVENTRECEIVER_H
+#ifdef ENABLE_SDL
 #include <SDL2/SDL.h>
+#endif
 #include "IEventReceiver.h"
 
 class SDLEventReceiver : public IEventReceiver {
@@ -16,11 +18,11 @@ public:
 
     void poll(bool &exit) override;
 private:
+#ifdef ENABLE_SDL
     SDL_Event event{};
-
-private:
     SDL_Window *window = nullptr;
     SDL_Renderer *mVideoRender = nullptr;
+#endif
 };
 
 

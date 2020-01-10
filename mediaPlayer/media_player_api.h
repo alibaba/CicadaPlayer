@@ -23,7 +23,7 @@ void CicadaReleasePlayer(playerHandle **player);
 /*
  *set player listener
  */
-int CicadaSetListener(playerHandle *pHandle, playerListener Listener);
+int CicadaSetListener(playerHandle *pHandle, const playerListener &Listener);
 
 /*
  * set external component callback

@@ -4,12 +4,18 @@
 
 using namespace Cicada;
 using namespace std;
-#define SDL_MAIN_HANDLED
+
 #include "SDLEventReceiver.h"
 #include "cicadaEventListener.h"
 #include "NetWorkEventReceiver.h"
+
+#ifdef ENABLE_SDL
 #include <SDL2/SDL_main.h>
+#define SDL_MAIN_HANDLED
+#endif
+
 #include <media_player_error_def.h>
+
 using IEvent = IEventReceiver::IEvent;
 struct cicadaCont {
     MediaPlayer *player;
@@ -22,7 +28,8 @@ static void onVideoSize(int64_t width, int64_t height, void *userData)
     using IEvent = IEventReceiver::IEvent;
     auto *cont = static_cast<cicadaCont *>(userData);
     auto *event = new IEvent(IEvent::TYPE_SET_VIEW);
-    cont->receiver->push(std::unique_ptr<IEvent>(event));
+    if (cont->receiver)
+        cont->receiver->push(std::unique_ptr<IEvent>(event));
 }
 
 static void onEOS(void *userData)
@@ -82,9 +89,15 @@ int main(int argc, const char **argv)
     pListener.EventCallback = onEvent;
     pListener.ErrorCallback = onError;
     cicadaEventListener eListener(player.get());
+#ifdef ENABLE_SDL
     SDLEventReceiver receiver(eListener);
-    NetWorkEventReceiver netWorkEventReceiver(eListener);
     cicada.receiver = &receiver;
+#else
+    int view = 0;
+    player->SetView(&view);
+#endif
+    NetWorkEventReceiver netWorkEventReceiver(eListener);
+
     player->SetListener(pListener);
     player->SetDefaultBandWidth(100000000);
     player->SetDataSource(url.c_str());
@@ -94,14 +107,18 @@ int main(int argc, const char **argv)
     bool quite = false;
 
     while (!quite) {
+#ifdef ENABLE_SDL
         receiver.poll(quite);
+#endif
 
         if (!quite) {
             netWorkEventReceiver.poll(quite);
 
             if (quite) {
                 auto *event = new IEvent(IEvent::TYPE_EXIT);
+#ifdef ENABLE_SDL
                 receiver.push(std::unique_ptr<IEvent>(event));
+#endif
             }
         }
 

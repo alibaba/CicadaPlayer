@@ -109,8 +109,9 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
                 break;
             }
         }
-
-        averageSpeed /= count;
+        if (count) {
+            averageSpeed /= count;
+        }
         maxSpeed = downloadSpeed.front();
     }
 

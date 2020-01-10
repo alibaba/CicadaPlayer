@@ -20,6 +20,8 @@ static void test_render(const string &url, Stream_type type, int flags, int samp
     unique_ptr<IDecoder> decoder{nullptr};
     unique_ptr<IAudioRender> audioRender{nullptr};
     unique_ptr<IVideoRender> videoRender{nullptr};
+    SDL_Window *window = nullptr;
+    SDL_Renderer *mVideoRender = nullptr;
     int samples_rendered = 0;
     auto source = dataSourcePrototype::create(url);
     source->Open(0);
@@ -90,6 +92,12 @@ static void test_render(const string &url, Stream_type type, int flags, int samp
                 if (videoRender == nullptr) {
                     videoRender = videoRenderFactory::create();
                     ASSERT_TRUE(videoRender);
+                    SDL_Init(SDL_INIT_VIDEO);
+                    Uint32 flags = 0;
+                    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+                    flags |= SDL_WINDOW_RESIZABLE;
+                    SDL_CreateWindowAndRenderer(1280, 720, flags, &window, &mVideoRender);
+                    videoRender->setDisPlay(window);
                     ret = videoRender->init();
                     ASSERT_GE(ret, 0);
                 }
@@ -110,6 +118,15 @@ static void test_render(const string &url, Stream_type type, int flags, int samp
 
     delete source;
     delete demuxer;
+    if (mVideoRender != nullptr) {
+        SDL_DestroyRenderer(mVideoRender);
+        mVideoRender = nullptr;
+    }
+
+    if (window != nullptr) {
+        SDL_DestroyWindow(window);
+        window = nullptr;
+    }
 }
 
 int main(int argc, char **argv)
@@ -143,7 +160,7 @@ TEST(audio, pcm_48000_2_s16)
 TEST(audio, render)
 {
     std::string url = "http://player.alicdn.com/video/aliyunmedia.mp4";
-    test_render(url, STREAM_TYPE_AUDIO, DECFLAG_SW, 1000);
+    test_render(url, STREAM_TYPE_AUDIO, DECFLAG_SW, 100);
 }
 
 TEST(video, render)

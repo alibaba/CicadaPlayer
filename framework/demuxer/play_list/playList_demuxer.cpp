@@ -11,11 +11,9 @@
 namespace Cicada {
     playList_demuxer playList_demuxer::se(0);
 
-    playList_demuxer::playList_demuxer()
-    {
-    }
+    playList_demuxer::playList_demuxer() = default;
 
-    playList_demuxer::playList_demuxer(string path, playList_type type)
+    playList_demuxer::playList_demuxer(const string& path, playList_type type)
         : IDemuxer(path)
     {
         if (type == playList_type_hls) {

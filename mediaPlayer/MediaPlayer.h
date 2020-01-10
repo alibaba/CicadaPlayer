@@ -61,7 +61,7 @@ namespace Cicada {
         /*
          * set player listener
          */
-        void SetListener(playerListener Listener);
+        void SetListener(const playerListener &Listener);
 
         /*
          * enable hardware decoder or not
@@ -203,16 +203,6 @@ namespace Cicada {
          * get loop or not
          */
         bool IsLoop();
-
-        /*
-         * enable log or not
-         */
-        static void EnableLog(bool bEnabled);
-
-        /*
-         * set log callback function
-         */
-        static void SetLogCallback(CicadaLogCallback func, void *arg);
 
         /*
          * get video width of current playing

@@ -37,7 +37,7 @@ namespace Cicada {
 
         void Clean();
 
-        void setListener(playerListener listener);
+        void setListener(const playerListener &listener);
 
         void NotifyPosition(int64_t pos);
 

@@ -188,18 +188,6 @@ public interface CicadaPlayer {
     abstract public int getVideoRotation();
 
     /**
-     * 是否开启log。默认：开启。
-     *
-     * @param enable true:开启。
-     */
-    /****
-     * Enable or disable logging. Default: enabled.
-     *
-     * @param enable Set to true to enable logging.
-     */
-    abstract public void enableLog(boolean enable);
-
-    /**
      * 设置缓存配置
      *
      * @param cacheConfig 缓存配置。见{@link CacheConfig}。
@@ -1280,107 +1268,6 @@ public interface CicadaPlayer {
      */
     abstract public void reload();
 
-    /**
-     * 日志等级
-     */
-	 /****
-	  * Log level
-	  */
-     enum LogLevel {
-
-        /**
-		 * 无
-		 */
-		/****
-		 * None
-		 */
-        AF_LOG_LEVEL_NONE(0),
-        /**
-		 * 崩溃
-		 */
-		/****
-		 * Fatal
-		 */
-        AF_LOG_LEVEL_FATAL(8),
-        /**
-		 * 错误
-		 */
-		/****
-		 * Error
-		 */
-        AF_LOG_LEVEL_ERROR(16),
-        /**
-		 * 警告
-		 */
-		/****
-		 * Warning
-		 */
-        AF_LOG_LEVEL_WARNING(24),
-        /**
-		 * 信息
-		 */
-		/****
-		 * Info
-		 */
-        AF_LOG_LEVEL_INFO(32),
-        /**
-		 * 调试
-		 */
-		/****
-		 * Debug
-		 */
-        AF_LOG_LEVEL_DEBUG(48),
-        /**
-		 * 堆栈
-		 */
-		/****
-		 * Trace
-		 */
-        AF_LOG_LEVEL_TRACE(56);
-
-        private int mValue;
-
-        private LogLevel(int value) {
-            mValue = value;
-        }
-
-        public int getValue() {
-            return mValue;
-        }
-
-    }
-
-    /**
-     * 日志回调接口
-     */
-    /****
-     * Log callback.
-     */
-    public interface OnLogCallback {
-        /**
-         *
-         * @param level 日志等级。 见{@linkplain LogLevel}
-         * @param msg 日志信息
-         */
-        /****
-         *
-         * @param level The level of the log. See {@linkplain LogLevel}.
-         * @param msg The log data.
-         */
-        public void onLog(LogLevel level, String msg);
-    }
-
-    /**
-     * 设置日志回调
-     * @param logLevel 日志等级。 见{@linkplain LogLevel}。
-     * @param callback 回调。
-     */    
-	/****
-     * Set a log callback.
-     * @param logLevel The level of the log. See {@linkplain LogLevel}.
-     * @param callback The log callback.
-     */
-    void setLogCallback(LogLevel logLevel, OnLogCallback callback);
 
     /**
      * 添加外挂字幕
