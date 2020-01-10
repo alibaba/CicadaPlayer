@@ -60,7 +60,7 @@ export CURL_GIT=https://gitee.com/mirrors/curl.git
 - [1. cmdline (Windows/MacOS/Linux)](cmdline/README.md)
 - [2. Android](platform/Android/README.md)
 - [3. iOS/MacOS](platform/Apple/README.md)
-- 4.webAssemble coming soon
+- 4.webAssembly coming soon
 
 ## Contact
 
@@ -98,7 +98,4 @@ CicadaPlayerSDK using the projects:
 
   [boost](https://www.boost.org/)
 
-
-## Code Learning
-- [中文](doc/code_learning.zh.md)
 
