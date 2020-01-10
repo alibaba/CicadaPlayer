@@ -7,9 +7,7 @@ endif ()
 
 include(GoogleTest.cmake)
 add_subdirectory(dataSource)
-if (!TRAVIS)
-    add_subdirectory(render)
-endif ()
+add_subdirectory(render)
 add_subdirectory(demuxer)
 add_subdirectory(decoder)
 
@@ -19,12 +17,12 @@ add_test(
         NAME dataSourceTest
         COMMAND $<TARGET_FILE:dataSourceTest>
 )
-if (!TRAVIS)
-    add_test(
-            NAME renderTest
-            COMMAND $<TARGET_FILE:renderTest>
-    )
-endif ()
+
+add_test(
+        NAME renderTest
+        COMMAND $<TARGET_FILE:renderTest>
+)
+
 add_test(
         NAME demuxerUnitTest
         COMMAND $<TARGET_FILE:demuxerUnitTest>
