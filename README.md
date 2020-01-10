@@ -66,7 +66,7 @@ export CURL_GIT=https://gitee.com/mirrors/curl.git
 
 <img src="https://gw.alicdn.com/tfs/TB1ayl9mpYqK1RjSZLeXXbXppXa-170-62.png" width="28" height="10"  alt="dingding"/>
 
-<img src="doc/CicadaDingDing.jpg" width="300" height="400"  alt="dingding"/>
+<img src="doc/CicadaDingDing.jpg" width="304" height="310"  alt="dingding"/>
 
 ## License
 ```c++
