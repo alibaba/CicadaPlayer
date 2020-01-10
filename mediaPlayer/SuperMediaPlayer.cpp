@@ -1841,9 +1841,11 @@ namespace Cicada {
         }
 
         AVAFFrame *avafFrame = dynamic_cast<AVAFFrame *> (mAudioFrameQue.front().get());
+
         if (avafFrame) {
             duration = getPCMFrameDuration(avafFrame->ToAVFrame());
         }
+
         render_ret = mAudioRender->renderFrame(mAudioFrameQue.front(), 0);
 
         if (render_ret == IAudioRender::FORMAT_NOT_SUPPORT) {
@@ -2409,10 +2411,10 @@ namespace Cicada {
                 if (mVideoInterlaced != InterlacedType_UNKNOWN) {
                     delete mVideoParser;
                     mVideoParser = nullptr;
-                }else{
+                } else {
                     mVideoParserTimes ++;
 
-                    if(mVideoParserTimes > 10){
+                    if (mVideoParserTimes > 10) {
                         mVideoInterlaced = InterlacedType_NO;
                         delete mVideoParser;
                         mVideoParser = nullptr;
@@ -3065,7 +3067,6 @@ namespace Cicada {
             decFlag |= DECFLAG_OUTPUT_FRAME_ASAP;
         }
 
-        mVideoDecoder->setAnalyticsID(mSet.AnalyticsID);
         ret = mVideoDecoder->open(&meta, view, decFlag);
 
         if (ret < 0) {
@@ -3532,6 +3533,7 @@ namespace Cicada {
         if (!willChangeInfo || !currentInfo) {
             return;
         }
+
         AF_LOGD("video change video bitrate before is %d,after is %d",
                 currentInfo->videoBandwidth, willChangeInfo->videoBandwidth);
         //TODO: different strategy

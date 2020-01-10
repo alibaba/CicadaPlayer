@@ -162,11 +162,6 @@ namespace Cicada {
             return mName;
         }
 
-        void setAnalyticsID(int64_t theID)
-        {
-            mAnalyticsID = theID;
-        }
-
         virtual int holdOn(bool hold) = 0;
 
     protected:
@@ -177,7 +172,6 @@ namespace Cicada {
 #endif
         std::vector<decoder_error_info> mErrorQueue;
         bool mInBackground = false;
-        int64_t mAnalyticsID = -1;
         bool bNeedKeyFrame{true};
         int64_t keyPts = INT64_MIN;
     };
