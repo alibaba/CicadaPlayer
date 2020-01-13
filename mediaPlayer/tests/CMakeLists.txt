@@ -21,6 +21,7 @@ target_sources(mediaPlayerTest
         PRIVATE
         mediaPlayerUnitTest.cpp
         mediaPlayerTest.cpp
+        player_command.cpp
         )
 
 target_include_directories(mediaPlayerTest PRIVATE ../)

@@ -52,7 +52,7 @@ static void releaseView(){
 
 #endif
 
-void test_player(const string &url, OnLoop loop)
+void test_player(const string &url, OnLoop loop, void *arg)
 {
     unique_ptr<MediaPlayer> player = unique_ptr<MediaPlayer>(new MediaPlayer());
     player->SetDataSource(url.c_str());
@@ -62,7 +62,7 @@ void test_player(const string &url, OnLoop loop)
     if (loop) {
         int ret = 0;
         while (ret >= 0) {
-            ret = loop(player.get());
+            ret = loop(player.get(),arg);
         }
     } else
         af_msleep(10000);
