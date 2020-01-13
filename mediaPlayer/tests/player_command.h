@@ -6,6 +6,8 @@
 #define CICADAMEDIA_PLAYER_COMMAND_H
 
 
+#include <MediaPlayer.h>
+
 class player_command {
 public:
     enum command {
@@ -28,6 +30,8 @@ public:
     int arg0{};
 
 };
+
+int command_loop(Cicada::MediaPlayer *player, void *arg);
 
 
 #endif //CICADAMEDIA_PLAYER_COMMAND_H
