@@ -357,6 +357,9 @@ namespace Cicada {
 
         void abrChanged(int stream);
 
+        static void onMediaFrameCallback(void *arg, const unique_ptr<IAFPacket>& frame, StreamType type);
+        void mediaFrameCallback(const unique_ptr<IAFPacket>& frame, StreamType type);
+
     private:
         void configPlayer(const MediaPlayerConfig *config) const;
 
@@ -380,6 +383,9 @@ namespace Cicada {
         CacheManager* mCacheManager = nullptr;
         CacheConfig mCacheConfig;
         PlayerStatus mOldPlayStatus{PLAYER_IDLE};
+
+        playerMediaFrameCb mMediaFrameFunc = nullptr;
+        void *mMediaFrameArg = nullptr;
 
         function<void(const string &)> mPlayUrlChangedCallback = nullptr;
     };

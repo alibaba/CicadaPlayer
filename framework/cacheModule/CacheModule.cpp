@@ -173,12 +173,12 @@ CacheRet CacheModule::checkCanCache()
 }
 
 
-void CacheModule::addFrame(unique_ptr<IAFPacket> frame, StreamType type)
+void CacheModule::addFrame(const unique_ptr<IAFPacket>& frame, StreamType type)
 {
     std::unique_lock<mutex> lock(mReumxerMutex);
 
     if (mCacheFileRemuxer != nullptr) {
-        mCacheFileRemuxer->addFrame(std::move(frame), type);
+        mCacheFileRemuxer->addFrame(frame, type);
     }
 }
 

@@ -58,7 +58,7 @@ public:
 
     bool isMediaInfoSet();
 
-    void addFrame(unique_ptr<IAFPacket> frame, StreamType type);
+    void addFrame(const unique_ptr<IAFPacket>& frame, StreamType type);
 
     void setMetaCallback(function<bool(StreamType , Stream_meta *)> metaCallback);
 

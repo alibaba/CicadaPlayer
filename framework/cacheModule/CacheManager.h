@@ -14,9 +14,6 @@ class ICacheDataSource {
 public :
     virtual ~ICacheDataSource() = default;
 
-    virtual void setFrameCallback(playerMediaFrameCb callback, void *userArgs) = 0;
-
-
     virtual int64_t getStreamSize() = 0;
 
     virtual int64_t getDuration() = 0;
@@ -50,18 +47,15 @@ public:
 
     CacheModule::CacheStatus getCacheStatus();
 
-   static string getCachePath(const string &url, CacheConfig &config);
+    static string getCachePath(const string &url, CacheConfig &config);
 
-     void setCacheFailCallback(function<void(int,string)> resultCallback);
-     void setCacheSuccessCallback(function<void()> resultCallback);
-private:
+    void setCacheFailCallback(function<void(int,string)> resultCallback);
+    void setCacheSuccessCallback(function<void()> resultCallback);
 
-    static void MediaFrameCallback(void *arg, unique_ptr<IAFPacket> frame, StreamType type);
-
-private:
-    void cacheFrameInternal(std::unique_ptr<IAFPacket> frame, StreamType type);
+    void sendMediaFrame(const std::unique_ptr<IAFPacket>& frame, StreamType type);
 
 private:
+    bool mNeedProcessFrame = false;
     CacheModule mCacheModule;
     CacheConfig mCacheConfig;
     string mSourceUrl;

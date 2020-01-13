@@ -46,10 +46,10 @@ void CacheFileRemuxer::setMetaCallback(function<bool(StreamType, Stream_meta *)>
     mMetaCallback = metaCallback;
 }
 
-void CacheFileRemuxer::addFrame(unique_ptr<IAFPacket> frame, StreamType type)
+void CacheFileRemuxer::addFrame(const unique_ptr<IAFPacket>& frame, StreamType type)
 {
     FrameInfo *info = new FrameInfo();
-    info->frame = std::move(frame);
+    info->frame = frame->clone();
     info->type  = type;
     {
         std::unique_lock<mutex> lock(mQueueMutex);

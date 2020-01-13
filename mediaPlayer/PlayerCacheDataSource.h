@@ -14,14 +14,11 @@ public:
 
     ~PlayerCacheDataSource() override;
 
-     void setFrameCallback(playerMediaFrameCb callback, void* userArgs) override;
+    int64_t getStreamSize() override;
 
-      int64_t getStreamSize() override;
+    int64_t getDuration() override;
 
-     int64_t getDuration() override;
-
-     int getStreamMeta(Stream_meta *ptr, StreamType type) override;
-
+    int getStreamMeta(Stream_meta *ptr, StreamType type) override;
 
 private:
     void *mPlayerHandle = nullptr;
