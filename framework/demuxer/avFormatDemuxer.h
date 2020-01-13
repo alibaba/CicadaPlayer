@@ -123,6 +123,7 @@ namespace Cicada {
         std::map<int, std::unique_ptr<AVStreamCtx>> mStreamCtxMap{};
         AVIOContext *mPInPutPb = nullptr;
         bool bOpened{false};
+        bool bFillExtraData{false};
         int64_t mStartTime = INT64_MIN;
         std::deque<unique_ptr<IAFPacket>> mPacketQueue{};
         bool bEOS{false};
