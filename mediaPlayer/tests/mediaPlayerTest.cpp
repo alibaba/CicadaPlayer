@@ -4,7 +4,6 @@
 
 #include <utils/timer.h>
 #include "mediaPlayerTest.h"
-#include <MediaPlayer.h>
 using namespace std;
 using namespace Cicada;
 
@@ -53,13 +52,19 @@ static void releaseView(){
 
 #endif
 
-void test_player(const string& url)
+void test_player(const string &url, OnLoop loop)
 {
-    unique_ptr <MediaPlayer> player = unique_ptr<MediaPlayer>(new MediaPlayer());
+    unique_ptr<MediaPlayer> player = unique_ptr<MediaPlayer>(new MediaPlayer());
     player->SetDataSource(url.c_str());
     player->SetAutoPlay(true);
     player->SetView(getView());
     player->Prepare();
-    af_msleep(10000);
+    if (loop) {
+        int ret = 0;
+        while (ret >= 0) {
+            ret = loop(player.get());
+        }
+    } else
+        af_msleep(10000);
     releaseView();
 }

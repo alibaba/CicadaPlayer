@@ -7,6 +7,10 @@
 
 #include <string>
 
-void test_player(const std::string& url);
+#include <MediaPlayer.h>
+
+typedef int(*OnLoop)(Cicada::MediaPlayer *player);
+
+void test_player(const std::string &url,OnLoop loop);
 
 #endif //CICADAMEDIA_MEDIAPLAYERTEST_H
