@@ -111,6 +111,7 @@ namespace Cicada {
         listener.CaptureScreen = captureScreenResult;
         listener.AutoPlayStart = autoPlayStart;
         CicadaSetListener(handle, listener);
+        CicadaSetMediaFrameCb(handle, onMediaFrameCallback, this);
         mConfig = new MediaPlayerConfig();
         configPlayer(mConfig);
         mQueryListener = new QueryListener(this);
@@ -511,7 +512,6 @@ namespace Cicada {
 
     bool MediaPlayer::IsLoop()
     {
-        GET_PLAYER_HANDLE
         return mLoop;//CicadaGetLoop(handle);
     }
 
@@ -974,8 +974,8 @@ namespace Cicada {
 
     void MediaPlayer::SetMediaFrameCb(playerMediaFrameCb func, void *arg)
     {
-        GET_PLAYER_HANDLE;
-        return CicadaSetMediaFrameCb(handle, func, arg);
+        mMediaFrameFunc = func;
+        mMediaFrameArg = arg;
     }
 
     int MediaPlayer::GetCurrentStreamMeta(Stream_meta *meta, StreamType type)
@@ -1033,5 +1033,25 @@ namespace Cicada {
     void MediaPlayer::SetDataSourceChangedCallback(function<void(const string &)> urlChangedCallbak)
     {
         mPlayUrlChangedCallback = urlChangedCallbak;
+    }
+
+    void MediaPlayer::onMediaFrameCallback(void *arg, const unique_ptr<IAFPacket>& frame, StreamType type)
+    {
+        MediaPlayer *player = (MediaPlayer *)arg;
+        if (nullptr == player) {
+            return;
+        }
+        player->mediaFrameCallback(frame, type);
+    }
+
+    void MediaPlayer::mediaFrameCallback(const unique_ptr<IAFPacket>& frame, StreamType type)
+    {
+        if (mCacheManager) {
+            mCacheManager->sendMediaFrame(frame, type);
+        }
+
+        if (mMediaFrameFunc) {
+            mMediaFrameFunc(mMediaFrameArg, frame, type);
+        }
     }
 }

@@ -212,6 +212,9 @@ namespace Cicada {
 
         virtual void setMediaFrameCb(playerMediaFrameCb func, void *arg)
         {
+            if (mMediaFrameCb == func) {
+                return;
+            }
             mMediaFrameCbArg = arg;
             mMediaFrameCb = func;
         }

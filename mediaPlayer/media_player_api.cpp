@@ -131,7 +131,6 @@ void CicadaPreparePlayer(playerHandle *pHandle)
 {
     GET_PLAYER;
 
-//    CicadaSetMediaFrameCb(pHandle,CicadaPlyerMediaFrameCb,nullptr);
     if (player) {
         return player->Prepare();
     }

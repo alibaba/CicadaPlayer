@@ -13,12 +13,6 @@ PlayerCacheDataSource::PlayerCacheDataSource(void *playerHandle)
 
 PlayerCacheDataSource::~PlayerCacheDataSource() = default;
 
-void PlayerCacheDataSource::setFrameCallback(playerMediaFrameCb callback, void *userArgs)
-{
-    auto *player = static_cast<playerHandle *>(mPlayerHandle);
-    CicadaSetMediaFrameCb(player, callback, userArgs);
-}
-
 int64_t PlayerCacheDataSource::getStreamSize()
 {
     auto *player = static_cast<playerHandle *>(mPlayerHandle);

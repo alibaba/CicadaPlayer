@@ -48,7 +48,7 @@ string CacheManager::init()
     mCacheModule.setCacheConfig(mCacheConfig);
     mCacheModule.setSourceUrl(mSourceUrl);
     mCacheModule.setDescription(mDescription);
-    mDataSource->setFrameCallback(nullptr, this);
+    mNeedProcessFrame = false;
     string cacheFilePath = mCacheModule.getCachedFilePath();
 
     if (!cacheFilePath.empty()) {
@@ -60,21 +60,18 @@ string CacheManager::init()
     AF_LOGD("canBeCached = %d , SourceUrl = %s", canBeCached.mCode, mSourceUrl.c_str());
 
     if (canBeCached.mCode == CACHE_SUCCESS.mCode) {
-        mDataSource->setFrameCallback(MediaFrameCallback, this);
+        mNeedProcessFrame = true;
     }
 
     return mSourceUrl;
 }
 
-void CacheManager::MediaFrameCallback(void *arg, unique_ptr<IAFPacket> frame, StreamType type)
+void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket>& frame, StreamType type)
 {
-    CacheManager *ptr = (CacheManager *) arg;
-    ptr->cacheFrameInternal(std::move(frame), type);
-}
+    if (!mNeedProcessFrame) {
+        return;
+    }
 
-
-void CacheManager::cacheFrameInternal(unique_ptr<IAFPacket> frame, StreamType type)
-{
     bool isMediaInfoSet = mCacheModule.isMediaInfoSet();
 
     if (!isMediaInfoSet) {
@@ -96,8 +93,7 @@ void CacheManager::cacheFrameInternal(unique_ptr<IAFPacket> frame, StreamType ty
         const CacheRet &startRet = mCacheModule.start();
 
         if (startRet.mCode != CACHE_SUCCESS.mCode) {
-            mDataSource->setFrameCallback(nullptr, this);
-
+            mNeedProcessFrame = false;
             if (mCacheFailCallback != nullptr) {
                 mCacheFailCallback(startRet.mCode, startRet.mMsg);
             }
@@ -106,7 +102,7 @@ void CacheManager::cacheFrameInternal(unique_ptr<IAFPacket> frame, StreamType ty
         }
     }
 
-    mCacheModule.addFrame(std::move(frame), type);
+    mCacheModule.addFrame(frame, type);
 }
 
 
@@ -115,7 +111,7 @@ void CacheManager::stop(const string &reason)
 {
     mCacheModule.stop();
     CacheModule::CacheStatus status = mCacheModule.getCacheStatus();
-    mDataSource->setFrameCallback(nullptr, this);
+    mNeedProcessFrame = false;
     mCacheModule.reset();
 
     if (status == CacheModule::CacheStatus::fail) {
