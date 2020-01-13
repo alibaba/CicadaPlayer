@@ -6,6 +6,7 @@
 #include "gtest/gtest.h"
 #include <memory>
 #include "mediaPlayerTest.h"
+#include <utils/timer.h>
 
 using namespace std;
 
