@@ -39,6 +39,10 @@ add_test(
 #        COMMAND $<TARGET_FILE:mediaPlayerSwitchStreamTest>
 #)
 add_test(
+        NAME mediaPlayerSwitchStreamTest
+        COMMAND $<TARGET_FILE:mediaPlayerSwitchStreamTest>
+)
+add_test(
         NAME mediaPlayerCacheTest
         COMMAND $<TARGET_FILE:mediaPlayerCacheTest>
 )
