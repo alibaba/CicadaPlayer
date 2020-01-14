@@ -17,6 +17,7 @@ include(../../framework/tests/GoogleTest.cmake)
 add_subdirectory(formatTest)
 add_subdirectory(seekTest)
 add_subdirectory(apiTest)
+add_subdirectory(switch_stream)
 
 enable_testing()
 
@@ -31,4 +32,8 @@ add_test(
 add_test(
         NAME mediaPlayerApiTest
         COMMAND $<TARGET_FILE:mediaPlayerApiTest>
+)
+add_test(
+        NAME mediaPlayerSwitchStreamTest
+        COMMAND $<TARGET_FILE:mediaPlayerSwitchStreamTest>
 )

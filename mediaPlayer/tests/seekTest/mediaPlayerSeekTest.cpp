@@ -37,8 +37,9 @@ TEST(cmd, seek)
         cmd.arg0 = seekDelta;
         commands.push_back(cmd);
     }
+    commandsCase testCase(commands, true);
 
-    test_player("http://player.alicdn.com/video/aliyunmedia.mp4", command_loop,
-                &commands);
+    test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", command_loop,
+                &testCase, nullptr);
 }
 

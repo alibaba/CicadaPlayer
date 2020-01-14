@@ -17,6 +17,7 @@ int main(int argc, char **argv)
 //    log_set_level(AF_LOG_LEVEL_TRACE, 1);
     return RUN_ALL_TESTS();
 }
+
 TEST(cmd, volume)
 {
     std::vector<player_command> commands;
@@ -40,9 +41,11 @@ TEST(cmd, volume)
         cmd.arg0 = 20 - i;
         commands.push_back(cmd);
     }
+    commandsCase testCase(commands, true);
 
-    test_player("http://player.alicdn.com/video/aliyunmedia.mp4", command_loop,
-                &commands);
+
+    test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", command_loop,
+                &testCase, nullptr);
 }
 
 TEST(cmd, speed)
@@ -68,8 +71,9 @@ TEST(cmd, speed)
         cmd.arg0 = 20 - i;
         commands.push_back(cmd);
     }
+    commandsCase testCase(commands, true);
 
-    test_player("http://player.alicdn.com/video/aliyunmedia.mp4", command_loop,
-                &commands);
+    test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", command_loop,
+                &testCase, nullptr);
 }
 
