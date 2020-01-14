@@ -19,6 +19,7 @@ This page is an introduction to the compilation for iOS.
     cd ../platform/Apple/demo/iOS/
     ./genxcodeproj.sh
     cd CicadaDemo
+    pod install
     open CicadaDemo.xcworkspace
     ```  
 
