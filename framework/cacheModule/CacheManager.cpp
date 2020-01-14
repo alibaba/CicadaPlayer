@@ -5,6 +5,8 @@
 
 #include "CacheManager.h"
 #include <utility>
+#include <utils/mediaTypeInternal.h>
+#include <vector>
 
 CacheManager::CacheManager()
 {
@@ -66,7 +68,7 @@ string CacheManager::init()
     return mSourceUrl;
 }
 
-void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket>& frame, StreamType type)
+void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket> &frame, StreamType type)
 {
     if (!mNeedProcessFrame) {
         return;
@@ -78,10 +80,27 @@ void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket>& frame, StreamType
         int64_t streamSize = mDataSource->getStreamSize();
         int64_t duration   = mDataSource->getDuration();
         mCacheModule.setMediaInfo(streamSize, duration);
-        mCacheModule.setMetaCallback([this](StreamType type, Stream_meta * meta) -> bool {
-            int metaRet = mDataSource->getStreamMeta(meta, type);
-            return (metaRet == 0);
-        });
+        vector<Stream_meta *> streamMetas{};
+        int metaRet = -1;
+        {
+            auto *videoMeta = static_cast<Stream_meta *>(malloc(sizeof(Stream_meta)));
+            memset(videoMeta, 0, sizeof(Stream_meta));
+            metaRet = mDataSource->getStreamMeta(videoMeta, StreamType::ST_TYPE_VIDEO);
+
+            if (metaRet == 0) {
+                streamMetas.push_back(videoMeta);
+            }
+        }
+        {
+            auto *audioMeta = static_cast<Stream_meta *>(malloc(sizeof(Stream_meta)));
+            memset(audioMeta, 0, sizeof(Stream_meta));
+            metaRet = mDataSource->getStreamMeta(audioMeta, StreamType::ST_TYPE_AUDIO);
+
+            if (metaRet == 0) {
+                streamMetas.push_back(audioMeta);
+            }
+        }
+        mCacheModule.setStreamMeta(streamMetas);
         mCacheModule.setErrorCallback([this](int code, string msg) -> void{
             AF_LOGE("cacheModule error : code = %d , msg = %s ", code, msg.c_str());
 
@@ -94,6 +113,7 @@ void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket>& frame, StreamType
 
         if (startRet.mCode != CACHE_SUCCESS.mCode) {
             mNeedProcessFrame = false;
+
             if (mCacheFailCallback != nullptr) {
                 mCacheFailCallback(startRet.mCode, startRet.mMsg);
             }

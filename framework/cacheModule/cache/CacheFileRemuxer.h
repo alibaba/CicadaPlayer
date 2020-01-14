@@ -9,6 +9,7 @@
 #include <queue>
 #include <map>
 #include <mutex>
+#include <vector>
 #include <native_cicada_player_def.h>
 #include <utils/AFMediaType.h>
 
@@ -16,6 +17,7 @@
 #include <muxer/IMuxer.h>
 
 #include <utils/file/FileCntl.h>
+#include <utils/mediaTypeInternal.h>
 
 
 using namespace std;
@@ -33,8 +35,6 @@ public:
 
     ~CacheFileRemuxer();
 
-    void setMetaCallback(function<bool(StreamType, Stream_meta *)> metaCallback);
-
     void addFrame(const unique_ptr<IAFPacket>& frame, StreamType type);
 
     bool prepare();
@@ -46,6 +46,10 @@ public:
     void interrupt();
 
     void setErrorCallback(function<void(int, string)> callback);
+
+    void setStreamMeta(const vector<Stream_meta*>& streamMetas);
+
+    void clearStreamMetas();
 
 private :
 
@@ -80,6 +84,8 @@ private:
     FileCntl *mDestFileCntl = nullptr;
 
     function<void(int, string)> mErrorCallback = nullptr;
+
+    vector<Stream_meta*> mStreamMetas{};
 
 };
 
