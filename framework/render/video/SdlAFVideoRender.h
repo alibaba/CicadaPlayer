@@ -49,7 +49,7 @@ public:
 
     void setRenderResultCallback(std::function<void(int64_t, bool)> renderedCallback) override
     {
-
+        mRenderResultCallback = renderedCallback;
     }
 
 private:
@@ -97,6 +97,7 @@ private:
 
     std::mutex mRenderMutex;
     std::unique_ptr<IVSync> mVSync{nullptr};
+    std::function<void(int64_t, bool)> mRenderResultCallback = nullptr;
 
 };
 
