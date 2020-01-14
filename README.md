@@ -12,30 +12,9 @@
 
 Cicada Media Player is a multi platform player sdk，**Keep the world free of difficult videos to play**，using Cicada Media Player, build your multimedia apps happily.
 
+## Try it on Android devices
 
-## Features
-- HLS master play list support, seamless switch
- 
-   [Support instructions](framework/demuxer/HLSSupport.md)
-
-- ABR
-- hardware decode on Android and iOS
-- HEVC support
-- OpenGL render
-- change volume by software
-- speed playback
-- snapshot
-- subtitle title support
-- external subtitle title support
-- on playing cache
-- background video playback
-- http keep-alive
-- self ip resolve
-- video rotation
-- black list on Android hardware h264 decoder
-- plugin support
-
-
+[![deom](doc/demoQR.png)](https://alivc-demo-cms.alicdn.com/versionProduct/other/public/cicadaPlayer/cicadaPlayer.html)
 
 ## HOW TO compile
 
@@ -61,6 +40,30 @@ export CURL_GIT=https://gitee.com/mirrors/curl.git
 - [2. Android](platform/Android/README.md)
 - [3. iOS/MacOS](platform/Apple/README.md)
 - 4.webAssembly coming soon
+
+
+## Features
+- HLS master play list support, seamless switch
+ 
+   [Support instructions](framework/demuxer/HLSSupport.md)
+
+- ABR
+- hardware decode on Android and iOS
+- HEVC support
+- OpenGL render
+- change volume by software
+- speed playback
+- snapshot
+- subtitle title support
+- external subtitle title support
+- on playing cache
+- background video playback
+- http keep-alive
+- self ip resolve
+- video rotation
+- black list on Android hardware h264 decoder
+- plugin support
+
 
 ## Contact
 
