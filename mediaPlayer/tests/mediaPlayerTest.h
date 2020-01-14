@@ -11,6 +11,6 @@
 
 typedef int(*OnLoop)(Cicada::MediaPlayer *player,void* arg);
 
-void test_player(const string &url, OnLoop loop, void *arg = nullptr);
+void test_simple(const string &url, OnLoop loop, void *arg, playerListener* pListener);
 
 #endif //CICADAMEDIA_MEDIAPLAYERTEST_H
