@@ -39,7 +39,7 @@ TEST(cmd, seek)
     }
     commandsCase testCase(commands, true);
 
-    test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", command_loop,
+    test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", nullptr, command_loop,
                 &testCase, nullptr);
 }
 

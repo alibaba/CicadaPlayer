@@ -61,10 +61,10 @@ TEST(switch_stream, video)
     playerListener listener{nullptr};
     listener.StreamInfoGet = onStreamInfoGet;
     listener.StreamSwitchSuc = onStreamSwitchSuc;
-    test_simple("https://alivc-demo-vod.aliyuncs.com/59f748948daa4438b42e42db755ae01e/9d44b2b86d334c6b9df649e35ad0240f.m3u8", command_loop,
+    test_simple("https://alivc-demo-vod.aliyuncs.com/59f748948daa4438b42e42db755ae01e/9d44b2b86d334c6b9df649e35ad0240f.m3u8", nullptr,
+                command_loop,
                 &testCase, &listener);
 }
-
 TEST(switch_stream, subtitle)
 {
     std::vector<player_command> commands;
@@ -92,6 +92,6 @@ TEST(switch_stream, subtitle)
     playerListener listener{nullptr};
     listener.StreamInfoGet = onStreamInfoGet;
     listener.StreamSwitchSuc = onStreamSwitchSuc;
-    test_simple("https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/1bb2b7f0e164494a88874c4911c3cec0.m3u8", command_loop,
+    test_simple("https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/1bb2b7f0e164494a88874c4911c3cec0.m3u8", nullptr,command_loop,
                 &testCase, &listener);
 }

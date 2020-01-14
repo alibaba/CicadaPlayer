@@ -46,11 +46,14 @@ static void releaseView(){
 
 #endif
 
-void test_simple(const string &url, OnLoop loop, void *arg, playerListener* pListener)
+void test_simple(const string &url, OnCallback create, OnCallback loop, void *arg, playerListener *pListener)
 {
     unique_ptr<MediaPlayer> player = unique_ptr<MediaPlayer>(new MediaPlayer());
+    if (create) {
+        create(player.get(), arg);
+    }
 #ifdef ENABLE_SDL
-    SDL_Window * window = getView();
+    SDL_Window *window = getView();
     player->SetView(window);
 #else
     int i;

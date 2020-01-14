@@ -18,6 +18,7 @@ add_subdirectory(formatTest)
 add_subdirectory(seekTest)
 add_subdirectory(apiTest)
 add_subdirectory(switch_stream)
+add_subdirectory(cache)
 
 enable_testing()
 
@@ -36,4 +37,8 @@ add_test(
 add_test(
         NAME mediaPlayerSwitchStreamTest
         COMMAND $<TARGET_FILE:mediaPlayerSwitchStreamTest>
+)
+add_test(
+        NAME mediaPlayerCacheTest
+        COMMAND $<TARGET_FILE:mediaPlayerCacheTest>
 )
