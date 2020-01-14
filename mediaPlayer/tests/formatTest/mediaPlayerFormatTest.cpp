@@ -29,19 +29,21 @@ int main(int argc, char **argv)
 
 TEST(play, mp4)
 {
-    test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", simple_loop, nullptr, nullptr);
+    test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", nullptr, simple_loop, nullptr, nullptr);
 }
 
 TEST(play, hls)
 {
     test_simple(
             "https://alivc-demo-vod.aliyuncs.com/ddb0c76ce153450081cd4c45118371a7/d30995ad97bc4643bf0a8c4cedd0c81f-e16b4635a4cb03424234c3a3d0e7f7e1-sd.m3u8",
+            nullptr,
             simple_loop, nullptr, nullptr);
 }
 
 TEST(HLS, master)
 {
-    test_simple("https://alivc-demo-vod.aliyuncs.com/59f748948daa4438b42e42db755ae01e/9d44b2b86d334c6b9df649e35ad0240f.m3u8", simple_loop,
+    test_simple("https://alivc-demo-vod.aliyuncs.com/59f748948daa4438b42e42db755ae01e/9d44b2b86d334c6b9df649e35ad0240f.m3u8", nullptr,
+                simple_loop,
                 nullptr, nullptr);
 }
 
@@ -49,18 +51,21 @@ TEST(HLS, AES_128)
 {
     test_simple(
             "https://alivc-demo-vod.aliyuncs.com/d2c89d7210d443109434685f45ed607b/45ed0cccd8092bf25ee33764b5a52be4-sd-encrypt-stream.m3u8",
+            nullptr,
             simple_loop, nullptr, nullptr);
 }
 
 TEST(HLS, subtitle)
 {
-    test_simple("https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/1bb2b7f0e164494a88874c4911c3cec0.m3u8", simple_loop,
+    test_simple("https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/1bb2b7f0e164494a88874c4911c3cec0.m3u8", nullptr,
+                simple_loop,
                 nullptr, nullptr);
 }
 
 TEST(HLS, live)
 {
-    test_simple("http://qt1.alivecdn.com/timeline/testshift.m3u8?auth_key=1594730859-0-0-b71fd57c57a62a3c2b014f24ca2b9da3", simple_loop,
+    test_simple("http://qt1.alivecdn.com/timeline/testshift.m3u8?auth_key=1594730859-0-0-b71fd57c57a62a3c2b014f24ca2b9da3", nullptr,
+                simple_loop,
                 nullptr, nullptr);
 
 }
