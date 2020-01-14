@@ -13,6 +13,23 @@ android {
 
 
     }
+
+    signingConfigs {
+        release {
+            storeFile file("../signature/Cicada.keystore")
+            storePassword 'Cicada'
+            keyAlias 'Cicada'
+            keyPassword 'Cicada'
+        }
+
+        debug {
+            storeFile file("../signature/Cicada.keystore")
+            storePassword 'Cicada'
+            keyAlias 'Cicada'
+            keyPassword 'Cicada'
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -25,7 +42,7 @@ android {
     android.applicationVariants.all { variant ->
         variant.outputs.all { output ->
             if (outputFile != null && outputFile.name.endsWith('.apk')) {
-                outputFileName = "AliPlayerDemo_${variant.buildType.name}.apk"
+                outputFileName = "CicadaPlayerDemo_${variant.buildType.name}.apk"
             }
         }
     }
