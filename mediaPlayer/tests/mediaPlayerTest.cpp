@@ -49,10 +49,15 @@ static void releaseView(){
 void test_player(const string &url, OnLoop loop, void *arg)
 {
     unique_ptr<MediaPlayer> player = unique_ptr<MediaPlayer>(new MediaPlayer());
+#ifdef ENABLE_SDL
     SDL_Window * window = getView();
+    player->SetView(window);
+#else
+    int i;
+    player->SetView(&i);
+#endif
     player->SetDataSource(url.c_str());
     player->SetAutoPlay(true);
-    player->SetView(window);
     player->Prepare();
     if (loop) {
         int ret = 0;
@@ -61,5 +66,7 @@ void test_player(const string &url, OnLoop loop, void *arg)
         }
     } else
         af_msleep(10000);
+#ifdef ENABLE_SDL
     releaseView(window);
+#endif
 }
