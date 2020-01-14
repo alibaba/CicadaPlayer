@@ -9,8 +9,8 @@
 
 #include <MediaPlayer.h>
 
-typedef int(*OnLoop)(Cicada::MediaPlayer *player,void* arg);
+typedef int(*OnCallback)(Cicada::MediaPlayer *player, void* arg);
 
-void test_simple(const string &url, OnLoop loop, void *arg, playerListener* pListener);
+void test_simple(const string &url, OnCallback create, OnCallback loop, void *arg, playerListener *pListener);
 
 #endif //CICADAMEDIA_MEDIAPLAYERTEST_H
