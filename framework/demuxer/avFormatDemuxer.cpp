@@ -281,7 +281,6 @@ namespace Cicada {
         const uint8_t *new_extradata = av_packet_get_side_data(pkt,
                                        AV_PKT_DATA_NEW_EXTRADATA,
                                        &new_extradata_size);
-
         int streamIndex = pkt->stream_index;
         AVCodecParameters *codecpar = mCtx->streams[streamIndex]->codecpar;
 
@@ -515,6 +514,7 @@ namespace Cicada {
             meta->duration = 0;
         }
 
+        meta->index = index;
         return 0;
     }
 
@@ -535,6 +535,7 @@ namespace Cicada {
         if (mPthread) {
             mPthread->stop();
         }
+
         bFillExtraData = false;
 #endif
     }

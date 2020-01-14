@@ -9,6 +9,8 @@
 #include <functional>
 #include <utils/AFMediaType.h>
 #include <base/media/IAFPacket.h>
+#include <map>
+#include <utils/mediaTypeInternal.h>
 
 using namespace std;
 
@@ -35,9 +37,16 @@ public:
 
     virtual void setCopyPts(bool copyPts) = 0;
 
-    virtual void setGetVideoMetaCallback(std::function<bool(Stream_meta *)> function) = 0;
+    /**
+     * add streamMetas
+     * @param streamMetas
+     */
+    virtual void setStreamMetas(const vector<Stream_meta*> &streamMetas) = 0;
 
-    virtual void setGetAudioMetaCallback(std::function<bool(Stream_meta *)> function) = 0;
+    virtual void clearStreamMetas() = 0;
+
+    //must be set before open(). These will be write to header.
+    virtual void addSourceMetas(map<string,string> sourceMetas) = 0;
 
     virtual int open() = 0;
 
@@ -47,22 +56,13 @@ public:
 
     virtual void setCloseFunc(function<void()> func) = 0;
 
-
-    virtual int muxAudio(unique_ptr<IAFPacket> audioFrame) = 0;
-
-    virtual int muxVideo(unique_ptr<IAFPacket> videoFrame) = 0;
-
+    virtual int muxPacket(unique_ptr<IAFPacket> packet) = 0;
 
     virtual void setWritePacketCallback(writePacketCallback callback, void *opaque) = 0;
 
     virtual void setSeekCallback(seekCallback callback, void *opaque) = 0;
 
     virtual void setWriteDataTypeCallback(writeDataTypeCallback callback, void *opaque) = 0;
-
-    //must be set before open(). These will be write to header.
-    virtual void setMeta(string key, string value) = 0;
-
-    virtual void clearMeta() = 0;
 
 };
 

@@ -9,6 +9,7 @@
 #include "CacheModule.h"
 #include <utility>
 #include <dirent.h>
+#include <utils/mediaFrame.h>
 #include "utils/frame_work_log.h"
 
 #define TMP_SUFFIX (".tmp")
@@ -22,6 +23,7 @@ CacheModule::CacheModule()
 CacheModule::~CacheModule()
 {
     stop();
+    clearStreamMetas();
 }
 
 void CacheModule::setCacheConfig(const CacheConfig &config)
@@ -87,11 +89,6 @@ bool CacheModule::isMediaInfoSet()
     return mMediaInfoSet;
 }
 
-void CacheModule::setMetaCallback(function<bool(StreamType, Stream_meta *)> metaCallback)
-{
-    mMetaCallback = std::move(metaCallback);
-}
-
 void CacheModule::setErrorCallback(function<void(int, string)> callback)
 {
     mErrorCallback = std::move(callback);
@@ -125,17 +122,16 @@ CacheRet CacheModule::start()
             mCacheFileRemuxer = nullptr;
         }
 
-        const string &cacheFilePath = mCachePath.getCachePath();
-        string       cacheTmpPath   = cacheFilePath + TMP_SUFFIX;
-        mCacheFileRemuxer          = new CacheFileRemuxer(cacheTmpPath, mDescription);
-        mCacheFileRemuxer->setMetaCallback(mMetaCallback);
+        string cacheTmpPath = mCachePath.getCachePath() + TMP_SUFFIX;
+        mCacheFileRemuxer = new CacheFileRemuxer(cacheTmpPath, mDescription);
+        mCacheFileRemuxer->setStreamMeta(mStreamMetas);
         mCacheFileRemuxer->setErrorCallback([this](int code, string msg) -> void {
             if (mErrorCallback != nullptr)
             {
                 mErrorCallback(code, msg);
             }
         });
-        bool         prepareSucced = mCacheFileRemuxer->prepare();
+        bool prepareSucced = mCacheFileRemuxer->prepare();
 
         if (!prepareSucced) {
             AF_LOGE("---> start()  , cacheFileRemuxer->prepare() fail");
@@ -173,7 +169,7 @@ CacheRet CacheModule::checkCanCache()
 }
 
 
-void CacheModule::addFrame(const unique_ptr<IAFPacket>& frame, StreamType type)
+void CacheModule::addFrame(const unique_ptr<IAFPacket> &frame, StreamType type)
 {
     std::unique_lock<mutex> lock(mReumxerMutex);
 
@@ -205,15 +201,16 @@ void CacheModule::stop()
             mCacheFileRemuxer->stop();
             delete mCacheFileRemuxer;
             mCacheFileRemuxer = nullptr;
-            const string &cachePath   = mCachePath.getCachePath();
-            string       cacheTmpPath = cachePath + TMP_SUFFIX;
+            const string &cachePath = mCachePath.getCachePath();
+            string cacheTmpPath = cachePath + TMP_SUFFIX;
 
             if (mEos) {
                 // completion , rename file
                 int ret = FileUtils::Rename(cacheTmpPath.c_str(), cachePath.c_str());
-                if(ret == 0) {
+
+                if (ret == 0) {
                     mCacheRet = CacheStatus::success;
-                }else{
+                } else {
                     FileUtils::rmrf(cacheTmpPath.c_str());
                     mCacheRet = CacheStatus::fail;
                 }
@@ -230,9 +227,9 @@ void CacheModule::reset()
 {
     AF_LOGD("---> reset()");
     unique_lock<mutex> lock(mStatusMutex);
-    mEos            = false;
-    mMediaInfoSet   = false;
-    mCacheRet       = CacheStatus::idle;;
+    mEos = false;
+    mMediaInfoSet = false;
+    mCacheRet = CacheStatus::idle;;
     mCacheChecker.reset();
     mCachePath.reset();
 }
@@ -241,5 +238,29 @@ CacheModule::CacheStatus CacheModule::getCacheStatus()
 {
     AF_LOGD("<---- getCacheStatus() %d", mCacheRet);
     return mCacheRet;
+}
+
+void CacheModule::setStreamMeta(const vector<Stream_meta *> &streamMetas)
+{
+    clearStreamMetas();
+
+    if (streamMetas.empty()) {
+        return;
+    }
+
+    for (auto &item : streamMetas) {
+        mStreamMetas.push_back(item);
+    }
+}
+
+void CacheModule::clearStreamMetas()
+{
+    if (!mStreamMetas.empty()) {
+        for (auto &item : mStreamMetas) {
+            releaseMeta(item);
+        }
+
+        mStreamMetas.clear();
+    }
 }
 

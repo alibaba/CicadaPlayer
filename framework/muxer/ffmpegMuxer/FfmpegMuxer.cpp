@@ -36,59 +36,38 @@ FfmpegMuxer::~FfmpegMuxer()
         free(mIobuf);
         mIobuf = nullptr;
     }
+
+    mSourceMetaMap.clear();
+    mStreamInfoMap.clear();
+    clearStreamMetas();
 }
-
-
-void FfmpegMuxer::setGetVideoMetaCallback(function<bool(Stream_meta *)> function)
-{
-    mGetVideoMetaCallback = function;
-}
-
-void FfmpegMuxer::setGetAudioMetaCallback(function<bool(Stream_meta *)> function)
-{
-    mGetAudioMetaCallback = function;
-}
-
 
 int FfmpegMuxer::open()
 {
     ffmpeg_init();
-    int ret = avformat_alloc_output_context2(&mDestFormatContext, NULL, mDestFormat.c_str(),
+    int ret = avformat_alloc_output_context2(&mDestFormatContext, nullptr, mDestFormat.c_str(),
               mDestFilePath.c_str());
 
     if (mDestFormatContext == nullptr) {
-        AF_LOGE("Can't alloc_output_context ret = %d \n", ret);
+        AF_LOGE("Can't alloc_output_context ret = %d ,mDestFormat = %s , mDestFilePath = %s \n",
+                ret, mDestFormat.c_str(), mDestFilePath.c_str() );
         return ret;
     }
 
-    if (mGetAudioMetaCallback != nullptr) {
-        //has audio.
-        Stream_meta audioMeta{};
-        bool getSuccess = mGetAudioMetaCallback(&audioMeta);
+    for (Stream_meta *item : mStreamMetas) {
+        AVStream *stream = nullptr;
 
-        if (getSuccess) {
-            AVStream *audioStream = avformat_new_stream(mDestFormatContext, NULL);
-            fillAudioStreamInfo(audioStream, &audioMeta);
-            check_codec_tag(audioStream);
-            releaseMeta(&audioMeta);
-        } else {
-            AF_LOGE("audio meta get fail, no audio?");
+        if (item->type == Stream_type::STREAM_TYPE_VIDEO) {
+            stream = avformat_new_stream(mDestFormatContext, nullptr);
+            MetaToCodec::videoMetaToStream(stream, item);
+            check_codec_tag(stream);
+        } else if (item->type == Stream_type::STREAM_TYPE_AUDIO) {
+            stream = avformat_new_stream(mDestFormatContext, nullptr);
+            MetaToCodec::audioMetaToStream(stream, item);
+            check_codec_tag(stream);
         }
-    }
 
-    if (mGetVideoMetaCallback != nullptr) {
-        //has video
-        Stream_meta videoMeta{};
-        bool getSuccess = mGetVideoMetaCallback(&videoMeta);
-
-        if (getSuccess) {
-            AVStream *videoStream = avformat_new_stream(mDestFormatContext, NULL);
-            fillVideoStreamInfo(videoStream, &videoMeta);
-            check_codec_tag(videoStream);
-            releaseMeta(&videoMeta);
-        } else {
-            AF_LOGE("video meta get fail, no video?");
-        }
+        insertStreamInfo(stream, item);
     }
 
     if (mOpenFunc != nullptr) {
@@ -101,16 +80,16 @@ int FfmpegMuxer::open()
                              NULL, io_write, io_seek);
     mDestFormatContext->pb->write_data_type = io_write_data_type;
 
-    if (metaMap.size() > 0) {
+    if (!mSourceMetaMap.empty()) {
         map<string, string>::iterator mapIt;
 
-        for (mapIt = metaMap.begin(); mapIt != metaMap.end(); mapIt++) {
+        for (mapIt = mSourceMetaMap.begin(); mapIt != mSourceMetaMap.end(); mapIt++) {
             av_dict_set(&mDestFormatContext->metadata, mapIt->first.c_str(), mapIt->second.c_str(),
                         0);
         }
     }
 
-    ret = avformat_write_header(mDestFormatContext, NULL);
+    ret = avformat_write_header(mDestFormatContext, nullptr);
 
     if (ret < 0) {
         AF_LOGE(" write header fail: ret = %d , to output file '%s'", ret, mDestFilePath.c_str());
@@ -125,10 +104,11 @@ void FfmpegMuxer::check_codec_tag(const AVStream *stream)
     if (stream->codecpar->codec_tag && mDestFormatContext->oformat->codec_tag) {
         if (av_codec_get_id(mDestFormatContext->oformat->codec_tag, stream->codecpar->codec_tag) !=
                 stream->codecpar->codec_id) {
-            const uint32_t otag = av_codec_get_tag(mDestFormatContext->oformat->codec_tag, stream->codecpar->codec_id);
+            const uint32_t otag = av_codec_get_tag(mDestFormatContext->oformat->codec_tag,
+                                                   stream->codecpar->codec_id);
 #ifndef _WIN32
-//            AF_LOGW("Tag %s incompatible with output codec id '%d' (%s)\n",
-//                    av_fourcc2str(stream->codecpar->codec_tag), stream->codecpar->codec_id, av_fourcc2str(otag));
+            AF_LOGW("Tag %s incompatible with output codec id '%d' (%s)\n",
+                    av_fourcc2str(stream->codecpar->codec_tag), stream->codecpar->codec_id, av_fourcc2str(otag));
 #endif
             stream->codecpar->codec_tag = otag;
         }
@@ -144,76 +124,58 @@ void FfmpegMuxer::check_codec_tag(const AVStream *stream)
 }
 
 
-void FfmpegMuxer::fillAudioStreamInfo(AVStream *st, Stream_meta *meta)
+void FfmpegMuxer::insertStreamInfo(const AVStream *st, const Stream_meta *meta)
 {
-    if (meta == nullptr || st == nullptr) {
+    if (st == nullptr || meta == nullptr) {
         return;
     }
 
-    MetaToCodec::audioMetaToStream(st, meta);
-    mAudioStreamIndex = st->index;
     AVOutputFormat *fmt = mDestFormatContext->oformat;
+    AVRational timeBase{};
 
     if (!strncmp(fmt->name, "flv", 3)) {
-        mConAbase = {1, 1000};
+        timeBase = {1, 1000};
     } else if (!strncmp(fmt->name, "mpegts", 6)) {
-        mConAbase = {1, 90000};
+        timeBase = {1, 90000};
     } else {
-        mConAbase = st->time_base;
+        timeBase = st->time_base;
     }
+
+    StreamInfo streamInfo{};
+    streamInfo.timeBase = timeBase;
+    streamInfo.targetIndex = st->index;
+    mStreamInfoMap.insert(pair<int, StreamInfo>(meta->index, streamInfo));
 }
 
-void FfmpegMuxer::fillVideoStreamInfo(AVStream *st, Stream_meta *meta)
-{
-    if (meta == nullptr || st == nullptr) {
-        return;
-    }
-
-    MetaToCodec::videoMetaToStream(st, meta);
-    mVideoStreamIndex = st->index;
-    AVOutputFormat *fmt = mDestFormatContext->oformat;
-
-    if (!strncmp(fmt->name, "flv", 3)) {
-        mConVbase = {1, 1000};
-    } else if (!strncmp(fmt->name, "mpegts", 6)) {
-        mConVbase = {1, 90000};
-    } else {
-        mConVbase = st->time_base;
-    }
-}
-
-int FfmpegMuxer::writeFrame(unique_ptr<IAFPacket> framePtr, int index)
+int FfmpegMuxer::writeFrame(unique_ptr<IAFPacket> packetPtr)
 {
     if (mDestFormatContext == nullptr) {
         AF_LOGE("mDestFormatContext is null..");
         return -1;
     }
 
-    AVRational timeBase;
+    AVPacket *avPacket = getAVPacket(packetPtr.get());
 
-    if (index == mAudioStreamIndex) {
-        timeBase = mConAbase;
-    } else if (index == mVideoStreamIndex) {
-        timeBase = mConVbase;
-    } else {
-        AF_LOGE("no such index");
+    if (avPacket == nullptr) {
+        AF_LOGE("muxer packet is null..");
         return -1;
     }
 
-    AVPacket *frame = getAVPacket(framePtr.get());
+    int pktStreamIndex = avPacket->stream_index;
+    StreamInfo &streamInfo = mStreamInfoMap[pktStreamIndex];
 
-    if (frame == nullptr) {
-        AF_LOGE("audio frame is null..");
+    if (mStreamInfoMap.count(pktStreamIndex) == 0) {
+        AF_LOGE("no such index %d", pktStreamIndex);
         return -1;
     }
 
-    AVPacket *pkt = av_packet_clone(frame);
+    AVPacket *pkt = av_packet_clone(avPacket);
 
     if (mFirstPts == INT64_MIN) {
-        mFirstPts = frame->pts;
+        mFirstPts = avPacket->pts;
     }
 
-    pkt->stream_index = index;
+    pkt->stream_index = streamInfo.targetIndex;
 
     if (!bCopyPts) {
         if (mFirstPts != INT64_MIN) {
@@ -227,27 +189,20 @@ int FfmpegMuxer::writeFrame(unique_ptr<IAFPacket> framePtr, int index)
         }
     }
 
+    AVRational timeBase = streamInfo.timeBase;
     pkt->pts = av_rescale_q(pkt->pts, {1, AV_TIME_BASE}, timeBase);
     pkt->dts = av_rescale_q(pkt->dts, {1, AV_TIME_BASE}, timeBase);
+    {
+        //make sure dts increasing
+        int64_t dts = streamInfo.lastDts;
 
-    //make sure dts increasing
-    if (index == mAudioStreamIndex) {
-        if (mLastAudioDts != INT64_MAX) {
-            if (pkt->dts <= mLastAudioDts) {
-                pkt->dts = mLastAudioDts + 1;
+        if (dts != INT64_MAX) {
+            if (pkt->dts <= dts) {
+                pkt->dts = dts + 1;
             }
         }
-
-        mLastAudioDts = pkt->dts;
-    } else if (index == mVideoStreamIndex) {
-        if (mLastVideoDts != INT64_MAX) {
-            if (pkt->dts <= mLastVideoDts) {
-                pkt->dts = mLastVideoDts + 1;
-            }
-        }
-
-        mLastVideoDts  = pkt->dts;
     }
+    streamInfo.lastDts = pkt->dts;
 
     if (pkt->pts < pkt->dts) {
         pkt->pts = pkt->dts;
@@ -258,24 +213,17 @@ int FfmpegMuxer::writeFrame(unique_ptr<IAFPacket> framePtr, int index)
     av_packet_free(&pkt);
 
     if (ret < 0) {
-        AF_LOGE("write audio frame failed . ret = %d.", ret);
+        AF_LOGE("write packet failed . ret = %d. pktStreamIndex index = %d , stream index = %d ", ret, pktStreamIndex, streamInfo.targetIndex);
         return ret;
     }
 
     return 0;
 }
 
-int FfmpegMuxer::muxAudio(unique_ptr<IAFPacket> framePtr)
+int FfmpegMuxer::muxPacket(unique_ptr<IAFPacket> packet)
 {
-    return writeFrame(move(framePtr), mAudioStreamIndex);
+    return writeFrame(move(packet));
 }
-
-
-int FfmpegMuxer::muxVideo(unique_ptr<IAFPacket> framePtr)
-{
-    return writeFrame(move(framePtr), mVideoStreamIndex);
-}
-
 
 int FfmpegMuxer::close()
 {
@@ -308,16 +256,6 @@ int FfmpegMuxer::close()
     return ret;
 }
 
-void FfmpegMuxer::setMeta(string key, string value)
-{
-    metaMap.insert(pair<string, string>(key, value));
-}
-
-void FfmpegMuxer::clearMeta()
-{
-    metaMap.clear();
-}
-
 void FfmpegMuxer::setWritePacketCallback(writePacketCallback callback, void *opaque)
 {
     mWritePacketCallback = callback;
@@ -338,22 +276,22 @@ void FfmpegMuxer::setWriteDataTypeCallback(writeDataTypeCallback callback, void 
 
 int FfmpegMuxer::io_write(void *opaque, uint8_t *buf, int size)
 {
-    FfmpegMuxer *ffmpegMux = static_cast<FfmpegMuxer *>(opaque);
+    auto *ffmpegMux = static_cast<FfmpegMuxer *>(opaque);
     return ffmpegMux->muxerWrite(buf, size);
 }
 
 int64_t FfmpegMuxer::io_seek(void *opaque, int64_t offset, int whence)
 {
-    FfmpegMuxer *ffmpegMux = static_cast<FfmpegMuxer *>(opaque);
+    auto *ffmpegMux = static_cast<FfmpegMuxer *>(opaque);
     return ffmpegMux->muxerSeek(offset, whence);
 }
 
 int FfmpegMuxer::io_write_data_type(void *opaque, uint8_t *buf, int size, enum AVIODataMarkerType type,
                                     int64_t time)
 {
-    FfmpegMuxer *ffmpegMux = static_cast<FfmpegMuxer *>(opaque);
+    auto *ffmpegMux = static_cast<FfmpegMuxer *>(opaque);
     ApsaraDataType dataType = ffmpegMux->mapType(type);
-    return ffmpegMux->muxerWriteDataType( buf, size, dataType, time);
+    return ffmpegMux->muxerWriteDataType(buf, size, dataType, time);
 }
 
 ApsaraDataType FfmpegMuxer::mapType(AVIODataMarkerType type)
@@ -428,3 +366,37 @@ int FfmpegMuxer::muxerWriteDataType(uint8_t *buf, int size, enum ApsaraDataType 
     }
 }
 
+void FfmpegMuxer::setStreamMetas(const vector<Stream_meta *> &streamMetas)
+{
+    clearStreamMetas();
+
+    if (streamMetas.empty()) {
+        return;
+    }
+
+    for (auto &item : streamMetas) {
+        mStreamMetas.push_back(item);
+    }
+}
+
+void FfmpegMuxer::clearStreamMetas()
+{
+    if (!mStreamMetas.empty()) {
+        for (auto &item : mStreamMetas) {
+            releaseMeta(item);
+        }
+
+        mStreamMetas.clear();
+    }
+}
+
+void FfmpegMuxer::addSourceMetas(map<string, string> sourceMetas)
+{
+    if (sourceMetas.empty()) {
+        return;
+    }
+
+    for (auto &sourceMeta : sourceMetas) {
+        mSourceMetaMap.insert(pair<string, string>(sourceMeta.first, sourceMeta.second));
+    }
+}

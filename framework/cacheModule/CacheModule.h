@@ -12,7 +12,9 @@
 #include "./cache/CachePath.h"
 #include "cache/CacheRet.h"
 
+#include <vector>
 #include <mutex>
+#include <utils/mediaTypeInternal.h>
 
 using namespace std;
 
@@ -60,8 +62,6 @@ public:
 
     void addFrame(const unique_ptr<IAFPacket>& frame, StreamType type);
 
-    void setMetaCallback(function<bool(StreamType , Stream_meta *)> metaCallback);
-
     void setErrorCallback(function<void(int, string)> callback);
 
     CacheRet checkCanBeCached(const string &acturalPlayURL);
@@ -81,6 +81,9 @@ public:
 
     void reset();
 
+    void setStreamMeta(const vector<Stream_meta*>& streamMetas);
+
+    void clearStreamMetas();
 private:
 
 
@@ -106,8 +109,10 @@ private:
     CachePath         mCachePath;
     string mDescription;
 
-    function<bool(StreamType , Stream_meta *)> mMetaCallback  = nullptr;
     function<void(int, string)>                mErrorCallback = nullptr;
+
+    vector<Stream_meta*> mStreamMetas{};
+
 };
 
 

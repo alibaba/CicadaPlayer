@@ -13,6 +13,7 @@
 #include <muxer/IMuxerPrototype.h>
 #include <utils/frame_work_log.h>
 #include <utils/stringUtil.h>
+#include <utils/mediaFrame.h>
 
 using namespace Cicada;
 
@@ -38,19 +39,14 @@ CacheFileRemuxer::~CacheFileRemuxer()
     }
 
     mFrameInfoQueue.clear();
+    clearStreamMetas();
 }
 
-
-void CacheFileRemuxer::setMetaCallback(function<bool(StreamType, Stream_meta *)> metaCallback)
-{
-    mMetaCallback = metaCallback;
-}
-
-void CacheFileRemuxer::addFrame(const unique_ptr<IAFPacket>& frame, StreamType type)
+void CacheFileRemuxer::addFrame(const unique_ptr<IAFPacket> &frame, StreamType type)
 {
     FrameInfo *info = new FrameInfo();
     info->frame = frame->clone();
-    info->type  = type;
+    info->type = type;
     {
         std::unique_lock<mutex> lock(mQueueMutex);
         mFrameInfoQueue.push_back(std::unique_ptr<FrameInfo>(info));
@@ -81,7 +77,7 @@ void CacheFileRemuxer::start()
     stop();
     {
         std::unique_lock<mutex> lock(mThreadMutex);
-        mWantStop  = false;
+        mWantStop = false;
         mMuxThread = NEW_AF_THREAD(muxThreadRun);
         mMuxThread->start();
     }
@@ -113,7 +109,7 @@ int CacheFileRemuxer::muxThreadRun()
             mDestFileCntl = nullptr;
         }
 
-        mMuxer        = IMuxerPrototype::create(mDestFilePath, "mp4", mDescription);
+        mMuxer = IMuxerPrototype::create(mDestFilePath, "mp4", mDescription);
         mDestFileCntl = new FileCntl(mDestFilePath);
     }
     initMuxer();
@@ -140,16 +136,8 @@ int CacheFileRemuxer::muxThreadRun()
                 mQueueCondition.wait_for(lock, std::chrono::milliseconds(10),
                 [this]() { return this->mInterrupt || this->mWantStop; });
             } else {
-                int ret = -1;
-
-                if (mFrameInfoQueue.front()->type == StreamType::ST_TYPE_AUDIO) {
-                    ret = mMuxer->muxAudio(move(mFrameInfoQueue.front()->frame));
-                } else if (mFrameInfoQueue.front()->type == StreamType::ST_TYPE_VIDEO) {
-                    ret = mMuxer->muxVideo(move(mFrameInfoQueue.front()->frame));
-                } else {
-                    // not support type
-                    ret = 0;
-                }
+                unique_ptr<FrameInfo> &frameInfo = mFrameInfoQueue.front();
+                int ret = mMuxer->muxPacket(move(frameInfo->frame));
                 mFrameInfoQueue.pop_front();
 
                 if (ret < 0) {
@@ -227,31 +215,14 @@ void CacheFileRemuxer::initMuxer()
     mMuxer->setWritePacketCallback(io_write, this);
     mMuxer->setWriteDataTypeCallback(io_write_data_type, this);
     mMuxer->setSeekCallback(io_seek, this);
-    mMuxer->setGetVideoMetaCallback([this](Stream_meta * meta) -> bool {
-        if (mMetaCallback != nullptr)
-        {
-            return mMetaCallback(StreamType::ST_TYPE_VIDEO, meta);
-        } else
-        {
-            return false;
-        }
-    });
-    mMuxer->setGetAudioMetaCallback([this](Stream_meta * meta) -> bool {
-        if (mMetaCallback != nullptr)
-        {
-            return mMetaCallback(StreamType::ST_TYPE_AUDIO, meta);
-        } else
-        {
-            return false;
-        }
-    });
+    mMuxer->setStreamMetas(mStreamMetas);
 }
 
 
 int CacheFileRemuxer::io_write(void *opaque, uint8_t *buf, int size)
 {
-    CacheFileRemuxer *cacheFileRemuxer = static_cast<CacheFileRemuxer *>(opaque);
-    int              ret               = cacheFileRemuxer->mDestFileCntl->writeFile(buf, size);
+    auto *cacheFileRemuxer = static_cast<CacheFileRemuxer *>(opaque);
+    int ret = cacheFileRemuxer->mDestFileCntl->writeFile(buf, size);
     return ret;
 }
 
@@ -263,12 +234,35 @@ int CacheFileRemuxer::io_write_data_type(void *opaque, uint8_t *buf, int size,
 
 int64_t CacheFileRemuxer::io_seek(void *opaque, int64_t offset, int whence)
 {
-    CacheFileRemuxer *cacheFileRemuxer = static_cast<CacheFileRemuxer *>(opaque);
+    auto *cacheFileRemuxer = static_cast<CacheFileRemuxer *>(opaque);
     return cacheFileRemuxer->mDestFileCntl->seekFile(offset, whence);
 }
 
 void CacheFileRemuxer::setErrorCallback(function<void(int, string)> callback)
 {
-    mErrorCallback  = callback;
+    mErrorCallback = callback;
 }
 
+void CacheFileRemuxer::setStreamMeta(const vector<Stream_meta *> &streamMetas)
+{
+    clearStreamMetas();
+
+    if (streamMetas.empty()) {
+        return;
+    }
+
+    for (auto &item : streamMetas) {
+        mStreamMetas.push_back(item);
+    }
+}
+
+void CacheFileRemuxer::clearStreamMetas()
+{
+    if (!mStreamMetas.empty()) {
+        for (auto &item : mStreamMetas) {
+            releaseMeta(item);
+        }
+
+        mStreamMetas.clear();
+    }
+}
