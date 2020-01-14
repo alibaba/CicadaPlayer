@@ -3,12 +3,10 @@
 //
 
 #include "player_command.h"
-
-#ifdef ENABLE_SDL
-
-#include <SDL2/SDL.h>
 #include <utils/timer.h>
 
+#ifdef ENABLE_SDL
+#include <SDL2/SDL.h>
 #endif
 
 int command_loop(Cicada::MediaPlayer *player, void *arg)
