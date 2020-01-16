@@ -1,6 +1,7 @@
 //
 // Created by moqi on 2018/11/9.
 //
+#define LOG_TAG "IDataSource"
 
 #include "IDataSource.h"
 #include <utils/frame_work_log.h>
@@ -9,6 +10,7 @@
 #include <cerrno>
 #include <utils/CicadaUtils.h>
 #include <unistd.h>
+#include <utils/CicadaJSON.h>
 
 using std::string;
 
@@ -73,4 +75,25 @@ namespace Cicada {
         return mOpts;
     }
 
+    std::string IDataSource::SourceConfig::toString()
+    {
+        CicadaJSONItem item{};
+        item.addValue("low_speed_limit", low_speed_limit);
+        item.addValue("low_speed_time_ms", low_speed_time_ms);
+        item.addValue("connect_time_out_ms", connect_time_out_ms);
+        item.addValue("so_rcv_size", so_rcv_size);
+        item.addValue("http_proxy", http_proxy);
+        item.addValue("refer", refer);
+        item.addValue("userAgent", userAgent);
+        std::string headerStr{};
+
+        for (std::string &headerItem : customHeaders) {
+            if (!headerItem.empty()) {
+                headerStr.append(headerItem).append(";");
+            }
+        }
+
+        item.addValue("customHeaders", headerStr);
+        return item.printJSON();
+    }
 }

@@ -50,6 +50,8 @@ namespace Cicada{
             std::string userAgent = "";
             std::vector<std::string> customHeaders;
             Listener *listener = nullptr;
+
+            std::string toString();
         };
 
 

@@ -210,7 +210,7 @@ void GLRender::calculateFPS(int64_t tick)
             mRendertimeS++;
         }
 
-        AF_LOGI("video fps is %llu\n", mRenderCount);
+        AF_LOGD("video fps is %llu\n", mRenderCount);
         mFps = mRenderCount;
         mRenderCount = 0;
     }

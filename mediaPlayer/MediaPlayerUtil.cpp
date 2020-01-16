@@ -5,7 +5,7 @@
 //  Created by huang_jiafa on 2010/01/30.
 //  Copyright (c) 2019 Aliyun. All rights reserved.
 //
-#define LOG_TAG "ApsaraPlayerUtil"
+#define LOG_TAG "MeidaPlayerUtil"
 #include "utils/frame_work_log.h"
 #include "MediaPlayerUtil.h"
 #include "utils/timer.h"
@@ -25,7 +25,7 @@ namespace Cicada {
             float timeS = float(time - mLastLoopTime) / 1000000;
 
             if (timeS > 1.0) {
-                AF_LOGI("loop index is %f\n", (float) mLoopIndex / timeS);
+                AF_LOGD("loop index is %f\n", (float) mLoopIndex / timeS);
                 mLoopIndex = 0;
                 mLastLoopTime = time;
             }
@@ -45,7 +45,7 @@ namespace Cicada {
 
             if (1000 <= diff) {
                 mVideoRenderFps = (float) (mTotalRenderCount - mLastRenderCount) * 1000 / diff;
-                AF_LOGI("KPI test total fps:%0.1f, Current FPS:%0.1f",
+                AF_LOGD("KPI test total fps:%0.1f, Current FPS:%0.1f",
                         (float) (mTotalRenderCount - 1) * 1000 / (af_getsteady_ms() - mFirstRenderTime),
                         mVideoRenderFps);
                 mLastRenderCount = mTotalRenderCount;
@@ -72,7 +72,7 @@ namespace Cicada {
     }
 
     void MediaPlayerUtil::getPropertyJSONStr(const std::string &name, CicadaJSONArray &array, bool isArray,
-                                             std::deque<StreamInfo *> &streamInfoQueue, demuxer_service *service)
+            std::deque<StreamInfo *> &streamInfoQueue, demuxer_service *service)
     {
         if (nullptr == service) {
             return;

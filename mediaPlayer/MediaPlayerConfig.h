@@ -36,6 +36,9 @@ namespace Cicada {
         /* enable tunnel rander*/
         bool bEnableTunnelRender;
         std::vector<std::string> customHeaders;
+
+    public:
+        std::string toString() const;
     };
 }
 
