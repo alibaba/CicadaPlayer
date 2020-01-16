@@ -647,7 +647,7 @@ namespace Cicada {
                 return ret;
             }
         } else if (ret == FRAMEWORK_ERR_EXIT) {
-            AF_LOGD("mPDemuxer->readPacket FRAMEWORK_ERR_EXIT\n");
+            AF_LOGW("mPDemuxer->readPacket FRAMEWORK_ERR_EXIT\n");
         }
 
         if (ret == SEGEND) {

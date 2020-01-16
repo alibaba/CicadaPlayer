@@ -4,7 +4,7 @@
 //
 //  Created by shiping.csp on 2018/11/1.
 //
-
+#define LOG_TAG "AbrBufferAlgoStrategy"
 #include "AbrBufferAlgoStrategy.h"
 #include "AbrBufferRefererData.h"
 #include <utils/frame_work_log.h>
@@ -109,9 +109,11 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
                 break;
             }
         }
+
         if (count) {
             averageSpeed /= count;
         }
+
         maxSpeed = downloadSpeed.front();
     }
 

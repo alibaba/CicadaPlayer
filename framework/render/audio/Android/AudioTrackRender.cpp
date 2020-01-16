@@ -1,7 +1,7 @@
 //
 // Created by lifujun on 2019/8/29.
 //
-
+#define LOG_TAG "AudioTrackRender"
 #include "AudioTrackRender.h"
 
 #include <cerrno>
