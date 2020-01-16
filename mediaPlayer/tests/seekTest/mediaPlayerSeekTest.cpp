@@ -17,6 +17,36 @@ int main(int argc, char **argv)
 //    log_set_level(AF_LOG_LEVEL_TRACE, 1);
     return RUN_ALL_TESTS();
 }
+
+static int seekEndTimes = 0;
+static int seekEndPos = 0;
+
+void onSeekEnd(int64_t position, void *userData)
+{
+    commandsCase *testCase = static_cast<commandsCase *>(userData);
+    if (testCase->mCommands.empty()) {
+        testCase->mExitOnEmpty = true;
+    }
+    seekEndTimes++;
+    seekEndPos = position;
+
+}
+
+void onLoadingProgress(int64_t position, void *userData)
+{
+
+}
+
+void onLoadingStart(void *userData)
+{
+
+}
+
+void onLoadingEnd(void *userData)
+{
+
+}
+
 TEST(cmd, seek)
 {
     std::vector<player_command> commands;
@@ -37,9 +67,18 @@ TEST(cmd, seek)
         cmd.arg0 = seekDelta;
         commands.push_back(cmd);
     }
-    commandsCase testCase(commands, true);
+    commandsCase testCase(commands, false);
+
+    playerListener listener{nullptr};
+    listener.SeekEnd = onSeekEnd;
+    listener.LoadingProgress = onLoadingProgress;
+    listener.LoadingStart = onLoadingStart;
+    listener.LoadingEnd = onLoadingEnd;
+    listener.userData = &testCase;
 
     test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", nullptr, command_loop,
-                &testCase, nullptr);
+                &testCase, &listener);
+
+    ASSERT_LE(seekEndTimes, count);
 }
 

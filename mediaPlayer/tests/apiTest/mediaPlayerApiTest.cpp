@@ -77,3 +77,70 @@ TEST(cmd, speed)
                 &testCase, nullptr);
 }
 
+TEST(cmd, backGround)
+{
+    std::vector<player_command> commands;
+    player_command cmd;
+    int posDelta = 5000;
+    commands.reserve(4);
+    cmd.mID = player_command::setLoop;
+    cmd.timestamp = 0;
+    cmd.arg0 = 1;
+    commands.push_back(cmd);
+    cmd.mID = player_command::backGround;
+    int64_t start_time = af_getsteady_ms() + 2000;
+    for (int i = 0; i < 4; i++) {
+        cmd.timestamp = i * posDelta + start_time;
+        cmd.arg0 = (i + 1) % 2;
+        commands.push_back(cmd);
+    }
+
+    commandsCase testCase(commands, true);
+
+    test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", nullptr, command_loop,
+                &testCase, nullptr);
+}
+
+static bool g_autoPlay = false;
+
+static void onAutoPlayStart(void *userData)
+{
+    g_autoPlay = true;
+}
+TEST(cmd, autoPlay)
+{
+    playerListener listener{nullptr};
+    g_autoPlay = false;
+    listener.AutoPlayStart = onAutoPlayStart;
+    test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", nullptr, simple_loop,
+                nullptr, &listener);
+    assert(g_autoPlay);
+}
+
+static void onCompletion(void *userData)
+{
+    commandsCase *testCase = static_cast<commandsCase *>(userData);
+    testCase->mExitOnEmpty = true;
+}
+
+TEST(event, EOS)
+{
+    std::vector<player_command> commands;
+    player_command cmd;
+    commands.reserve(4);
+    cmd.mID = player_command::seek;
+    cmd.timestamp = af_getsteady_ms() + 2000;
+    cmd.arg0 = (4 * 60 + 15) * 1000;
+    commands.push_back(cmd);
+
+    commandsCase testCase(commands, false);
+
+    playerListener listener{nullptr};
+    listener.Completion = onCompletion;
+    listener.userData = &testCase;
+
+    test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", nullptr, command_loop,
+                &testCase, &listener);
+    ASSERT_TRUE(testCase.mExitOnEmpty);
+}
+
