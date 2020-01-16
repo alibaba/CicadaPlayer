@@ -2298,7 +2298,6 @@ namespace Cicada {
         }
 
         if (mCurrentVideoIndex >= 0 && mVideoDecoder == nullptr) {
-            AF_LOGD("SetUpVideoPath start");
             int ret = SetUpVideoPath();
 
             if (ret < 0) {
@@ -2901,6 +2900,7 @@ namespace Cicada {
 
         int ret = 0;
         bool bHW = false;
+        AF_LOGD("SetUpVideoPath start");
 
         if (mSet.bEnableHwVideoDecode) {
             switch (meta->codec) {

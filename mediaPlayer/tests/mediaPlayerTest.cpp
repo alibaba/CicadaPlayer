@@ -46,7 +46,7 @@ static void releaseView(){
 
 #endif
 
-void test_simple(const string &url, OnCallback create, OnCallback loop, void *arg, playerListener *pListener)
+void test_simple(const string &url, OnCallback create, OnCallback loop, void *arg, playerListener *pListener, bool autoStart)
 {
     unique_ptr<MediaPlayer> player = unique_ptr<MediaPlayer>(new MediaPlayer());
     if (create) {
@@ -63,7 +63,7 @@ void test_simple(const string &url, OnCallback create, OnCallback loop, void *ar
         player->SetListener(*pListener);
     }
     player->SetDataSource(url.c_str());
-    player->SetAutoPlay(true);
+    player->SetAutoPlay(autoStart);
     player->Prepare();
     if (loop) {
         int ret = 0;

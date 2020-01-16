@@ -13,11 +13,7 @@
 
 int command_loop(Cicada::MediaPlayer *player, void *arg)
 {
-    commandsCase *pCase = static_cast<commandsCase *> (arg);
-    if (pCase->mCommands.empty() && pCase->mExitOnEmpty) {
-        return -1;
-    }
-    player_command &cmd = pCase->mCommands.front();
+
 #ifdef ENABLE_SDL
     SDL_Event event;
     if (SDL_PollEvent(&event)) {
@@ -26,22 +22,32 @@ int command_loop(Cicada::MediaPlayer *player, void *arg)
         }
     }
 #endif
+    commandsCase *pCase = static_cast<commandsCase *> (arg);
+    if (pCase->mCommands.empty()) {
+        if (pCase->mExitOnEmpty)
+            return -1;
+        return 0;
+    }
+    player_command &cmd = pCase->mCommands.front();
     if (cmd.timestamp < af_getsteady_ms()) {
         switch (cmd.mID) {
-            case player_command::player_command_loop:
+            case player_command::setLoop:
                 player->SetLoop(cmd.arg0);
                 break;
-            case player_command::player_command_seek:
+            case player_command::seek:
                 player->SeekTo(player->GetCurrentPosition() + cmd.arg0, SEEK_MODE_ACCURATE);
                 break;
-            case player_command::player_command_speed:
+            case player_command::setSpeed:
                 player->SetSpeed((float) cmd.arg0 / 10);
                 break;
-            case player_command::player_command_volume:
+            case player_command::setVolume:
                 player->SetVolume((float) cmd.arg0 / 10);
                 break;
-            case player_command::player_command_selectStream:
+            case player_command::selectStream:
                 player->SelectTrack(cmd.arg0);
+                break;
+            case player_command::start:
+                player->Start();
                 break;
             default:
                 break;
