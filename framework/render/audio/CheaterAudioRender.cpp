@@ -30,7 +30,7 @@ int Cicada::CheaterAudioRender::start_device()
 
 void Cicada::CheaterAudioRender::flush_device()
 {
-    mClock.reset();
+    mClock.set(0);
     mPCMDuration = 0;
 }
 
