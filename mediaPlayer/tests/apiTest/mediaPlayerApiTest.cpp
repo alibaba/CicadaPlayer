@@ -24,11 +24,11 @@ TEST(cmd, volume)
     player_command cmd;
     int posDelta = 1000;
     commands.reserve(26);
-    cmd.mID = player_command::player_command_loop;
+    cmd.mID = player_command::setLoop;
     cmd.timestamp = 0;
     cmd.arg0 = 1;
     commands.push_back(cmd);
-    cmd.mID = player_command::player_command_volume;
+    cmd.mID = player_command::setVolume;
     int64_t start_time = af_getsteady_ms();
     for (int i = 0; i <= 10; i++) {
         cmd.timestamp = i * posDelta + start_time;
@@ -54,11 +54,11 @@ TEST(cmd, speed)
     player_command cmd;
     int posDelta = 1000;
     commands.reserve(26);
-    cmd.mID = player_command::player_command_loop;
+    cmd.mID = player_command::setLoop;
     cmd.timestamp = 0;
     cmd.arg0 = 1;
     commands.push_back(cmd);
-    cmd.mID = player_command::player_command_speed;
+    cmd.mID = player_command::setSpeed;
     int64_t start_time = af_getsteady_ms();
     for (int i = 0; i <= 10; i++) {
         cmd.timestamp = i * posDelta + start_time;

@@ -214,7 +214,7 @@ namespace Cicada {
             err = av_read_frame(mCtx, pkt);
 
             if (err < 0) {
-                if (err != AVERROR(EAGAIN)) {
+                if (err != AVERROR(EAGAIN)&& mCtx->pb->error != AVERROR_EXIT) {
                     if (mCtx->pb) {
                         av_log(NULL, AV_LOG_WARNING, "%s:%d: %s, ctx->pb->error=%d\n", __FILE__, __LINE__, getErrorString(err),
                                mCtx->pb->error);

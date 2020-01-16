@@ -11,6 +11,6 @@
 
 typedef int(*OnCallback)(Cicada::MediaPlayer *player, void* arg);
 
-void test_simple(const string &url, OnCallback create, OnCallback loop, void *arg, playerListener *pListener);
+void test_simple(const string &url, OnCallback create, OnCallback loop, void *arg, playerListener *pListener,bool autoStart = true);
 
 #endif //CICADAMEDIA_MEDIAPLAYERTEST_H
