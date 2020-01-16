@@ -49,6 +49,9 @@ int command_loop(Cicada::MediaPlayer *player, void *arg)
             case player_command::start:
                 player->Start();
                 break;
+            case player_command::backGround:
+                player->EnterBackGround(cmd.arg0 != 0);
+                break;
             default:
                 break;
         }

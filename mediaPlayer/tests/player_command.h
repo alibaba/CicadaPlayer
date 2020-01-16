@@ -19,6 +19,7 @@ public:
         setSpeed,
         setVolume,
         selectStream,
+        backGround,
     };
 
     player_command() = default;
@@ -29,7 +30,7 @@ public:
     }
 
     command mID{null};
-    int timestamp{0};
+    int64_t timestamp{0};
     int arg0{};
 
 };
