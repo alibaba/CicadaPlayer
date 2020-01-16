@@ -57,8 +57,7 @@ include_directories(
  #      ${CICADA_FRAMEWORK_DIR}/src/message
         ${FFMPEG_SOURCE_DIR}
         ${COMMON_INC_DIR}
-        ${TOPDIR}/alitun-api/tunnel
-        ${TOPDIR}/alitun-api/tunnel/avnet)
+)
 
 link_directories(
 #${CICADA_FRAMEWORK_INSTALL_LIB_DIR}

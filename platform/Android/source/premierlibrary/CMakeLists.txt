@@ -12,7 +12,6 @@ add_subdirectory(../../../../plugin plugin.out)
 
 include_directories(
         ${COMMON_INC_DIR}
-        ${ALITUN_INC_DIR}
         ${TOPDIR}/mediaPlayer/
         ${TOPDIR}/mediaPlayer/external/install/cares/Android/${ANDROID_ABI}/include
 )
@@ -20,7 +19,6 @@ include_directories(
 link_directories(
         ${BOOST_LIB_DIR}
         ${COMMON_LIB_DIR}
-        ${ALITUN_LIB_DIR}
 )
 
 #set(CMAKE_CXX_VISIBILITY_PRESET hidden)
