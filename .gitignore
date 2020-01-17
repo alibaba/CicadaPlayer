@@ -4,3 +4,5 @@ cmake-build-debug*/
 *.orig
 .DS_Store
 cmdline/build/
+/build
+

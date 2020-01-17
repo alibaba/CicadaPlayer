@@ -123,7 +123,7 @@ if (EMSCRIPTEN)
 endif ()
 
 if (BUILD_TEST)
-   add_subdirectory(tests)
+#   add_subdirectory(tests)
 #        link_libraries(
 #                demuxer
 #                videodec

@@ -21,6 +21,8 @@ target_sources(demuxerUnitTest
 target_include_directories(
         demuxerUnitTest
         PRIVATE
+        ../../
+        ${COMMON_INC_DIR}
 )
 
 target_link_libraries(
@@ -40,6 +42,8 @@ target_link_libraries(
         ssl
         crypto
         gtest_main)
+
+target_link_directories(demuxerUnitTest PRIVATE ${COMMON_LIB_DIR})
 
 if (APPLE)
     target_link_libraries(

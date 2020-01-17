@@ -134,7 +134,3 @@ if (HAVE_COVERAGE_CONFIG)
     target_link_libraries(media_player PUBLIC coverage_config)
 endif ()
 
-if (BUILD_TEST)
-    add_subdirectory(tests)
-endif ()
-
