@@ -153,7 +153,7 @@ public:
 
     virtual void captureScreen(std::function<void(uint8_t *, int, int)> func)
     {
-
+        func(nullptr,0,0);
     }
 
 

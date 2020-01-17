@@ -144,3 +144,91 @@ TEST(event, EOS)
     ASSERT_TRUE(testCase.mExitOnEmpty);
 }
 
+
+Cicada::MediaPlayer *apiPlayer = nullptr;
+
+static void pictureApiOnPrepared(void *arg)
+{
+    ASSERT_TRUE(apiPlayer);
+    apiPlayer->CaptureScreen();
+    apiPlayer->SetMirrorMode(MIRROR_MODE_HORIZONTAL);
+
+    MirrorMode mode = apiPlayer->GetMirrorMode();
+    apiPlayer->SetRotateMode(ROTATE_MODE_0);
+    apiPlayer->GetRotateMode();
+    apiPlayer->SetScaleMode(SM_FIT);
+    apiPlayer->GetScaleMode();
+}
+
+static int pictureApiOnCallback(Cicada::MediaPlayer *player, void *arg)
+{
+    apiPlayer = player;
+    return 0;
+}
+
+TEST(coverag, pictureApi)
+{
+    playerListener listener{nullptr};
+    listener.Prepared = pictureApiOnPrepared;
+    test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", pictureApiOnCallback, simple_loop,
+                nullptr, &listener);
+}
+
+static void getApiOnPrepared(void *arg)
+{
+    ASSERT_TRUE(apiPlayer);
+    apiPlayer->GetVideoHeight();
+    apiPlayer->GetVideoWidth();
+    apiPlayer->GetSpeed();
+    apiPlayer->GetVolume();
+    apiPlayer->GetCurrentPosition();
+    apiPlayer->GetAnalyticsCollector();
+    apiPlayer->GetBufferedPosition();
+    apiPlayer->GetCurrentStreamIndex(ST_TYPE_VIDEO);
+    apiPlayer->GetMasterClockPts();
+    apiPlayer->GetDuration();
+    apiPlayer->GetConfig();
+    apiPlayer->GetScaleMode();
+    apiPlayer->GetVideoRotation();
+    apiPlayer->IsAutoPlay();
+    apiPlayer->IsLoop();
+    apiPlayer->IsMuted();
+    apiPlayer->GetPropertyString(PROPERTY_KEY_RESPONSE_INFO);
+    apiPlayer->GetPropertyString(PROPERTY_KEY_CONNECT_INFO);
+    apiPlayer->GetPropertyString(PROPERTY_KEY_OPEN_TIME_STR);
+    apiPlayer->GetPropertyString(PROPERTY_KEY_PROBE_STR);
+    apiPlayer->GetPropertyString(PROPERTY_KEY_VIDEO_BUFFER_LEN);
+    apiPlayer->GetPropertyString(PROPERTY_KEY_DELAY_INFO);
+    apiPlayer->GetPropertyString(PROPERTY_KEY_REMAIN_LIVE_SEG);
+    apiPlayer->GetPropertyString(PROPERTY_KEY_NETWORK_IS_CONNECTED);
+
+    Stream_meta meta{};
+    apiPlayer->GetCurrentStreamMeta(&meta, ST_TYPE_VIDEO);
+}
+
+TEST(coverag, getApi)
+{
+    playerListener listener{nullptr};
+    listener.Prepared = getApiOnPrepared;
+    test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", pictureApiOnCallback, simple_loop,
+                nullptr, &listener);
+}
+
+static int setApiOnCallback(Cicada::MediaPlayer *player, void *arg)
+{
+    Cicada::MediaPlayerConfig config;
+    config.startBufferDuration = 500;
+    config.highBufferDuration = 5000;
+    config.bEnableTunnelRender = false;
+    config.httpProxy = "";
+    config.maxBufferDuration = 60 * 1000;
+    player->SetConfig(&config);
+    return 0;
+}
+
+TEST(config, set)
+{
+    test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", setApiOnCallback, simple_loop,
+                nullptr, nullptr);
+}
+

@@ -16,7 +16,6 @@ namespace Cicada {
         maxBufferDuration = 50000;
         highBufferDuration = 3000;
         startBufferDuration = 500;
-        maxProbeSize = -1;
         bClearShowWhenStop = false;
         bEnableTunnelRender = false;
     }
@@ -33,7 +32,6 @@ namespace Cicada {
         item.addValue("maxBufferDuration", maxBufferDuration);
         item.addValue("highBufferDuration", highBufferDuration);
         item.addValue("startBufferDuration", startBufferDuration);
-        item.addValue("maxProbeSize", maxProbeSize);
         item.addValue("bClearShowWhenStop", bClearShowWhenStop);
         item.addValue("bEnableTunnelRender", bEnableTunnelRender);
         return item.printJSON();
