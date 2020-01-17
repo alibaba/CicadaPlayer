@@ -29,8 +29,6 @@ namespace Cicada {
         int maxBufferDuration;
         int highBufferDuration;
         int startBufferDuration;
-        /* -1: not set */
-        int maxProbeSize;
         /* true is to clear image show when stop */
         bool bClearShowWhenStop;
         /* enable tunnel rander*/
