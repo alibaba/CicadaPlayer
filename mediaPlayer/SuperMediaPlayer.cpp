@@ -550,6 +550,8 @@ namespace Cicada {
         } else if (theKey == "description") {
             mSet.mOptions.set(theKey, value, options::REPLACE);
             return 0;
+        }  else if (theKey == "enableVRC") {
+            mSet.bEnableVRC = (atoi(value) != 0);
         }
 
         return 0;
@@ -578,6 +580,9 @@ namespace Cicada {
             snprintf(value, MAX_OPT_VALUE_LENGTH, "%" PRId64 "", size);
         } else if (theKey == "description") {
             snprintf(value, MAX_OPT_VALUE_LENGTH, "%s", mSet.mOptions.get("description").c_str());
+        } else if ( theKey == "renderFps") {
+            float renderFps = GetVideoRenderFps();
+            snprintf(value, MAX_OPT_VALUE_LENGTH, "%f", renderFps);
         }
 
         return;
@@ -2586,7 +2591,7 @@ namespace Cicada {
         //flush frame queue
 
         while (!mVideoFrameQue.empty()) {
-            ProcessVideoRenderedMsg(mVideoFrameQue.front()->getInfo().pts, nullptr);
+            ProcessVideoRenderedMsg(mVideoFrameQue.front()->getInfo().pts, af_getsteady_ms(), nullptr);
             mVideoFrameQue.pop();
         }
 
@@ -3674,6 +3679,7 @@ namespace Cicada {
         pHandle->mUtil.render(pts);
         MsgParam param;
         param.videoRenderedParam.pts = pts;
+        param.videoRenderedParam.timeMs = af_getsteady_ms();
         param.videoRenderedParam.userData = userData;
         pHandle->putMsg(MSG_INTERNAL_VIDEO_RENDERED, param, false);
     }
@@ -3688,7 +3694,7 @@ namespace Cicada {
         }
     }
 
-    void SuperMediaPlayer::ProcessVideoRenderedMsg(int64_t pts, void *picUserData)
+    void SuperMediaPlayer::ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, void *picUserData)
     {
         checkFirstRender();
 
@@ -3707,6 +3713,11 @@ namespace Cicada {
         }
 
         mDemuxerService->SetOption("FRAME_RENDERED", pts);
+
+        if (mSet.bEnableVRC) {
+            mPNotifier->NotifyVideoRendered(timeMs, pts);
+        }
+
         //TODO packetGotTime
     }
 
@@ -3960,7 +3971,7 @@ namespace Cicada {
     {
         while (!mVideoFrameQue.empty()) {
             int64_t pts = mVideoFrameQue.front()->getInfo().pts;
-            ProcessVideoRenderedMsg(pts, nullptr);
+            ProcessVideoRenderedMsg(pts, af_getsteady_ms(),  nullptr);
             mVideoFrameQue.pop();
         }
 

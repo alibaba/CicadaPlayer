@@ -90,6 +90,7 @@ typedef struct playerListener_t {
 
     playerType12Callback VideoSizeChanged;
     playerType12Callback StatusChanged;
+    playerType12Callback VideoRendered;
 
     playerType13Callback ErrorCallback;
 

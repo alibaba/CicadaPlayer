@@ -58,6 +58,9 @@ namespace Cicada {
         }
 
     public:
+
+        void EnableVideoRenderedCallback(bool enable);
+
         /*
          * set player listener
          */
@@ -322,6 +325,8 @@ namespace Cicada {
         static void eventCallback(int64_t code, const void *msg, void *userData);
 
         static void videoSizeChangedCallback(int64_t width, int64_t height, void *userData);
+
+        static void videoRenderedCallback(int64_t timeMs, int64_t pts, void *userData);
 
         static void currentPostionCallback(int64_t position, void *userData);
 

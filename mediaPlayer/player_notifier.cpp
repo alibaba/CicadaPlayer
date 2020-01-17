@@ -210,6 +210,16 @@ namespace Cicada {
         pushEvent(event);
     }
 
+    void PlayerNotifier::NotifyVideoRendered(int64_t timeMs, int64_t pts)
+    {
+        if (!mEnable || mListener.VideoRendered == nullptr) {
+            return;
+        }
+
+        auto *event = new player_event(timeMs, pts, mListener.VideoRendered);
+        pushEvent(event);
+    }
+
     void PlayerNotifier::NotifyFirstFrame()
     {
         if (!mEnable || mListener.FirstFrameShow == nullptr) {
