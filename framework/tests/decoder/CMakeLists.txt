@@ -21,7 +21,7 @@ target_sources(decoderUnitTest
 target_include_directories(
         decoderUnitTest
         PRIVATE
-        ../../../plugin
+        ../../
 )
 
 target_link_libraries(
@@ -41,6 +41,8 @@ target_link_libraries(
         crypto
         gtest_main
         ${FRAMEWORK_LIBS})
+
+target_link_directories(decoderUnitTest PRIVATE ${COMMON_LIB_DIR})
 
 if (APPLE)
     target_link_libraries(

@@ -88,6 +88,8 @@ void test_mergeHeader(std::string url, bool merge)
                 break;
             }
         }
+        if (ret < 0)
+            break;
     } while (ret != 0);
 
     service->close();

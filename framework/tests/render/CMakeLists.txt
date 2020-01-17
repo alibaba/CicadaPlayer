@@ -43,6 +43,8 @@ target_link_libraries(renderTest PRIVATE
         ${FRAMEWORK_LIBS}
         gtest_main)
 
+target_link_directories(renderTest PRIVATE ${COMMON_LIB_DIR})
+
 if (APPLE)
     target_link_libraries(
             renderTest PUBLIC

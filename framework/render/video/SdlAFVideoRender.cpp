@@ -172,13 +172,15 @@ int SdlAFVideoRender::onVSync(int64_t tick)
                              angle, //const double           angle,
                              nullptr,//const SDL_Point*       center,
                              flip//const SDL_RendererFlip flip
-                            );
+            );
             SDL_RenderPresent(mVideoRender);
         }
     }
     {
         std::unique_lock<std::mutex> lock(mRenderMutex);
-        mRenderResultCallback(frame->getInfo().pts, true);
+
+        if (mRenderResultCallback)
+            mRenderResultCallback(frame->getInfo().pts, true);
         mBackFrame = move(frame);
     }
     return 0;

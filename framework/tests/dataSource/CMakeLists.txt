@@ -22,7 +22,9 @@ target_include_directories(
         dataSourceTest
         PRIVATE
         ../../../plugin
-        )
+        ../../
+        ${COMMON_INC_DIR}
+)
 
 target_link_libraries(dataSourceTest PRIVATE
         demuxer
@@ -40,6 +42,9 @@ target_link_libraries(dataSourceTest PRIVATE
         ssl
         crypto
         gtest_main)
+
+
+target_link_directories(dataSourceTest PRIVATE ${COMMON_LIB_DIR})
 if (APPLE)
         target_link_libraries(
                 dataSourceTest PUBLIC
