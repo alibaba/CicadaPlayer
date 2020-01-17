@@ -20,6 +20,7 @@ public:
 
     bool isSame(const CacheConfig &config);
 
+    std::string toString() const;
 public:
     bool mEnable = false;
     int64_t mMaxDurationS = 0;

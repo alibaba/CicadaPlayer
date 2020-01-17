@@ -21,7 +21,7 @@ namespace Cicada {
 
     string IDataSource::Get_error_info(int error)
     {
-        return string("Unknown error");;
+        return string("Unknown error");
     }
 
     string IDataSource::GetUri()
