@@ -38,7 +38,7 @@ void JavaPlayerConfig::init(JNIEnv *env)
     if (gj_PlayerConfig_class == nullptr) {
         FindClass cls(env, playerConfigPath);
         gj_PlayerConfig_class                     = (jclass) env->NewGlobalRef(
-                cls.getClass());
+                    cls.getClass());
         gj_PlayerConfig_Init                      = env->GetMethodID(gj_PlayerConfig_class,
                 "<init>",
                 "()V");
@@ -103,7 +103,6 @@ jobject JavaPlayerConfig::getJPlayerConfig(JNIEnv *mEnv, const MediaPlayerConfig
     }
 
     jobject jPlayerConfig  = mEnv->NewObject(gj_PlayerConfig_class, gj_PlayerConfig_Init);
-    mEnv->SetIntField(jPlayerConfig, gj_playerconfig_MaxProbeSize, playerConfig->maxProbeSize);
     mEnv->SetIntField(jPlayerConfig, gj_playerconfig_MaxBufferedPacketDuration,
                       playerConfig->maxBufferDuration);
     mEnv->SetIntField(jPlayerConfig, gj_playerconfig_FirstStartBufferLevel,
@@ -193,7 +192,6 @@ MediaPlayerConfig JavaPlayerConfig::convertTo(JNIEnv *env, jobject playerConfig)
     config.highBufferDuration     = highBufferLevel;
     config.maxBufferDuration      = maxBufferedPacketDuration;
     config.maxDelayTime           = maxDelayTime;
-    config.maxProbeSize           = maxProbeSize;
     config.networkTimeout         = networkTimeout;
     config.bClearShowWhenStop     = clearFrameWhenStop;
     config.bEnableTunnelRender    = enableTunnelRender;

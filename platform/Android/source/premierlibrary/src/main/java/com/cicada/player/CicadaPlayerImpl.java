@@ -447,6 +447,30 @@ import java.lang.ref.WeakReference;
         }
     }
 
+    private OnVideoRenderedListener mOutOnVideoRenderedListener = null;
+    private OnVideoRenderedListener mInnerOnVideoRenderedListener = new InnerVideoRenderedListener(this);
+
+    private static class InnerVideoRenderedListener implements OnVideoRenderedListener {
+        private WeakReference<CicadaPlayerImpl> cicadaPlayerImplWR;
+
+        InnerVideoRenderedListener(CicadaPlayerImpl avpBase) {
+            cicadaPlayerImplWR = new WeakReference<CicadaPlayerImpl>(avpBase);
+        }
+
+        @Override
+        public void onVideoRendered(long timeMs, long pts) {
+            CicadaPlayerImpl cicadaPlayerImpl = cicadaPlayerImplWR.get();
+            if (cicadaPlayerImpl != null) {
+                cicadaPlayerImpl.onVideoRendered(timeMs, pts);
+            }
+        }
+    }
+
+    private void onVideoRendered(long timeMs, long pts){
+        if(mOutOnVideoRenderedListener != null){
+            mOutOnVideoRenderedListener.onVideoRendered(timeMs ,pts);
+        }
+    };
 
     public CicadaPlayerImpl(Context context, String traceID) {
         mContext = context;
@@ -726,6 +750,7 @@ import java.lang.ref.WeakReference;
     }
 
     @Override
+    @Deprecated
     public TrackInfo currentTrack(int type) {
         return mCorePlayer.getCurrentTrackInfo(type);
     }
@@ -994,6 +1019,27 @@ import java.lang.ref.WeakReference;
     public void selectExtSubtitle(int index, boolean select){
         mCorePlayer.selectExtSubtitle(index,select);
     }
+
+    @Override
+    public void setDefaultBandWidth(int bandWidth) {
+        mCorePlayer.setDefaultBandWidth(bandWidth);
+    }
+
+    @Override
+    public Object getOption(Option key) {
+        return mCorePlayer.getOption(key);
+    }
+
+    @Override
+    public void setOnVideoRenderedListener(OnVideoRenderedListener listener){
+        mOutOnVideoRenderedListener = listener;
+        if(mOutOnVideoRenderedListener!= null) {
+            mCorePlayer.setOnVideoRenderedListener(mInnerOnVideoRenderedListener);
+        }else{
+            mCorePlayer.setOnVideoRenderedListener(null);
+        }
+    }
+
 }
 
 

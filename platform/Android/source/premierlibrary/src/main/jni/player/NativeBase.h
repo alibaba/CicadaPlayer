@@ -137,6 +137,7 @@ public:
 
     static jstring java_GetCacheFilePathByURL(JNIEnv *env, jobject instance, jstring URL);
 
+    static void java_SetDefaultBandWidth(JNIEnv *env , jobject instance , jint defaultBandWidth);
 public:
     static void jni_onError(int64_t code, const void *msg, /*void *extra, */void *userData);
 
