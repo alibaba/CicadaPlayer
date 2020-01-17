@@ -69,3 +69,45 @@ TEST(HLS, live)
                 nullptr, nullptr);
 
 }
+
+Cicada::MediaPlayer *g_player = nullptr;
+
+static int SubTitleEXTOnCreate(Cicada::MediaPlayer *player, void *arg)
+{
+    g_player = player;
+    return 0;
+}
+
+void SubTitleEXTOnPrepared(void *userData)
+{
+    g_player->AddExtSubtitle(
+            "https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/subtitles/cn/c8d7d959e85977bedf8a61dd25f85583.vtt");
+    g_player->AddExtSubtitle(
+            "https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/subtitles/en-us/c8d7d959e85977bedf8a61dd25f85583.vtt");
+}
+
+static void onSubtitleExtAdd(int64_t index, const void *errorMsg, void *userData)
+{
+    ASSERT_TRUE(index > 0);
+    g_player->SelectExtSubtitle(index, true);
+}
+
+static void onSubtitleShow(int64_t index, int64_t size, const void *buffer, void *userData)
+{
+
+}
+static void onSubtitleHide(int64_t index, int64_t size, const void *buffer, void *userData)
+{
+
+}
+
+TEST(SubTitle, EXT)
+{
+    playerListener listener{nullptr};
+    listener.Prepared = SubTitleEXTOnPrepared;
+    listener.SubtitleExtAdd = onSubtitleExtAdd;
+    listener.SubtitleShow = onSubtitleShow;
+    listener.SubtitleHide = onSubtitleHide;
+    string url = "https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/video/1bb2b7f0e164494a88874c4911c3cec0-85333fe978bd741193df2c08e697757b-video-ld.m3u8";
+    test_simple(url, SubTitleEXTOnCreate, simple_loop, nullptr, &listener);
+}
