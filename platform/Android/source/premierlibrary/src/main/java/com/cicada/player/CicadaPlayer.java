@@ -212,14 +212,14 @@ public interface CicadaPlayer {
     abstract public void setTraceId(String traceId);
 
     /**
-     * 设置音量。
+     * 设置音量（非系统音量），范围0.0~2.0，当音量大于1.0时，可能出现噪音，不推荐使用。
      *
-     * @param gain 范围[0,1]
+     * @param gain 范围[0,2]
      */
     /****
-     * Set the volume of the player.
+     * Set the volume of the player(Not system volume). The range is 0.0~2.0，it maybe lead to noise if set volume more then 1.0, not recommended.
      *
-     * @param gain Valid values: [0,1].
+     * @param gain Valid values: [0,2].
      */
     abstract public void setVolume(float gain);
 
@@ -674,10 +674,10 @@ public interface CicadaPlayer {
     /**
      * 跳转到。不精准。
      *
-     * @param position 位置
+     * @param position 位置。单位毫秒。
      */
     /****
-     * Specify a position for inaccurate seeking.
+     * Specify a position for inaccurate seeking. Unit: millisecond.
      *
      * @param position The specified position.
      */
@@ -686,13 +686,13 @@ public interface CicadaPlayer {
     /**
      * 跳转到。
      *
-     * @param position 位置。
+     * @param position 位置。单位毫秒。
      * @param seekMode seek模式。见{@link SeekMode}。
      */
     /****
      * Seek to a specified position.
      *
-     * @param position The specified position.
+     * @param position The specified position. Unit: millisecond.
      * @param seekMode The specified seeking mode. See {@link SeekMode}.
      */
     abstract public void seekTo(long position, SeekMode seekMode);
@@ -1099,6 +1099,19 @@ public interface CicadaPlayer {
      * Subtitle display callback.
      */
     public interface OnSubtitleDisplayListener {
+
+        /**
+         * 外挂字幕添加成功
+         * @param trackIndex 流id
+         * @param url 地址
+         */
+		/****
+		 * external subtitles added successfully
+         * @param trackIndex stream id
+         * @param url
+         */
+        void onSubtitleExtAdded(int trackIndex,String url);
+		
         /**
          * 显示字幕
          *
@@ -1129,18 +1142,29 @@ public interface CicadaPlayer {
          */
         void onSubtitleHide(int trackIndex, long id);
 
-        /**
-         * 外挂字幕添加成功
-         * @param trackIndex 流id
-         * @param url 地址
-         */
-		/****
-		 * external subtitles added successfully
-         * @param trackIndex stream id
-         * @param url
-         */
-        void onSubtitleExtAdded(int trackIndex,String url);
     }
+
+    /**
+     * 添加外挂字幕
+     * @param url 字幕地址
+     */
+    /****
+     * Add external subtitles
+     * @param url subtitle address
+     */
+    abstract public void addExtSubtitle(String url);
+
+    /**
+     * 选择外挂字幕
+     * @param trackIndex 字幕索引
+     * @param select true：选择，false：关闭
+     */
+    /****
+     * Select external subtitles
+     * @param trackIndex caption index
+     * @param select true: select, false: close
+     */
+    abstract public void selectExtSubtitle(int trackIndex, boolean select);
 
     /**
      * 设置字幕显示通知
@@ -1268,26 +1292,50 @@ public interface CicadaPlayer {
      */
     abstract public void reload();
 
+    /**
+     * 设置多码率时默认播放的码率。将会选择与之最接近的一路流播放。
+     * @param bandWidth 播放的码率。
+     */
+    /****
+     * Set the default playback bitrate for multi-bit rate. The nearest stream will be selected.
+     * @param bandWidth bit rate .
+     */
+    abstract public void setDefaultBandWidth(int bandWidth);
 
     /**
-     * 添加外挂字幕
-     * @param url 字幕地址
+     *
      */
-	 /****
-      * add subtitle
-      * @param url  Subtitle address
-      */
-     void addExtSubtitle(String url);
+    public static class Option {
+        /**
+         * 渲染的fps。类型为Float
+         */
+        /****
+         * render fps. Return value type is Float
+         */
+        public static Option RenderFPS = new Option("renderFps");
+
+        private String mValue;
+
+        private Option(String value) {
+            mValue = value;
+        }
+
+        public String getValue() {
+            return mValue;
+        }
+    }
 
     /**
-     * 选择外挂字幕
-     * @param index 字幕索引
-     * @param select true：选择，false：关闭
+     * 获取播放器的参数
+     *
+     * @param key 参数值
+     * @return
      */
-	 /****
-      * select subtitle
-      * @param index   Subtitle index.
-      * @param select  Set false to close.
-      */
-     void selectExtSubtitle(int index, boolean select);
+    abstract public Object getOption(Option key);
+
+    public interface OnVideoRenderedListener{
+        void onVideoRendered(long timeMs , long pts);
+    }
+
+    abstract public void setOnVideoRenderedListener(OnVideoRenderedListener l);
 }

@@ -385,6 +385,21 @@ public class NativePlayerBase {
         nSetOption(key, value);
     }
 
+    public Object getOption(CicadaPlayer.Option key) {
+        String optionValue = nGetOption(key.getValue());
+        if (optionValue == null) {
+            return null;
+        }
+        if (key == CicadaPlayer.Option.RenderFPS) {
+            try {
+                return Float.valueOf(optionValue);
+            } catch (Exception e) {
+                return Float.valueOf("0");
+            }
+
+        }
+        return optionValue;
+    }
     public void setAutoPlay(boolean autoPlay) {
         log(TAG, "setAutoPlay = " + autoPlay);
         nSetAutoPlay(autoPlay);
@@ -410,6 +425,10 @@ public class NativePlayerBase {
     public void selectExtSubtitle(int index, boolean select){
         log(TAG, "selectExtSubtitle  index = " + index + " , select = " + select);
         nSelectExtSubtitle(index,select);
+    }
+
+    public synchronized void setDefaultBandWidth(int bandWidth) {
+        nSetDefaultBandWidth(bandWidth);
     }
 
     public static String getSdkVersion() {
@@ -506,13 +525,19 @@ public class NativePlayerBase {
 
     protected native void nSetOption(String key, String value);
 
+    protected native String nGetOption(String key);
+
     protected native void nSetAutoPlay(boolean autoPlay);
+
+    protected native void nEnableVideoRenderedCallback(boolean enable);
 
     protected native boolean nIsAutoPlay();
 
     protected native void nSnapShot();
 
     protected native String nGetCacheFilePath(String URL);
+
+    protected native void nSetDefaultBandWidth(int bandWidth);
 
     protected static native String nGetSdkVersion();
 
@@ -522,6 +547,7 @@ public class NativePlayerBase {
     //////==========--------------==================------------------================//
 
     private CicadaPlayer.OnVideoSizeChangedListener mOnVideoSizeChangedListener = null;
+    private CicadaPlayer.OnVideoRenderedListener mOnVideoRenderedListener = null;
     private CicadaPlayer.OnInfoListener mOnInfoListener = null;
     private CicadaPlayer.OnTrackReadyListener mOnTrackReadyListener = null;
     private CicadaPlayer.OnPreparedListener mOnPreparedListener = null;
@@ -575,6 +601,12 @@ public class NativePlayerBase {
     public void setOnVideoSizeChangedListener(CicadaPlayer.OnVideoSizeChangedListener l) {
         log(TAG, "setOnVideoSizeChangedListener = " + l);
         mOnVideoSizeChangedListener = l;
+    }
+
+    public void setOnVideoRenderedListener(CicadaPlayer.OnVideoRenderedListener l){
+        log(TAG, "setOnVideoRenderedListener = " + l);
+        mOnVideoRenderedListener = l;
+        nEnableVideoRenderedCallback(l != null);
     }
 
     public void setOnTrackSelectRetListener(CicadaPlayer.OnTrackChangedListener l) {
@@ -741,6 +773,18 @@ public class NativePlayerBase {
             public void run() {
                 if (mOnVideoSizeChangedListener != null) {
                     mOnVideoSizeChangedListener.onVideoSizeChanged(width, height);
+                }
+            }
+        });
+    }
+
+    protected void onVideoRendered(final long timeMs, final long pts) {
+        log(TAG, "onVideoRendered = " + timeMs + " , pts = " + pts);
+        mCurrentThreadHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mOnVideoRenderedListener != null) {
+                    mOnVideoRenderedListener.onVideoRendered(timeMs, pts);
                 }
             }
         });
