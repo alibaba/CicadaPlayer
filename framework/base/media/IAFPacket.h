@@ -131,7 +131,8 @@ public:
                    && this->channels == info.channels
                    && this->format == info.format
                    && this->channel_layout == info.channel_layout
-                   && this->nb_samples == info.nb_samples;
+         //          && this->nb_samples == info.nb_samples
+                   ;
         }
 
         bool operator!=(const audioInfo &info) const
