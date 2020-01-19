@@ -137,9 +137,11 @@ bool ActiveDecoder::needDrop(IAFPacket *packet)
     if (packet == nullptr) {
         return false;
     }
+    if (packet->getInfo().flags & AF_PKT_FLAG_CORRUPT)
+        return true;
 
     if (bNeedKeyFrame) { // need a key frame, when first start or after seek
-        if (packet->getInfo().flags == 0) { // drop the frame that not a key frame
+        if ((packet->getInfo().flags & AF_PKT_FLAG_KEY) == 0) { // drop the frame that not a key frame
             // TODO: return error?
             AF_LOGW("wait a key frame\n");
             return true;
