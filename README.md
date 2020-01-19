@@ -31,7 +31,7 @@ export CURL_GIT=https://gitee.com/mirrors/curl.git
 - [3. compile_Linux](doc/compile_Linux.md)
 - [4. compile_Windows (cross compile)](doc/compile_Windows.md)
 - [5. compile_MacOS](doc/compile_mac.md)
-- 6.webAssemble coming soon
+- 6.webAssembly coming soon
 
 
 ## How to use
@@ -45,7 +45,7 @@ export CURL_GIT=https://gitee.com/mirrors/curl.git
 ## Features
 - HLS master play list support, seamless switch
  
-   [Support instructions](framework/demuxer/HLSSupport.md)
+   [HLS Support instructions](framework/demuxer/HLSSupport.md)
 
 - ABR
 - hardware decode on Android and iOS
