@@ -93,6 +93,8 @@ namespace Cicada {
         } else {
             use_filename = true;
         }
+        av_dict_set_int(&mInputOpts, "safe", 0, 0);
+        av_dict_set(&mInputOpts, "protocol_whitelist", "file,http,https,tcp,tls", 0);
 
         /*If a url with mp4 ext name, but is not a mp4 file, the mp4 demuxer will be matched
          * by ext name , mp4 demuxer will try to find moov box, it will ignore the return value
