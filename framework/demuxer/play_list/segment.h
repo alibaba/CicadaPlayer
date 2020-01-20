@@ -37,6 +37,8 @@ namespace Cicada{
         static const int SEQUENCE_FIRST;
         SegmentEncryption encryption;
 
+        std::shared_ptr<segment> init_section{nullptr};
+
     };
 }
 

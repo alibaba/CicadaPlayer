@@ -169,6 +169,8 @@ namespace Cicada {
         const ValuesListTag *ctx_extinf = nullptr;
         std::list<Tag *>::const_iterator it;
 
+        std::shared_ptr<segment> curInitSegment = nullptr;
+
         for (it = tagslist.begin(); it != tagslist.end(); ++it) {
             const Tag *tag = *it;
 
@@ -177,7 +179,7 @@ namespace Cicada {
                 case SingleValueTag::EXTXMEDIASEQUENCE: {
                     sequenceNumber = (static_cast<const SingleValueTag *>(tag))->getValue().decimal();
                 }
-                break;
+                    break;
 
                 case ValuesListTag::EXTINF: {
                     ctx_extinf = static_cast<const ValuesListTag *>(tag);
@@ -219,6 +221,7 @@ namespace Cicada {
 //                        segment->utcTime = absReferenceTime;
 //                        absReferenceTime += nzDuration;
 //                    }
+                    pSegment->init_section = curInitSegment;
                     segmentList->addSegment(pSegment);
 
                     if (ctx_byterange) {
@@ -311,27 +314,26 @@ namespace Cicada {
                         encryption.iv.clear();
                     }
                 }
-                break;
+                    break;
 
-//                case AttributesTag::EXTXMAP: {
-//                    const AttributesTag *keytag = static_cast<const AttributesTag *>(tag);
-//                    const Attribute *uriAttr;
-//                    if (keytag && (uriAttr = keytag->getAttributeByName("URI")) &&
-//                        !segmentList->initialisationSegment.Get()) /* FIXME: handle discontinuities */
-//                    {
-//                        InitSegment *initSegment = new(std::nothrow) InitSegment(rep);
-//                        if (initSegment) {
-//                            initSegment->setSourceUrl(uriAttr->quotedString());
-//                            const Attribute *byterangeAttr = keytag->getAttributeByName("BYTERANGE");
-//                            if (byterangeAttr) {
-//                                const std::pair<std::size_t, std::size_t> range = byterangeAttr->unescapeQuotes().getByteRange();
-//                                initSegment->setByteRange(range.first, range.first + range.second - 1);
-//                            }
-//                            segmentList->initialisationSegment.Set(initSegment);
-//                        }
-//                    }
-//                }
-//                    break;
+                case AttributesTag::EXTXMAP: {
+                    const AttributesTag *keytag = static_cast<const AttributesTag *>(tag);
+                    const Attribute *uriAttr;
+                    if (keytag && (uriAttr = keytag->getAttributeByName("URI"))) {
+
+                        curInitSegment = std::make_shared<segment>(sequenceNumber++);
+                        if (curInitSegment) {
+                            curInitSegment->setSourceUrl(uriAttr->quotedString());
+                            const Attribute *byterangeAttr = keytag->getAttributeByName("BYTERANGE");
+                            if (byterangeAttr) {
+                                const std::pair<std::size_t, std::size_t> range = byterangeAttr->unescapeQuotes().getByteRange();
+                                //   initSegment->setByteRange(range.first, range.first + range.second - 1);
+                            }
+                            segmentList->addInitSegment(curInitSegment);
+                        }
+                    }
+                }
+                    break;
 
                 case Tag::EXTXDISCONTINUITY:
                     discontinuity = true;

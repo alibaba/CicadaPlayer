@@ -20,7 +20,7 @@ namespace Cicada{
 
         ~SegmentList();
 
-        std::list<std::shared_ptr<segment>> & getSegments();
+        std::list<std::shared_ptr<segment>> &getSegments();
 
         std::shared_ptr<segment> getSegmentByNumber(uint64_t number);
 
@@ -28,7 +28,12 @@ namespace Cicada{
 
         int getRemainSegmentAfterNumber(uint64_t number);
 
-        void addSegment(const std::shared_ptr<segment>& seg);
+        void addSegment(const std::shared_ptr<segment> &seg);
+
+        void addInitSegment(const std::shared_ptr<segment> &seg)
+        {
+            initSegment.push_back(seg);
+        }
 
         int merge(SegmentList *pSList);
 
@@ -46,6 +51,8 @@ namespace Cicada{
         int64_t mLastSeqNum = -1;
 
         uint64_t mNextStartTime = 0;
+
+        std::vector<std::shared_ptr<segment>> initSegment;
 
     };
 }
