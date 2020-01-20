@@ -110,6 +110,18 @@ namespace Cicada {
 
         int openSegment(const string &uri);
 
+        int tryOpenSegment(const string &uri);
+
+        int createDemuxer();
+
+        int readSegment(const uint8_t *buffer, int size);
+
+        int upDateInitSection();
+
+        int64_t seekSegment(off_t offset, int whence);
+
+        int updateSegment();
+
         bool updateIV() const;
 
         enum OpenType {
@@ -126,7 +138,7 @@ namespace Cicada {
         };
         SegmentTracker *mPTracker = nullptr;
         int mId = -1;
-        demuxer_service *mPDemuxer = nullptr;
+        std::unique_ptr<demuxer_service> mPDemuxer = nullptr;
         IDataSource *mPdataSource = nullptr;
         atomic_bool mIsOpened{false};
         bool mIsEOS = false; //demuxer eos
@@ -134,6 +146,10 @@ namespace Cicada {
         bool mReopen = false;
         bool mSwitchNeedBreak = false;
         std::shared_ptr<segment> mCurSeg = nullptr;
+        std::shared_ptr<segment> mCurInitSeg{nullptr};
+        uint8_t *mInitSegBuffer{nullptr};
+        int64_t mInitSegSize{0};
+        int mInitSegPtr{0};
         std::atomic_bool mStopOnSegEnd{false};
         bool mLastReadSuccess{false};
         std::mutex mDataMutex;
@@ -145,7 +161,6 @@ namespace Cicada {
         int read_thread();
 
         std::atomic_int mError{0};
-        dataSourceStatus mDataSourceStatus = dataSource_status_invalid;
         int mDataSourceError = 0;
         int64_t mSeekPendingUs = -1;
         bool mIsOpened_internal = false;
