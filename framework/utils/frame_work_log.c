@@ -265,7 +265,11 @@ static void initLog()
         mtlVer = xstr(VERSION);
     }
 
+#ifdef NDEBUG
     logCtrl.log_level = AF_LOG_LEVEL_INFO;
+#else
+    logCtrl.log_level = AF_LOG_LEVEL_DEBUG;
+#endif
     //     regist_log_call_back(cicada_log_callback);
 }
 
