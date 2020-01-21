@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <string>
+#include <memory>
 #include "demuxer/play_list/segment_decrypt/SegmentEncryption.h"
 
 //using namespace std;
