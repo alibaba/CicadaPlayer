@@ -8,6 +8,7 @@
 
 #include <MediaPlayer.h>
 #include <vector>
+#include <mutex>
 
 class player_command {
 public:
@@ -44,6 +45,7 @@ public:
     }
 
     std::vector<player_command> &mCommands;
+    std::mutex mMutex;
     bool mExitOnEmpty{true};
 };
 

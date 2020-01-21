@@ -28,7 +28,7 @@ before_script:
 script:
   - mkdir build
   - cd build
-  - cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DCMAKE_BUILD_TYPE=Debug ../
+  - cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
   - cmake --build . --config Debug -- -j8
 
 after_success:

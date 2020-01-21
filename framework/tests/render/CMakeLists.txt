@@ -13,6 +13,8 @@ if (APPLE)
     include(../Apple.cmake)
 endif ()
 
+include(../../${TARGET_PLATFORM}.cmake)
+
 target_sources(renderTest
         PRIVATE
 

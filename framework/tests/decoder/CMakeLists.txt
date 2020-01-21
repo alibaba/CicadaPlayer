@@ -13,6 +13,7 @@ if (APPLE)
     include(../Apple.cmake)
 endif ()
 
+include(../../${TARGET_PLATFORM}.cmake)
 target_sources(decoderUnitTest
         PRIVATE
         decoderUnitTest.cpp

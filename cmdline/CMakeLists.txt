@@ -3,13 +3,6 @@ project(cicadaPlayer)
 
 set(CMAKE_CXX_STANDARD 11)
 
-#set(USEASAN ON)
-#set(USETSAN ON)
-#set(USEUBSAN ON)
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-#    set(USEMSAN ON)
-endif ()
-
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else ()
     set(CMAKE_CXX_FLAGS "-fprofile-instr-generate -fcoverage-mapping")

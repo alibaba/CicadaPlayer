@@ -8,6 +8,7 @@
 #include <utils/timer.h>
 #include "tests/player_command.h"
 #include <vector>
+#include <utils/mediaFrame.h>
 
 using namespace std;
 
@@ -204,6 +205,8 @@ static void getApiOnPrepared(void *arg)
 
     Stream_meta meta{};
     apiPlayer->GetCurrentStreamMeta(&meta, ST_TYPE_VIDEO);
+    releaseMeta(&meta);
+
 }
 
 TEST(coverag, getApi)

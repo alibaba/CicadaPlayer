@@ -28,6 +28,7 @@ int command_loop(Cicada::MediaPlayer *player, void *arg)
             return -1;
         return 0;
     }
+    std::unique_lock <std::mutex>lock(pCase->mMutex);
     player_command &cmd = pCase->mCommands.front();
     if (cmd.timestamp < af_getsteady_ms()) {
         switch (cmd.mID) {

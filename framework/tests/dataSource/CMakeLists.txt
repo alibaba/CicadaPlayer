@@ -10,6 +10,8 @@ if (APPLE)
         include(../Apple.cmake)
 endif ()
 
+include(../../${TARGET_PLATFORM}.cmake)
+
 cmake_policy(SET CMP0079 NEW)
 add_executable(dataSourceTest "")
 

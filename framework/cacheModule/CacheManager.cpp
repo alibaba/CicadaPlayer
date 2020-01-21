@@ -7,6 +7,7 @@
 #include <utility>
 #include <utils/mediaTypeInternal.h>
 #include <vector>
+#include <utils/mediaFrame.h>
 
 CacheManager::CacheManager()
 {
@@ -98,6 +99,9 @@ void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket> &frame, StreamType
 
             if (metaRet == 0) {
                 streamMetas.push_back(audioMeta);
+            } else {
+                releaseMeta(audioMeta);
+                free(audioMeta);
             }
         }
         mCacheModule.setStreamMeta(streamMetas);

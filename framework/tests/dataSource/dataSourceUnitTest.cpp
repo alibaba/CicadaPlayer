@@ -61,6 +61,7 @@ TEST(protocol, file)
     char *obuffer = static_cast<char *>(malloc(strlen(buffer) + 1));
     source->Read(obuffer, strlen(buffer) + 1);
     ASSERT_EQ(memcmp(buffer, obuffer, strlen(buffer) + 1), 0);
+    free(obuffer);
 }
 
 TEST(dns, https)
