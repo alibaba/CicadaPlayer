@@ -52,6 +52,7 @@ static void createTestCase_switchVideo(commandsCase &testCase)
     testCase.mCommands.push_back(cmd);
     cmd.mID = player_command::selectStream;
     int64_t start_time = af_getsteady_ms();
+    std::unique_lock <std::mutex>lock(testCase.mMutex);
     for (int i = 0; i < count; i++) {
         cmd.timestamp = i * posDelta + start_time;
         cmd.arg0 = i;
@@ -79,6 +80,7 @@ static void createTestCase_switchSubtitle(commandsCase &testCase)
     cmd.timestamp += 3 * posDelta;
     cmd.mID = player_command::setLoop;
     cmd.arg0 = 0;
+    std::unique_lock <std::mutex>lock(testCase.mMutex);
     testCase.mCommands.push_back(cmd);
 }
 
@@ -89,7 +91,10 @@ static void onPrepared_video(void *userData)
     player_command cmd;
     cmd.mID = player_command::start;
     cmd.timestamp = af_getsteady_ms();
-    testCase->mCommands.push_back(cmd);
+    {
+        std::unique_lock<std::mutex> lock(testCase->mMutex);
+        testCase->mCommands.push_back(cmd);
+    }
     createTestCase_switchVideo(*testCase);
     testCase->mExitOnEmpty = true;
 }
@@ -102,7 +107,10 @@ static void onPrepared_subtitle(void *userData)
     player_command cmd;
     cmd.mID = player_command::start;
     cmd.timestamp = af_getsteady_ms();
-    testCase->mCommands.push_back(cmd);
+    {
+        std::unique_lock <std::mutex>lock(testCase->mMutex);
+        testCase->mCommands.push_back(cmd);
+    }
     createTestCase_switchSubtitle(*testCase);
     testCase->mExitOnEmpty = true;
 }

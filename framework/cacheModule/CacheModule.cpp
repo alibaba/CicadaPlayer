@@ -258,6 +258,7 @@ void CacheModule::clearStreamMetas()
     if (!mStreamMetas.empty()) {
         for (auto &item : mStreamMetas) {
             releaseMeta(item);
+            free(item);
         }
 
         mStreamMetas.clear();

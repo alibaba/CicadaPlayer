@@ -5,6 +5,16 @@ if (!HAVE_COVERAGE_CONFIG)
     include(../code_coverage.cmake)
 endif ()
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(TARGET_PLATFORM macOSX)
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    set(TARGET_PLATFORM Linux)
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(TARGET_PLATFORM windows)
+endif ()
+
+include(../${TARGET_PLATFORM}.cmake)
+
 include(GoogleTest.cmake)
 add_subdirectory(dataSource)
 add_subdirectory(render)

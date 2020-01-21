@@ -13,6 +13,8 @@ if (APPLE)
     include(../../../framework/tests/Apple.cmake)
 endif ()
 
+include(../../../framework/${TARGET_PLATFORM}.cmake)
+
 add_executable(mediaPlayerSwitchStreamTest "")
 
 target_sources(mediaPlayerSwitchStreamTest

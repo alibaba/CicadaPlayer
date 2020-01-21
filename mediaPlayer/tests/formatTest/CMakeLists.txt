@@ -13,6 +13,7 @@ if (APPLE)
     include(../../../framework/tests/Apple.cmake)
 endif ()
 
+include(../../../framework/${TARGET_PLATFORM}.cmake)
 add_executable(mediaPlayerFormatTest "")
 
 target_sources(mediaPlayerFormatTest
