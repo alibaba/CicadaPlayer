@@ -20,6 +20,7 @@ using IEvent = IEventReceiver::IEvent;
 struct cicadaCont {
     MediaPlayer *player;
     IEventReceiver *receiver;
+    bool error;
 };
 
 static void onVideoSize(int64_t width, int64_t height, void *userData)
@@ -36,7 +37,8 @@ static void onEOS(void *userData)
 {
     auto *cont = static_cast<cicadaCont *>(userData);
     auto *event = new IEvent(IEvent::TYPE_EXIT);
-    cont->receiver->push(std::unique_ptr<IEvent>(event));
+    if (cont->receiver)
+        cont->receiver->push(std::unique_ptr<IEvent>(event));
 }
 
 static void onEvent(int64_t errorCode, const void *errorMsg, void *userData)
@@ -64,9 +66,12 @@ static void onError(int64_t errorCode, const void *errorMsg, void *userData)
     if (errorMsg) {
         AF_LOGE("%s\n", errorMsg);
     }
-
-    auto *event = new IEvent(IEvent::TYPE_EXIT);
-    cont->receiver->push(std::unique_ptr<IEvent>(event));
+    if (cont->receiver) {
+        auto *event = new IEvent(IEvent::TYPE_EXIT);
+        cont->receiver->push(std::unique_ptr<IEvent>(event));
+    } else{
+        cont->error= true;
+    }
 }
 
 int main(int argc, const char **argv)
@@ -106,7 +111,7 @@ int main(int argc, const char **argv)
     player->Prepare();
     bool quite = false;
 
-    while (!quite) {
+    while (!quite && !cicada.error) {
 #ifdef ENABLE_SDL
         receiver.poll(quite);
 #endif
