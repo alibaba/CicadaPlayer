@@ -761,7 +761,7 @@ namespace Cicada {
         } else if (mPTracker->getDuration() > 0) {
             AF_LOGE("EOS");
             mIsDataEOS = true;
-            return 0;
+            return -EAGAIN;
         }
         return -EAGAIN;
     }
@@ -801,6 +801,8 @@ namespace Cicada {
             }
 
             ret = updateSegment();
+            if (mIsDataEOS)
+                return 0;
             if (ret >= 0) {
                 upDateInitSection();
                 mInitSegPtr = 0;
