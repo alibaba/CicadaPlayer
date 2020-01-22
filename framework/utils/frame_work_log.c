@@ -7,27 +7,27 @@
 #include <pthread.h>
 
 #ifdef  WIN32
-    #include <windows.h>
+#include <windows.h>
 #else
 
-    #include <sys/time.h>
-    #include <unistd.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 #endif
 
 #ifdef __APPLE__
 
-    #include <TargetConditionals.h>
-    #include <string.h>
+#include <TargetConditionals.h>
+#include <string.h>
 
 #endif
 
 #ifdef ANDROID
 
-    #include <android/log.h>
-    #include <string.h>
+#include <android/log.h>
+#include <string.h>
 
-    #define ANDROID_APP_TAG "AliFrameWork"
+#define ANDROID_APP_TAG "AliFrameWork"
 #endif
 
 #include "frame_work_log.h"
@@ -35,7 +35,7 @@
 #undef printf
 
 #ifndef VERSION
-    #define VERSION 0.9
+#define VERSION 0.9
 #endif
 
 #define str(a) #a
@@ -277,7 +277,6 @@ static void initLog()
 int __log_print(int prio, const char *tag, const char *fmt, ...)
 {
     pthread_once(&once, initLog);
-
     if (prio > logCtrl.log_level) {
         return 0;
     }
