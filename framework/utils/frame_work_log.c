@@ -82,6 +82,7 @@ static pthread_mutex_t gLogMutex;
 
 static const char *mtlVer = NULL;
 
+static pthread_once_t once;
 #ifndef ANDROID
 
 pid_t gettid(void)
@@ -275,7 +276,6 @@ static void initLog()
 
 int __log_print(int prio, const char *tag, const char *fmt, ...)
 {
-    static pthread_once_t once;
     pthread_once(&once, initLog);
 
     if (prio > logCtrl.log_level) {
@@ -325,7 +325,7 @@ void log_set_enable_console(int enable)
 
 void log_set_log_level(int level)
 {
-    initLog();
+    pthread_once(&once, initLog);
     logCtrl.log_level = level;
     // cicada_set_log_level(level);
 }
