@@ -17,7 +17,7 @@ include(../${TARGET_PLATFORM}.cmake)
 
 include(GoogleTest.cmake)
 add_subdirectory(dataSource)
-add_subdirectory(render)
+#add_subdirectory(render)
 add_subdirectory(demuxer)
 add_subdirectory(decoder)
 
@@ -28,10 +28,10 @@ add_test(
         COMMAND $<TARGET_FILE:dataSourceTest>
 )
 
-add_test(
-        NAME renderTest
-        COMMAND $<TARGET_FILE:renderTest>
-)
+#add_test(
+#        NAME renderTest
+#        COMMAND $<TARGET_FILE:renderTest>
+#)
 
 add_test(
         NAME demuxerUnitTest
