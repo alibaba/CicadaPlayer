@@ -36,7 +36,7 @@ after_success:
   - ctest -j8 --output-on-failure
   - bash <(curl -s https://codecov.io/bash) -x "llvm-cov gcov" || echo "Codecov did not collect coverage reports"
   - cd ../../framework/tests/
-  - ctest -j8 -VV
+  - ctest -j8 --output-on-failure
   - bash <(curl -s https://codecov.io/bash) -x "llvm-cov gcov" || echo "Codecov did not collect coverage reports"
 
 
