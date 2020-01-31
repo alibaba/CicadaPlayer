@@ -28,6 +28,36 @@ TEST(format, mp4)
     delete source;
 }
 
+TEST(format, aac)
+{
+    const char *hls_id3 = "id3v2_priv.com.apple.streaming.transportStreamTimestamp";
+    std::string url = "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/a1/fileSequence0.aac";
+    auto source = dataSourcePrototype::create(url);
+    source->Open(0);
+    unique_ptr<demuxer_service> service = unique_ptr<demuxer_service>(new demuxer_service(source));
+    int ret = service->initOpen();
+    ASSERT_GE(ret, 0);
+    Source_meta *meta = nullptr;
+    service->GetSourceMeta(&meta);
+    while (meta != nullptr) {
+        if (meta->key && meta->value) {
+            AF_LOGD("%s:%s", meta->key, meta->value);
+        }
+        if (meta->key) {
+            free(meta->key);
+        }
+        if (meta->value) {
+            free(meta->value);
+        }
+        Source_meta *meta1 = meta;
+        meta = meta->next;
+        free(meta1);
+    }
+
+    service->close();
+    delete source;
+}
+
 int callback_read(void *arg, uint8_t *buffer, int size)
 {
     Cicada::IDataSource *source = (Cicada::IDataSource *) arg;
