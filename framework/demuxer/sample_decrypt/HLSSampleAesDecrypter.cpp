@@ -213,6 +213,7 @@ int HLSSampleAesDecrypter::decryptH264Video(uint8_t *buffer, int size)
             dst[dst_pos++] = 0x01;
         } else {
             assert(0);
+            return size;
         }
 
         int nal_type = nal_unit[0] & 0x1F;
