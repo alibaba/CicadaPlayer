@@ -69,7 +69,7 @@ int64_t AVAFPacket::getSize()
     return mpkt->size;
 }
 
-const AVPacket *AVAFPacket::ToAVPacket()
+AVPacket *AVAFPacket::ToAVPacket()
 {
     return mpkt;
 }
@@ -100,7 +100,7 @@ AVAFFrame::AVAFFrame(AVFrame **frame, IAFFrame::FrameType type) : mType(type)
 
 
 AVAFFrame::AVAFFrame(AVFrame *frame, FrameType type) : mAvFrame(av_frame_clone(frame)),
-    mType(type)
+                                                       mType(type)
 {
     assert(mAvFrame != nullptr);
     copyInfo();
