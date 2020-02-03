@@ -77,6 +77,8 @@ namespace Cicada {
 
     private:
 
+        static const char *hls_id3;
+
         static int read_callback(void *arg, uint8_t *buffer, int size);
 
         static int Decrypter_read_callback(void *arg, uint8_t *buffer, int size);
@@ -125,10 +127,13 @@ namespace Cicada {
         bool updateIV() const;
 
         enum OpenType {
-            SegNum,SegPosition
+            SegNum, SegPosition
         };
 
         int reopenSegment(uint64_t num, OpenType openType);
+
+        int64_t getPackedStreamPTS();
+
     private:
 
         enum dataSourceStatus {
@@ -181,6 +186,8 @@ namespace Cicada {
         };
 
         std::map<int, segmentTimeInfo> mStreamStartTimeMap;
+
+        int64_t mPacketFirstPts = INT64_MAX;
     };
 }
 
