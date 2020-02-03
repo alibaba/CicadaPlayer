@@ -5,6 +5,20 @@
 #include <string.h>
 #include "mediaFrame.h"
 
+void releaseSourceMeta(Source_meta *meta)
+{
+    while (meta != NULL) {
+        if (meta->key)
+            free(meta->key);
+
+        if (meta->value)
+            free(meta->value);
+
+        Source_meta *meta1 = meta;
+        meta = meta->next;
+        free(meta1);
+    }
+}
 
 void releaseMeta(Stream_meta *pMeta)
 {
@@ -24,18 +38,7 @@ void releaseMeta(Stream_meta *pMeta)
     }
 
     Source_meta *meta = pMeta->meta;
-
-    while (meta != NULL) {
-        if (meta->key)
-            free(meta->key);
-
-        if (meta->value)
-            free(meta->value);
-
-        Source_meta *meta1 = meta;
-        meta = meta->next;
-        free(meta1);
-    }
+    releaseSourceMeta(meta);
 
     pMeta->meta = NULL;
 }
