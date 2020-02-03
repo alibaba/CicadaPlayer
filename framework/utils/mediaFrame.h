@@ -14,6 +14,8 @@ extern "C" {
 
 CICADA_EXTERN void releaseMeta(Stream_meta *pMeta);
 
+CICADA_EXTERN void releaseSourceMeta(Source_meta *meta);
+
 #ifdef __cplusplus
 };
 #endif
