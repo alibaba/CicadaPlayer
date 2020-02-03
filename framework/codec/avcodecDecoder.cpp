@@ -251,7 +251,7 @@ namespace Cicada {
     int avcodecDecoder::enqueue_decoder(unique_ptr<IAFPacket> &pPacket)
     {
         int ret;
-        const AVPacket *pkt = nullptr;
+        AVPacket *pkt = nullptr;
 
         if (pPacket) {
             auto *avAFPacket = dynamic_cast<AVAFPacket *>(pPacket.get());
@@ -261,6 +261,8 @@ namespace Cicada {
                 // TODO: tobe impl
             } else {
                 pkt = avAFPacket->ToAVPacket();
+                pkt->pts = pPacket->getInfo().pts;
+                pkt->dts = pPacket->getInfo().dts;
                 assert(pkt != nullptr);
             }
         }

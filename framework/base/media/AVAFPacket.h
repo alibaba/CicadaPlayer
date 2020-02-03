@@ -30,7 +30,7 @@ public:
 
     int64_t getSize() override;
 
-    const AVPacket *ToAVPacket();
+    AVPacket *ToAVPacket();
 
     explicit operator AVPacket *();
 
