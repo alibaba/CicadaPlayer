@@ -23,6 +23,8 @@ namespace Cicada {
 
     static const int defaultInitSegSize = 1024 * 1024;
 
+    const char *HLSStream::hls_id3 = "id3v2_priv.com.apple.streaming.transportStreamTimestamp";
+
     HLSStream::HLSStream(SegmentTracker *pTracker, int id)
             : mPTracker(pTracker),
               mId(id)
@@ -183,6 +185,15 @@ namespace Cicada {
         return 0;
     }
 
+    static inline uint64_t getSize(const uint8_t *data, unsigned int len, unsigned int shift)
+    {
+        uint64_t size(0);
+        const uint8_t *dataE(data + len);
+        for (data; data < dataE; ++data)
+            size = size << shift | *data;
+        return size;
+    };
+
     int HLSStream::open_internal()
     {
         int ret;
@@ -290,7 +301,7 @@ namespace Cicada {
                 mPDemuxer->GetStreamMeta(&meta, i, false);
 
                 if (meta.type == mPTracker->getStreamType()
-                        || mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
+                    || mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
                     mPDemuxer->OpenStream(i);
                 }
 
@@ -303,6 +314,8 @@ namespace Cicada {
             return ret;
         }
 
+        mPacketFirstPts = getPackedStreamPTS();
+
         //     mStatus = status_inited;
 
         if (mPdataSource) {
@@ -311,6 +324,41 @@ namespace Cicada {
         }
 
         return ret;
+    }
+
+    int64_t HLSStream::getPackedStreamPTS()
+    {
+        Source_meta *meta = nullptr;
+        mPDemuxer->GetSourceMeta(&meta);
+
+        int64_t pts = INT64_MIN;
+
+        Source_meta *meta1 = meta;
+        while (meta1 != nullptr) {
+            if (meta1->key && meta1->value) {
+//                AF_LOGD("%s:[%s]", meta1->key, meta1->value);
+                int ptr = 0;
+                if (strcmp(meta1->key, hls_id3) == 0) {
+                    uint8_t buf[8];
+                    int v;
+                    for (unsigned char &i : buf) {
+                        if (sscanf(meta1->value + ptr, "\\x%02x", &v) == 1) {
+                            ptr += 4;
+                            i = v;
+                        } else {
+                            i = *(meta1->value + ptr);
+                            ptr++;
+                        }
+                    }
+                    uint64_t ps = getSize(buf, 8, 8);
+                    pts = ps * 1000 / 90;
+ //                   AF_LOGD("ps is %u\n", ps);
+                }
+            }
+            meta1 = meta1->next;
+        }
+        releaseSourceMeta(meta);
+        return pts;
     }
 
     int HLSStream::createDemuxer()
@@ -337,6 +385,9 @@ namespace Cicada {
         mPDemuxer->SetDataCallBack(read_callback, this, nullptr, nullptr, nullptr);
         mPDemuxer->setSampleDecryptor(this->mSampeAesDecrypter.get());
         ret = mPDemuxer->createDemuxer(demuxer_type_unknown);
+
+        if (ret < 0)
+            return ret;
 
         if (mPDemuxer->getDemuxerHandle()) {
             mPDemuxer->getDemuxerHandle()->setBitStreamFormat(this->mMergeVideoHeader, this->mMergerAudioHeader);
@@ -471,13 +522,13 @@ namespace Cicada {
             mCurSeg->encryption.iv.resize(16);
             int number = (int) mCurSeg->getSequenceNumber();
             mCurSeg->encryption.iv[15] = static_cast<unsigned char>(
-                                             (number /* - segment::SEQUENCE_FIRST*/) & 0xff);
+                    (number /* - segment::SEQUENCE_FIRST*/) & 0xff);
             mCurSeg->encryption.iv[14] = static_cast<unsigned char>(
-                                             ((number /* - segment::SEQUENCE_FIRST*/) >> 8) & 0xff);
+                    ((number /* - segment::SEQUENCE_FIRST*/) >> 8) & 0xff);
             mCurSeg->encryption.iv[13] = static_cast<unsigned char>(
-                                             ((number/* - segment::SEQUENCE_FIRST*/) >> 16) & 0xff);
+                    ((number/* - segment::SEQUENCE_FIRST*/) >> 16) & 0xff);
             mCurSeg->encryption.iv[12] = static_cast<unsigned char>(
-                                             ((number /* - segment::SEQUENCE_FIRST*/) >> 24) & 0xff);
+                    ((number /* - segment::SEQUENCE_FIRST*/) >> 24) & 0xff);
             return true;
         }
 
@@ -490,7 +541,7 @@ namespace Cicada {
             if (updateKey()) {
                 if (mSegDecrypter == nullptr)
                     mSegDecrypter = unique_ptr<ISegDecrypter>(
-                                        SegDecryptorFactory::create(mCurSeg->encryption.method, Decrypter_read_callback, this));
+                            SegDecryptorFactory::create(mCurSeg->encryption.method, Decrypter_read_callback, this));
 
                 mSegDecrypter->SetOption("decryption key", mKey, 16);
             }
@@ -512,8 +563,8 @@ namespace Cicada {
 
             if (mSegDecrypter == nullptr) {
                 mSegDecrypter = unique_ptr<ISegDecrypter>(
-                                    SegDecryptorFactory::create(mCurSeg->encryption.method,
-                                            Decrypter_read_callback, this));
+                        SegDecryptorFactory::create(mCurSeg->encryption.method,
+                                                    Decrypter_read_callback, this));
             }
 
             mCurSeg->encryption.iv.clear();
@@ -688,7 +739,7 @@ namespace Cicada {
         int ret = 0;
 
         if (mCurSeg->encryption.method == SegmentEncryption::AES_128 ||
-                mCurSeg->encryption.method == SegmentEncryption::AES_PRIVATE) {
+            mCurSeg->encryption.method == SegmentEncryption::AES_PRIVATE) {
             ret = updateSegDecrypter();
 
             if (ret < 0) {
@@ -823,6 +874,7 @@ namespace Cicada {
 
                         releaseMeta(&meta);
                     }
+                    mPacketFirstPts = getPackedStreamPTS();
                 }
             }
             packet = nullptr;
@@ -839,6 +891,10 @@ namespace Cicada {
 
         if (packet != nullptr) {
             //  AF_LOGD("read a frame \n");
+            if (mPacketFirstPts != INT64_MIN && packet->getInfo().pts != INT64_MIN) {
+                packet->getInfo().pts += mPacketFirstPts;
+                packet->getInfo().dts += mPacketFirstPts;
+            }
             if (mCurSeg) {
                 // mark the seg start time to first seg frame
                 AF_LOGD("stream (%d) mark startTime %llu\n", mPTracker->getStreamType(),
