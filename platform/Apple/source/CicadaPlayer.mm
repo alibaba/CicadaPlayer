@@ -154,7 +154,6 @@ static int logOutput = 1;
 {
     if (self.player && config) {
         Cicada::MediaPlayerConfig alivcConfig;
-        alivcConfig.maxProbeSize = config.maxProbeSize;
         alivcConfig.maxDelayTime = config.maxDelayTime;
         alivcConfig.maxBufferDuration = config.maxBufferDuration;
         alivcConfig.networkTimeout = config.networkTimeout;
@@ -207,7 +206,6 @@ static int logOutput = 1;
             mConfig.referer = [[NSString alloc] initWithUTF8String:config->referer.c_str()];
             mConfig.httpProxy = [[NSString alloc] initWithUTF8String:config->httpProxy.c_str()];
             mConfig.userAgent = [[NSString alloc] initWithUTF8String:config->userAgent.c_str()];
-            mConfig.maxProbeSize = config->maxProbeSize;
             mConfig.maxBufferDuration = config->maxBufferDuration;
             mConfig.maxDelayTime = config->maxDelayTime;
             mConfig.highBufferDuration = config->highBufferDuration;
