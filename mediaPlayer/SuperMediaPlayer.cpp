@@ -1820,7 +1820,7 @@ namespace Cicada {
         }
 
         if ((HAVE_SUBTITLE || mSubPlayer) && !mSeekFlag) {
-            RenderSubtitle(mCurrentPos);
+            RenderSubtitle(mCurVideoPts);
         }
 
         return audioRendered || videoRendered;
