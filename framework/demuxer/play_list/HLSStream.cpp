@@ -89,6 +89,12 @@ namespace Cicada {
 
         }
         ret = pHandle->readSegment(buffer, size);
+        if (pHandle->getStreamType() == STREAM_TYPE_SUB && pHandle->mVttPtsOffSet == INT64_MIN && ret > 0) {
+            pHandle->mVttPtsOffSet = pHandle->mWVTTParser.addBuffer(buffer, ret);
+            if (pHandle->mVttPtsOffSet != INT64_MIN) {
+                AF_LOGD("WVTTParser pts is %lld\n", pHandle->mVttPtsOffSet);
+            }
+        }
         return ret;
     }
 
@@ -352,7 +358,7 @@ namespace Cicada {
                     }
                     uint64_t ps = getSize(buf, 8, 8);
                     pts = ps * 1000 / 90;
- //                   AF_LOGD("ps is %u\n", ps);
+                    //                   AF_LOGD("ps is %u\n", ps);
                 }
             }
             meta1 = meta1->next;
@@ -371,6 +377,10 @@ namespace Cicada {
 
         if (ret < 0) {
             return ret;
+        }
+        if (getStreamType() == STREAM_TYPE_SUB) {
+            mWVTTParser.rest();
+            mVttPtsOffSet = INT64_MIN;
         }
 
         {
@@ -895,6 +905,10 @@ namespace Cicada {
                 packet->getInfo().pts += mPacketFirstPts;
                 packet->getInfo().dts += mPacketFirstPts;
             }
+            if (mVttPtsOffSet != INT64_MIN && packet->getInfo().pts != INT64_MIN) {
+                packet->getInfo().pts += mVttPtsOffSet;
+                packet->getInfo().dts += mVttPtsOffSet;
+            }
             if (mCurSeg) {
                 // mark the seg start time to first seg frame
                 AF_LOGD("stream (%d) mark startTime %llu\n", mPTracker->getStreamType(),
@@ -1313,4 +1327,78 @@ namespace Cicada {
         return "";
     }
 
+    HLSStream::WebVttParser::WebVttParser() = default;
+
+    HLSStream::WebVttParser::~WebVttParser()
+    {
+        if (mBuffer) {
+            free(mBuffer);
+        }
+    }
+
+    static int64_t read_ts(const char *s)
+    {
+        int hh, mm, ss, ms;
+        if (sscanf(s, "%u:%u:%u.%u", &hh, &mm, &ss, &ms) == 4) {
+            return (hh * 3600LL + mm * 60LL + ss) * 1000LL + ms;
+        }
+        if (sscanf(s, "%u:%u.%u", &mm, &ss, &ms) == 3) {
+            return (mm * 60LL + ss) * 1000LL + ms;
+        }
+        return INT64_MIN;
+    }
+
+    int64_t HLSStream::WebVttParser::addBuffer(uint8_t *buffer, int size)
+    {
+        if (bFinished)
+            return mMapPTS;
+
+        char *lend;
+
+        if ((lend = strnstr((const char *) buffer, "\n\n", size)) != nullptr
+            || (lend = strnstr((const char *) buffer, "\r\n\r\n", size)) != nullptr) {
+            bFinished = true;
+        }
+        size_t append_size = size;
+        if (lend != nullptr) {
+            append_size = lend - (const char *) buffer;
+        }
+        mBuffer = static_cast<uint8_t *>(realloc(mBuffer, mSize + append_size));
+        memcpy(mBuffer + mSize, buffer, append_size);
+        mSize += append_size;
+
+        if (!bFinished)
+            return INT64_MIN;
+
+        mBuffer[mSize - 1] = 0;
+        /*
+        * WebVTT files in HLS streams contain a timestamp offset for
+        * syncing with the main stream:
+        *
+        * X-TIMESTAMP-MAP=LOCAL:00:00:00.000,MPEGTS:900000
+        * (LOCAL and MPEGTS can be reversed even though HLS spec
+        *  does not say so)
+        */
+        char *hls_timestamp_map = strstr(reinterpret_cast<char *>(mBuffer), "\nX-TIMESTAMP-MAP=");
+        char *native_str = strstr(hls_timestamp_map, "LOCAL:");
+        char *mpegts_str = strstr(hls_timestamp_map, "MPEGTS:");
+        if (native_str && mpegts_str) {
+
+            int64_t native_ts = read_ts(native_str + 6);
+            int64_t mpegts_ts = strtoll(mpegts_str + 7, nullptr, 10);
+
+            if (native_ts != INT64_MIN) {
+                mMapPTS = mpegts_ts * 100 / 9 - native_ts * 1000;
+            }
+        }
+
+        return mMapPTS;
+    }
+
+    void HLSStream::WebVttParser::rest()
+    {
+        mSize = 0;
+        mMapPTS = INT64_MIN;
+        bFinished = false;
+    }
 }

@@ -21,6 +21,24 @@
 namespace Cicada {
     class HLSStream : public AbstractStream {
 
+        class WebVttParser {
+
+        public:
+            WebVttParser();
+
+            ~WebVttParser();
+
+            int64_t addBuffer(uint8_t *buffer, int size);
+
+            void rest();
+
+        private:
+            uint8_t *mBuffer = nullptr;
+            int mSize = 0;
+            int64_t mMapPTS = INT64_MIN;
+            bool bFinished = false;
+        };
+
     public:
         HLSStream(SegmentTracker *pTracker, int id);
 
@@ -188,6 +206,9 @@ namespace Cicada {
         std::map<int, segmentTimeInfo> mStreamStartTimeMap;
 
         int64_t mPacketFirstPts = INT64_MAX;
+
+        WebVttParser mWVTTParser;
+        int64_t mVttPtsOffSet = INT64_MIN;
     };
 }
 
