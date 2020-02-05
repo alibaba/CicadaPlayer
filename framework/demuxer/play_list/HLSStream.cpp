@@ -16,6 +16,7 @@
 #include "../../utils/frame_work_log.h"
 #include <data_source/dataSourcePrototype.h>
 #include "../IDemuxer.h"
+#include <utils/af_string.h>
 
 // TODO support active and no active mode
 
@@ -26,8 +27,8 @@ namespace Cicada {
     const char *HLSStream::hls_id3 = "id3v2_priv.com.apple.streaming.transportStreamTimestamp";
 
     HLSStream::HLSStream(SegmentTracker *pTracker, int id)
-            : mPTracker(pTracker),
-              mId(id)
+        : mPTracker(pTracker),
+          mId(id)
     {
     }
 
@@ -37,8 +38,10 @@ namespace Cicada {
         delete mThreadPtr;
         delete mPTracker;
         mStreamStartTimeMap.clear();
-        if (mInitSegBuffer)
+
+        if (mInitSegBuffer) {
             free(mInitSegBuffer);
+        }
     }
 
     int HLSStream::getStreamType()
@@ -66,6 +69,7 @@ namespace Cicada {
     {
         auto *pHandle = static_cast<HLSStream *>(arg);
         int ret;
+
         if (pHandle->mInterrupted) {
             return -EIO;
         }
@@ -77,30 +81,33 @@ namespace Cicada {
         }
 
         if (pHandle->mInitSegBuffer) {
-
             int initSegSize = pHandle->mInitSegSize - pHandle->mInitSegPtr;
+
             if (initSegSize > 0) {
                 int readSize = std::min(initSegSize, size);
-
                 memcpy(buffer, pHandle->mInitSegBuffer + pHandle->mInitSegPtr, readSize);
                 pHandle->mInitSegPtr += readSize;
                 return readSize;
             }
-
         }
+
         ret = pHandle->readSegment(buffer, size);
+
         if (pHandle->getStreamType() == STREAM_TYPE_SUB && pHandle->mVttPtsOffSet == INT64_MIN && ret > 0) {
             pHandle->mVttPtsOffSet = pHandle->mWVTTParser.addBuffer(buffer, ret);
+
             if (pHandle->mVttPtsOffSet != INT64_MIN) {
                 AF_LOGD("WVTTParser pts is %lld\n", pHandle->mVttPtsOffSet);
             }
         }
+
         return ret;
     }
 
     int HLSStream::readSegment(const uint8_t *buffer, int size)
     {
         int ret;
+
         if (mSegDecrypter == nullptr) {
             if (mExtDataSource) {
                 ret = mExtDataSource->Read((void *) buffer, size);
@@ -110,12 +117,14 @@ namespace Cicada {
         } else {
             ret = mSegDecrypter->Read(const_cast<uint8_t *>(buffer), size);
         }
+
         return ret;
     }
 
     int64_t HLSStream::seekSegment(off_t offset, int whence)
     {
         int ret;
+
         if (mSegDecrypter == nullptr) {
             if (mExtDataSource) {
                 ret = mExtDataSource->Seek(offset, whence);
@@ -126,6 +135,7 @@ namespace Cicada {
             // ret = mSegDecrypter->Read(const_cast<uint8_t *>(buffer), size);
             return -EINVAL;
         }
+
         return ret;
     }
 
@@ -154,36 +164,41 @@ namespace Cicada {
         string uri;
         int ret;
 
-        if (!mCurSeg || !mCurSeg->init_section || mCurInitSeg == mCurSeg->init_section)
+        if (!mCurSeg || !mCurSeg->init_section || mCurInitSeg == mCurSeg->init_section) {
             return 0;
+        }
 
         uri = Helper::combinePaths(mPTracker->getBaseUri(), mCurSeg->init_section->mUri);
-
         ret = tryOpenSegment(uri);
 
         if (ret < 0) {
             return ret;
         }
+
         mCurInitSeg = mCurSeg->init_section;
         mInitSegSize = defaultInitSegSize;
         mInitSegSize = seekSegment(0, SEEK_SIZE);
-        if (mInitSegSize < 0)
-            mInitSegSize = defaultInitSegSize;
 
-        if (mInitSegBuffer)
+        if (mInitSegSize < 0) {
+            mInitSegSize = defaultInitSegSize;
+        }
+
+        if (mInitSegBuffer) {
             free(mInitSegBuffer);
+        }
 
         mInitSegBuffer = static_cast<uint8_t *>(malloc(mInitSegSize));
-
         int size = 0;
 
         do {
 // TODO: realloc mInitSegBuffer
             ret = readSegment(mInitSegBuffer + size, mInitSegSize - size);
-            if (ret > 0)
+
+            if (ret > 0) {
                 size += ret;
-            else
+            } else {
                 break;
+            }
         } while (size < mInitSegSize);
 
         mInitSegSize = size;
@@ -195,8 +210,11 @@ namespace Cicada {
     {
         uint64_t size(0);
         const uint8_t *dataE(data + len);
-        for (data; data < dataE; ++data)
+
+        for (; data < dataE; ++data) {
             size = size << shift | *data;
+        }
+
         return size;
     };
 
@@ -263,10 +281,13 @@ namespace Cicada {
                     return -1;
                 }
             }
+
             ret = upDateInitSection();
+
             if (ret < 0) {
                 return ret;
             }
+
             string uri;
             uri = Helper::combinePaths(mPTracker->getBaseUri(),
                                        mCurSeg->mUri);
@@ -307,7 +328,7 @@ namespace Cicada {
                 mPDemuxer->GetStreamMeta(&meta, i, false);
 
                 if (meta.type == mPTracker->getStreamType()
-                    || mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
+                        || mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
                     mPDemuxer->OpenStream(i);
                 }
 
@@ -336,17 +357,18 @@ namespace Cicada {
     {
         Source_meta *meta = nullptr;
         mPDemuxer->GetSourceMeta(&meta);
-
         int64_t pts = INT64_MIN;
-
         Source_meta *meta1 = meta;
+
         while (meta1 != nullptr) {
             if (meta1->key && meta1->value) {
 //                AF_LOGD("%s:[%s]", meta1->key, meta1->value);
                 int ptr = 0;
+
                 if (strcmp(meta1->key, hls_id3) == 0) {
                     uint8_t buf[8];
                     int v;
+
                     for (unsigned char &i : buf) {
                         if (sscanf(meta1->value + ptr, "\\x%02x", &v) == 1) {
                             ptr += 4;
@@ -356,20 +378,22 @@ namespace Cicada {
                             ptr++;
                         }
                     }
+
                     uint64_t ps = getSize(buf, 8, 8);
                     pts = ps * 1000 / 90;
                     //                   AF_LOGD("ps is %u\n", ps);
                 }
             }
+
             meta1 = meta1->next;
         }
+
         releaseSourceMeta(meta);
         return pts;
     }
 
     int HLSStream::createDemuxer()
     {
-
         int ret;
         mError = 0;
         mDataSourceError = 0;
@@ -378,6 +402,7 @@ namespace Cicada {
         if (ret < 0) {
             return ret;
         }
+
         if (getStreamType() == STREAM_TYPE_SUB) {
             mWVTTParser.rest();
             mVttPtsOffSet = INT64_MIN;
@@ -396,8 +421,9 @@ namespace Cicada {
         mPDemuxer->setSampleDecryptor(this->mSampeAesDecrypter.get());
         ret = mPDemuxer->createDemuxer(demuxer_type_unknown);
 
-        if (ret < 0)
+        if (ret < 0) {
             return ret;
+        }
 
         if (mPDemuxer->getDemuxerHandle()) {
             mPDemuxer->getDemuxerHandle()->setBitStreamFormat(this->mMergeVideoHeader, this->mMergerAudioHeader);
@@ -423,6 +449,7 @@ namespace Cicada {
 
             af_msleep(20);
         } while (isHttpError(ret) && !mInterrupted);
+
         return ret;
     }
 
@@ -532,13 +559,13 @@ namespace Cicada {
             mCurSeg->encryption.iv.resize(16);
             int number = (int) mCurSeg->getSequenceNumber();
             mCurSeg->encryption.iv[15] = static_cast<unsigned char>(
-                    (number /* - segment::SEQUENCE_FIRST*/) & 0xff);
+                                             (number /* - segment::SEQUENCE_FIRST*/) & 0xff);
             mCurSeg->encryption.iv[14] = static_cast<unsigned char>(
-                    ((number /* - segment::SEQUENCE_FIRST*/) >> 8) & 0xff);
+                                             ((number /* - segment::SEQUENCE_FIRST*/) >> 8) & 0xff);
             mCurSeg->encryption.iv[13] = static_cast<unsigned char>(
-                    ((number/* - segment::SEQUENCE_FIRST*/) >> 16) & 0xff);
+                                             ((number/* - segment::SEQUENCE_FIRST*/) >> 16) & 0xff);
             mCurSeg->encryption.iv[12] = static_cast<unsigned char>(
-                    ((number /* - segment::SEQUENCE_FIRST*/) >> 24) & 0xff);
+                                             ((number /* - segment::SEQUENCE_FIRST*/) >> 24) & 0xff);
             return true;
         }
 
@@ -551,7 +578,7 @@ namespace Cicada {
             if (updateKey()) {
                 if (mSegDecrypter == nullptr)
                     mSegDecrypter = unique_ptr<ISegDecrypter>(
-                            SegDecryptorFactory::create(mCurSeg->encryption.method, Decrypter_read_callback, this));
+                                        SegDecryptorFactory::create(mCurSeg->encryption.method, Decrypter_read_callback, this));
 
                 mSegDecrypter->SetOption("decryption key", mKey, 16);
             }
@@ -573,8 +600,8 @@ namespace Cicada {
 
             if (mSegDecrypter == nullptr) {
                 mSegDecrypter = unique_ptr<ISegDecrypter>(
-                        SegDecryptorFactory::create(mCurSeg->encryption.method,
-                                                    Decrypter_read_callback, this));
+                                    SegDecryptorFactory::create(mCurSeg->encryption.method,
+                                            Decrypter_read_callback, this));
             }
 
             mCurSeg->encryption.iv.clear();
@@ -749,7 +776,7 @@ namespace Cicada {
         int ret = 0;
 
         if (mCurSeg->encryption.method == SegmentEncryption::AES_128 ||
-            mCurSeg->encryption.method == SegmentEncryption::AES_PRIVATE) {
+                mCurSeg->encryption.method == SegmentEncryption::AES_PRIVATE) {
             ret = updateSegDecrypter();
 
             if (ret < 0) {
@@ -776,6 +803,7 @@ namespace Cicada {
         seg = mPTracker->getNextSegment();
         int ret;
         mCurSeg = nullptr;
+
         if (seg) {
             do {
                 mCurSeg = seg;
@@ -824,6 +852,7 @@ namespace Cicada {
             mIsDataEOS = true;
             return -EAGAIN;
         }
+
         return -EAGAIN;
     }
 
@@ -848,7 +877,6 @@ namespace Cicada {
             AF_LOGW("mPDemuxer->readPacket FRAMEWORK_ERR_EXIT\n");
         }
 
-
         if (mStopOnSegEnd) {
             mIsEOS = true;
             AF_LOGE("mStopOnSegEnd");
@@ -862,12 +890,16 @@ namespace Cicada {
             }
 
             ret = updateSegment();
-            if (mIsDataEOS)
+
+            if (mIsDataEOS) {
                 return 0;
+            }
+
             if (ret >= 0) {
                 upDateInitSection();
                 mInitSegPtr = 0;
                 ret = createDemuxer();
+
                 if (ret >= 0) {
                     int nbStream = mPDemuxer->GetNbStreams();
                     AF_LOGI("file have %d streams\n", nbStream);
@@ -878,24 +910,28 @@ namespace Cicada {
                         mPDemuxer->GetStreamMeta(&meta, i, false);
 
                         if (meta.type == mPTracker->getStreamType()
-                            || mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
+                                || mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
                             mPDemuxer->OpenStream(i);
                         }
 
                         releaseMeta(&meta);
                     }
+
                     mPacketFirstPts = getPackedStreamPTS();
                 }
             }
+
             packet = nullptr;
             return -EAGAIN;
-
         }
 
         if (ret == -EAGAIN && mPTracker->getDuration() == 0) {
             ret = updateSegment();
-            if (ret < 0)
+
+            if (ret < 0) {
                 return ret;
+            }
+
             return -EAGAIN;
         }
 
@@ -905,10 +941,12 @@ namespace Cicada {
                 packet->getInfo().pts += mPacketFirstPts;
                 packet->getInfo().dts += mPacketFirstPts;
             }
+
             if (mVttPtsOffSet != INT64_MIN && packet->getInfo().pts != INT64_MIN) {
                 packet->getInfo().pts += mVttPtsOffSet;
                 packet->getInfo().dts += mVttPtsOffSet;
             }
+
             if (mCurSeg) {
                 // mark the seg start time to first seg frame
                 AF_LOGD("stream (%d) mark startTime %llu\n", mPTracker->getStreamType(),
@@ -948,8 +986,8 @@ namespace Cicada {
             }
 
             if (packet->getInfo().pts == INT64_MIN
-                && mStreamStartTimeMap[streamIndex].lastFramePts != INT64_MIN
-                && mStreamStartTimeMap[streamIndex].frameDuration != INT64_MIN) {
+                    && mStreamStartTimeMap[streamIndex].lastFramePts != INT64_MIN
+                    && mStreamStartTimeMap[streamIndex].frameDuration != INT64_MIN) {
                 packet->getInfo().pts = mStreamStartTimeMap[streamIndex].lastFramePts + mStreamStartTimeMap[streamIndex].frameDuration;
             }
 
@@ -1339,36 +1377,51 @@ namespace Cicada {
     static int64_t read_ts(const char *s)
     {
         int hh, mm, ss, ms;
+
         if (sscanf(s, "%u:%u:%u.%u", &hh, &mm, &ss, &ms) == 4) {
             return (hh * 3600LL + mm * 60LL + ss) * 1000LL + ms;
         }
+
         if (sscanf(s, "%u:%u.%u", &mm, &ss, &ms) == 3) {
             return (mm * 60LL + ss) * 1000LL + ms;
         }
+
         return INT64_MIN;
     }
 
     int64_t HLSStream::WebVttParser::addBuffer(uint8_t *buffer, int size)
     {
-        if (bFinished)
+        if (bFinished) {
             return mMapPTS;
+        }
 
         char *lend;
 
         if ((lend = strnstr((const char *) buffer, "\n\n", size)) != nullptr
-            || (lend = strnstr((const char *) buffer, "\r\n\r\n", size)) != nullptr) {
+                || (lend = strnstr((const char *) buffer, "\r\n\r\n", size)) != nullptr) {
             bFinished = true;
         }
+
         size_t append_size = size;
+
         if (lend != nullptr) {
             append_size = lend - (const char *) buffer;
         }
-        mBuffer = static_cast<uint8_t *>(realloc(mBuffer, mSize + append_size));
+
+        uint8_t *new_data = static_cast<uint8_t *>(realloc(mBuffer, mSize + append_size));
+
+        if (new_data) {
+            mBuffer = new_data;
+        } else {
+            return mMapPTS;
+        }
+
         memcpy(mBuffer + mSize, buffer, append_size);
         mSize += append_size;
 
-        if (!bFinished)
+        if (!bFinished) {
             return INT64_MIN;
+        }
 
         mBuffer[mSize - 1] = 0;
         /*
@@ -1382,8 +1435,8 @@ namespace Cicada {
         char *hls_timestamp_map = strstr(reinterpret_cast<char *>(mBuffer), "\nX-TIMESTAMP-MAP=");
         char *native_str = strstr(hls_timestamp_map, "LOCAL:");
         char *mpegts_str = strstr(hls_timestamp_map, "MPEGTS:");
-        if (native_str && mpegts_str) {
 
+        if (native_str && mpegts_str) {
             int64_t native_ts = read_ts(native_str + 6);
             int64_t mpegts_ts = strtoll(mpegts_str + 7, nullptr, 10);
 

@@ -7,6 +7,34 @@
 #include <iterator>
 #include <regex>
 
+#ifndef __APPLE__
+char *strnstr(const char *s, const char *find, size_t slen)
+{
+    char c, sc;
+    size_t len;
+
+    if ((c = *find++) != '\0') {
+        len = strlen(find);
+
+        do {
+            do {
+                if (slen-- < 1 || (sc = *s++) == '\0') {
+                    return (NULL);
+                }
+            } while (sc != c);
+
+            if (len > slen) {
+                return (NULL);
+            }
+        } while (strncmp(s, find, len) != 0);
+
+        s--;
+    }
+
+    return ((char *)s);
+}
+#endif
+
 std::vector<std::string> AfString::s_split(const std::string &in, const std::string &delim)
 {
     std::regex re{delim};
@@ -38,8 +66,9 @@ int af_strstart(const char *str, const char *pfx, const char **ptr)
         str++;
     }
 
-    if (!*pfx && ptr)
+    if (!*pfx && ptr) {
         *ptr = str;
+    }
 
     return !*pfx;
 }
@@ -48,11 +77,13 @@ size_t af_strlcpy(char *dst, const char *src, size_t size)
 {
     size_t len = 0;
 
-    while (++len < size && *src)
+    while (++len < size && *src) {
         *dst++ = *src++;
+    }
 
-    if (len <= size)
+    if (len <= size) {
         *dst = 0;
+    }
 
     return len + strlen(src) - 1;
 }
@@ -61,8 +92,9 @@ size_t af_strlcat(char *dst, const char *src, size_t size)
 {
     size_t len = strlen(dst);
 
-    if (size <= len + 1)
+    if (size <= len + 1) {
         return len + strlen(src);
+    }
 
     return len + af_strlcpy(dst + len, src, size - len);
 }
@@ -73,8 +105,9 @@ void c_make_absolute_url(char *buf, int size, const char *base, const char *rel)
 
     /* Absolute path, relative to the current server */
     if (base && strstr(base, "://") && rel[0] == '/') {
-        if (base != buf)
+        if (base != buf) {
             af_strlcpy(buf, base, size);
+        }
 
         sep = strstr(buf, "://");
 
@@ -87,8 +120,9 @@ void c_make_absolute_url(char *buf, int size, const char *base, const char *rel)
                 sep += 3;
                 sep = strchr(sep, '/');
 
-                if (sep)
+                if (sep) {
                     *sep = '\0';
+                }
             }
         }
 
@@ -102,14 +136,16 @@ void c_make_absolute_url(char *buf, int size, const char *base, const char *rel)
         return;
     }
 
-    if (base != buf)
+    if (base != buf) {
         af_strlcpy(buf, base, size);
+    }
 
     /* Strip off any query string from base */
     path_query = strchr(buf, '?');
 
-    if (path_query)
+    if (path_query) {
         *path_query = '\0';
+    }
 
     /* Is relative path just a new query part? */
     if (rel[0] == '?') {
@@ -120,10 +156,11 @@ void c_make_absolute_url(char *buf, int size, const char *base, const char *rel)
     /* Remove the file name from the base url */
     sep = strrchr(buf, '/');
 
-    if (sep)
+    if (sep) {
         sep[1] = '\0';
-    else
+    } else {
         buf[0] = '\0';
+    }
 
     while (af_strstart(rel, "../", NULL) && sep) {
         /* Remove the path delimiter at the end */
@@ -138,10 +175,11 @@ void c_make_absolute_url(char *buf, int size, const char *base, const char *rel)
         }
 
         /* Cut off the directory name */
-        if (sep)
+        if (sep) {
             sep[1] = '\0';
-        else
+        } else {
             buf[0] = '\0';
+        }
 
         rel += 3;
     }
