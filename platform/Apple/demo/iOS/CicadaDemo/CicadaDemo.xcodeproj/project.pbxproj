@@ -928,7 +928,6 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"COCOAPODS=1",
-					SAVE_APP_LOG,
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/CicadaDemo/AppSupportFiles/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
