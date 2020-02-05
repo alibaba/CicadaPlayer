@@ -20,7 +20,7 @@ namespace Cicada {
             if ((INT64_MIN != referTime)
                     && (llabs(referTime - timeRet) > CLOCK_DEVIATION_TIME_US)) {
                 mClock.set(referTime);
-                AF_LOGE("TIMEPOS reSync time %lld to  %lld\n", timeRet, referTime);
+                AF_LOGW("TIMEPOS reSync time %lld to  %lld\n", timeRet, referTime);
                 timeRet = referTime;
             }
 

@@ -89,6 +89,7 @@ int main(int argc, const char **argv)
         url = "http://player.alicdn.com/video/aliyunmedia.mp4";
     }
 
+    log_enable_color(1);
     cicadaCont cicada{};
     unique_ptr<MediaPlayer> player = unique_ptr<MediaPlayer>(new MediaPlayer());
     cicada.player = player.get();
@@ -108,7 +109,7 @@ int main(int argc, const char **argv)
 #endif
     NetWorkEventReceiver netWorkEventReceiver(eListener);
     player->SetListener(pListener);
-    player->SetDefaultBandWidth(1000*1000);
+    player->SetDefaultBandWidth(1000 * 1000);
     player->SetDataSource(url.c_str());
     player->SetAutoPlay(true);
     player->SetLoop(true);
