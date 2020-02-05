@@ -2655,49 +2655,48 @@ namespace Cicada {
 
     int64_t SuperMediaPlayer::getPlayerBufferDuration(bool gotMax)
     {
-        int64_t videoDuration = -1;
-        int64_t audioDuration = -1;
+        int64_t durations[3] = {-1, -1, -1};
+        int i = 0;
+        int64_t duration = -1;
 
         if (HAVE_VIDEO) {
-            videoDuration = mBufferController.GetPacketDuration(BUFFER_TYPE_VIDEO);
+            int64_t &duration_c = durations[i++];
+            duration_c = mBufferController.GetPacketDuration(BUFFER_TYPE_VIDEO);
 
 //            AF_LOGD("videoDuration is %lld\n",videoDuration);
-            if (videoDuration < 0 && !HAVE_AUDIO) {
-                videoDuration =
+            if (duration_c < 0 && !HAVE_AUDIO) {
+                duration_c =
                     mBufferController.GetPacketLastPTS(BUFFER_TYPE_VIDEO) -
                     mBufferController.GetPacketPts(BUFFER_TYPE_VIDEO);
 
-                if (videoDuration <= 0) {
-                    videoDuration = (int64_t) mBufferController.GetPacketSize(BUFFER_TYPE_VIDEO) * 40 * 1000;
+                if (duration_c <= 0) {
+                    duration_c = (int64_t) mBufferController.GetPacketSize(BUFFER_TYPE_VIDEO) * 40 * 1000;
                 }
             }
         }
 
         if (HAVE_AUDIO) {
-            audioDuration = mBufferController.GetPacketDuration(BUFFER_TYPE_AUDIO);
+            int64_t &duration_c = durations[i++];
+            duration_c = mBufferController.GetPacketDuration(BUFFER_TYPE_AUDIO);
 //            AF_LOGD("audioDuration is %lld\n",audioDuration);
         }
 
-        //AF_LOGI("videoDuration is %lld  audioDuration is %lld\n",videoDuration, audioDuration);
+        if (HAVE_SUBTITLE) {
+            int64_t &duration_c = durations[i++];
+            duration_c = mBufferController.GetPacketDuration(BUFFER_TYPE_SUBTITLE);
+        }
 
-        if (videoDuration >= 0 && audioDuration >= 0) {
-            if (gotMax) {
-                return videoDuration < audioDuration ? audioDuration : videoDuration;
+        int num = i;
+
+        for (i = 0; i < num; i++) {
+            if (duration < 0) {
+                duration = durations[i];
             } else {
-                return videoDuration >= audioDuration ? audioDuration : videoDuration;
+                duration = gotMax ? std::max(duration, durations[i]) : std::min(duration, durations[i]);
             }
         }
 
-        if (videoDuration >= 0) {
-            return videoDuration;
-        }
-
-        if (audioDuration >= 0) {
-            return audioDuration;
-        }
-
-        //又没audio，又没video？？不应该走到这里的。
-        return -1;
+        return duration;
     }
 
     bool SuperMediaPlayer::SeekInCache(int64_t pos)
