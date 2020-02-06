@@ -2834,6 +2834,10 @@ namespace Cicada {
 
     int SuperMediaPlayer::SetUpAudioPath()
     {
+        if (mBufferController.IsPacketEmtpy(BUFFER_TYPE_AUDIO)) {
+            return 0;
+        }
+
         unique_ptr<streamMeta> pMeta{};
         mDemuxerService->GetStreamMeta(pMeta, mCurrentAudioIndex, false);
         Stream_meta *meta = (Stream_meta *) (pMeta.get());
@@ -2881,6 +2885,10 @@ namespace Cicada {
     int SuperMediaPlayer::SetUpVideoPath()
     {
         if (mVideoDecoder) {
+            return 0;
+        }
+
+        if (mBufferController.IsPacketEmtpy(BUFFER_TYPE_VIDEO)) {
             return 0;
         }
 
