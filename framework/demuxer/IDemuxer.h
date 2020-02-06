@@ -17,8 +17,9 @@
 #include <utils/mediaTypeInternal.h>
 #include <base/OptionOwner.h>
 #include <data_source/IDataSource.h>
+#include "DemuxerMetaInfo.h"
 
-namespace Cicada{
+namespace Cicada {
     typedef enum demuxer_type {
         demuxer_type_unknown = 0,
         demuxer_type_playlist,
@@ -44,6 +45,11 @@ namespace Cicada{
 
         void SetDataCallBack(demuxer_callback_read read, demuxer_callback_seek seek, demuxer_callback_open open,
                              demuxer_callback_interrupt_data inter, void *arg);
+
+        void setMeta(DemuxerMetaInfo *metaInfo)
+        {
+            mMetaInfo = metaInfo;
+        }
 
         virtual int Open() = 0;
 
@@ -156,6 +162,8 @@ namespace Cicada{
 
         bool mMergeVideoHeader = false;
         bool mMergerAudioHeader = false;
+
+        DemuxerMetaInfo *mMetaInfo = nullptr;
     };
 }
 
