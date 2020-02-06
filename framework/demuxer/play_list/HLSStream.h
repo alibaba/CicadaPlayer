@@ -12,6 +12,7 @@
 #include "AbstractStream.h"
 #include "SegmentTracker.h"
 #include "../demuxer_service.h"
+#include "demuxer/DemuxerMetaInfo.h"
 #include <condition_variable>
 #include <deque>
 #include <mutex>
@@ -209,6 +210,8 @@ namespace Cicada {
 
         WebVttParser mWVTTParser;
         int64_t mVttPtsOffSet = INT64_MIN;
+
+        std::unique_ptr<DemuxerMetaInfo> mDemuxerMeta = nullptr;
     };
 }
 

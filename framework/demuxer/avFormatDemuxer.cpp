@@ -156,7 +156,8 @@ namespace Cicada {
                 set_stream_meta(mCtx->streams[i], (Stream_meta *) *mMetaInfo->meta[i].get());
             }
 
-            mCtx->max_ts_probe = 0;
+            // TODO: set it to zero can avoid read and decode more frames,but wen seek to back in hlsstream,will lead pts err
+            //    mCtx->max_ts_probe = 0;
         }
 
         ret = avformat_find_stream_info(mCtx, nullptr);

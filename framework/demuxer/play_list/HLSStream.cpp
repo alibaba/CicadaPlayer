@@ -379,6 +379,11 @@ namespace Cicada {
         int ret;
         mError = 0;
         mDataSourceError = 0;
+
+        if (mDemuxerMeta && mDemuxerMeta->id != mCurSeg->discontinuityNum) {
+            mDemuxerMeta = nullptr;
+        }
+
         ret = updateDecrypter();
 
         if (ret < 0) {
@@ -411,23 +416,37 @@ namespace Cicada {
             mPDemuxer->getDemuxerHandle()->setBitStreamFormat(this->mMergeVideoHeader, this->mMergerAudioHeader);
         }
 
+        if (mDemuxerMeta) {
+            mPDemuxer->getDemuxerHandle()->setMeta(mDemuxerMeta.get());
+        }
+
         ret = mPDemuxer->initOpen();
 
         if (ret >= 0) {
             int nbStream = mPDemuxer->GetNbStreams();
             AF_LOGI("file have %d streams\n", nbStream);
+            bool needUpdateMeta = false;
+
+            if (!mDemuxerMeta) {
+                mDemuxerMeta = std::unique_ptr<DemuxerMetaInfo>(new DemuxerMetaInfo());
+                mDemuxerMeta->id = mCurSeg->discontinuityNum;
+                needUpdateMeta = true;
+            }
+
+            unique_ptr<streamMeta> meta = nullptr;
+
             // open all stream in demuxer
-            Stream_meta meta{};
-
             for (int i = 0; i < nbStream; ++i) {
-                mPDemuxer->GetStreamMeta(&meta, i, false);
+                mPDemuxer->GetStreamMeta(meta, i, false);
 
-                if (meta.type == mPTracker->getStreamType()
+                if (((Stream_meta *) (*meta))->type == mPTracker->getStreamType()
                         || mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
                     mPDemuxer->OpenStream(i);
                 }
 
-                releaseMeta(&meta);
+                if (needUpdateMeta) {
+                    mDemuxerMeta->meta.push_back(move(meta));
+                }
             }
 
             mPacketFirstPts = getPackedStreamPTS();
