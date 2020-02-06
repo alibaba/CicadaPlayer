@@ -319,29 +319,11 @@ namespace Cicada {
         ret = createDemuxer();
 
         if (ret >= 0) {
-            int nbStream = mPDemuxer->GetNbStreams();
-            AF_LOGI("file have %d streams\n", nbStream);
-            // open all stream in demuxer
-            Stream_meta meta{};
-
-            for (int i = 0; i < nbStream; ++i) {
-                mPDemuxer->GetStreamMeta(&meta, i, false);
-
-                if (meta.type == mPTracker->getStreamType()
-                        || mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
-                    mPDemuxer->OpenStream(i);
-                }
-
-                releaseMeta(&meta);
-            }
-
             mIsOpened_internal = true;
         } else {
             AF_LOGE("open demuxer error %d\n", ret);
             return ret;
         }
-
-        mPacketFirstPts = getPackedStreamPTS();
 
         //     mStatus = status_inited;
 
@@ -430,6 +412,27 @@ namespace Cicada {
         }
 
         ret = mPDemuxer->initOpen();
+
+        if (ret >= 0) {
+            int nbStream = mPDemuxer->GetNbStreams();
+            AF_LOGI("file have %d streams\n", nbStream);
+            // open all stream in demuxer
+            Stream_meta meta{};
+
+            for (int i = 0; i < nbStream; ++i) {
+                mPDemuxer->GetStreamMeta(&meta, i, false);
+
+                if (meta.type == mPTracker->getStreamType()
+                        || mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
+                    mPDemuxer->OpenStream(i);
+                }
+
+                releaseMeta(&meta);
+            }
+
+            mPacketFirstPts = getPackedStreamPTS();
+        }
+
         return ret;
     }
 
