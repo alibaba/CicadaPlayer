@@ -96,10 +96,6 @@ namespace Cicada {
 
         av_dict_set_int(&mInputOpts, "safe", 0, 0);
         av_dict_set(&mInputOpts, "protocol_whitelist", "file,http,https,tcp,tls", 0);
-
-
-
-
         /*If a url with mp4 ext name, but is not a mp4 file, the mp4 demuxer will be matched
          * by ext name , mp4 demuxer will try to find moov box, it will ignore the return value
          * of the avio_*, and don't check interrupt flag, if the url is a network file, here will
@@ -150,6 +146,19 @@ namespace Cicada {
         // TODO: add a opt to set fps probe
         mCtx->fps_probe_size = 0;
         // TODO: only find ts and flv's info?
+
+        if (mMetaInfo) {
+            for (int i = 0; i < mCtx->nb_streams; ++i) {
+                if (i >= mMetaInfo->meta.size()) {
+                    break;
+                }
+
+                set_stream_meta(mCtx->streams[i], (Stream_meta *) *mMetaInfo->meta[i].get());
+            }
+
+            mCtx->max_ts_probe = 0;
+        }
+
         ret = avformat_find_stream_info(mCtx, nullptr);
 
         if (mInterrupted) {
@@ -220,8 +229,8 @@ namespace Cicada {
             err = av_read_frame(mCtx, pkt);
 
             if (err < 0) {
-                if (err != AVERROR(EAGAIN)) {
-                    if (mCtx->pb && (mCtx->pb->error != AVERROR_EXIT)) {
+                if (err != AVERROR(EAGAIN) && mCtx->pb->error != AVERROR_EXIT) {
+                    if (mCtx->pb) {
                         av_log(NULL, AV_LOG_WARNING, "%s:%d: %s, ctx->pb->error=%d\n", __FILE__, __LINE__, getErrorString(err),
                                mCtx->pb->error);
                     }

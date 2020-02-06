@@ -358,7 +358,7 @@ enum AVCodecID CodecID2AVCodecID(enum AFCodecID codec)
 
 
 typedef struct pix_fmt_pair_t {
-    enum pix_fmt klId;
+    enum AFPixelFormat klId;
     enum AVPixelFormat avId;
 } pix_fmt_pair;
 
@@ -419,6 +419,59 @@ int AVColorRange2AF(enum AVColorRange range)
     }
 }
 
+int set_stream_meta(struct AVStream *pStream, Stream_meta *meta)
+{
+    AVCodecParameters *codecpar = pStream->codecpar;
+
+    switch (meta->type) {
+        case STREAM_TYPE_VIDEO:
+            if (meta->height > 0 && meta->width > 0) {
+                codecpar->height = meta->height;
+                codecpar->width = meta->width;
+            }
+
+            if (meta->pixel_fmt >= 0) {
+                codecpar->format = meta->pixel_fmt;
+            }
+
+            break;
+
+        case STREAM_TYPE_AUDIO:
+            if (meta->channels > 0) {
+                codecpar->channels = meta->channels;
+            }
+
+            if (meta->samplerate > 0) {
+                codecpar->sample_rate = meta->samplerate;
+            }
+
+            if (meta->sample_fmt > 0) {
+                codecpar->format = meta->sample_fmt;
+            }
+
+            if (meta->frame_size > 0) {
+                codecpar->frame_size = meta->frame_size;
+            }
+
+            break;
+
+        default:
+            break;
+    }
+
+    if (meta->extradata_size > 0 && meta->extradata) {
+        if (codecpar->extradata) {
+            free(codecpar->extradata);
+        }
+
+        codecpar->extradata = av_mallocz(meta->extradata_size + AVPROBE_PADDING_SIZE);
+        memcpy(codecpar->extradata, meta->extradata, meta->extradata_size);
+        codecpar->extradata_size = meta->extradata_size;
+    }
+
+    return 0;
+}
+
 int get_stream_meta(struct AVStream *pStream, Stream_meta *meta)
 {
     enum AVMediaType codec_type = pStream->codecpar->codec_type;
@@ -466,6 +519,7 @@ int get_stream_meta(struct AVStream *pStream, Stream_meta *meta)
         meta->width = pStream->codecpar->width;
         meta->height = pStream->codecpar->height;
         meta->profile = pStream->codecpar->profile;
+        meta->pixel_fmt = pStream->codecpar->format;
 
         if (meta->codec == AF_CODEC_ID_H264) {
             meta->interlaced = InterlacedType_UNKNOWN;
