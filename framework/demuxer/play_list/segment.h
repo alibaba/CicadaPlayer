@@ -34,6 +34,7 @@ namespace Cicada{
         uint64_t startTime = 0;
         int64_t duration = -1;
         uint64_t sequence = 0;
+        uint64_t discontinuityNum = 0;
         static const int SEQUENCE_INVALID;
         static const int SEQUENCE_FIRST;
         SegmentEncryption encryption;

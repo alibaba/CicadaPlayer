@@ -120,16 +120,16 @@ namespace Cicada {
             bool mixedAudio = false;
 
             if ((codecAttr->value.find_first_of("avc") != std::string::npos
-                 || codecAttr->value.find_first_of("hvc") != std::string::npos)
-                && !videoAttr) {
+                    || codecAttr->value.find_first_of("hvc") != std::string::npos)
+                    && !videoAttr) {
                 mixedVideo = true;
             }
 
             if ((codecAttr->value.find_first_of("mp4a") != std::string::npos
-                 || codecAttr->value.find_first_of("ac-3") != std::string::npos
-                 || codecAttr->value.find_first_of("ec-3") != std::string::npos
+                    || codecAttr->value.find_first_of("ac-3") != std::string::npos
+                    || codecAttr->value.find_first_of("ec-3") != std::string::npos
                 )
-                && !audioAttr) {
+                    && !audioAttr) {
                 mixedAudio = true;
             }
 
@@ -162,13 +162,12 @@ namespace Cicada {
         mtime_t nzStartTime = 0;
         mtime_t absReferenceTime = 0;
         uint64_t sequenceNumber = 0;
-        bool discontinuity = false;
+        uint64_t discontinuityNum = 0;
         std::size_t prevbyterangeoffset = 0;
         const SingleValueTag *ctx_byterange = nullptr;
         SegmentEncryption encryption;
         const ValuesListTag *ctx_extinf = nullptr;
         std::list<Tag *>::const_iterator it;
-
         std::shared_ptr<segment> curInitSegment = nullptr;
 
         for (it = tagslist.begin(); it != tagslist.end(); ++it) {
@@ -179,7 +178,7 @@ namespace Cicada {
                 case SingleValueTag::EXTXMEDIASEQUENCE: {
                     sequenceNumber = (static_cast<const SingleValueTag *>(tag))->getValue().decimal();
                 }
-                    break;
+                break;
 
                 case ValuesListTag::EXTINF: {
                     ctx_extinf = static_cast<const ValuesListTag *>(tag);
@@ -236,10 +235,7 @@ namespace Cicada {
                         ctx_byterange = nullptr;
                     }
 
-                    if (discontinuity) {
-                        //    segment->discontinuity = true;
-                        discontinuity = false;
-                    }
+                    pSegment->discontinuityNum = discontinuityNum;
 
                     if (encryption.method != SegmentEncryption::NONE) {
                         pSegment->setEncryption(encryption);
@@ -314,29 +310,32 @@ namespace Cicada {
                         encryption.iv.clear();
                     }
                 }
-                    break;
+                break;
 
                 case AttributesTag::EXTXMAP: {
                     const AttributesTag *keytag = static_cast<const AttributesTag *>(tag);
                     const Attribute *uriAttr;
-                    if (keytag && (uriAttr = keytag->getAttributeByName("URI"))) {
 
+                    if (keytag && (uriAttr = keytag->getAttributeByName("URI"))) {
                         curInitSegment = std::make_shared<segment>(sequenceNumber++);
+
                         if (curInitSegment) {
                             curInitSegment->setSourceUrl(uriAttr->quotedString());
                             const Attribute *byterangeAttr = keytag->getAttributeByName("BYTERANGE");
+
                             if (byterangeAttr) {
                                 const std::pair<std::size_t, std::size_t> range = byterangeAttr->unescapeQuotes().getByteRange();
                                 //   initSegment->setByteRange(range.first, range.first + range.second - 1);
                             }
+
                             segmentList->addInitSegment(curInitSegment);
                         }
                     }
                 }
-                    break;
+                break;
 
                 case Tag::EXTXDISCONTINUITY:
-                    discontinuity = true;
+                    discontinuityNum++;
                     break;
 
                 case Tag::EXTXENDLIST:
