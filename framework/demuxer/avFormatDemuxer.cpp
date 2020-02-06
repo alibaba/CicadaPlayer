@@ -146,6 +146,19 @@ namespace Cicada {
         // TODO: add a opt to set fps probe
         mCtx->fps_probe_size = 0;
         // TODO: only find ts and flv's info?
+
+        if (mMetaInfo) {
+            for (int i = 0; i < mCtx->nb_streams; ++i) {
+                if (i >= mMetaInfo->meta.size()) {
+                    break;
+                }
+
+                set_stream_meta(mCtx->streams[i], (Stream_meta *) *mMetaInfo->meta[i].get());
+            }
+
+            mCtx->max_ts_probe = 0;
+        }
+
         ret = avformat_find_stream_info(mCtx, nullptr);
 
         if (mInterrupted) {
@@ -216,8 +229,8 @@ namespace Cicada {
             err = av_read_frame(mCtx, pkt);
 
             if (err < 0) {
-                if (err != AVERROR(EAGAIN)) {
-                    if (mCtx->pb && (mCtx->pb->error != AVERROR_EXIT)) {
+                if (err != AVERROR(EAGAIN) && mCtx->pb->error != AVERROR_EXIT) {
+                    if (mCtx->pb) {
                         av_log(NULL, AV_LOG_WARNING, "%s:%d: %s, ctx->pb->error=%d\n", __FILE__, __LINE__, getErrorString(err),
                                mCtx->pb->error);
                     }
@@ -457,7 +470,8 @@ namespace Cicada {
         if (mInterruptCb) {
             mInterruptCb(mUserArg, 0);
         }
-        if(mCtx->pb->error < 0) {
+
+        if (mCtx->pb->error < 0) {
             mCtx->pb->error = 0;
             avio_feof(mCtx->pb);
         }
