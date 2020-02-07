@@ -434,6 +434,7 @@ int set_stream_meta(struct AVStream *pStream, Stream_meta *meta)
                 codecpar->format = meta->pixel_fmt;
             }
 
+            pStream->r_frame_rate = av_d2q(meta->avg_fps, 1000);
             break;
 
         case STREAM_TYPE_AUDIO:
