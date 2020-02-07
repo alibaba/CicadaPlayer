@@ -193,7 +193,7 @@ namespace Cicada {
 
             if (pPacket != nullptr) {
                 AF_LOGI("send Frame mFlushState = 2. pts %"
-                                PRId64, pPacket->getInfo().pts);
+                        PRId64, pPacket->getInfo().pts);
             }
 
             mFlushState = 2;
@@ -223,10 +223,9 @@ namespace Cicada {
         } else if (index == MC_INFO_OUTPUT_FORMAT_CHANGED) {
             mc_out out{};
             mDecoder->get_out(index, &out, false);
-            mVideoInfo.height = out.conf.video.height;
-            mVideoInfo.width = out.conf.video.width;
+            mVideoInfo.height = out.conf.video.crop_bottom + 1 - out.conf.video.crop_top;
+            mVideoInfo.width = out.conf.video.crop_right + 1 - out.conf.video.crop_left;
             return -EAGAIN;
-            // TODO: crop info
         } else if (index >= 0) {
             mc_out out{};
             ret = mDecoder->get_out(index, &out, false);
@@ -239,9 +238,9 @@ namespace Cicada {
             }
 
             pFrame = unique_ptr<AFMediaCodecFrame>(new AFMediaCodecFrame(IAFFrame::FrameTypeVideo, index,
-                                                                         [this](int index, bool render) {
-                                                                             mDecoder->release_out(index, render);
-                                                                         }));
+            [this](int index, bool render) {
+                mDecoder->release_out(index, render);
+            }));
             // AF_LOGD("mediacodec out pts %" PRId64, out.buf.pts);
             pFrame->getInfo().video = mVideoInfo;
             pFrame->getInfo().pts = out.buf.pts != -1 ? out.buf.pts : INT64_MIN;
