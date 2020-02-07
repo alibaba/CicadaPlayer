@@ -127,12 +127,12 @@ namespace Cicada {
             /* getInteger can throw nullptrPointerException (when fetching the
              * "channel-mask" property for example) */
             if (JniException::clearException(env)) {
-                return 0;
+                return MC_ERROR;
             }
 
             return i_ret;
         } else {
-            return 0;
+            return MC_ERROR;
         }
     }
 
@@ -251,7 +251,7 @@ end:
                              size_t h264_profile, bool *p_adaptive)
     {
         JniEnv  jniEnv;
-        JNIEnv* handle = jniEnv.getEnv();
+        JNIEnv *handle = jniEnv.getEnv();
 
         if (!handle) {
             AF_LOGE("jni attach failed.");
@@ -418,7 +418,7 @@ end:
     int MediaCodec_JNI::init(const char *mime, int category, jobject surface)
     {
         JniEnv  jniEnv;
-        JNIEnv* handle = jniEnv.getEnv();
+        JNIEnv *handle = jniEnv.getEnv();
 
         if (!handle) {
             AF_LOGE("env is nullptr.");
@@ -443,7 +443,7 @@ end:
         AndroidJniHandle<jobject> joutput_buffers;
         jobject jbuffer_info;
         JniEnv  jniEnv;
-        JNIEnv* handle = jniEnv.getEnv();
+        JNIEnv *handle = jniEnv.getEnv();
 
         if (!handle) {
             AF_LOGE("env is nullptr.");
@@ -497,7 +497,7 @@ error:
     int MediaCodec_JNI::stop()
     {
         JniEnv  jniEnv;
-        JNIEnv* handle = jniEnv.getEnv();
+        JNIEnv *handle = jniEnv.getEnv();
 
         if (!handle) {
             AF_LOGE("env is nullptr.");
@@ -537,7 +537,7 @@ error:
     int MediaCodec_JNI::flush()
     {
         JniEnv  jniEnv;
-        JNIEnv* handle = jniEnv.getEnv();
+        JNIEnv *handle = jniEnv.getEnv();
 
         if (!handle) {
             AF_LOGE("env is nullptr.");
@@ -557,7 +557,7 @@ error:
     int MediaCodec_JNI::dequeue_in(int64_t timeout)
     {
         JniEnv  jniEnv;
-        JNIEnv* handle = jniEnv.getEnv();
+        JNIEnv *handle = jniEnv.getEnv();
 
         if (!handle) {
             AF_LOGE("env is nullptr.");
@@ -587,7 +587,7 @@ error:
         }
 
         JniEnv  jniEnv;
-        JNIEnv* handle = jniEnv.getEnv();
+        JNIEnv *handle = jniEnv.getEnv();
 
         if (!handle) {
             AF_LOGE("env is nullptr.");
@@ -648,7 +648,7 @@ error:
     int MediaCodec_JNI::dequeue_out(int64_t timeout)
     {
         JniEnv  jniEnv;
-        JNIEnv* handle = jniEnv.getEnv();
+        JNIEnv *handle = jniEnv.getEnv();
 
         if (!handle) {
             AF_LOGE("env is nullptr.");
@@ -678,7 +678,7 @@ error:
     int MediaCodec_JNI::get_out(int index, mc_out *out, bool readBuffer)
     {
         JniEnv  jniEnv;
-        JNIEnv* handle = jniEnv.getEnv();
+        JNIEnv *handle = jniEnv.getEnv();
 
         if (!handle) {
             AF_LOGE("env is nullptr.");
@@ -794,7 +794,7 @@ error:
     {
         bool b_adaptive;
         JniEnv  jniEnv;
-        JNIEnv* handle = jniEnv.getEnv();
+        JNIEnv *handle = jniEnv.getEnv();
         std::string psz_name = mediaCodecGetName(psz_mime, args, i_h264_profile, &b_adaptive);
         AF_LOGI("android decode name %s, b_adaptive %d", psz_name.c_str(), b_adaptive);
 
@@ -868,7 +868,7 @@ error:
     void MediaCodec_JNI::unInit()
     {
         JniEnv  jniEnv;
-        JNIEnv* handle = jniEnv.getEnv();
+        JNIEnv *handle = jniEnv.getEnv();
 
         if (!handle) {
             AF_LOGE("env is nullptr.");
@@ -890,7 +890,7 @@ error:
     int MediaCodec_JNI::setOutputSurface(jobject surface)
     {
         JniEnv  jniEnv;
-        JNIEnv* handle = jniEnv.getEnv();
+        JNIEnv *handle = jniEnv.getEnv();
 
         if (!handle) {
             AF_LOGE("env is nullptr.");
@@ -914,7 +914,7 @@ error:
         }
 
         JniEnv  jniEnv;
-        JNIEnv* handle = jniEnv.getEnv();
+        JNIEnv *handle = jniEnv.getEnv();
 
         if (!handle) {
             AF_LOGE("env is nullptr.");
