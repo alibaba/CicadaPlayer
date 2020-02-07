@@ -93,9 +93,9 @@ namespace Cicada {
         } else {
             use_filename = true;
         }
+
         av_dict_set_int(&mInputOpts, "safe", 0, 0);
         av_dict_set(&mInputOpts, "protocol_whitelist", "file,http,https,tcp,tls", 0);
-
         /*If a url with mp4 ext name, but is not a mp4 file, the mp4 demuxer will be matched
          * by ext name , mp4 demuxer will try to find moov box, it will ignore the return value
          * of the avio_*, and don't check interrupt flag, if the url is a network file, here will
@@ -216,8 +216,8 @@ namespace Cicada {
             err = av_read_frame(mCtx, pkt);
 
             if (err < 0) {
-                if (err != AVERROR(EAGAIN)&& mCtx->pb->error != AVERROR_EXIT) {
-                    if (mCtx->pb) {
+                if (err != AVERROR(EAGAIN)) {
+                    if (mCtx->pb && (mCtx->pb->error != AVERROR_EXIT)) {
                         av_log(NULL, AV_LOG_WARNING, "%s:%d: %s, ctx->pb->error=%d\n", __FILE__, __LINE__, getErrorString(err),
                                mCtx->pb->error);
                     }
@@ -230,12 +230,12 @@ namespace Cicada {
                 }
 
                 if (err == AVERROR_EOF) {
-                    if (mCtx->pb->error == AVERROR(EAGAIN)) {
+                    if (mCtx->pb && mCtx->pb->error == AVERROR(EAGAIN)) {
                         av_packet_free(&pkt);
                         return mCtx->pb->error;
                     }
 
-                    if (mCtx->pb->error < 0) {
+                    if (mCtx->pb && mCtx->pb->error < 0) {
                         av_packet_free(&pkt);
                         int ret = mCtx->pb->error;
                         mCtx->pb->error = 0;
@@ -579,6 +579,11 @@ namespace Cicada {
             if (ret != AVERROR(EAGAIN) && ret != FRAMEWORK_ERR_EXIT) {
                 mError = ret;
             }
+
+            std::unique_lock<std::mutex> waitLock(mQueLock);
+            mQueCond.wait_for(waitLock, std::chrono::milliseconds(10), [this]() {
+                return bPaused || mInterrupted;
+            });
         }
 
         return 0;
