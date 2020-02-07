@@ -12,8 +12,9 @@
 namespace Cicada {
     class DemuxerMetaInfo {
     public:
-        uint64_t id;
-        std::vector<std::unique_ptr<streamMeta>> meta;
+        uint64_t id = 0;
+        std::vector<std::unique_ptr<streamMeta>> meta{};
+        bool bContinue{false};
     };
 }
 
