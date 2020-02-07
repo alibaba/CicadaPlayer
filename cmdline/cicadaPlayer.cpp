@@ -10,8 +10,8 @@ using namespace std;
 #include "NetWorkEventReceiver.h"
 
 #ifdef ENABLE_SDL
-#include <SDL2/SDL_main.h>
-#define SDL_MAIN_HANDLED
+    #include <SDL2/SDL_main.h>
+    #define SDL_MAIN_HANDLED
 #endif
 
 #include <media_player_error_def.h>
@@ -29,16 +29,20 @@ static void onVideoSize(int64_t width, int64_t height, void *userData)
     using IEvent = IEventReceiver::IEvent;
     auto *cont = static_cast<cicadaCont *>(userData);
     auto *event = new IEvent(IEvent::TYPE_SET_VIEW);
-    if (cont->receiver)
+
+    if (cont->receiver) {
         cont->receiver->push(std::unique_ptr<IEvent>(event));
+    }
 }
 
 static void onEOS(void *userData)
 {
     auto *cont = static_cast<cicadaCont *>(userData);
     auto *event = new IEvent(IEvent::TYPE_EXIT);
-    if (cont->receiver)
+
+    if (cont->receiver) {
         cont->receiver->push(std::unique_ptr<IEvent>(event));
+    }
 }
 
 static void onEvent(int64_t errorCode, const void *errorMsg, void *userData)
@@ -66,11 +70,12 @@ static void onError(int64_t errorCode, const void *errorMsg, void *userData)
     if (errorMsg) {
         AF_LOGE("%s\n", errorMsg);
     }
+
     if (cont->receiver) {
         auto *event = new IEvent(IEvent::TYPE_EXIT);
         cont->receiver->push(std::unique_ptr<IEvent>(event));
-    } else{
-        cont->error= true;
+    } else {
+        cont->error = true;
     }
 }
 
@@ -102,13 +107,13 @@ int main(int argc, const char **argv)
     player->SetView(&view);
 #endif
     NetWorkEventReceiver netWorkEventReceiver(eListener);
-
     player->SetListener(pListener);
     player->SetDefaultBandWidth(100000000);
     player->SetDataSource(url.c_str());
     player->SetAutoPlay(true);
     player->SetLoop(true);
     player->Prepare();
+    player->SelectTrack(-1);
     bool quite = false;
 
     while (!quite && !cicada.error) {
