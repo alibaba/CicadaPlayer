@@ -1458,6 +1458,11 @@ namespace Cicada {
         *  does not say so)
         */
         char *hls_timestamp_map = strstr(reinterpret_cast<char *>(mBuffer), "\nX-TIMESTAMP-MAP=");
+
+        if (hls_timestamp_map == nullptr) {
+            return mMapPTS;
+        }
+
         char *native_str = strstr(hls_timestamp_map, "LOCAL:");
         char *mpegts_str = strstr(hls_timestamp_map, "MPEGTS:");
 
