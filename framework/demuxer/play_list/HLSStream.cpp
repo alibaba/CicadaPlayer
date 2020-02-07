@@ -447,6 +447,8 @@ namespace Cicada {
                 if (needUpdateMeta) {
                     mDemuxerMeta->meta.push_back(move(meta));
                 }
+
+                mDemuxerMeta->bContinue = true;
             }
 
             mPacketFirstPts = getPackedStreamPTS();
@@ -1216,6 +1218,7 @@ namespace Cicada {
         mIsEOS = false;
         mIsDataEOS = false;
         mError = 0;
+        mDemuxerMeta->bContinue = false;
 
         if (mThreadPtr) {
             mThreadPtr->start();
