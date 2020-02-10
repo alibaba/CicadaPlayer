@@ -163,6 +163,7 @@ namespace Cicada {
     {
         string uri;
         int ret;
+        mInitSegPtr = 0;
 
         if (!mCurSeg || !mCurSeg->init_section || mCurInitSeg == mCurSeg->init_section) {
             return 0;
@@ -202,7 +203,6 @@ namespace Cicada {
         } while (size < mInitSegSize);
 
         mInitSegSize = size;
-        mInitSegPtr = 0;
         return 0;
     }
 
@@ -921,7 +921,6 @@ namespace Cicada {
 
             if (ret >= 0) {
                 upDateInitSection();
-                mInitSegPtr = 0;
                 ret = createDemuxer();
 
                 if (ret >= 0) {
