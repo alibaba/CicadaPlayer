@@ -89,7 +89,11 @@ void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket> &frame, StreamType
             metaRet = mDataSource->getStreamMeta(videoMeta, StreamType::ST_TYPE_VIDEO);
 
             if (metaRet == 0) {
+                videoMeta->type = Stream_type::STREAM_TYPE_VIDEO;
                 streamMetas.push_back(videoMeta);
+            }else {
+                releaseMeta(videoMeta);
+                free(videoMeta);
             }
         }
         {
@@ -98,6 +102,7 @@ void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket> &frame, StreamType
             metaRet = mDataSource->getStreamMeta(audioMeta, StreamType::ST_TYPE_AUDIO);
 
             if (metaRet == 0) {
+                audioMeta->type = Stream_type::STREAM_TYPE_AUDIO;
                 streamMetas.push_back(audioMeta);
             } else {
                 releaseMeta(audioMeta);
