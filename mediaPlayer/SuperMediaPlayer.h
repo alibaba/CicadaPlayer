@@ -394,7 +394,7 @@ namespace Cicada {
         int mVideoWidth{0};
         int mVideoHeight{0};
         int mVideoRotation{0};
-        int64_t mDuration{0};
+        int64_t mDuration{INT64_MIN};
         int64_t mBufferPosition{0};
         PlayerStatus mOldPlayStatus{PLAYER_IDLE};
         PlayerStatus mPlayStatus{PLAYER_IDLE};
