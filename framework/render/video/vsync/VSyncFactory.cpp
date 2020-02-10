@@ -15,13 +15,14 @@
 
 std::unique_ptr<IVSync> VSyncFactory::create(IVSync::Listener &listener, float HZ)
 {
-#if defined(ANDROID)
-    std::string version = get_android_property("ro.build.version.sdk");
-
-    if (atoi(version.c_str()) >= 16)
-        return std::unique_ptr<IVSync>(new AndroidVSync(listener));
-
-#endif
+    //TODO use android vsync: compatibility issue
+//#if defined(ANDROID)
+//    std::string version = get_android_property("ro.build.version.sdk");
+//
+//    if (atoi(version.c_str()) >= 16)
+//        return std::unique_ptr<IVSync>(new AndroidVSync(listener));
+//
+//#endif
     return std::unique_ptr<IVSync>(new timedVSync(listener, HZ));
     //  return std::unique_ptr<IVSync>(new CADisplayLinkVSync(listener));
 }
