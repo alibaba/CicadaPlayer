@@ -2801,6 +2801,10 @@ namespace Cicada {
             return 0;
         }
 
+        if (meta->duration > mDuration) {
+            mDuration = meta->duration;
+        }
+
         //setVolume to current setting after create new.
         SetVolume(mSet.mVolume);
 
@@ -2999,6 +3003,10 @@ namespace Cicada {
 //        }
 //
 //#endif
+
+        if (meta->duration > mDuration) {
+            mDuration = meta->duration;
+        }
 
         return ret;
     }
@@ -3342,10 +3350,6 @@ namespace Cicada {
                         openStreamRet = mDemuxerService->OpenStream(i);
                         mCurrentVideoIndex = i;
                         mDemuxerService->GetStreamMeta(mCurrentVideoMeta, i, false);
-
-                        if (meta->duration > mDuration) {
-                            mDuration = meta->duration;
-                        }
                     }
                 }
             } else if (!mSet.bDisableAudio && meta->type == STREAM_TYPE_AUDIO) {
@@ -3368,10 +3372,6 @@ namespace Cicada {
                     AF_LOGD("get a audio stream\n");
                     openStreamRet = mDemuxerService->OpenStream(i);
                     mCurrentAudioIndex = i;
-
-                    if (meta->duration > mDuration) {
-                        mDuration = meta->duration;
-                    }
                 }
             } else if (meta->type == STREAM_TYPE_SUB) {
                 info->type = ST_TYPE_SUB;
@@ -3398,10 +3398,6 @@ namespace Cicada {
                 info->videoWidth = meta->width;
                 info->videoHeight = meta->height;
                 AF_LOGD("STREAM_TYPE_MIXED bandwidth is %llu", meta->bandwidth);
-
-                if (meta->duration > mDuration) {
-                    mDuration = meta->duration;
-                }
 
                 if (mMainStreamId >= 0) {
                     AF_LOGD("already readed stream");
