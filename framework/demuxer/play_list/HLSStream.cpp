@@ -123,7 +123,7 @@ namespace Cicada {
 
     int64_t HLSStream::seekSegment(off_t offset, int whence)
     {
-        int ret;
+        int64_t ret;
 
         if (mSegDecrypter == nullptr) {
             if (mExtDataSource) {
@@ -901,7 +901,7 @@ namespace Cicada {
             AF_LOGW("mPDemuxer->readPacket FRAMEWORK_ERR_EXIT\n");
         }
 
-        if (mStopOnSegEnd) {
+        if (ret == 0 && mStopOnSegEnd) {
             mIsEOS = true;
             AF_LOGE("mStopOnSegEnd");
             return -EAGAIN;
@@ -1142,6 +1142,8 @@ namespace Cicada {
                 delete mSegKeySource;
                 mSegKeySource = nullptr;
             }
+
+            mIsOpened_internal = false;
         }
         clearDataFrames();
         AF_LOGD("%s\n", __func__);
