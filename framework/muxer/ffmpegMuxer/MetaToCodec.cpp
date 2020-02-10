@@ -4,6 +4,7 @@
 
 #include <utils/frame_work_log.h>
 #include <utils/ffmpeg_utils.h>
+#include <utils/af_string.h>
 #include "MetaToCodec.h"
 
 extern "C" {
@@ -23,6 +24,11 @@ void MetaToCodec::videoMetaToStream(AVStream *st, Stream_meta *meta)
     st->codecpar->codec_tag = meta->codec_tag;
     st->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
     st->codecpar->codec_id = static_cast<AVCodecID>(CodecID2AVCodecID(meta->codec));
+    int ret = av_dict_set(&st->metadata, "rotate", AfString::to_string(meta->rotate).c_str(), 0);
+
+    if (ret < 0) {
+        AF_LOGE("set rotate fail");
+    }
 
     if (meta->extradata_size > 0) {
         st->codecpar->extradata = static_cast<uint8_t *>(malloc(
