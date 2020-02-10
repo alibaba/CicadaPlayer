@@ -550,7 +550,7 @@ namespace Cicada {
         } else if (theKey == "description") {
             mSet.mOptions.set(theKey, value, options::REPLACE);
             return 0;
-        }  else if (theKey == "enableVRC") {
+        } else if (theKey == "enableVRC") {
             mSet.bEnableVRC = (atoi(value) != 0);
         }
 
@@ -580,7 +580,7 @@ namespace Cicada {
             snprintf(value, MAX_OPT_VALUE_LENGTH, "%" PRId64 "", size);
         } else if (theKey == "description") {
             snprintf(value, MAX_OPT_VALUE_LENGTH, "%s", mSet.mOptions.get("description").c_str());
-        } else if ( theKey == "renderFps") {
+        } else if (theKey == "renderFps") {
             float renderFps = GetVideoRenderFps();
             snprintf(value, MAX_OPT_VALUE_LENGTH, "%f", renderFps);
         }
@@ -2358,6 +2358,12 @@ namespace Cicada {
 
         int id = GEN_STREAM_INDEX(pFrame->getInfo().streamIndex);
 
+        if (mDuration < 0) {
+            unique_ptr<streamMeta> pMeta;
+            mDemuxerService->GetStreamMeta(pMeta, pFrame->getInfo().streamIndex, false);
+            mDuration = ((Stream_meta *) (pMeta.get()))->duration;
+        }
+
         if (id < mStreamInfoQueue.size()
                 && mStreamInfoQueue[id]->type == ST_TYPE_VIDEO
                 && mMainStreamId != -1 && id != mMainStreamId) {
@@ -2416,7 +2422,7 @@ namespace Cicada {
                     delete mVideoParser;
                     mVideoParser = nullptr;
                 } else {
-                    mVideoParserTimes ++;
+                    mVideoParserTimes++;
 
                     if (mVideoParserTimes > 10) {
                         mVideoInterlaced = InterlacedType_NO;
@@ -3102,7 +3108,7 @@ namespace Cicada {
         mVideoWidth = 0;
         mVideoHeight = 0;
         mVideoRotation = 0;
-        mDuration = 0;
+        mDuration = INT64_MIN;
         mBufferPosition = 0;
         mSeekPos = INT64_MIN;
         mPlayedVideoPts = INT64_MIN;
@@ -3979,7 +3985,7 @@ namespace Cicada {
     {
         while (!mVideoFrameQue.empty()) {
             int64_t pts = mVideoFrameQue.front()->getInfo().pts;
-            ProcessVideoRenderedMsg(pts, af_getsteady_ms(),  nullptr);
+            ProcessVideoRenderedMsg(pts, af_getsteady_ms(), nullptr);
             mVideoFrameQue.pop();
         }
 
