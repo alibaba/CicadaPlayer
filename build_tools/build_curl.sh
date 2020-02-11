@@ -73,8 +73,8 @@ function build_curl(){
                 --without-libidn2 \
                 --without-librtmp \
                 --without-libidn"
-    local build_dir="build/curl/$1/$2"
-    local install_dir="$PWD/install/curl/$1/$2"
+    local build_dir="${CWD}/build/curl/$1/$2"
+    local install_dir="${CWD}/install/curl/$1/$2"
 
     mkdir -p ${build_dir}/
     if [ "${BUILD}" != "False" ];then
