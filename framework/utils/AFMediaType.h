@@ -44,6 +44,7 @@ enum AFCodecID {
 //    AF_CODEC_ID_MJPEG,
 //    AF_CODEC_ID_H263,
             AF_CODEC_ID_HEVC,
+    AF_CODEC_ID_AV1,
 
     AF_CODEC_ID_AAC,
     AF_CODEC_ID_AC3,
