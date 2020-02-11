@@ -2472,7 +2472,7 @@ namespace Cicada {
                 mFirstSeekStartTime = pFrame->getInfo().timePosition;
             }
 
-            if (mSeekFlag && mSeekNeedCatch && NeedDrop(pFrame->getInfo().pts, mSeekPos)) {
+            if (mSeekFlag && mSeekNeedCatch && NeedDrop(pFrame->getInfo().timePosition, mSeekPos)) {
                 return ret;
             }
 
