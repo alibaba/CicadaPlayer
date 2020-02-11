@@ -284,6 +284,9 @@ enum AFCodecID AVCodec2CicadaCodec(enum AVCodecID codec)
         case AV_CODEC_ID_HEVC:
             return AF_CODEC_ID_HEVC;
 
+        case AV_CODEC_ID_AV1:
+            return AF_CODEC_ID_AV1;
+
         /* subtitle */
 //        case AV_CODEC_ID_TEXT:
 //            return AF_CODEC_ID_TEXT;
@@ -322,6 +325,7 @@ static codec_pair codec_pair_table[] = {
 //    {AF_CODEC_ID_FLAC,      AV_CODEC_ID_FLAC},
     {AF_CODEC_ID_H264,      AV_CODEC_ID_H264},
     {AF_CODEC_ID_HEVC,      AV_CODEC_ID_HEVC},
+    {AF_CODEC_ID_AV1,       AV_CODEC_ID_AV1},
     {AF_CODEC_ID_MPEG4,     AV_CODEC_ID_MPEG4},
     {AF_CODEC_ID_NONE,      AV_CODEC_ID_NONE},
 };

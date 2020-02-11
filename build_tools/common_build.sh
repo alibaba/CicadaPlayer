@@ -27,6 +27,7 @@ function apply_ffmpeg_config(){
 }
 function build_static_lib(){
     local arch=$2
+    export TARGET_ARCH=$2
     cd ${CWD}
 
     if [ -d "$BOOST_SOURCE_DIR" ];then
@@ -181,6 +182,10 @@ function link_shared_lib_Android(){
 
     if [ -d "${OPENSSL_INSTALL_DIR}" ];then
         ldflags="$ldflags -lssl -lcrypto -L${OPENSSL_INSTALL_DIR}/lib/"
+    fi
+
+    if [ -d "${DAV1D_INSTALL_DIR}" ];then
+        ldflags="$ldflags -ldav1d -L${DAV1D_INSTALL_DIR}/lib/"
     fi
 
     if [ -d "${X264_INSTALL_DIR}" ];then

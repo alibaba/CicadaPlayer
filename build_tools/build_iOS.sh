@@ -15,6 +15,11 @@ CWD=$PWD
 function build_fat_lib(){
 
     local lib_names=$(cd ./install/$1/iOS/${IOS_ARCHS%% *}/lib; ls *.a)
+    if  [ ! -n "$lib_names" ] ;then
+        echo "break create $1 fat"
+        return
+    fi
+
     local fat_dir=install/$1/iOS/fat/lib
     rm -rf ${fat_dir}
     mkdir -p  ${fat_dir}
@@ -79,6 +84,10 @@ function build_shared_framework(){
         fi
     done
 
+    if [ -d "${DAV1D_EXTERNAL_DIR}/iOS/fat" ];then
+        SRC_LIBRARIES_DIR="$SRC_LIBRARIES_DIR ${DAV1D_EXTERNAL_DIR}/iOS/fat/lib"
+        SRC_LIBRARIES="$SRC_LIBRARIES dav1d"
+    fi
 
  #   $CWD/install/openssl/iOS/fat/lib"
     cd ./install/ffmpeg/iOS/
