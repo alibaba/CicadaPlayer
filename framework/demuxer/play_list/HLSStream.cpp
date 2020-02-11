@@ -1187,9 +1187,10 @@ namespace Cicada {
         AF_LOGD("%s:%d stream (%d) usSeeked is %lld seek num is %d\n", __func__, __LINE__,
                 mPTracker->getStreamType(), usSought, num);
 
-        if (mPTracker->getStreamType() == STREAM_TYPE_SUB && mPTracker->getSegSize() == 1) {
+        if (mPTracker->getStreamType() == STREAM_TYPE_SUB && num == mPTracker->getCurSegNum()) {
             AF_LOGW("only one  subtitle seg");
             reqReOpen = false;
+            seek_internal(num, us);
         }
 
         mSwitchNeedBreak = true;
@@ -1215,7 +1216,6 @@ namespace Cicada {
             mPTracker->setCurSegNum(num);
         }
 
-        //    seek_internal(num, us);
         mIsEOS = false;
         mIsDataEOS = false;
         mError = 0;
@@ -1260,13 +1260,6 @@ namespace Cicada {
 
     int HLSStream::reopenSegment(uint64_t num, OpenType openType)
     {
-        bool reqReOpen = true;
-
-        if (mPTracker->getStreamType() == STREAM_TYPE_SUB && mPTracker->getSegSize() == 1) {
-            AF_LOGW("only one  subtitle seg");
-            reqReOpen = false;
-        }
-
         mSwitchNeedBreak = true;
         mWaitCond.notify_one();
 
@@ -1276,22 +1269,19 @@ namespace Cicada {
 
         mSwitchNeedBreak = false;
         clearDataFrames();
+        resetSource();
 
-        if (reqReOpen) {
-            resetSource();
+        if (mIsOpened_internal) {
+            mReopen = true;
+            num--;
+        }
 
-            if (mIsOpened_internal) {
-                mReopen = true;
-                num--;
-            }
-
-            if (openType == OpenType::SegNum) {
-                mPTracker->setCurSegNum(num);
-                AF_LOGD("setCurSegNum %llu\n", num);
-            } else if (openType == OpenType::SegPosition) {
-                mPTracker->setCurSegPosition(num);
-                AF_LOGD("setCurSegPosition %llu\n", num);
-            }
+        if (openType == OpenType::SegNum) {
+            mPTracker->setCurSegNum(num);
+            AF_LOGD("setCurSegNum %llu\n", num);
+        } else if (openType == OpenType::SegPosition) {
+            mPTracker->setCurSegPosition(num);
+            AF_LOGD("setCurSegPosition %llu\n", num);
         }
 
         seek_internal(num, 0);
