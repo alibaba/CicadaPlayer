@@ -223,6 +223,9 @@ enum AFCodecID AVCodec2CicadaCodec(enum AVCodecID codec)
 //        case AV_CODEC_ID_FLAC:
 //            return AF_CODEC_ID_FLAC;
 
+        case AV_CODEC_ID_OPUS:
+            return AF_CODEC_ID_OPUS;
+
         /*Video*/
         case AV_CODEC_ID_H264:
             return AF_CODEC_ID_H264;
@@ -272,8 +275,12 @@ enum AFCodecID AVCodec2CicadaCodec(enum AVCodecID codec)
 //        case AV_CODEC_ID_VP6F:
 //            return AF_CODEC_ID_VP6;
 //
-//        case AV_CODEC_ID_VP8:
-//            return AF_CODEC_ID_VP8;
+        case AV_CODEC_ID_VP8:
+            return AF_CODEC_ID_VP8;
+            
+        case AV_CODEC_ID_VP9:
+            return AF_CODEC_ID_VP9;
+
 //
 //        case AV_CODEC_ID_MJPEG:
 //            return AF_CODEC_ID_MJPEG;
@@ -326,6 +333,9 @@ static codec_pair codec_pair_table[] = {
     {AF_CODEC_ID_H264,      AV_CODEC_ID_H264},
     {AF_CODEC_ID_HEVC,      AV_CODEC_ID_HEVC},
     {AF_CODEC_ID_AV1,       AV_CODEC_ID_AV1},
+    {AF_CODEC_ID_VP8,       AV_CODEC_ID_VP8},
+    {AF_CODEC_ID_VP9,       AV_CODEC_ID_VP9},
+    {AF_CODEC_ID_OPUS,      AV_CODEC_ID_OPUS},
     {AF_CODEC_ID_MPEG4,     AV_CODEC_ID_MPEG4},
     {AF_CODEC_ID_NONE,      AV_CODEC_ID_NONE},
 };

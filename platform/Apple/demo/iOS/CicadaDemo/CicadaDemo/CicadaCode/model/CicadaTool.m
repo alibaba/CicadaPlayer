@@ -126,7 +126,7 @@
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSArray *fileList = [fileManager contentsOfDirectoryAtPath:documentPath error:nil];
     NSMutableArray *dirArray = [[NSMutableArray alloc] init];
-    NSArray *suffixArray = @[@"mp4",@"mp3",@"flv",@"mov"];
+    NSArray *suffixArray = @[@"webm", @"mp4",@"mp3",@"flv",@"mov"];
     for (NSString *file in fileList) {
         if ([suffixArray containsObject:[[file pathExtension] lowercaseString]]) {
             NSString *filePath = [NSString stringWithFormat:@"%@/%@",documentPath,file];
