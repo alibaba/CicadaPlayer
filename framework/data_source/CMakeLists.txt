@@ -46,7 +46,7 @@ set(SOURCE_FILES ${SOURCE_FILES}
         proxyDataSource.cpp
         proxyDataSource.h
         dataSourcePrototype.cpp
-        dataSourcePrototype.h curl/curlShare.cpp curl/curlShare.h)
+        dataSourcePrototype.h curl/curlShare.cpp curl/curlShare.h curl/CURLConnection.cpp curl/CURLConnection.h)
 
 
 include_directories(
