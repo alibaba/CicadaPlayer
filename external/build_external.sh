@@ -6,20 +6,23 @@ PATH=$PATH:${BUILD_TOOLS_DIR}
 source ../build_tools/utils.sh
 source user_env.sh
 
-function patch_ffmpeg() {
-
-    cd ${FFMPEG_SOURCE_DIR}
-    git am ../../contribute/ffmpeg/0001-chore-win32-fix-not-find-openssl-1.1.1.patch
-
+function git_am_patch() {
+    git am $1
     if [ $? -ne 0 ]; then
         print_warning "patch error, may be patched"
         git am --abort
-        return 0;
     fi
-    git am ../../contribute/ffmpeg/0002-chore-avformat-change-MAX_PES_PAYLOAD-to-5M.patch
-    git am ../../contribute/ffmpeg/0003-chore-libavformat-exoport-some-functions.patch
-    git am ../../contribute/ffmpeg/0004-chore-fix-Linux-build.patch
-    git am ../../contribute/ffmpeg/0005-chore-disable-libdav1d-check.patch
+}
+
+function patch_ffmpeg() {
+
+    cd ${FFMPEG_SOURCE_DIR}
+    git_am_patch ../../contribute/ffmpeg/0001-chore-win32-fix-not-find-openssl-1.1.1.patch
+    git_am_patch ../../contribute/ffmpeg/0002-chore-avformat-change-MAX_PES_PAYLOAD-to-5M.patch
+    git_am_patch ../../contribute/ffmpeg/0003-chore-libavformat-exoport-some-functions.patch
+    git_am_patch ../../contribute/ffmpeg/0004-chore-fix-Linux-build.patch
+    git_am_patch ../../contribute/ffmpeg/0005-chore-disable-libdav1d-check.patch
+    git_am_patch ../../contribute/ffmpeg/0006-flv-add-extensions-for-H.265-HEVC.patch
 }
 
 function load_source() {
