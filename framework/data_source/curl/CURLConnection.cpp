@@ -14,7 +14,8 @@ using namespace std;
 using namespace Cicada;
 #define MAX_RESPONSE_SIZE 1024
 
-#define RINGBUFFER_SIZE 1024*16
+#define RINGBUFFER_SIZE 1024*256
+#define RINGBUFFER_BACK_SIZE 1024*512
 
 #define MIN_SO_RCVBUF_SIZE 1024*64
 
@@ -46,7 +47,8 @@ static int getErrorCode(const CURLcode &CURLResult)
 Cicada::CURLConnection::CURLConnection(Cicada::IDataSource::SourceConfig *pConfig)
 {
     mHttp_handle = curl_easy_init();
-    pRbuf = RingBufferCreate(RINGBUFFER_SIZE);
+    pRbuf = RingBufferCreate(RINGBUFFER_SIZE + RINGBUFFER_BACK_SIZE);
+    RingBufferSetBackSize(pRbuf, RINGBUFFER_BACK_SIZE);
     m_bFirstLoop = 1;
     mPConfig = pConfig;
 
@@ -287,8 +289,8 @@ int CURLConnection::my_trace(CURL *handle, curl_infotype type,
 
     switch (type) {
         case CURLINFO_TEXT:
-            AF_LOGD("== Info: %s", data);
 
+        //    AF_LOGD("== Info: %s", data);
         default: /* in case a new one is introduced to shock us */
             return 0;
 
@@ -317,7 +319,7 @@ int CURLConnection::my_trace(CURL *handle, curl_infotype type,
             break;
     }
 
-    AF_LOGD("%s\n", text);
+    //  AF_LOGD("%s\n", text);
     return 0;
 }
 
@@ -399,8 +401,8 @@ int CURLConnection::FillBuffer(uint32_t want)
                                                   overflowSize));
 
             if (p == nullptr) {
-                AF_LOGE("av_realloc error\n");
-                return -ENOMEM;
+                //    AF_LOGE("av_realloc error\n");
+                //     return -ENOMEM;
             }
 
             pOverflowBuffer = p;
@@ -621,22 +623,34 @@ int CURLConnection::FillBuffer(uint32_t want)
 
 int CURLConnection::short_seek(int64_t off)
 {
-    uint32_t m_bufferSize = 1024 * 512;
+    uint32_t m_bufferSize = 1024 * 64;
     int ret;
+    int64_t delta = off - mFilePos;
 
-    if (FITS_INT(off - mFilePos) &&
-            RingBufferSkipBytes(pRbuf, (int) (off - mFilePos))) {
+    if (delta < 0) {
+        if (RingBufferSkipBytes(pRbuf, (int) delta)) {
+            mFilePos = off;
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+
+    if (RingBufferSkipBytes(pRbuf, (int) delta)) {
         mFilePos = off;
         return 0;
     }
 
-    if (off > mFilePos && off < mFilePos + m_bufferSize) {
+    if (off < mFilePos + m_bufferSize) {
         int len = RingBuffergetMaxReadSize(pRbuf);
-        mFilePos += len;
-        RingBufferSkipBytes(pRbuf, len);
+
+        if (len > 0) {
+            mFilePos += len;
+            RingBufferSkipBytes(pRbuf, len);
+        }
 
         if ((ret = FillBuffer(m_bufferSize)) < 0) {
-            if (!RingBufferSkipBytes(pRbuf, -len)) {
+            if (len && !RingBufferSkipBytes(pRbuf, -len)) {
                 AF_LOGE("%s - Failed to restore position after failed fill", __FUNCTION__);
             } else {
                 mFilePos -= len;
@@ -645,11 +659,12 @@ int CURLConnection::short_seek(int64_t off)
             return ret;
         }
 
-        if (!FITS_INT(off - mFilePos) ||
-                !RingBufferSkipBytes(pRbuf, (int) (off - mFilePos))) {
-            AF_LOGE("%s - Failed to skip to position after having filled buffer", __FUNCTION__);
+        AF_LOGI("read buffer size %d need is %d\n", RingBuffergetMaxReadSize(pRbuf), delta - len);
 
-            if (!RingBufferSkipBytes(pRbuf, -len)) {
+        if (!RingBufferSkipBytes(pRbuf, (int) (delta - len))) {
+            AF_LOGI("%s - Failed to skip to position after having filled buffer", __FUNCTION__);
+
+            if (len && !RingBufferSkipBytes(pRbuf, -len)) {
                 AF_LOGE("%s - Failed to restore position after failed seek", __FUNCTION__);
             } else {
                 mFilePos -= len;
@@ -672,6 +687,7 @@ int CURLConnection::readBuffer(void *buf, size_t size)
     /*if (re == CURLE_OK)
         av_log(mCurlhttpContext.hd,AV_LOG_DEBUG,"download speed is %f\n",downloadSpeed);*/
     uint32_t want = std::min(RingBuffergetMaxReadSize(pRbuf), (uint32_t) size);
+    assert(want > 0);
 
     if (RingBufferReadData(pRbuf, (char *) buf, want) == want) {
         mFilePos += want;

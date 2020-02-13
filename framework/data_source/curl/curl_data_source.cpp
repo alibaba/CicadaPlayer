@@ -61,7 +61,7 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
     char *ipstr = nullptr;
     double length;
     long response;
-    AF_LOGD("start connect\n");
+    AF_LOGD("start connect %lld\n", filePos);
     pConnection->SetResume(filePos);
     pConnection->start();
 
@@ -136,6 +136,7 @@ static void clean_curl()
 CurlDataSource::CurlDataSource(const string &url) : IDataSource(url)
 {
     mFileSize = -1;
+    mConnections = new std::vector<CURLConnection *>();
 }
 
 CurlDataSource::~CurlDataSource()
@@ -161,7 +162,7 @@ int CurlDataSource::Open(int flags)
 
     if (headerList) {
         curl_slist_free_all(headerList);
-        headerList = NULL;
+        headerList = nullptr;
     }
 
     std::vector<std::string> &customHeaders = mConfig.customHeaders;
@@ -204,9 +205,6 @@ int CurlDataSource::Open(const string &url)
         return Open(0);
     }
 
-//        if (curlContext.still_running){
-//            return -1;
-//        }
     mOpenTimeMS = af_gettime_relative() / 1000;
     mPConnection->disconnect();
     bool isRTMP = url.compare(0, 7, "rtmp://") == 0;
@@ -220,25 +218,50 @@ int CurlDataSource::Open(const string &url)
         fillConnectInfo();
     }
 
+    closeConnections(false);
+    mConnections = new std::vector<CURLConnection *>();
     return ret;
 }
 
 void CurlDataSource::Close()
 {
-    std::lock_guard<std::mutex> lock(mMutex);
-    CURLConnection *deleteConnection = mPConnection;
+    closeConnections(true);
+}
+
+void CurlDataSource::closeConnections(bool current)
+{
+    lock_guard<mutex> lock(mMutex);
+    CURLConnection *deleteConnection = nullptr;
+    vector<CURLConnection *> *pConnections = mConnections;
     mPConnection = nullptr;
+    mConnections = nullptr;
+
+    if (current) {
+        deleteConnection = mPConnection;
+        mPConnection = nullptr;
+    }
 
     if (deleteConnection) {
         AsyncJob::Instance()->addJob([deleteConnection] {
             delete deleteConnection;
         });
     }
+
+    if (pConnections) {
+        AsyncJob::Instance()->addJob([pConnections] {
+            for (auto item = pConnections->begin(); item != pConnections->end();)
+            {
+                delete *item;
+                item = pConnections->erase(item);
+            }
+            delete pConnections;
+        });
+    }
 }
 
 int64_t CurlDataSource::Seek(int64_t offset, int whence)
 {
-    //AF_LOGD("CurlDataSource::Seek position is %lld,when is %d",offset,whence);
+//    AF_LOGD("CurlDataSource::Seek position is %lld,when is %d", offset, whence);
     if (whence == SEEK_SIZE) {
         return mFileSize;
     } else if ((whence == SEEK_CUR && offset == 0) ||
@@ -264,9 +287,46 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
         return offset;
     }
 
+    if (offset > mFileSize) {
+        return -1;
+    }
+
+    if (offset == mFileSize) {
+    }
+
     //first seek in cache
     if (mPConnection->short_seek(offset) >= 0) {
+        AF_LOGI("short seek ok\n");
         return offset;
+    } else {
+        AF_LOGI("short seek filed\n");
+    }
+
+    CURLConnection *con = nullptr;
+
+    for (auto item = mConnections->begin(); item != mConnections->end();) {
+        if ((*(item))->short_seek(offset) >= 0) {
+            con = *item;
+            item = mConnections->erase(item);
+            break;
+        } else {
+            ++item;
+        }
+    }
+
+    if (con) {
+        mConnections->push_back(mPConnection);
+
+        if (mConnections->size() > max_connection) {
+            delete mConnections->front();
+            mConnections->erase(mConnections->begin());
+        }
+
+        mPConnection = con;
+        AF_LOGW("short seek ok\n");
+        return offset;
+    } else {
+        AF_LOGW("short seek filed\n");
     }
 
     int64_t ret = TrySeekByNewConnection(offset);
@@ -283,7 +343,13 @@ int64_t CurlDataSource::TrySeekByNewConnection(int64_t offset)
     if (ret >= 0) {
         std::lock_guard<std::mutex> lock(mMutex);
         // try seek ok, use the new connection
-        delete mPConnection;
+        mConnections->push_back(mPConnection);
+
+        if (mConnections->size() > max_connection) {
+            delete mConnections->front();
+            mConnections->erase(mConnections->begin());
+        }
+
         mPConnection = pConnection_s;
         return offset;
     }

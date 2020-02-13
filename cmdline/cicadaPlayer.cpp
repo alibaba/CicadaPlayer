@@ -90,6 +90,7 @@ int main(int argc, const char **argv)
     }
 
     log_enable_color(1);
+    log_set_level(AF_LOG_LEVEL_TRACE, 1);
     cicadaCont cicada{};
     unique_ptr<MediaPlayer> player = unique_ptr<MediaPlayer>(new MediaPlayer());
     cicada.player = player.get();
