@@ -63,6 +63,7 @@ namespace Cicada {
         static CurlDataSource se;
 
     private:
+        const static int max_connection = 1;
         std::string mLocation;
         int64_t mFileSize = -1;
         CURLConnection *mPConnection = nullptr;
@@ -80,6 +81,9 @@ namespace Cicada {
         std::mutex mMutex;
         std::string mConnectInfo;
         bool mBDummy = false;
+        std::vector<CURLConnection *>* mConnections {nullptr};
+
+        void closeConnections(bool current);
     };
 }
 

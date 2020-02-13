@@ -20,7 +20,7 @@ set(SOURCE_FILES
         af_string.cpp
         errors/framework_error.c
         af_clock.cpp
-        ringBuffer.c
+        ringBuffer.cpp
         cJSON.c
         globalSettings.cpp
         property.cpp

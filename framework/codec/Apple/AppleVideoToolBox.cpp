@@ -563,7 +563,7 @@ namespace Cicada {
             assert(mParser != nullptr);
             mParser->parser(packet->getData(), packet->getSize());
             int poc = mParser->getPOC();
-            assert(poc >= 0);
+            //   assert(poc >= 0);
 //            AF_LOGD("poc is %d\n", poc);
 
             if (poc == 0) {

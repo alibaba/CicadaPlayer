@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(CicadaMedia)
 
-#set(USEASAN ON)
+set(USEASAN ON)
 #set(USETSAN ON)
 #set(USEUBSAN ON)
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

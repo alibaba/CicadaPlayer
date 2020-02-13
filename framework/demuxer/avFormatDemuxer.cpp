@@ -80,7 +80,7 @@ namespace Cicada {
         int64_t startTime = af_getsteady_ms();
         bool use_filename = false;
 
-        if (mReadCb != nullptr) {
+        if (mReadCb != nullptr ) {
             uint8_t *read_buffer = static_cast<uint8_t *>(av_malloc(INITIAL_BUFFER_SIZE));
             mPInPutPb = avio_alloc_context(read_buffer, INITIAL_BUFFER_SIZE, 0, mUserArg, mReadCb, nullptr, mSeekCb);
 
