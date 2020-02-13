@@ -3,6 +3,7 @@
 //
 #define LOG_TAG "GLRender_OESContext"
 
+#include <utils/timer.h>
 #include "OESProgramContext.h"
 
 using namespace cicada;
@@ -131,7 +132,7 @@ void OESProgramContext::createDecoderSurface() {
     glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    mDecoderSurface = new DecoderSurface(nullptr);
+    mDecoderSurface = new DecoderSurface(this);
     mDecoderSurface->Init(mOutTextureId, nullptr);
 }
 
@@ -344,6 +345,22 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
 
     frame = nullptr;
 
+    {
+        std::unique_lock<std::mutex> waitLock(mFrameAvailableMutex);
+        if (!mFrameAvailable) {
+            mFrameAvailableCon.wait_for(waitLock, std::chrono::milliseconds(10), [this]() {
+                return mFrameAvailable;
+            });
+        }
+
+        if (mFrameAvailable) {
+            mFrameAvailable = false;
+        } else {
+            AF_LOGW("frame not available after 10ms");
+            return -1;
+        }
+    }
+
     if (mRegionChanged) {
         AF_LOGD("0918, mRegionChanged");
         updateDrawRegion();
@@ -395,4 +412,9 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
 //    glDisableVertexAttribArray(texCoordIndex);
 
     return 0;
+}
+
+void OESProgramContext::onFrameAvailable() {
+    std::unique_lock<std::mutex> lock(mFrameAvailableMutex);
+    mFrameAvailable = true;
 }

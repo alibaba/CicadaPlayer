@@ -1,3 +1,4 @@
+#define LOG_TAG "DecoderSurface"
 
 #include "decoder_surface.h"
 #include <utils/Android/AndroidJniHandle.h>
@@ -208,7 +209,7 @@ namespace Cicada {
 
     void DecoderSurface::onFrameAvailable()
     {
-//    mCallback->onFrameAvailable();
+        mCallback->onFrameAvailable();
 //        UpdateTexImg();
     }
 
