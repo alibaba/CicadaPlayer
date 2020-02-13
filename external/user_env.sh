@@ -7,6 +7,7 @@ FDK_AAC_SOURCE_DIR=$TOP_DIR/external/fdk-aac/
 X264_SOURCE_DIR=$TOP_DIR/external/x264/
 OPEN_SSL_SOURCE_DIR=$TOP_DIR/external/openssl/
 CURL_SOURCE_DIR=$TOP_DIR/external/curl
+DAV1D_SOURCE_DIR=$TOP_DIR/external/dav1d
 #ARES_SOURCE_DIR=$TOP_DIR/external/cares
 #RTMPDUMP_SOURCE_DIR=$TOP_DIR/external/rtmpdump/
 #ANDROID_NDK=$ANDROID_NDK_HOME

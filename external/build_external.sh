@@ -25,6 +25,14 @@ function patch_ffmpeg() {
     git_am_patch ../../contribute/ffmpeg/0006-flv-add-extensions-for-H.265-HEVC.patch
 }
 
+function patch_dav1d() {
+    cd ${DAV1D_SOURCE_DIR}
+    git reset --hard 39667c751d427e447cbe8be783cfecd296659e24
+    if [[ "$TARGET_PLATFORM" == "iOS" ]];then
+        git_am_patch ../../contribute/dav1d/0001-chore-enable-bitcode.patch
+    fi
+}
+
 function load_source() {
     local user_sources=$(cd ${PWD};ls ../*_git_source_list.sh)
     local user_source
@@ -96,6 +104,50 @@ function check_cmake(){
     fi
 #    brew upgrade cmake
 }
+
+function check_meson(){
+    if [ ! `which meson` ]
+    then
+        echo 'meson not found'
+        echo 'Trying to install meson...'
+        brew install meson || exit 1
+    fi
+#    brew upgrade meson
+}
+
+function check_ninja(){
+    if [ ! `which ninja` ]
+    then
+        echo 'ninja not found'
+        echo 'Trying to install ninja...'
+        brew install ninja || exit 1
+    fi
+#    brew upgrade ninja
+}
+
+function check_nasm(){
+    if [ ! `which nasm` ]
+    then
+        echo 'nasm not found'
+        echo 'Trying to install nasm...'
+        brew install nasm || exit 1
+    fi
+#    brew upgrade nasm
+}
+
+function check_dav1d(){
+    if [ -d "${DAV1D_SOURCE_DIR}" ]
+    then
+        check_meson
+        check_ninja
+        check_nasm
+        patch_dav1d
+        cd ${TOP_DIR}
+    else
+        echo "DAV1D_SOURCE_DIR not enable"
+    fi
+}
+
 function check_yasm(){
     if [ ! `which yasm` ]
     then
@@ -142,12 +194,14 @@ if [ "$1" == "Android" ];then
         export ANDROID_NDK=~/Android-env/android-ndk-r14b/
     fi
     check_android_tools
+    check_dav1d
     ../build_tools/build_Android.sh
 
 elif [ "$1" == "iOS" ];then
     #export HOMEBREW_NO_AUTO_UPDATE=true
     check_cmake
     check_yasm
+    check_dav1d
     ../build_tools/build_iOS.sh
 elif [ "$1" == "macOS" ];then
     ../build_tools/build_native.sh 

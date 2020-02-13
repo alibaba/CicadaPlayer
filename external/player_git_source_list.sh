@@ -37,3 +37,10 @@ fi
 CURL_BRANCH="curl-7_63_0"
 clone_git $CURL_GIT "$CURL_BRANCH"
 
+if [[ -z "${DAV1D_EXTERNAL_DIR}" ]];then
+    if [ -z "${DAV1D_GIT}" ];then
+        DAV1D_GIT="https://code.videolan.org/videolan/dav1d.git"
+    fi
+    DAV1D_BRANCH="0.5.2"
+    clone_git $DAV1D_GIT $DAV1D_BRANCH
+fi

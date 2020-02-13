@@ -19,6 +19,7 @@ user_env.sh，编译系统会自动执行该脚本
     X264_SOURCE_DIR=$TOP_DIR/external/x264/
     OPEN_SSL_SOURCE_DIR=$TOP_DIR/external/openssl/
     CURL_SOURCE_DIR=$TOP_DIR/external/curl
+    DAV1D_SOURCE_DIR=$TOP_DIR/external/dav1d
     RTMPDUMP_SOURCE_DIR=$TOP_DIR/external/rtmpdump/
     ANDROID_NDK=$ANDROID_NDK_HOME
     
