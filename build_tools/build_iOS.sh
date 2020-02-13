@@ -71,7 +71,7 @@ function build_shared_framework(){
     export CPU_FLAGS=
     export LDFLAGS=
 
-    local support_libs="fdk-aac x264 curl openssl librtmp cares"
+    local support_libs="fdk-aac x264 curl openssl librtmp cares dav1d"
 
     SRC_LIBRARIES_DIR="$CWD/install/ffmpeg/iOS/fat/lib"
 

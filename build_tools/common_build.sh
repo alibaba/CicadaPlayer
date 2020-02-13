@@ -4,6 +4,7 @@ source build_x264.sh
 source build_openssl_111.sh
 source build_openssl.sh
 source build_curl.sh
+source build_dav1d.sh
 source build_fdk_aac.sh
 source ffmpeg_commands.sh
 source build_ffmpeg.sh
@@ -98,6 +99,18 @@ function build_static_lib(){
         fi
     else
         print_warning "x264 source not found"
+    fi
+
+    if [ -d "${DAV1D_SOURCE_DIR}" ]
+    then
+        cd ${CWD}
+        build_dav1d $1 ${arch}
+        if [ $? -ne 0 ]; then
+            echo "build_dav1d build failed"
+            exit -1
+        fi
+    else
+        print_warning "dav1d source not found"
     fi
 
     if [ -d "${FFMPEG_SOURCE_DIR}" ]

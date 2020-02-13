@@ -17,14 +17,18 @@ if [[ "$TARGET_PLATFORM" != "Android" ]];then
     ffmpeg_config_add_protocols udp
 fi
 
-DAV1D_INSTALL_DIR=
 if [[ -n "${DAV1D_EXTERNAL_DIR}" ]];then
     if [ -d "${DAV1D_EXTERNAL_DIR}/$TARGET_PLATFORM/$TARGET_ARCH" ];then
         DAV1D_INSTALL_DIR="${DAV1D_EXTERNAL_DIR}/$TARGET_PLATFORM/$TARGET_ARCH"
-        ffmpeg_config_add_user "--enable-libdav1d --enable-decoder=libdav1d"
-        ffmpeg_config_add_extra_cflags "-I${DAV1D_INSTALL_DIR}/include"
-        ffmpeg_config_add_extra_ldflags "-L${DAV1D_INSTALL_DIR}/lib -ldav1d"
+    else
+        DAV1D_INSTALL_DIR=
     fi
+fi
+
+if [ -d "${DAV1D_INSTALL_DIR}" ];then
+    ffmpeg_config_add_user "--enable-libdav1d --enable-decoder=libdav1d"
+    ffmpeg_config_add_extra_cflags "-I${DAV1D_INSTALL_DIR}/include"
+    ffmpeg_config_add_extra_ldflags "-L${DAV1D_INSTALL_DIR}/lib -ldav1d"
 fi
 
 echo "DAV1D_INSTALL_DIR is $DAV1D_INSTALL_DIR"
