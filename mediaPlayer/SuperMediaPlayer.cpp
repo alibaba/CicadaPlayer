@@ -296,11 +296,15 @@ namespace Cicada {
 
         if (mDataSource) {
             mDataSource->Interrupt(inter);
+        } else {
+            AF_TRACE;
         }
 
         if (mDemuxerService) {
             mDemuxerService->interrupt(inter);
             mDemuxerService->preStop();
+        } else {
+            AF_TRACE;
         }
     }
 
@@ -3254,6 +3258,10 @@ namespace Cicada {
             }
         }
 
+        if (mCanceled) {
+            return;
+        }
+
         {
             std::lock_guard<std::mutex> locker(mCreateMutex);
             mDemuxerService = new demuxer_service(mDataSource);
@@ -3448,6 +3456,11 @@ namespace Cicada {
         config.customHeaders = mSet.customHeaders;
         config.listener = &mSourceListener;
         mSourceListener.enableRetry();
+
+        if (mCanceled) {
+            return FRAMEWORK_ERR_EXIT;
+        }
+
         {
             std::lock_guard<std::mutex> locker(mCreateMutex);
             mDataSource = dataSourcePrototype::create(mSet.url, &mSet.mOptions);
