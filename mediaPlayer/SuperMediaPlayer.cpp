@@ -323,6 +323,44 @@ namespace Cicada {
         Interrupt(true);
         mPlayerCondition.notify_one();
         mApsaraThread.pause();
+
+        if (mDemuxerService) {
+            mDemuxerService->interrupt(1);
+
+            if (mDataSource) {
+                mDataSource->Interrupt(true);
+            }
+
+            std::lock_guard<std::mutex> uMutex(mCreateMutex);
+            mDemuxerService->stop();
+            mDemuxerService->close();
+
+            if (mMixMode) {
+                if (mMainStreamId != -1) {
+                    mDemuxerService->CloseStream(mMainStreamId);
+                }
+
+                if (mCurrentSubtitleIndex >= 0) {
+                    mDemuxerService->CloseStream(mCurrentSubtitleIndex);
+                }
+            } else {
+                if (mCurrentAudioIndex >= 0) {
+                    mDemuxerService->CloseStream(mCurrentAudioIndex);
+                }
+
+                if (mCurrentVideoIndex >= 0) {
+                    mDemuxerService->CloseStream(mCurrentVideoIndex);
+                }
+
+                if (mCurrentSubtitleIndex >= 0) {
+                    mDemuxerService->CloseStream(mCurrentSubtitleIndex);
+                }
+            }
+
+            delete mDemuxerService;
+            mDemuxerService = nullptr;
+        }
+
         mMessageControl.clear();
         mPlayStatus = PLAYER_STOPPED;
         //        ChangePlayerStatus(PLAYER_STOPPED);
@@ -364,43 +402,6 @@ namespace Cicada {
             }
         }
         AF_TRACE;
-
-        if (mDemuxerService) {
-            mDemuxerService->interrupt(1);
-
-            if (mDataSource) {
-                mDataSource->Interrupt(true);
-            }
-
-            std::lock_guard<std::mutex> uMutex(mCreateMutex);
-            mDemuxerService->stop();
-            mDemuxerService->close();
-
-            if (mMixMode) {
-                if (mMainStreamId != -1) {
-                    mDemuxerService->CloseStream(mMainStreamId);
-                }
-
-                if (mCurrentSubtitleIndex >= 0) {
-                    mDemuxerService->CloseStream(mCurrentSubtitleIndex);
-                }
-            } else {
-                if (mCurrentAudioIndex >= 0) {
-                    mDemuxerService->CloseStream(mCurrentAudioIndex);
-                }
-
-                if (mCurrentVideoIndex >= 0) {
-                    mDemuxerService->CloseStream(mCurrentVideoIndex);
-                }
-
-                if (mCurrentSubtitleIndex >= 0) {
-                    mDemuxerService->CloseStream(mCurrentSubtitleIndex);
-                }
-            }
-
-            delete mDemuxerService;
-            mDemuxerService = nullptr;
-        }
 
         if (mDataSource) {
             mDataSource->Close();
@@ -3726,7 +3727,9 @@ namespace Cicada {
             mVideoChangedFirstPts = INT64_MIN;
         }
 
-        mDemuxerService->SetOption("FRAME_RENDERED", pts);
+        if (mDemuxerService) {
+            mDemuxerService->SetOption("FRAME_RENDERED", pts);
+        }
 
         if (mSet.bEnableVRC) {
             mPNotifier->NotifyVideoRendered(timeMs, pts);
