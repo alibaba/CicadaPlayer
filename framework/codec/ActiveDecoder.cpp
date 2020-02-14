@@ -137,8 +137,15 @@ bool ActiveDecoder::needDrop(IAFPacket *packet)
     if (packet == nullptr) {
         return false;
     }
-    if (packet->getInfo().flags & AF_PKT_FLAG_CORRUPT)
+
+    if (packet->getInfo().flags & AF_PKT_FLAG_CORRUPT) {
         return true;
+    }
+
+    // TODO: make sure HEVC not need drop also
+    if (packet->getInfo().codec_id != AF_CODEC_ID_HEVC) {
+        return false;
+    }
 
     if (bNeedKeyFrame) { // need a key frame, when first start or after seek
         if ((packet->getInfo().flags & AF_PKT_FLAG_KEY) == 0) { // drop the frame that not a key frame
@@ -346,7 +353,6 @@ int ActiveDecoder::extract_decoder()
 {
     int count = 0;
     int size;
-
     {
         std::unique_lock <std::mutex> uMutex(mMutex);
         size = mOutputQueue.size();
