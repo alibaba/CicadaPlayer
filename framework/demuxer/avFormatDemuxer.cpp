@@ -666,4 +666,12 @@ namespace Cicada {
         ffmpeg_init();
     }
 
+    void avFormatDemuxer::PreStop()
+    {
+#if AF_HAVE_PTHREAD
+        bPaused = true;
+        mQueCond.notify_one();
+#endif
+    }
+
 }
