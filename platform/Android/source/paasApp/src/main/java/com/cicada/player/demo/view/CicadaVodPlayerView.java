@@ -1869,7 +1869,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
      */
     public void stop() {
         if (mCicadaVodPlayer != null) {
-            mCicadaVodPlayer.selectExtSubtitle(mPreviewTrackIndex, false);
+     //       mCicadaVodPlayer.selectExtSubtitle(mPreviewTrackIndex, false);
             mCicadaVodPlayer.stop();
 
             updateViewState(ControlView.PlayState.Idle);
