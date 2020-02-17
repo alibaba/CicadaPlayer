@@ -8,8 +8,6 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Choreographer;
 
-import com.alivc.component.encoder.NativeUsed;
-
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
 @NativeUsed
 public class VsyncTimer {
@@ -37,15 +35,12 @@ public class VsyncTimer {
 
     public VsyncTimer(long nativePtr) {
         mNativePtr = nativePtr;
-        Log.d("0906", "nativePtr  = " + mNativePtr);
         mTimerThread = new HandlerThread(TAG);
         mTimerThread.start();
         mTimerHandler = new Handler(mTimerThread.getLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 if (msg.what == WHAT_INIT) {
-
-                    Log.d("0906", "onInit nativePtr  = " + mNativePtr);
                     onInit(mNativePtr);
                 } else if (msg.what == WHAT_START) {
                     Choreographer.getInstance().postFrameCallback(mFrameCallback);
