@@ -23,7 +23,7 @@ namespace Cicada {
 
     void DecoderSurface::init(JNIEnv *env) {
         if (gj_ds_Class == nullptr) {
-            jclass lc = env->FindClass("com/alivc/component/decoder/DecoderSurfaceTexture");
+            jclass lc = env->FindClass("com/cicada/player/utils/DecoderSurfaceTexture");
 
             if (lc) {
                 gj_ds_Class = reinterpret_cast<jclass>(env->NewGlobalRef(lc));

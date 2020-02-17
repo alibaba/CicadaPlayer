@@ -1,7 +1,5 @@
 package com.cicada.player.utils;
 
-import java.security.PublicKey;
-
 public class Logger {
 
     static {
