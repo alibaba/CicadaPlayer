@@ -180,6 +180,7 @@ namespace Cicada {
 
     bool PlayerMessageControl::empty()
     {
+        ADD_LOCK;
         return mMsgQueue.empty();
     }
 
