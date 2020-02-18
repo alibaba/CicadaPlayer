@@ -259,6 +259,7 @@ bool GLRender::renderActually()
 #ifdef __ANDROID__
 
     if (needCreateOutTexture) {
+        mPrograms.erase(AF_PIX_FMT_CICADA_MEDIA_CODEC);
         IProgramContext *programContext = getProgram(AF_PIX_FMT_CICADA_MEDIA_CODEC);
         needCreateOutTexture = false;
         mCreateOutTextureCondition.notify_all();
@@ -379,7 +380,6 @@ bool GLRender::renderActually()
         mContext->Present(mGLSurface);
 
         if (mProgramContext != nullptr) {
-            mPrograms.erase(mProgramFormat);
             mProgramFormat = -1;
             mProgramContext = nullptr;
         }
