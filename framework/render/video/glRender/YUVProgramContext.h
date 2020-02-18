@@ -17,8 +17,6 @@ public:
 private:
     int initProgram() override ;
 
-    void *getSurface()  override ;
-
     void updateScale(IVideoRender::Scale scale) override ;
 
     void updateFlip(IVideoRender::Flip flip) override ;

@@ -42,7 +42,12 @@ public:
 
     virtual int initProgram() = 0;
 
-    virtual void *getSurface() = 0;
+    virtual void createSurface() {
+    }
+
+    virtual void *getSurface() {
+        return nullptr;
+    };
 
     virtual void updateScale(IVideoRender::Scale scale) = 0;
 
