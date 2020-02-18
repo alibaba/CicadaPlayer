@@ -47,6 +47,7 @@ private:
 
     int mWindowWidth  = 0;
     int mWindowHeight = 0;
+    bool mWindowChanged = false;
 
     double mDar = 1;
     int mFrameWidth = 0;
