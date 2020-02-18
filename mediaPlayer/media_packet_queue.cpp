@@ -53,7 +53,7 @@ namespace Cicada {
         for (auto r_iter = mQueue.rbegin(); r_iter != mQueue.rend(); ++r_iter) {
             IAFPacket *packet = (*r_iter).get();
 
-            if (packet && packet->getInfo().flags) {
+            if (packet && (packet->getInfo().flags & AF_PKT_FLAG_KEY)) {
                 lastPos = packet->getInfo().timePosition;
                 return lastPos;
             }
@@ -72,6 +72,7 @@ namespace Cicada {
 
         return mQueue.back()->getInfo().pts;
     }
+
     int64_t MediaPacketQueue::GetLastTimePos()
     {
         ADD_LOCK;
@@ -82,6 +83,7 @@ namespace Cicada {
 
         return mQueue.back()->getInfo().timePosition;
     }
+
     int64_t MediaPacketQueue::GetKeyPTSBefore(int64_t pts)
     {
         ADD_LOCK;
@@ -90,7 +92,7 @@ namespace Cicada {
         for (auto r_iter = mQueue.rbegin(); r_iter != mQueue.rend(); ++r_iter) {
             IAFPacket *packet = (*r_iter).get();
 
-            if (packet && packet->getInfo().flags && packet->getInfo().pts <= pts) {
+            if (packet && (packet->getInfo().flags & AF_PKT_FLAG_KEY) && packet->getInfo().pts <= pts) {
                 lastKeyPts = packet->getInfo().pts;
                 return lastKeyPts;
             }
@@ -107,7 +109,7 @@ namespace Cicada {
         for (auto r_iter = mQueue.rbegin(); r_iter != mQueue.rend(); ++r_iter) {
             IAFPacket *packet = (*r_iter).get();
 
-            if (packet && packet->getInfo().flags && packet->getInfo().timePosition <= pts) {
+            if (packet && (packet->getInfo().flags & AF_PKT_FLAG_KEY) && packet->getInfo().timePosition <= pts) {
                 lastKeyPos = packet->getInfo().timePosition;
                 return lastKeyPos;
             }
@@ -185,6 +187,7 @@ namespace Cicada {
 
         return mDuration;
     }
+
     int64_t MediaPacketQueue::ClearPacketBeforePTS(int64_t pts)
     {
         ADD_LOCK;
@@ -203,6 +206,7 @@ namespace Cicada {
 
         return dropCount;
     }
+
     int64_t MediaPacketQueue::ClearPacketBeforeTimePos(int64_t pts)
     {
         ADD_LOCK;
