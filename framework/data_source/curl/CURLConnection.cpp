@@ -687,19 +687,18 @@ int CURLConnection::readBuffer(void *buf, size_t size)
     /*if (re == CURLE_OK)
         av_log(mCurlhttpContext.hd,AV_LOG_DEBUG,"download speed is %f\n",downloadSpeed);*/
     uint32_t want = std::min(RingBuffergetMaxReadSize(pRbuf), (uint32_t) size);
-    assert(want > 0);
 
-    if (RingBufferReadData(pRbuf, (char *) buf, want) == want) {
+    if (want > 0 && RingBufferReadData(pRbuf, (char *) buf, want) == want) {
         mFilePos += want;
         return want;
     }
 
     /* check if we finished prematurely */
     if (!still_running &&
-            (mFileSize <= 0 || mFilePos != mFileSize)) {
+            (mFileSize > 0 && mFilePos != mFileSize)) {
         AF_LOGE("%s - Transfer ended before entire file was retrieved pos %lld, size %lld",
                 __FUNCTION__, mFilePos, mFileSize);
-        return -1;
+        //   return -1;
     }
 
     return 0;

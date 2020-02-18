@@ -233,7 +233,6 @@ void CurlDataSource::closeConnections(bool current)
     lock_guard<mutex> lock(mMutex);
     CURLConnection *deleteConnection = nullptr;
     vector<CURLConnection *> *pConnections = mConnections;
-    mPConnection = nullptr;
     mConnections = nullptr;
 
     if (current) {
