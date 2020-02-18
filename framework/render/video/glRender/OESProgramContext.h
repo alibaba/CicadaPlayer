@@ -18,6 +18,8 @@ public:
 private:
     int initProgram() override;
 
+    void createSurface() override;
+
     void *getSurface() override;
 
     void updateScale(IVideoRender::Scale scale) override;
@@ -31,8 +33,6 @@ private:
     int updateFrame(std::unique_ptr<IAFFrame> &frame) override;
 
 private:
-
-    void createDecoderSurface();
 
     void updateFlipCoords();
 

@@ -504,10 +504,6 @@ void YUVProgramContext::bindYUVTextures() {
     glBindTexture(GL_TEXTURE_2D, mYUVTextures[2]);
 }
 
-void *YUVProgramContext::getSurface() {
-    return nullptr;
-}
-
 void YUVProgramContext::updateColorRange() {
     if (mColorRange == COLOR_RANGE_LIMITIED) {
         mUColorRange[0] = 16;
