@@ -583,7 +583,9 @@ namespace Cicada {
 
             snprintf(value, MAX_OPT_VALUE_LENGTH, "%" PRId64 "", size);
         } else if (theKey == "description") {
-            snprintf(value, MAX_OPT_VALUE_LENGTH, "%s", mSet.mOptions.get("description").c_str());
+            sprintf(value, "%s", mSet.mOptions.get("description").c_str());
+        } else if (theKey == "descriptionLen") {
+            snprintf(value, MAX_OPT_VALUE_LENGTH, "%lu", mSet.mOptions.get("description").length());
         } else if (theKey == "renderFps") {
             float renderFps = GetVideoRenderFps();
             snprintf(value, MAX_OPT_VALUE_LENGTH, "%f", renderFps);
