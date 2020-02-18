@@ -585,7 +585,8 @@ namespace Cicada {
         } else if (theKey == "description") {
             sprintf(value, "%s", mSet.mOptions.get("description").c_str());
         } else if (theKey == "descriptionLen") {
-            snprintf(value, MAX_OPT_VALUE_LENGTH, "%lu", mSet.mOptions.get("description").length());
+            snprintf(value, MAX_OPT_VALUE_LENGTH, "%lu",
+                     static_cast<unsigned long>(mSet.mOptions.get("description").length()));
         } else if (theKey == "renderFps") {
             float renderFps = GetVideoRenderFps();
             snprintf(value, MAX_OPT_VALUE_LENGTH, "%f", renderFps);
