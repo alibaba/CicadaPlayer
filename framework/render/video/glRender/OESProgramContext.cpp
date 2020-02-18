@@ -107,7 +107,9 @@ void OESProgramContext::updateRotate(IVideoRender::Rotate rotate) {
 }
 
 void OESProgramContext::updateWindowSize(int width, int height, bool windowChanged) {
-    if (mWindowWidth == width && mWindowHeight == height && !windowChanged) {
+    mWindowChanged = windowChanged;
+
+    if (mWindowWidth == width && mWindowHeight == height && !mWindowChanged) {
         return;
     }
 
@@ -355,7 +357,7 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
 
         if (mFrameAvailable) {
             mFrameAvailable = false;
-        } else {
+        } else if (mWindowChanged) {
             AF_LOGW("frame not available after 10ms");
             return -1;
         }
