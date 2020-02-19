@@ -13,7 +13,7 @@ extern "C" {
 #include <queue>
 #include <boost/lockfree/spsc_queue.hpp>
 
-namespace Cicada{
+namespace Cicada {
     class ffmpegAudioFilter : public IAudioFilter {
     public:
         ffmpegAudioFilter(const format &srcFormat, const format &dstFormat);
@@ -42,8 +42,8 @@ namespace Cicada{
         AVFilterContext *createFilter(const char *name, const char *opt);
 
     private:
-        typedef  boost::lockfree::spsc_queue<IAFFrame*, boost::lockfree::capacity<10>> spsc_queue;
-        double mRate = 1.0;
+        typedef boost::lockfree::spsc_queue<IAFFrame *, boost::lockfree::capacity<10>> spsc_queue;
+        std::atomic<double> mRate{1.0};
         double mVolume = 1.0;
         AVFilterGraph *m_pFilterGraph{};
         afThread *mPThread{};
@@ -57,8 +57,8 @@ namespace Cicada{
         int64_t mFirstPts = INT64_MIN;
         int64_t mDeltaPts = 0;
 
-        int64_t mLastInputPts = INT64_MIN;
-        int64_t mLastInPutDuration = 0;
+        std::atomic_int64_t mLastInputPts {INT64_MIN};
+        std::atomic_int64_t mLastInPutDuration {0};
 
         int addFilter(AVFilterContext **current, const char *name, const char *options_str);
     };

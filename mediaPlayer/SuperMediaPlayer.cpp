@@ -707,6 +707,7 @@ namespace Cicada {
         mSet.customHeaders.clear();
     }
 
+    // TODO: move to mainService thread
     void SuperMediaPlayer::setSpeed(float speed)
     {
         // TODO: check the speed range
@@ -1701,7 +1702,7 @@ namespace Cicada {
         if (pVideoPacket != nullptr) {
             // for cache video, or seeking accurate, check whether drop output frame
             if (mSeekNeedCatch || dropLateVideoFrames) {
-                int64_t checkPos = mSeekNeedCatch ? mSeekPos : pos;
+                int64_t checkPos = mSeekNeedCatch ? mSeekPos.load() : pos;
 
                 // only decode and don't need output to render if too old
                 if ((pVideoPacket->getInfo().timePosition < checkPos)
@@ -3705,7 +3706,6 @@ namespace Cicada {
             return;
         }
 
-        pHandle->mUtil.render(pts);
         MsgParam param;
         param.videoRenderedParam.pts = pts;
         param.videoRenderedParam.timeMs = af_getsteady_ms();
@@ -3725,6 +3725,7 @@ namespace Cicada {
 
     void SuperMediaPlayer::ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, void *picUserData)
     {
+        mUtil.render(pts);
         checkFirstRender();
 
         if (!mSeekFlag) {

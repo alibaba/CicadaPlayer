@@ -5,7 +5,8 @@
 #ifndef SOURCE_AF_CLOCK_H
 #define SOURCE_AF_CLOCK_H
 
-#include <stdint.h>
+#include <cstdint>
+#include <atomic>
 
 class af_clock {
 public:
@@ -27,7 +28,7 @@ public:
 
 
 private:
-    int64_t mStartUs = 0;
+    std::atomic_int64_t mStartUs{0};
     int mStatus = 0;
     int64_t mSetUs = 0;
     int64_t mPauseUs = 0;
@@ -56,9 +57,9 @@ public:
     virtual void reset();
 
 private:
-    float mScale = 1.0f;
+    std::atomic<float> mScale{1.0f};
     af_clock mClock;
-    int64_t mSetTime = 0;
+    std::atomic_int64_t mSetTime{0};
     int64_t mScaleStartTime = 0;
 
 };

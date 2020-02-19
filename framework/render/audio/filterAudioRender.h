@@ -91,6 +91,7 @@ namespace Cicada{
         float mSpeed{1};
         std::atomic<int64_t> mSpeedDeltaDuration{0};
         float mVolume{1};
+        std::mutex mFilterMutex{};
         std::unique_ptr<Cicada::IAudioFilter> mFilter{};
         std::mutex mFrameQueMutex;
         std::condition_variable mFrameQueCondition;
