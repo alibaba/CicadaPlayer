@@ -8,7 +8,6 @@
 
 #include <utils/frame_work_log.h>
 #include <utils/errors/framework_error.h>
-#include <cstdlib>
 #include <thread>
 #include <utils/timer.h>
 #include "utils/CicadaJSON.h"
@@ -23,7 +22,6 @@
 #include <cerrno>
 #include <utils/CicadaUtils.h>
 #include <openssl/opensslv.h>
-#include <cassert>
 #include <cstring>
 
 

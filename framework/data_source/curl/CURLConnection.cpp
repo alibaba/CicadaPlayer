@@ -9,6 +9,8 @@
 #include <utils/timer.h>
 #include "CURLConnection.h"
 #include "CURLShareInstance.h"
+#include <cassert>
+#include <cstring>
 
 using namespace std;
 using namespace Cicada;
