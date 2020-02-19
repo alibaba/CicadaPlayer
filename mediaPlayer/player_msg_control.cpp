@@ -28,6 +28,7 @@ namespace Cicada {
 
             case MSG_START:
             case MSG_PAUSE:
+            case MSG_SET_SPEED:
                 return REPLACE_LAST;
 
             case MSG_SEEKTO:
@@ -276,6 +277,10 @@ namespace Cicada {
             case MSG_SELECT_EXT_SUBTITLE:
                 mProcessor.ProcessSelectExtSubtitleMsg(msgContent.msgSelectExtSubtitleParam.index,
                                                        msgContent.msgSelectExtSubtitleParam.bSelect);
+                break;
+
+            case MSG_SET_SPEED:
+                mProcessor.ProcessSetSpeed(msgContent.msgSpeedParam.speed);
                 break;
 
             default:

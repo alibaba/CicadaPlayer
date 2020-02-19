@@ -47,7 +47,7 @@ namespace Cicada {
         int64_t mAutoSwitchTime{INT64_MIN};
         float mVolume{1.0};
         playerListener mPlayerListener;
-        float rate = 1.0;
+        atomic<float> rate {1.0};
         std::string http_proxy = "";
         std::vector<std::string> customHeaders;
         bool clearShowWhenStop = false;

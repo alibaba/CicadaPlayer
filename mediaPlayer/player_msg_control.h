@@ -28,6 +28,7 @@ namespace Cicada {
 
         MSG_ADD_EXT_SUBTITLE,
         MSG_SELECT_EXT_SUBTITLE,
+        MSG_SET_SPEED,
 
         MSG_INTERNAL_VIDEO_FIRST = 0x100,
         MSG_INTERNAL_VIDEO_RENDERED = MSG_INTERNAL_VIDEO_FIRST,
@@ -62,6 +63,10 @@ namespace Cicada {
         bool bAccurate;
     } MsgSeekParam;
 
+    typedef struct _MsgSpeedParam {
+        float speed;
+    } MsgSpeedParam;
+
     typedef struct _MsgHoldOnVideoParam {
 
         bool hold;
@@ -90,6 +95,7 @@ namespace Cicada {
         MsgVideoRenderedParam videoRenderedParam;
         MsgSelectExtSubtitleParam msgSelectExtSubtitleParam;
         MsgHoldOnVideoParam msgHoldOnVideoParam;
+        MsgSpeedParam msgSpeedParam;
     } MsgParam;
 
     typedef struct _QueueMsgStruct {
@@ -132,7 +138,7 @@ namespace Cicada {
 
         virtual void ProcessSwitchStreamMsg(int index) = 0;
 
-        virtual void ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs , void *picUserData) = 0;
+        virtual void ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, void *picUserData) = 0;
 
         virtual void ProcessVideoCleanFrameMsg() = 0;
 
@@ -141,6 +147,8 @@ namespace Cicada {
         virtual void ProcessAddExtSubtitleMsg(const std::string &url) = 0;
 
         virtual void ProcessSelectExtSubtitleMsg(int index, bool select) = 0;
+
+        virtual void ProcessSetSpeed(float speed) = 0;
 
 
     };
