@@ -199,12 +199,13 @@ void CacheModule::stop()
         if (mCacheFileRemuxer != nullptr) {
             mCacheFileRemuxer->interrupt();
             mCacheFileRemuxer->stop();
+            bool remuxSuc = mCacheFileRemuxer->isRemuxSuccess();
             delete mCacheFileRemuxer;
             mCacheFileRemuxer = nullptr;
             const string &cachePath = mCachePath.getCachePath();
             string cacheTmpPath = cachePath + TMP_SUFFIX;
 
-            if (mEos) {
+            if (mEos && remuxSuc) {
                 // completion , rename file
                 int ret = FileUtils::Rename(cacheTmpPath.c_str(), cachePath.c_str());
 

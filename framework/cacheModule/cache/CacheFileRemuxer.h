@@ -18,6 +18,7 @@
 
 #include <utils/file/FileCntl.h>
 #include <utils/mediaTypeInternal.h>
+#include "CacheRet.h"
 
 
 using namespace std;
@@ -45,6 +46,8 @@ public:
 
     void interrupt();
 
+    bool isRemuxSuccess();
+
     void setErrorCallback(function<void(int, string)> callback);
 
     void setStreamMeta(const vector<Stream_meta*>& streamMetas);
@@ -52,6 +55,8 @@ public:
     void clearStreamMetas();
 
 private :
+
+    void sendError(const CacheRet& ret);
 
     void initMuxer();
 
@@ -74,6 +79,7 @@ private:
 
     bool mInterrupt = false;
     bool mWantStop = false;
+    bool mRemuxSuc = true;
 
     mutex mThreadMutex;
     mutex mObjectMutex;

@@ -112,6 +112,7 @@ void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket> &frame, StreamType
         mCacheModule.setStreamMeta(streamMetas);
         mCacheModule.setErrorCallback([this](int code, string msg) -> void{
             AF_LOGE("cacheModule error : code = %d , msg = %s ", code, msg.c_str());
+            mNeedProcessFrame = false;
 
             if (mCacheFailCallback != nullptr)
             {
