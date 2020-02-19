@@ -724,7 +724,11 @@ namespace Cicada {
             mInputCount = 0;
         }
 
-        mReorderFrameMap.clear();
+        {
+            std::unique_lock<std::mutex> uMutex(mReorderMutex);
+            mReorderFrameMap.clear();
+        }
+
         std::lock_guard<std::mutex> lock(mActiveStatusMutex);
 
         while (!mRecoveringQueue.empty()) {
