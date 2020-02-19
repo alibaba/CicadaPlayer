@@ -68,8 +68,16 @@ private:
         return new FfmpegMuxer(destPath, destFormat);
     }
 
+    int probeScore(const string &destPath, const string &destFormat,
+                   const string &description) override {
+        if(is_supported(destPath , destFormat,description)){
+            return Cicada::SUPPORT_DEFAULT;
+        }
+        return 0;
+    }
+
     bool is_supported(const string &destPath, const string &destFormat,
-                      const string &description) override {
+                      const string &description)  {
         return true;
     }
 

@@ -7,6 +7,7 @@
 
 
 #include "IMuxer.h"
+#include <base/prototype.h>
 
 class CICADA_CPLUS_EXTERN IMuxerPrototype {
     static IMuxerPrototype *muxerPrototypeQueue[10];
@@ -22,7 +23,7 @@ protected:
 private:
     virtual IMuxer *clone(const string& destPath , const string& destFormat, const string& description) = 0;
 
-    virtual bool is_supported(const string& destPath , const string& destFormat, const string& description) = 0;
+    virtual int probeScore(const string& destPath , const string& destFormat, const string& description) = 0;
 
 };
 
