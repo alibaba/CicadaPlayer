@@ -710,22 +710,11 @@ namespace Cicada {
     // TODO: move to mainService thread
     void SuperMediaPlayer::setSpeed(float speed)
     {
-        // TODO: check the speed range
-        if (!CicadaUtils::isEqual(mSet.rate, speed)) {
-            if (HAVE_AUDIO) {
-                if (mAudioRender != nullptr) {
-                    mAudioRender->setSpeed(speed);
-                }
-            }
-
-            if (mVideoRender) {
-                mVideoRender->setSpeed(speed);
-            }
-
-            mSet.rate = speed;
-            updateLoopGap();
-            mMasterClock.SetScale(speed);
-        }
+        MsgParam param;
+        MsgSpeedParam speedParam;
+        speedParam.speed = speed;
+        param.msgSpeedParam = speedParam;
+        putMsg(MSG_SET_SPEED, param);
     }
 
     float SuperMediaPlayer::getSpeed()
@@ -1345,7 +1334,7 @@ namespace Cicada {
             int64_t maxBufferDuration = getPlayerBufferDuration(true);
 
             if (maxBufferDuration > mSet.RTMaxDelayTime + 1000 * 1000 * 5) {
-                setSpeed(1.0);
+                ProcessSetSpeed(1.0);
                 //drop frame
                 int64_t lastVideoPos = mBufferController.GetPacketLastTimePos(BUFFER_TYPE_VIDEO);
                 int64_t lastAudioPos = mBufferController.GetPacketLastTimePos(BUFFER_TYPE_AUDIO);
@@ -1465,9 +1454,9 @@ namespace Cicada {
         }
 
         if ((delayTime > mSet.RTMaxDelayTime) && (150 * 1000 < delayTime)) {
-            setSpeed(1.2);
+            ProcessSetSpeed(1.2);
         } else if ((delayTime < mSet.RTMaxDelayTime - recoverGap) || (100 * 1000 > delayTime)) {
-            setSpeed(1.0);
+            ProcessSetSpeed(1.0);
         }
     }
 
@@ -4021,6 +4010,25 @@ namespace Cicada {
     {
         if (mVideoDecoder) {
             mVideoDecoder->holdOn(hold);
+        }
+    }
+
+    void SuperMediaPlayer::ProcessSetSpeed(float speed)
+    {
+        if (!CicadaUtils::isEqual(mSet.rate, speed)) {
+            if (HAVE_AUDIO) {
+                if (mAudioRender != nullptr) {
+                    mAudioRender->setSpeed(speed);
+                }
+            }
+
+            if (mVideoRender) {
+                mVideoRender->setSpeed(speed);
+            }
+
+            mSet.rate = speed;
+            updateLoopGap();
+            mMasterClock.SetScale(speed);
         }
     }
 }//namespace Cicada

@@ -346,7 +346,7 @@ namespace Cicada {
 
         void ProcessSwitchStreamMsg(int index) final;
 
-        void ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs , void *picUserData) final;
+        void ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, void *picUserData) final;
 
         void ProcessVideoCleanFrameMsg() final;
 
@@ -355,6 +355,8 @@ namespace Cicada {
         void ProcessAddExtSubtitleMsg(const std::string &url) final;
 
         void ProcessSelectExtSubtitleMsg(int index, bool select) final;
+
+        void ProcessSetSpeed(float speed) final;
 
 
     private:
