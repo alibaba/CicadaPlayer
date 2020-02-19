@@ -113,7 +113,6 @@ namespace Cicada {
         }
     }
 
-    // TODO:move to mainLoop
     int filterAudioRender::setVolume(float volume)
     {
         if (mVolume == volume) {
@@ -121,55 +120,14 @@ namespace Cicada {
         }
 
         mVolume = volume;
-
-        if (volume > 1) {
-            float gain = volume * volume * volume;
-            std::unique_lock<std::mutex> uMutex(mFilterMutex);
-
-            if (mFilter == nullptr) {
-                mFilter = std::unique_ptr<IAudioFilter>(
-                              filterFactory::createAudioFilter(mInputInfo, mOutputInfo));
-                mFilter->setOption("volume", AfString::to_string(gain), "volume");
-                int ret = mFilter->init();
-
-                if (ret < 0) {
-                    return ret;
-                }
-            } else {
-                mFilter->setOption("volume", AfString::to_string(gain), "volume");
-            }
-
-//set device volume to 1
-            volume = 1;
-        } else {
-            if (mFilter) {
-                mFilter->setOption("volume", AfString::to_string(1.0), "volume");
-            }
-        }
-
-        float gain = volume * volume * volume;
-        device_setVolume(gain);
+        mVolumeChanged = true;
         return 0;
     }
-    // TODO:move to mainLoop
     int filterAudioRender::setSpeed(float speed)
     {
         if (mSpeed != speed) {
             mSpeed = speed;
-            std::unique_lock<std::mutex> uMutex(mFilterMutex);
-
-            if (mFilter == nullptr) {
-                mFilter = std::unique_ptr<IAudioFilter>(
-                              filterFactory::createAudioFilter(mInputInfo, mOutputInfo));
-                mFilter->setOption("rate", AfString::to_string(speed), "atempo");
-                int ret = mFilter->init();
-
-                if (ret < 0) {
-                    return ret;
-                }
-            } else {
-                mFilter->setOption("rate", AfString::to_string(speed), "atempo");
-            }
+            mSpeedChanged = true;
         }
 
         return 0;
@@ -249,6 +207,16 @@ namespace Cicada {
             return 0;
         }
 
+        if (mSpeedChanged) {
+            applySpeed();
+            mSpeedChanged = false;
+        }
+
+        if (mVolumeChanged) {
+            applyVolume();
+            mVolumeChanged = false;
+        }
+
         loopChecker();
 
         if (mRenderFrame == nullptr) {
@@ -308,5 +276,56 @@ namespace Cicada {
         }
 
         return filter_frame;
+    }
+
+    int filterAudioRender::applySpeed()
+    {
+        if (mFilter == nullptr) {
+            mFilter = std::unique_ptr<IAudioFilter>(
+                          filterFactory::createAudioFilter(mInputInfo, mOutputInfo));
+            mFilter->setOption("rate", AfString::to_string(mSpeed), "atempo");
+            int ret = mFilter->init();
+
+            if (ret < 0) {
+                return ret;
+            }
+        } else {
+            mFilter->setOption("rate", AfString::to_string(mSpeed), "atempo");
+        }
+
+        return 0;
+    }
+
+    int filterAudioRender::applyVolume()
+    {
+        float volume = mVolume;
+
+        if (volume > 1) {
+            float gain = volume * volume * volume;
+
+            if (mFilter == nullptr) {
+                mFilter = std::unique_ptr<IAudioFilter>(
+                              filterFactory::createAudioFilter(mInputInfo, mOutputInfo));
+                mFilter->setOption("volume", AfString::to_string(gain), "volume");
+                int ret = mFilter->init();
+
+                if (ret < 0) {
+                    return ret;
+                }
+            } else {
+                mFilter->setOption("volume", AfString::to_string(gain), "volume");
+            }
+
+//set device volume to 1
+            volume = 1;
+        } else {
+            if (mFilter) {
+                mFilter->setOption("volume", AfString::to_string(1.0), "volume");
+            }
+        }
+
+        float gain = volume * volume * volume;
+        device_setVolume(gain);
+        return 0;
     }
 }
