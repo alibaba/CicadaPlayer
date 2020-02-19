@@ -115,12 +115,11 @@ namespace Cicada {
 
     int filterAudioRender::setVolume(float volume)
     {
-        if (mVolume == volume) {
-            return 0;
+        if (mVolume != volume) {
+            mVolume = volume;
+            mVolumeChanged = true;
         }
 
-        mVolume = volume;
-        mVolumeChanged = true;
         return 0;
     }
     int filterAudioRender::setSpeed(float speed)
