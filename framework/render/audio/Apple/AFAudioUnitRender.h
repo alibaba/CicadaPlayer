@@ -126,7 +126,7 @@ namespace Cicada {
         std::atomic_int64_t mTotalPlayedBytes{0};
         int mLastFetchSize = 0;
         int mMaxListSize = 4;
-        uint64_t mPacketDuration = 0;
+        std::atomic_uint64_t mPacketDuration{0};
 
         std::recursive_mutex mUnitMutex;
         std::mutex mFormatMutex;

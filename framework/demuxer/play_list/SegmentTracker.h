@@ -11,7 +11,7 @@
 #include <mutex>
 #include <base/OptionOwner.h>
 
-namespace Cicada{
+namespace Cicada {
 
     class AlivcDataSource;
 
@@ -86,15 +86,15 @@ namespace Cicada{
         uint64_t mCurSegPos = 0;
 
         std::string mLocation = "";
-        time_t mTargetDuration = 0;
+        std::atomic<time_t> mTargetDuration{0};
 
         int64_t mLastLoadTime = 0;
         bool playListOwnedByMe = false;
 
         bool mInited = false;
 
-        bool mNeedUpdata = false;
-        bool mStopLoading = false;
+        std::atomic_bool mNeedUpdate{false};
+        std::atomic_bool mStopLoading{false};
 
         std::mutex mSegMutex;
         std::condition_variable mSegCondition;
@@ -106,7 +106,7 @@ namespace Cicada{
         IDataSource::SourceConfig mSourceConfig;
         std::recursive_mutex mMutex;
 
-        int mPlayListStatus{0};
+        std::atomic_int mPlayListStatus{0};
     };
 }
 

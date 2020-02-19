@@ -36,7 +36,7 @@ public:
 
     ~CacheFileRemuxer();
 
-    void addFrame(const unique_ptr<IAFPacket>& frame, StreamType type);
+    void addFrame(const unique_ptr<IAFPacket> &frame, StreamType type);
 
     bool prepare();
 
@@ -50,7 +50,7 @@ public:
 
     void setErrorCallback(function<void(int, string)> callback);
 
-    void setStreamMeta(const vector<Stream_meta*>& streamMetas);
+    void setStreamMeta(const vector<Stream_meta *> &streamMetas);
 
     void clearStreamMetas();
 
@@ -77,9 +77,10 @@ private:
     deque<std::unique_ptr<FrameInfo>> mFrameInfoQueue;
     condition_variable mQueueCondition;
 
-    bool mInterrupt = false;
-    bool mWantStop = false;
+    std::atomic_bool mInterrupt{false};
+    std::atomic_bool mWantStop {false};
     bool mRemuxSuc = true;
+
 
     mutex mThreadMutex;
     mutex mObjectMutex;
@@ -91,7 +92,7 @@ private:
 
     function<void(int, string)> mErrorCallback = nullptr;
 
-    vector<Stream_meta*> mStreamMetas{};
+    vector<Stream_meta *> mStreamMetas{};
 
 };
 

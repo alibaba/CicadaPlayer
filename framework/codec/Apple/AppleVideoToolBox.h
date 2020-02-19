@@ -112,7 +112,7 @@ namespace Cicada{
         std::queue<std::unique_ptr<IAFPacket>> mRecoveringQueue{};
         std::unique_ptr<bitStreamParser> mParser{nullptr};
         uint8_t mPocDelta = 2;
-        int64_t mOutputPoc = 0;
+        std::atomic_int64_t mOutputPoc {0};
         bool mBUsePoc = false;
         std::queue<std::unique_ptr<IAFFrame>> mReorderedQueue{};
         std::mutex mReorderMutex{};
