@@ -12,7 +12,7 @@
 #include <filter/IAudioFilter.h>
 #include <utils/afThread.h>
 
-namespace Cicada{
+namespace Cicada {
     class filterAudioRender : public IAudioRender {
     public:
         enum State {
@@ -67,9 +67,11 @@ namespace Cicada{
             return 0;
         }
 
-        virtual int loopChecker() {
+        virtual int loopChecker()
+        {
             return 0;
         };
+
 
     private:
         int renderLoop();
@@ -80,6 +82,10 @@ namespace Cicada{
 
         int startThread();
 
+        int applySpeed();
+
+        int applyVolume();
+
     protected:
         IAFFrame::audioInfo mInputInfo{};
         IAFFrame::audioInfo mOutputInfo{};
@@ -89,9 +95,10 @@ namespace Cicada{
     private:
 
         float mSpeed{1};
+        std::atomic_bool mSpeedChanged{false};
         std::atomic<int64_t> mSpeedDeltaDuration{0};
         float mVolume{1};
-        std::mutex mFilterMutex{};
+        std::atomic_bool mVolumeChanged{false};
         std::unique_ptr<Cicada::IAudioFilter> mFilter{};
         std::mutex mFrameQueMutex;
         std::condition_variable mFrameQueCondition;

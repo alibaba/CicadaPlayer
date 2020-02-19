@@ -10,8 +10,8 @@
 #include "ffmpegAudioFilter.h"
 #include "utils/AutoAVFrame.h"
 #include <utils/ffmpeg_utils.h>
-#include <stdint.h>
-#include <inttypes.h>
+#include <cstdint>
+#include <cinttypes>
 
 extern "C"
 {
