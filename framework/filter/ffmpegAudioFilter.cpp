@@ -204,7 +204,7 @@ namespace Cicada {
             needAFormat = true;
         }
 
-        snprintf(options_str, sizeof(options_str), "tempo=%f", mRate);
+        snprintf(options_str, sizeof(options_str), "tempo=%f", mRate.load());
         addFilter(&current, "atempo", options_str);
 
         if (needAFormat) {
@@ -368,6 +368,7 @@ namespace Cicada {
             }
 
             auto *tmp = dynamic_cast<AVAFFrame *> (frame);
+
             if (tmp) {
                 tmp->updateInfo();
             }
@@ -381,7 +382,6 @@ namespace Cicada {
             // write(fd, filt_frame->extended_data[0], plane_size);
 #endif
             mOutPut.push(frame);
-
             frame = nullptr;
         }
 

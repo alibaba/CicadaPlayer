@@ -113,6 +113,7 @@ namespace Cicada {
         }
     }
 
+    // TODO:move to mainLoop
     int filterAudioRender::setVolume(float volume)
     {
         if (mVolume == volume) {
@@ -123,6 +124,7 @@ namespace Cicada {
 
         if (volume > 1) {
             float gain = volume * volume * volume;
+            std::unique_lock<std::mutex> uMutex(mFilterMutex);
 
             if (mFilter == nullptr) {
                 mFilter = std::unique_ptr<IAudioFilter>(
@@ -149,11 +151,12 @@ namespace Cicada {
         device_setVolume(gain);
         return 0;
     }
-
+    // TODO:move to mainLoop
     int filterAudioRender::setSpeed(float speed)
     {
         if (mSpeed != speed) {
             mSpeed = speed;
+            std::unique_lock<std::mutex> uMutex(mFilterMutex);
 
             if (mFilter == nullptr) {
                 mFilter = std::unique_ptr<IAudioFilter>(
@@ -284,12 +287,13 @@ namespace Cicada {
                 return filter_frame;
             }
 
+            unique_lock<mutex> lock(mFrameQueMutex);
+
             if (mFrameQue.empty()) {
                 return filter_frame;
             }
 
-            unique_lock<mutex> lock(mFrameQueMutex);
-            ret = mFilter->push(mFrameQue.front(), 0);
+            mFilter->push(mFrameQue.front(), 0);
 
             if (mFrameQue.front() == nullptr) {
                 mFrameQue.pop();

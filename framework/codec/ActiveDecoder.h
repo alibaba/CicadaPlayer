@@ -15,6 +15,7 @@
 
 #include "IDecoder.h"
 #include <queue>
+#include <atomic>
 
 class ActiveDecoder : public Cicada::IDecoder {
 
@@ -75,9 +76,9 @@ protected:
 #endif
 private:
 
-    bool bInputEOS{false};
+    std::atomic_bool bInputEOS{false};
     bool bSendEOS2Decoder{};
-    bool bDecoderEOS{false};
+    std::atomic_bool bDecoderEOS{false};
 #if AF_HAVE_PTHREAD
     std::condition_variable mSleepCondition{};
     std::queue<std::unique_ptr<IAFPacket>> mInputQueue{};

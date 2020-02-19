@@ -133,7 +133,7 @@ namespace Cicada {
 
         AudioStreamBasicDescription mAudioFormat;
 
-        float mVolume = 1.0f;
+        atomic<float> mVolume{1.0f};
 #ifdef DUMP_AUDIO_DATA
         FILE *mFile = nullptr;
 #endif

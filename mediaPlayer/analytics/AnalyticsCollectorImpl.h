@@ -12,6 +12,7 @@
 #include <mutex>
 #include <list>
 #include "IAnalyticsCollector.h"
+#include <atomic>
 
 namespace Cicada {
     // store variables which may need provide by getAnalyticsData()
@@ -35,7 +36,8 @@ namespace Cicada {
 
         void RemoveListener(AnalyticsCollectorListener *listener) override;
 
-        const ICollectorData *getAnalyticsData() override { return &mData; };
+        const ICollectorData *getAnalyticsData() override
+        { return &mData; };
 
         // IAnalyticPlayer
         // setting
@@ -101,13 +103,14 @@ namespace Cicada {
 
         //other
 
-        void ReportBlackInfo() override ;
+        void ReportBlackInfo() override;
 
-        void ReportSwitchToSoftDecode() override ;
+        void ReportSwitchToSoftDecode() override;
+
     protected:
         int64_t mStartTimeMS = 0;
         int64_t mPauseTimeMS = 0;
-        int64_t mSeekTimeMS = 0;
+        std::atomic_int64_t mSeekTimeMS{0};
         int64_t mGetURLStartTimeMs = 0;
         int64_t mLoadingStartTimeMs = 0;
         int64_t mSetThumbnailTimeMs = 0;
