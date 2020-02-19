@@ -387,7 +387,7 @@ namespace Cicada {
         BufferController mBufferController;
 
         std::mutex mAppStatusMutex;
-        APP_STATUS mAppStatus = APP_FOREGROUND;
+        std::atomic<APP_STATUS> mAppStatus{APP_FOREGROUND};
         std::unique_ptr<IAudioRender> mAudioRender{};
         std::unique_ptr<IVideoRender> mVideoRender{};
 //#ifdef WIN32
@@ -399,7 +399,7 @@ namespace Cicada {
         int64_t mDuration{INT64_MIN};
         int64_t mBufferPosition{0};
         PlayerStatus mOldPlayStatus{PLAYER_IDLE};
-        PlayerStatus mPlayStatus{PLAYER_IDLE};
+        atomic <PlayerStatus> mPlayStatus{PLAYER_IDLE};
         std::deque<std::unique_ptr<IAFPacket>> mSubtitleShowedQueue;
         std::deque<StreamInfo *> mStreamInfoQueue;
         StreamInfo **mStreamInfos{nullptr};

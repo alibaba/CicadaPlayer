@@ -47,7 +47,7 @@ protected:
 
 protected:
     afThread *mPMainThread = nullptr;
-    bool mEnableAbr = false;
+    std::atomic_bool mEnableAbr{false};
     int mMsgProcessTime;
     AbrAlgoStrategy *mAlgoStrategy = nullptr;
     std::atomic_bool mRunning{true};

@@ -165,10 +165,10 @@ namespace Cicada {
         std::unique_ptr<demuxer_service> mPDemuxer = nullptr;
         IDataSource *mPdataSource = nullptr;
         atomic_bool mIsOpened{false};
-        bool mIsEOS = false; //demuxer eos
+        atomic_bool mIsEOS{false}; //demuxer eos
         bool mIsDataEOS = false;
         bool mReopen = false;
-        bool mSwitchNeedBreak = false;
+        atomic_bool mSwitchNeedBreak{false};
         std::shared_ptr<segment> mCurSeg = nullptr;
         std::shared_ptr<segment> mCurInitSeg{nullptr};
         uint8_t *mInitSegBuffer{nullptr};

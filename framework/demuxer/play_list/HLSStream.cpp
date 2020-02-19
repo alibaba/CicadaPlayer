@@ -1051,20 +1051,17 @@ namespace Cicada {
             index = 0;
         }
 
-//        if (mPTracker->getStreamType() == STREAM_TYPE_UNKNOWN) {
-//            if (mPDemuxer) {
-//                return mPDemuxer->GetStreamMeta(meta, index);
-//            }
-//            //   return -1;
-//        }
         uint64_t bandwidth;
         std::string lang;
         int width;
         int height;
         mPTracker->getStreamInfo(&width, &height, &bandwidth, lang);
+        {
+            std::lock_guard<std::mutex> lock(mHLSMutex);
 
-        if (mPDemuxer) {
-            mPDemuxer->GetStreamMeta(meta, index, sub);
+            if (mPDemuxer) {
+                mPDemuxer->GetStreamMeta(meta, index, sub);
+            }
         }
 
         // meta->type would be override, recover it
@@ -1348,9 +1345,12 @@ namespace Cicada {
                 mExtDataSource->Interrupt(static_cast<bool>(inter));
             }
         }
+        {
+            std::lock_guard<std::mutex> lock(mHLSMutex);
 
-        if (mPDemuxer) {
-            mPDemuxer->interrupt(inter);
+            if (mPDemuxer) {
+                mPDemuxer->interrupt(inter);
+            }
         }
 
         if (mPTracker) {

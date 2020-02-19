@@ -94,10 +94,10 @@ namespace Cicada {
 
     private:
 
-        volatile float mSpeed{1};
+        volatile std::atomic<float> mSpeed{1};
         std::atomic_bool mSpeedChanged{false};
         std::atomic<int64_t> mSpeedDeltaDuration{0};
-        volatile float mVolume{1};
+        volatile std::atomic<float> mVolume{1};
         std::atomic_bool mVolumeChanged{false};
         std::unique_ptr<Cicada::IAudioFilter> mFilter{};
         std::mutex mFrameQueMutex;

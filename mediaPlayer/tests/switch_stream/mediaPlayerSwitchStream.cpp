@@ -25,8 +25,6 @@ static void onStreamInfoGet(int64_t size, const void *msg, void *userData)
     for (int i = 0; i < size; ++i) {
         AF_LOGD("get a %d type stream", info[i]->type);
     }
-
-
 }
 
 static void onStreamSwitchSuc(int64_t size, const void *msg, void *userData)
@@ -34,8 +32,6 @@ static void onStreamSwitchSuc(int64_t size, const void *msg, void *userData)
     StreamInfo *info = (StreamInfo *) msg;
     StreamType type = static_cast<StreamType>(size);
     //   ASSERT_TRUE(type == ST_TYPE_VIDEO);
-
-
 }
 
 bool prepared = false;
@@ -48,11 +44,11 @@ static void createTestCase_switchVideo(commandsCase &testCase)
     cmd.mID = player_command::setLoop;
     cmd.timestamp = 0;
     cmd.arg0 = 1;
-
     std::unique_lock <std::mutex>lock(testCase.mMutex);
     testCase.mCommands.push_back(cmd);
     cmd.mID = player_command::selectStream;
     int64_t start_time = af_getsteady_ms();
+
     for (int i = 0; i < count; i++) {
         cmd.timestamp = i * posDelta + start_time;
         cmd.arg0 = i;
@@ -65,7 +61,6 @@ static void createTestCase_switchSubtitle(commandsCase &testCase)
     player_command cmd;
     int count = 2;
     int posDelta = 2000;
-    testCase.mCommands.reserve(count + 1);
     cmd.mID = player_command::setLoop;
     cmd.timestamp = 0;
     cmd.arg0 = 1;
@@ -73,11 +68,13 @@ static void createTestCase_switchSubtitle(commandsCase &testCase)
     testCase.mCommands.push_back(cmd);
     cmd.mID = player_command::selectStream;
     int64_t start_time = af_getsteady_ms();
+
     for (int i = 1; i <= count; i++) {
         cmd.timestamp = i * posDelta + start_time;
         cmd.arg0 = i;
         testCase.mCommands.push_back(cmd);
     }
+
     cmd.timestamp += 3 * posDelta;
     cmd.mID = player_command::setLoop;
     cmd.arg0 = 0;

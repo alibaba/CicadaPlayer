@@ -29,7 +29,7 @@ public:
 
 private:
     std::atomic_int64_t mStartUs{0};
-    int mStatus = 0;
+    std::atomic_int mStatus{0};
     int64_t mSetUs = 0;
     int64_t mPauseUs = 0;
 };

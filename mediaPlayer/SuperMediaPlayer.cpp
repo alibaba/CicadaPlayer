@@ -965,7 +965,7 @@ namespace Cicada {
 
     void SuperMediaPlayer::updateLoopGap()
     {
-        switch (mPlayStatus) {
+        switch (mPlayStatus.load()) {
             case PLAYER_PREPARINIT:
             case PLAYER_PREPARING:
             case PLAYER_PREPARED:
@@ -3221,7 +3221,7 @@ namespace Cicada {
         }
 
         if (mPlayStatus != PLAYER_INITIALZED && mPlayStatus != PLAYER_STOPPED) {
-            AF_LOGD("ProcessPrepareMsg status is %d", mPlayStatus);
+            AF_LOGD("ProcessPrepareMsg status is %d", mPlayStatus.load());
             return;
         }
 

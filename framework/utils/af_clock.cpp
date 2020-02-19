@@ -59,7 +59,7 @@ void af_clock::set(int64_t us)
 
 int64_t af_clock::get()
 {
-    switch (mStatus) {
+    switch (mStatus.load()) {
         case timer_status_start:
             return af_gettime_relative() - mStartUs;
 

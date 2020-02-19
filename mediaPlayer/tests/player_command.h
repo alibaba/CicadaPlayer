@@ -46,7 +46,7 @@ public:
 
     std::vector<player_command> &mCommands;
     std::mutex mMutex;
-    bool mExitOnEmpty{true};
+    std::atomic_bool mExitOnEmpty{true};
 };
 
 int command_loop(Cicada::MediaPlayer *player, void *arg);

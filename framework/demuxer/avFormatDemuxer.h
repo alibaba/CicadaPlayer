@@ -128,7 +128,7 @@ namespace Cicada {
         bool bFillExtraData{false};
         int64_t mStartTime = INT64_MIN;
         std::deque<unique_ptr<IAFPacket>> mPacketQueue{};
-        bool bEOS{false};
+        std::atomic_bool bEOS{false};
         std::atomic_bool bPaused{false};
 #if AF_HAVE_PTHREAD
         afThread *mPthread{nullptr};
