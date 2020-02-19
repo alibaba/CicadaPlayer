@@ -11,6 +11,7 @@
 #include <cstring>
 #include <atomic>
 #include <algorithm>
+#include <cassert>
 
 using namespace std;
 
