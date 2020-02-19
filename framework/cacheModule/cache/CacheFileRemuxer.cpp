@@ -112,6 +112,12 @@ int CacheFileRemuxer::muxThreadRun()
         mMuxer = IMuxerPrototype::create(mDestFilePath, "mp4", mDescription);
         mDestFileCntl = new FileCntl(mDestFilePath);
     }
+
+    if(mMuxer == nullptr){
+        sendError(CACHE_ERROR_ENCRYPT_CHECK_FAIL);
+        return -1;
+    }
+
     initMuxer();
     int openRet = mMuxer->open();
 
@@ -119,11 +125,7 @@ int CacheFileRemuxer::muxThreadRun()
         AF_LOGE("muxThreadRun() mMuxer->open() fail...ret = %d ", openRet);
 
         //open fail..
-        if (mErrorCallback != nullptr) {
-            const CacheRet &cacheInfoType = CACHE_ERROR_MUXER_OPEN;
-            mErrorCallback(cacheInfoType.mCode, cacheInfoType.mMsg);
-        }
-
+        sendError(CACHE_ERROR_MUXER_OPEN);
         return -1;
     }
 
@@ -142,14 +144,10 @@ int CacheFileRemuxer::muxThreadRun()
 
                 if (ret < 0) {
                     AF_LOGW("muxThreadRun() mMuxer error ret = %d ", ret);
-
-                    if (mErrorCallback != nullptr) {
-                        //no space error .
-                        if (ENOSPC == errno) {
-                            const CacheRet &cacheInfoType = CACHE_ERROR_NO_SPACE;
-                            mErrorCallback(cacheInfoType.mCode, cacheInfoType.mMsg);
-                            break;
-                        }
+                    //no space error .
+                    if (ENOSPC == errno) {
+                        sendError(CACHE_ERROR_NO_SPACE);
+                        break;
                     }
                 }
             }
@@ -166,11 +164,7 @@ int CacheFileRemuxer::muxThreadRun()
 
     if (ret < 0) {
         AF_LOGW("muxThreadRun() mMuxer close ret = %d ", ret);
-
-        if (mErrorCallback != nullptr) {
-            const CacheRet &cacheInfoType = CACHE_ERROR_MUXER_CLOSE;
-            mErrorCallback(cacheInfoType.mCode, cacheInfoType.mMsg);
-        }
+        sendError(CACHE_ERROR_MUXER_CLOSE);
     }
 
     AF_LOGD("muxThreadRun() end...");
@@ -265,4 +259,15 @@ void CacheFileRemuxer::clearStreamMetas()
 
         mStreamMetas.clear();
     }
+}
+
+void CacheFileRemuxer::sendError(const CacheRet &ret) {
+    mRemuxSuc = false;
+    if (mErrorCallback != nullptr) {
+        mErrorCallback(ret.mCode, ret.mMsg);
+    }
+}
+
+bool CacheFileRemuxer::isRemuxSuccess() {
+    return mRemuxSuc;
 }
