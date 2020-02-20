@@ -38,8 +38,6 @@ target_link_libraries(
         swscale
         z
         curl
-        ssl
-        crypto
         gtest_main
         ${FRAMEWORK_LIBS})
 
@@ -57,6 +55,8 @@ else ()
             decoderUnitTest PUBLIC
             dl
             pthread
+            ssl
+            crypto
     )
 
 endif ()

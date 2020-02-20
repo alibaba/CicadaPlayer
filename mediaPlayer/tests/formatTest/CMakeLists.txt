@@ -41,8 +41,6 @@ target_link_libraries(mediaPlayerFormatTest PRIVATE
         swresample
         avutil
         curl
-        ssl
-        crypto
         pthread
         ${FRAMEWORK_LIBS}
         gtest_main)
@@ -66,6 +64,8 @@ else ()
     target_link_libraries(mediaPlayerFormatTest PUBLIC
             z
             dl
+            ssl
+            crypto
             )
 endif ()
 
