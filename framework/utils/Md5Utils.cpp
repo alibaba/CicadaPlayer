@@ -4,17 +4,23 @@
 
 #include "Md5Utils.h"
 
-#include <openssl/md5.h>
+extern "C" {
+#include <libavutil/md5.h>
+#include <libavutil/mem.h>
+}
+
 #include <cstring>
 
 namespace Cicada {
 
-    std::string Md5Utils::getMd5(const std::string &source) {
+    std::string Md5Utils::getMd5(const std::string &source)
+    {
         unsigned char outTmp[256] = {0};
-        MD5_CTX ctx;
-        MD5_Init(&ctx);
-        MD5_Update(&ctx, source.c_str(), source.length());
-        MD5_Final(outTmp, &ctx);
+        struct AVMD5 *ctx = av_md5_alloc();
+        av_md5_init(ctx);
+        av_md5_update(ctx, (const uint8_t *) source.c_str(), source.length());
+        av_md5_final(ctx, outTmp);
+        av_free(ctx);
         unsigned char out[33] = {0};
         char hex[4] = {0};
 
