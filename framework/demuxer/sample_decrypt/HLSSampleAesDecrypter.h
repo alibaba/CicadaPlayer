@@ -7,15 +7,14 @@
 
 
 #include <cstdint>
-#include <openssl/aes.h>
+#include <memory>
 #include "ISampleDecryptor.h"
+#include "../decrypto/IAESDecrypt.h"
 
 class HLSSampleAesDecrypter : public ISampleDecryptor {
 
 public:
-    HLSSampleAesDecrypter()
-    {
-    }
+    HLSSampleAesDecrypter();
 
     ~HLSSampleAesDecrypter() override;
 
@@ -34,9 +33,9 @@ private:
 private:
     static const int VIDEO_CLEAR_LEAD = 32;
     static const int AUDIO_CLEAR_LEAD = 16;
-    uint8_t mIvec[AES_BLOCK_SIZE]{0};
-    AES_KEY mAesKey{0,};
+    uint8_t mIvec[Cicada::IAESDecrypt::BLOCK_SIZE]{0};
     bool mValidKeyInfo{false};
+    std::unique_ptr<Cicada::IAESDecrypt> mDecrypt{nullptr};
 };
 
 

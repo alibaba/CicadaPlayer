@@ -4,16 +4,19 @@
 #define LOG_TAG "AES_128Decrypter"
 
 #include <string>
-#include <demuxer/demuxer_service.h>
 #include "AES_128Decrypter.h"
 #include "utils/frame_work_log.h"
 #include <cerrno>
+#include "../../decrypto/avAESDecrypt.h"
+
+using namespace Cicada;
 
 #define MIN(a, b) (((a)<(b))?(a):(b))
 
 AES_128Decrypter::AES_128Decrypter(ISegDecrypter::read_cb read, void *arg) : ISegDecrypter(read, arg)
 {
     mEos = false;
+    mAESDecrypt = std::unique_ptr<Cicada::IAESDecrypt>(new avAESDecrypt());
 }
 
 AES_128Decrypter::~AES_128Decrypter() = default;
@@ -35,7 +38,7 @@ retry:
         return size;
     }
 
-    while (mInData - mInDataUsed < 2 * AES_BLOCK_SIZE) {
+    while (mInData - mInDataUsed < 2 * IAESDecrypt::BLOCK_SIZE) {
         int n = mReadCb(mReadCbArg, mInBuffer + mInData,
                         sizeof(mInBuffer) - mInData);
 
@@ -47,7 +50,7 @@ retry:
         mInData += n;
     }
 
-    int blocks = (mInData - mInDataUsed) / AES_BLOCK_SIZE;
+    int blocks = (mInData - mInDataUsed) / IAESDecrypt::BLOCK_SIZE;
 
     if (!blocks) {
         mEos = true;
@@ -58,10 +61,10 @@ retry:
         blocks--;
     }
 
-    AES_cbc_encrypt(mInBuffer + mInDataUsed, mOutBuffer, blocks * AES_BLOCK_SIZE, &mAesKey, mIvec, AES_DECRYPT);
-    mOutData = AES_BLOCK_SIZE * blocks;
+    mAESDecrypt->decrypt(mOutBuffer, mInBuffer + mInDataUsed, blocks, mIvec);
+    mOutData = IAESDecrypt::BLOCK_SIZE * blocks;
     mOutPtr = mOutBuffer;
-    mInDataUsed += AES_BLOCK_SIZE * blocks;
+    mInDataUsed += IAESDecrypt::BLOCK_SIZE * blocks;
 
     if (mInDataUsed >= sizeof(mInBuffer) / 2) {
         memmove(mInBuffer, mInBuffer + mInDataUsed,
@@ -81,15 +84,15 @@ retry:
 
 void AES_128Decrypter::SetOption(const char *key, uint8_t *buffer, int size)
 {
-    if (size != AES_BLOCK_SIZE) {
+    if (size != IAESDecrypt::BLOCK_SIZE) {
         return;
     }
 
     std::string skey = key;
 
     if (skey == "decryption key") {
-        mValidKeyInfo = (AES_set_decrypt_key(buffer, 8 * AES_BLOCK_SIZE/*128*/, &mAesKey) == 0);
+        mValidKeyInfo = (mAESDecrypt->setKey(buffer, 8 * IAESDecrypt::BLOCK_SIZE) == 0);
     } else if (skey == "decryption IV") {
-        memcpy(mIvec, buffer, AES_BLOCK_SIZE);
+        memcpy(mIvec, buffer, IAESDecrypt::BLOCK_SIZE);
     }
 }

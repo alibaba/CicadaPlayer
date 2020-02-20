@@ -7,7 +7,8 @@
 
 
 #include "ISegDecrypter.h"
-#include <openssl/aes.h>
+#include "../../decrypto/IAESDecrypt.h"
+#include <memory>
 
 class AES_128Decrypter : public ISegDecrypter {
 public:
@@ -30,15 +31,16 @@ public:
 
 protected:
     static const int MAX_BUFFER_BLOCKS = 257;
-    uint8_t mIvec[AES_BLOCK_SIZE]{0};
-    AES_KEY mAesKey{};
+    uint8_t mIvec[Cicada::IAESDecrypt::BLOCK_SIZE]{0};
     bool mEos;
     bool mValidKeyInfo{false};
     uint8_t *mOutPtr = nullptr;
     int mInData = 0, mInDataUsed = 0, mOutData = 0;
 
-    uint8_t mInBuffer[AES_BLOCK_SIZE * MAX_BUFFER_BLOCKS]{},
-            mOutBuffer[AES_BLOCK_SIZE * MAX_BUFFER_BLOCKS]{};
+    uint8_t mInBuffer[Cicada::IAESDecrypt::BLOCK_SIZE * MAX_BUFFER_BLOCKS]{},
+            mOutBuffer[Cicada::IAESDecrypt::BLOCK_SIZE * MAX_BUFFER_BLOCKS]{};
+
+    std::unique_ptr<Cicada::IAESDecrypt> mAESDecrypt{nullptr};
 
 
 };
