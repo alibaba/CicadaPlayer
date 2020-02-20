@@ -64,20 +64,30 @@ set(SOURCE_FILES demuxer_service.cpp
         sample_decrypt/SampleDecryptDemuxer.h
         sample_decrypt/sampleDecryptDec.c
         sample_decrypt/ISampleDecrypt2c.cpp
-        sample_decrypt/ISampleDecrypt2c.h decrypto/IAESDecrypt.h decrypto/avAESDecrypt.cpp decrypto/avAESDecrypt.h decrypto/OpenSSAESDecrypt.cpp decrypto/OpenSSAESDecrypt.h)
+        sample_decrypt/ISampleDecrypt2c.h
+        decrypto/IAESDecrypt.h
+        decrypto/avAESDecrypt.cpp decrypto/avAESDecrypt.h
+        )
+
+if (USE_OPENSSL)
+    list(APPEND ${SOURCE_FILES}
+            decrypto/OpenSSAESDecrypt.cpp
+            decrypto/OpenSSAESDecrypt.h
+            )
+endif ()
 
 include_directories(
-#${CICADA_FRAMEWORK_DIR}/inc
- #       ${CICADA_FRAMEWORK_INSTALL_BOOST_INC_DIR}
- #       ${CICADA_FRAMEWORK_DIR}/src/mdf
- ##       ${CICADA_FRAMEWORK_DIR}/src
- #       ${CICADA_FRAMEWORK_DIR}/src/message
- #       ${CICADA_FRAMEWORK_DIR}/src/subtitle_parser
+        #${CICADA_FRAMEWORK_DIR}/inc
+        #       ${CICADA_FRAMEWORK_INSTALL_BOOST_INC_DIR}
+        #       ${CICADA_FRAMEWORK_DIR}/src/mdf
+        ##       ${CICADA_FRAMEWORK_DIR}/src
+        #       ${CICADA_FRAMEWORK_DIR}/src/message
+        #       ${CICADA_FRAMEWORK_DIR}/src/subtitle_parser
         ${FFMPEG_SOURCE_DIR}
         ${COMMON_INC_DIR})
 
 link_directories(
-#${CICADA_FRAMEWORK_INSTALL_LIB_DIR}
+        #${CICADA_FRAMEWORK_INSTALL_LIB_DIR}
         ${CICADA_FRAMEWORK_INSTALL_BOOST_LIB_DIR}
         ${COMMON_LIB_DIR})
 
