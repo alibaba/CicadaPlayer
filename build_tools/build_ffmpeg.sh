@@ -12,12 +12,17 @@ function build_ffmpeg(){
     elif [ "$1" == "iOS" ]
     then
         ffmpeg_cross_compile_set_iOS $2
+        if [[ "${SSL_USE_NATIVE}" != "TRUE" ]];then
+            fmpeg_config_add_user "--disable-securetransport"
+        fi
     elif [ "$1" == "win32" ];then
         ffmpeg_cross_compile_set_win32 $2
     elif [ "$1" == "Darwin" ];then
         print_warning "native build for $1"
         local native_build=yes
-        ffmpeg_config_add_user "--disable-securetransport"
+        if [[ "${SSL_USE_NATIVE}" != "TRUE" ]];then
+            ffmpeg_config_add_user "--disable-securetransport"
+        fi
         ffmpeg_config_add_extra_cflags "-fno-stack-check"
     elif [ "$1" == "Linux" ];then
         local native_build=yes
