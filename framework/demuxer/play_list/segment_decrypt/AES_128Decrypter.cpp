@@ -1,9 +1,11 @@
+
 //
 // Created by moqi on 2018/10/23.
 //
 #define LOG_TAG "AES_128Decrypter"
 
 #include <string>
+#include <cstring>
 #include "AES_128Decrypter.h"
 #include "utils/frame_work_log.h"
 #include <cerrno>
