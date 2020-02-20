@@ -76,7 +76,6 @@ function build_dav1d(){
 
     if [ "${BUILD}" != "False" ];then
         local build_dir="build/dav1d/$1/$2"
-        #local install_fat="${CWD}/install/dav1d/$1/fat"
         rm -rf ${build_dir}
         mkdir -p ${build_dir}
 
@@ -85,18 +84,15 @@ function build_dav1d(){
         create_dav1d_config
 
         #clear env flag due to meson don't fully support
-        CFLAGS_BAK=${CFLAGS}
-        LDFLAGS_BAK=${LDFLAGS}
         CFLAGS=
         LDFLAGS=
+        CC=
 
         cd ${build_dir}
         meson ${DAV1D_SOURCE_DIR} --buildtype release --prefix ${install_dir} --default-library static --cross-file ${user_config}
         ninja -C ./
         meson install
 
-        CFLAGS=${CFLAGS_BAK}
-        LDFLAGS=${LDFLAGS_BAK}
         cd ${CWD}
     fi
     DAV1D_INSTALL_DIR=${install_dir}
