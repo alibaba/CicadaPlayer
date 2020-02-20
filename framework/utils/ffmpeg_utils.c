@@ -88,18 +88,19 @@ static void ffmpeg_log_back(void *ptr, int level, const char *fmt, va_list vl)
     __log_print(AF_LOG_LEVEL_DEBUG, "FFMPEG", "%s", line);
 }
 
+static void ffmpeg_init_once()
+{
+    av_lockmgr_register(lockmgr);
+    av_log_set_level(AV_LOG_INFO);
+    av_log_set_callback(ffmpeg_log_back);
+    av_register_all();
+    avformat_network_init();
+}
+
 void ffmpeg_init()
 {
-    static bool inited = false;
-
-    if (!inited) {
-        inited = true;
-        av_lockmgr_register(lockmgr);
-        av_log_set_level(AV_LOG_INFO);
-        av_log_set_callback(ffmpeg_log_back);
-        av_register_all();
-        avformat_network_init();
-    }
+    static pthread_once_t once;
+    pthread_once(&once, ffmpeg_init_once);
 }
 
 void ffmpeg_deinit()
@@ -277,7 +278,7 @@ enum AFCodecID AVCodec2CicadaCodec(enum AVCodecID codec)
 //
         case AV_CODEC_ID_VP8:
             return AF_CODEC_ID_VP8;
-            
+
         case AV_CODEC_ID_VP9:
             return AF_CODEC_ID_VP9;
 
