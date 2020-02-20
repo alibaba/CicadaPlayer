@@ -64,7 +64,7 @@ set(SOURCE_FILES demuxer_service.cpp
         sample_decrypt/SampleDecryptDemuxer.h
         sample_decrypt/sampleDecryptDec.c
         sample_decrypt/ISampleDecrypt2c.cpp
-        sample_decrypt/ISampleDecrypt2c.h)
+        sample_decrypt/ISampleDecrypt2c.h decrypto/IAESDecrypt.h decrypto/avAESDecrypt.cpp decrypto/avAESDecrypt.h decrypto/OpenSSAESDecrypt.cpp decrypto/OpenSSAESDecrypt.h)
 
 include_directories(
 #${CICADA_FRAMEWORK_DIR}/inc
