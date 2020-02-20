@@ -19,12 +19,16 @@ function create_cmake_config(){
    echo "find_library(COREMEDIA CoreMedia)" >> $CONFIG_FILE
    echo "find_library(COREVIDEO CoreVideo)" >> $CONFIG_FILE
    echo "find_library(COREFOUNDATION CoreFoundation)" >> $CONFIG_FILE
+   echo "find_library(SECURITY Security)" >> $CONFIG_FILE
    echo -n "set(SRC_LIBRARIES ${SRC_LIBRARIES}" >> $CONFIG_FILE
    echo -n ' ${AUDIO_TOOL_BOX}' >> $CONFIG_FILE
    echo -n ' ${VIDEO_TOOL_BOX}' >> $CONFIG_FILE
    echo -n ' ${COREMEDIA}' >> $CONFIG_FILE
    echo -n ' ${COREVIDEO}' >> $CONFIG_FILE
    echo -n ' ${COREFOUNDATION}' >> $CONFIG_FILE
+   if [[ "${SSL_USE_NATIVE}" == "TRUE" ]];then
+      echo -n ' ${SECURITY}' >> $CONFIG_FILE
+   fi
    echo ")" >> $CONFIG_FILE
    echo "set(SRC_LIBRARIES_DIR ${SRC_LIBRARIES_DIR})" >>$CONFIG_FILE
 }

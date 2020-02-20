@@ -47,7 +47,14 @@ function build_static_lib(){
         print_warning "cares source not found"
     fi
 
-    if [ -d "${OPEN_SSL_SOURCE_DIR}" ];then
+    local build_openssl="true"
+    if [ "$1" == "iOS" ] || [ "$1" == "Darwin" ];then
+        if [ ${SSL_USE_NATIVE} == "TRUE" ];then
+            build_openssl="false"
+        fi
+    fi
+
+    if [ -d "${OPEN_SSL_SOURCE_DIR}" ] && [ "${build_openssl}" == "true" ];then
         if [  "${OPENSSL_VERSION_111}" == "True" ];then
             build_openssl_111 $1 ${arch}
         else
