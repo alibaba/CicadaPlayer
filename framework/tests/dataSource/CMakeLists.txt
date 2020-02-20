@@ -41,8 +41,6 @@ target_link_libraries(dataSourceTest PRIVATE
         swscale
         z
         curl
-        ssl
-        crypto
         gtest_main)
 
 
@@ -59,6 +57,8 @@ else ()
                 dataSourceTest PUBLIC
                 dl
                 pthread
+                ssl
+                crypto
         )
 
 endif ()

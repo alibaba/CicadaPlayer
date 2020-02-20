@@ -41,8 +41,6 @@ target_link_libraries(
         swscale
         z
         curl
-        ssl
-        crypto
         gtest_main)
 
 target_link_directories(demuxerUnitTest PRIVATE ${COMMON_LIB_DIR})
@@ -59,6 +57,8 @@ else ()
             demuxerUnitTest PUBLIC
             dl
             pthread
+            ssl
+            crypto
     )
 
 endif ()
