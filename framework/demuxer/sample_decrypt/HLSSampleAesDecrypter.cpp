@@ -6,39 +6,47 @@
 
 #include "HLSSampleAesDecrypter.h"
 #include <string>
-
-using namespace std;
-
-#include <openssl/aes.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
 
 #ifndef WIN32
 
-#include <unistd.h>
+    #include <unistd.h>
 
 #endif
 
 #include <cassert>
 #include <utils/frame_work_log.h>
 #include <cstring>
+#include "../decrypto/avAESDecrypt.h"
+
+using namespace Cicada;
+using namespace std;
+
+HLSSampleAesDecrypter::HLSSampleAesDecrypter()
+{
+    mDecrypt = std::unique_ptr<Cicada::IAESDecrypt>(new avAESDecrypt());
+}
 
 int HLSSampleAesDecrypter::SetOption(const char *key, uint8_t *buffer, int size)
 {
     std::string skey = key;
 
     if (skey == "decryption key" || skey == "decryption IV") {
-        if (size != AES_BLOCK_SIZE)
+        if (size != IAESDecrypt::BLOCK_SIZE) {
             return -1;
-        if (skey == "decryption key") {
-            mValidKeyInfo = (AES_set_decrypt_key(buffer, 8 * AES_BLOCK_SIZE/*128*/, &mAesKey) == 0);
-        } else
-            memcpy(mIvec, buffer, AES_BLOCK_SIZE);
+        }
 
+        if (skey == "decryption key") {
+            mValidKeyInfo = (mDecrypt->setKey(buffer, 8 * IAESDecrypt::BLOCK_SIZE) == 0);
+        } else {
+            memcpy(mIvec, buffer, IAESDecrypt::BLOCK_SIZE);
+        }
     } else if (skey == "decryption KEYFORMAT") {
         // TODO:
     }
+
     return 0;
 }
 
@@ -48,6 +56,7 @@ int HLSSampleAesDecrypter::decrypt(AFCodecID codecId, uint8_t *buffer, int size)
         AF_LOGE("key info is not valid\n");
         return size;
     }
+
     int ret = size;
 
     switch (codecId) {
@@ -80,7 +89,7 @@ static uint8_t *find_naulunit(uint8_t *buffer, int size, int *nal_size, int &sta
 
     while (index < size) {
         if (index + 3 < size && buffer[index] == 0x00 && buffer[index + 1] == 0x00 && buffer[index + 2] == 0x00 &&
-            buffer[index + 3] == 0x01) {
+                buffer[index + 3] == 0x01) {
             if (find_start_pos == -1) {
                 index += 4;
                 find_start_pos = index;
@@ -134,7 +143,7 @@ static int remove_nalunit_prevention(uint8_t *nal_unit, int nal_size, uint8_t *d
 
     while (tmp < tmp_end) {
         if (tmp + 3 < tmp_end && tmp[0] == 0x00 && tmp[1] == 0x00 && tmp[2] == 0x03 &&
-            (tmp[3] == 0x00 || tmp[3] == 0x01 || tmp[3] == 0x02 || tmp[3] == 0x03)) {
+                (tmp[3] == 0x00 || tmp[3] == 0x01 || tmp[3] == 0x02 || tmp[3] == 0x03)) {
             dst[dst_pos++] = tmp[0];
             dst[dst_pos++] = tmp[1];
             dst[dst_pos++] = tmp[3];
@@ -153,8 +162,8 @@ static int remove_nalunit_prevention(uint8_t *nal_unit, int nal_size, uint8_t *d
 
 void HLSSampleAesDecrypter::decrypt_nalunit(uint8_t *nal_unit, int nal_size)
 {
-    uint8_t packet_iv_tmp[AES_BLOCK_SIZE];
-    memcpy(packet_iv_tmp, mIvec, AES_BLOCK_SIZE);
+    uint8_t packet_iv_tmp[IAESDecrypt::BLOCK_SIZE];
+    memcpy(packet_iv_tmp, mIvec, IAESDecrypt::BLOCK_SIZE);
     /*
      Encrypted_nal_unit () {
 
@@ -172,14 +181,15 @@ void HLSSampleAesDecrypter::decrypt_nalunit(uint8_t *nal_unit, int nal_size)
     nal_unit += VIDEO_CLEAR_LEAD;
     nal_size -= VIDEO_CLEAR_LEAD;
 
-    while (nal_size > AES_BLOCK_SIZE) {
-        if (nal_size > AES_BLOCK_SIZE) {
-            AES_cbc_encrypt(nal_unit, nal_unit, AES_BLOCK_SIZE, &mAesKey, packet_iv_tmp, AES_DECRYPT);
-            nal_size -= AES_BLOCK_SIZE;
-            nal_unit += AES_BLOCK_SIZE;
+    while (nal_size > IAESDecrypt::BLOCK_SIZE) {
+        if (nal_size > IAESDecrypt::BLOCK_SIZE) {
+            mDecrypt->decrypt(nal_unit, nal_unit, 1, packet_iv_tmp);
+            nal_size -= IAESDecrypt::BLOCK_SIZE;
+            nal_unit += IAESDecrypt::BLOCK_SIZE;
         }
+
         // unencrypted_block
-        int sz = std::min(nal_size, (9 * AES_BLOCK_SIZE));
+        int sz = std::min(nal_size, (9 * IAESDecrypt::BLOCK_SIZE));
         nal_size -= sz;
         nal_unit += sz;
     }
@@ -219,7 +229,7 @@ int HLSSampleAesDecrypter::decryptH264Video(uint8_t *buffer, int size)
         int nal_type = nal_unit[0] & 0x1F;
 
         if ((nal_type != 1 && nal_type != 5) ||
-            (nal_size <= VIDEO_CLEAR_LEAD + AES_BLOCK_SIZE)) {
+                (nal_size <= VIDEO_CLEAR_LEAD + IAESDecrypt::BLOCK_SIZE)) {
             memcpy(dst + dst_pos, nal_unit, static_cast<size_t>(nal_size));
             dst_pos += nal_size;
         } else {
@@ -229,6 +239,7 @@ int HLSSampleAesDecrypter::decryptH264Video(uint8_t *buffer, int size)
             //decrypt
             decrypt_nalunit(new_nal_start, new_nal_size);
         }
+
         tmp = nal_unit + nal_size;
     }
 
@@ -239,13 +250,14 @@ int HLSSampleAesDecrypter::decryptH264Video(uint8_t *buffer, int size)
 
 int HLSSampleAesDecrypter::decryptAACAudio(uint8_t *buffer, int size)
 {
-    uint8_t packet_iv[AES_BLOCK_SIZE];
-    memcpy(packet_iv, mIvec, AES_BLOCK_SIZE);
+    uint8_t packet_iv[IAESDecrypt::BLOCK_SIZE];
+    memcpy(packet_iv, mIvec, IAESDecrypt::BLOCK_SIZE);
     int aac_frame_size = ((buffer[3] & 0x03) << 11) + (buffer[4] << 3) + ((buffer[5] & 0xE0) >> 5);
 
     if (aac_frame_size > size) {
         aac_frame_size = size;
     }
+
     //Encrypted_AAC_Frame () {
     //    ADTS_Header                        // 7 or 9 bytes
     //    unencrypted_leader                 // 16 bytes
@@ -258,9 +270,9 @@ int HLSSampleAesDecrypter::decryptAACAudio(uint8_t *buffer, int size)
     offset += AUDIO_CLEAR_LEAD;
     int remainingBytes = aac_frame_size - offset;
 
-    if (remainingBytes >= AES_BLOCK_SIZE) {
-        int encrypt_size = (remainingBytes / AES_BLOCK_SIZE) * AES_BLOCK_SIZE;
-        AES_cbc_encrypt(buffer + offset, buffer + offset, static_cast<size_t>(encrypt_size), &mAesKey, packet_iv, AES_DECRYPT);
+    if (remainingBytes >= IAESDecrypt::BLOCK_SIZE) {
+        int encrypt_size = (remainingBytes / IAESDecrypt::BLOCK_SIZE);
+        mDecrypt->decrypt(buffer + offset, buffer + offset, encrypt_size, packet_iv);
     }
 
     return size;
