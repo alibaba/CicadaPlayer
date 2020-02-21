@@ -28,7 +28,6 @@ set(SOURCE_FILES ${SOURCE_FILES}
         curl/CURLShareInstance.h
         dataSourceIO.cpp
         dataSourceIO.h
-        opensslthreadlock.c
         cache/slice.cpp
         cache/slice.h
         cache/cachedSource.cpp
