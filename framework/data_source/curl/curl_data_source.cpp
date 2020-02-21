@@ -21,7 +21,7 @@
 
 #include <cerrno>
 #include <utils/CicadaUtils.h>
-#include <openssl/opensslv.h>
+//#include <openssl/opensslv.h>
 #include <cstring>
 
 
@@ -119,7 +119,7 @@ static void init_curl()
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
 #if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-    openssl_thread_setup();
+//   openssl_thread_setup();
 #endif
 }
 
@@ -127,7 +127,7 @@ static void clean_curl()
 {
     curl_global_cleanup();
 #if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-    openssl_thread_cleanup()
+    //openssl_thread_cleanup()
 #endif
 }
 
