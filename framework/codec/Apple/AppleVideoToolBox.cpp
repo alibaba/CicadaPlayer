@@ -555,7 +555,7 @@ namespace Cicada {
             enqueueError(status, packet->getInfo().pts);
         }
 
-        bool keyFrame = packet->getInfo().flags;
+        bool keyFrame = (packet->getInfo().flags & AF_PKT_FLAG_KEY);
         int64_t mapKey = packet->getInfo().pts;
 
         // must parser poc
@@ -585,7 +585,7 @@ namespace Cicada {
             return;
         }
 
-        if (keyFrame) {
+        if (mVideoCodecType != kCMVideoCodecType_HEVC && keyFrame) {
             flushReorderQueue();
 
             if (mVTOutFmt == AF_PIX_FMT_YUV420P) {
