@@ -10,6 +10,7 @@
 #include "tests/player_command.h"
 #include <vector>
 #include "../mediaPlayerTest.h"
+
 using namespace std;
 
 int main(int argc, char **argv)
@@ -65,6 +66,21 @@ TEST(HLS, subtitle)
 TEST(HLS, live)
 {
     test_simple("http://qt1.alivecdn.com/timeline/testshift.m3u8?auth_key=1594730859-0-0-b71fd57c57a62a3c2b014f24ca2b9da3", nullptr,
+                simple_loop,
+                nullptr, nullptr);
+}
+
+static int liveOnCallback(Cicada::MediaPlayer *player, void *arg)
+{
+    Cicada::MediaPlayerConfig playerConfig = *(player->GetConfig());
+    playerConfig.maxDelayTime = 2000;
+    playerConfig.startBufferDuration = playerConfig.maxDelayTime + 1000;
+    player->SetConfig(&playerConfig);
+}
+
+TEST(flv, live)
+{
+    test_simple("http://5815.liveplay.myqcloud.com/live/5815_89aad37e06ff11e892905cb9018cf0d4.flv", liveOnCallback,
                 simple_loop,
                 nullptr, nullptr);
 }
