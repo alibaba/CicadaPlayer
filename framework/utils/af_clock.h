@@ -28,7 +28,7 @@ public:
 
 
 private:
-    std::atomic_int64_t mStartUs{0};
+    std::atomic<int64_t> mStartUs{0};
     std::atomic_int mStatus{0};
     int64_t mSetUs = 0;
     int64_t mPauseUs = 0;
@@ -59,7 +59,7 @@ public:
 private:
     std::atomic<float> mScale{1.0f};
     af_clock mClock;
-    std::atomic_int64_t mSetTime{0};
+    std::atomic<int64_t> mSetTime{0};
     int64_t mScaleStartTime = 0;
 
 };

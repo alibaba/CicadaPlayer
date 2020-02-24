@@ -20,9 +20,9 @@ typedef struct RingBuffer_t {
     unsigned int m_size;
     unsigned int m_readPtr;
     unsigned int m_writePtr;
-    atomic_uint32_t m_fillCount;
+    atomic<uint32_t> m_fillCount;
     unsigned int m_back_size;
-    atomic_uint32_t m_backCount;
+    atomic<uint32_t> m_backCount;
 } RingBuffer;
 
 RingBuffer *RingBufferCreate(uint32_t size)
