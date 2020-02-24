@@ -413,7 +413,7 @@ namespace Cicada {
         bool mInited{false};
         atomic_bool mSeekNeedCatch{false};
         const static int64_t SEEK_ACCURATE_MAX;
-        atomic_int64_t mSeekPos{INT64_MIN};
+        atomic <int64_t> mSeekPos{INT64_MIN};
         SystemReferClock mMasterClock;
         streamTime mAudioTime{INT64_MIN, 0};
         int64_t mPlayedVideoPts{INT64_MIN}; // sync pts
@@ -448,7 +448,7 @@ namespace Cicada {
         bool mWillSwitchVideo{false};
         player_type_set mSet;
         int64_t mSoughtVideoPos{INT64_MIN};
-        std::atomic_int64_t mPlayingPosition{0};
+        std::atomic<int64_t> mPlayingPosition{0};
 
         int mMaxRunningLoopGap = 10;
         int mTimerInterval = 0;

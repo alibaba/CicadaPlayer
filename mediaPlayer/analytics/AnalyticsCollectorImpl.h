@@ -108,9 +108,9 @@ namespace Cicada {
         void ReportSwitchToSoftDecode() override;
 
     protected:
-        std::atomic_int64_t mStartTimeMS {0};
+        std::atomic <int64_t> mStartTimeMS {0};
         int64_t mPauseTimeMS = 0;
-        std::atomic_int64_t mSeekTimeMS{0};
+        std::atomic<int64_t> mSeekTimeMS{0};
         int64_t mGetURLStartTimeMs = 0;
         int64_t mLoadingStartTimeMs = 0;
         int64_t mSetThumbnailTimeMs = 0;

@@ -57,8 +57,8 @@ namespace Cicada {
         int64_t mFirstPts = INT64_MIN;
         int64_t mDeltaPts = 0;
 
-        std::atomic_int64_t mLastInputPts {INT64_MIN};
-        std::atomic_int64_t mLastInPutDuration {0};
+        std::atomic<int64_t> mLastInputPts {INT64_MIN};
+        std::atomic<int64_t> mLastInPutDuration {0};
 
         int addFilter(AVFilterContext **current, const char *name, const char *options_str);
     };
