@@ -8,8 +8,10 @@
 
 #import "CicadaConfig+refresh.h"
 
+@implementation CicadaConfig (refresh)
+
 - (instancetype)refreshConfigWithArray:(NSArray *)array {
-    if (array.count != 9) {
+    if (array.count != 11) {
         return self;
     }
         
@@ -18,22 +20,28 @@
     int maxBufferDuration = [array[2] intValue];
     int maxDelayTime = [array[3] intValue];
     int networkTimeout = [array[4] intValue];
-    NSString *referer = array[5];
-    NSString *httpProxy = array[6];
-    int retryCount = [array[7] intValue];
-    NSString *clearShowWhenStop = array[8];
+    int maxProbeSize = [array[5] intValue];
+    NSString *referer = array[6];
+    NSString *httpProxy = array[7];
+    NSString *userAgent = array[8];
+    int retryCount = [array[9] intValue];
+    NSString *clearShowWhenStop = array[10];
     
     self.startBufferDuration = startBufferDuration;
     self.highBufferDuration = highBufferDuration;
     self.maxBufferDuration = maxBufferDuration;
     self.maxDelayTime = maxDelayTime;
     self.networkTimeout = networkTimeout;
+    self.maxProbeSize = maxProbeSize;
     self.networkRetryCount = retryCount;
     if (referer.length != 0) {
         self.referer = referer;
     }
     if (httpProxy.length != 0) {
         self.httpProxy = httpProxy;
+    }
+    if (userAgent.length != 0) {
+        self.userAgent = userAgent;
     }
     if ([clearShowWhenStop isEqualToString:@"1"]) {
         self.clearShowWhenStop = YES;
