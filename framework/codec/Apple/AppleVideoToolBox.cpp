@@ -693,7 +693,7 @@ namespace Cicada {
     void AFVTBDecoder::push_to_recovery_queue(std::unique_ptr<IAFPacket> pPacket)
     {
         pPacket->setDiscard(true);
-        std::lock_guard<std::mutex> lock(mActiveStatusMutex);
+        //      std::lock_guard<std::mutex> lock(mActiveStatusMutex);
 
         if (pPacket->getInfo().flags) {
             while (!mRecoveryQueue.empty()) {
