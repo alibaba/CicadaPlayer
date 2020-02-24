@@ -78,9 +78,9 @@ static int liveOnCallback(Cicada::MediaPlayer *player, void *arg)
     player->SetConfig(&playerConfig);
 }
 
-TEST(flv, live)
-{
-    test_simple("http://5815.liveplay.myqcloud.com/live/5815_89aad37e06ff11e892905cb9018cf0d4.flv", liveOnCallback,
-                simple_loop,
-                nullptr, nullptr);
-}
+//TEST(flv, live)
+//{
+//    test_simple("http://5815.liveplay.myqcloud.com/live/5815_89aad37e06ff11e892905cb9018cf0d4.flv", liveOnCallback,
+//                simple_loop,
+//                nullptr, nullptr);
+//}
