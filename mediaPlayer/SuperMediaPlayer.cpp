@@ -1587,14 +1587,14 @@ namespace Cicada {
 
                     int ret = DecodeVideoPacket(mVideoPacket);
 
-                    if (ret == -EAGAIN) {
+                    if (ret & STATUS_RETRY_IN) {
                         break;
                     }
 
-                    if (af_getsteady_ms() - startDecodeTime > 100) {
+                    if (af_getsteady_ms() - startDecodeTime > 50) {
                         break;
                     }
-                } while (mSeekNeedCatch);
+                } while (mSeekNeedCatch || dropLateVideoFrames);
             }
         }
 
@@ -1787,7 +1787,7 @@ namespace Cicada {
 
                 // if send all audio data, try to render again to send more data.
                 if (RENDER_FULL == ret) {
-                    audioRendered = RenderAudio();
+                    RenderAudio();
                 }
             }
         }
@@ -2014,7 +2014,7 @@ namespace Cicada {
             }
 
             if (dropLateVideoFrames) {
-                if (videoLateUs > 0) {
+                if (videoLateUs > 10 * 1000) {
                     render = false;
                 } else {
                     dropLateVideoFrames = false;

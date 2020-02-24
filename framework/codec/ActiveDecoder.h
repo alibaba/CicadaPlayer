@@ -83,7 +83,7 @@ private:
     std::condition_variable mSleepCondition{};
     std::queue<std::unique_ptr<IAFPacket>> mInputQueue{};
     std::queue<std::unique_ptr<IAFFrame>> mOutputQueue{};
-    int maxOutQueueSize = 16;
+    int maxOutQueueSize = 2;
     std::mutex mMutex{};
     std::mutex mSleepMutex{};
 #endif

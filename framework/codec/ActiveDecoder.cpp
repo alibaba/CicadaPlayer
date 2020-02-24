@@ -224,7 +224,8 @@ int ActiveDecoder::thread_send_packet(unique_ptr<IAFPacket> &packet)
         return 0;
     }
 
-    if (mInputQueue.size() >= MAX_INPUT_SIZE) {
+    if ((mInputQueue.size() >= MAX_INPUT_SIZE)
+            || (mOutputQueue.size() >= maxOutQueueSize)) {
         // TODO: wait for timeOut us
         status |= STATUS_RETRY_IN;
     } else {

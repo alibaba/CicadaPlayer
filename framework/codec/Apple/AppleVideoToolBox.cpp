@@ -4,6 +4,7 @@
 #include "AppleVideoToolBox.h"
 #include "codec/utils_ios.h"
 #include "utils/errors/framework_error.h"
+#include "utils/timer.h"
 #include <cinttypes>
 
 #include "video_tool_box_utils.h"
@@ -49,11 +50,11 @@ namespace Cicada {
         if (codec == AF_CODEC_ID_HEVC) {
 #if TARGET_OS_IPHONE
 
-            if (__builtin_available(iOS 11.0, *)) {
+            if (__builtin_available(iOS 11.0, *))
 #else
-
-            if (__builtin_available(macOS 10.13, *)) {
+            if (__builtin_available(macOS 10.13, *))
 #endif
+            {
                 return VTIsHardwareDecodeSupported(kCMVideoCodecType_HEVC);
             } else {
                 return false;
@@ -360,18 +361,24 @@ namespace Cicada {
             init_decoder_internal();
         }
 
+        int64_t startDecodeTime = af_getsteady_ms();
+
         while (!mRecoveringQueue.empty()) {
             int ret = enqueue_decoder_internal(mRecoveringQueue.front());
 
             if (ret != -EAGAIN) {
                 mRecoveringQueue.pop();
+            } else {
+                return -EAGAIN;
             }
 
             if (!mRunning) {
                 return -EAGAIN;
             }
 
-            //   return -EAGAIN;
+            if (af_getsteady_ms() - startDecodeTime > 50) {
+                return -EAGAIN;
+            }
         }
 
         if (pPacket == nullptr) {
@@ -463,7 +470,7 @@ namespace Cicada {
 //            //       AF_TRACE;
 //            return -EAGAIN;
 //        }
-        if (pPacket->getInfo().flags) {
+        if (pPacket->getInfo().flags & AF_PKT_FLAG_KEY) {
             mThrowPacket = false;
         }
 
@@ -695,7 +702,7 @@ namespace Cicada {
         pPacket->setDiscard(true);
         //      std::lock_guard<std::mutex> lock(mActiveStatusMutex);
 
-        if (pPacket->getInfo().flags) {
+        if (pPacket->getInfo().flags & AF_PKT_FLAG_KEY) {
             while (!mRecoveryQueue.empty()) {
                 mRecoveryQueue.pop();
             }
