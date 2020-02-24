@@ -65,8 +65,6 @@ else ()
     target_link_libraries(mediaPlayerSeekTest PUBLIC
             z
             dl
-            ssl
-            crypto
             )
 endif ()
 
@@ -75,6 +73,23 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
             bz2
             iconv
             )
+endif ()
+
+if (APPLE)
+    target_link_libraries(
+            mediaPlayerSeekTest PUBLIC
+            iconv
+            bz2
+            ${FRAMEWORK_LIBS}
+    )
+else ()
+    target_link_libraries(
+            mediaPlayerSeekTest PUBLIC
+            dl
+            pthread
+            ssl
+            crypto
+    )
 endif ()
 
 if (HAVE_COVERAGE_CONFIG)

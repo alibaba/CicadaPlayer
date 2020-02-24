@@ -62,8 +62,6 @@ target_link_libraries(cicadaPlayer PRIVATE
         swresample
         avutil
         curl
-        ssl
-        crypto
         pthread
         ${FRAMEWORK_LIBS})
 if (ENABLE_SDL)
@@ -87,6 +85,23 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(cicadaPlayer PUBLIC
             bz2
             )
+endif ()
+
+if (APPLE)
+    target_link_libraries(
+            cicadaPlayer PUBLIC
+            iconv
+            bz2
+            ${FRAMEWORK_LIBS}
+    )
+else ()
+    target_link_libraries(
+            cicadaPlayer PUBLIC
+            dl
+            pthread
+            ssl
+            crypto
+    )
 endif ()
 target_link_libraries(cicadaPlayer PUBLIC coverage_config)
 
