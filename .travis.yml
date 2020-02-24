@@ -8,7 +8,7 @@ os:
 
 env:
   global:
-    - secure: "KFiM/zhhgLJXB7AXD7Y22zLfB5z/K4MnRH8WWrq27+ByxRH22nY4IqhdQ0BS9dS7/Lhtrt1JEaNs1G+IFAUM/IMszUVUSA8DFjDSq7zlAIv5qC8PQIjvHfUhDvTJiXE4Zy6rHtnGo915sX/UffNEVOhV5CRr/kJUhlihUTpE4r7z3KF3k25dXLPn3gDKsTA5W77LrVCGrvDQZkcZNCKxMYZUphRUsoF48ZLGgxmdbUEIfnkkXtP95LSDzd2ReLr+42eUGLuiSrv1WmGkf7YaXiOao7sNDIEPO+WB4+YSXrkUnOuKJ1yOdTf3rd1rJr4D+Co0awSvhmWG1D8PqBZnQF3ImOmocIiVmflIIeDjEAGw/pacHV5Lsa/5Qa1NPbqalb3617XCu1kKitxI9NOXAXLsfMKmSfApGn4mBk6foN7zJSS4NxOLjbW4BoKASKmoaVoQ4pvDVN/hfi/x8ktuGb/h5/LxF2ErO9t/vShqgQ35Qf6F396SfVPuusBwuWl55dzO1p0A/VJHgpT1gNSCXJ0+Nh1bEz2ExebTyQtnBsSJ0A/w/N1M5qlGGbSv7N3OTBodTVJY/f5IpmbwIrdxIO6r1MV8unVY1xQ6CL0JLJf2zE3kT+7yudbhCSdm8wOzivIlWZcoWqut87sY9VXfrkFEHLeWMLdvpq6txsxwGCk="
+    - secure: "zG3JVI68R4oW+38qvm5vQVWnfhdoiQrJMqafLHoMIRcwtfSSRdkzTwZwp833SXasbnBQ9sZ+Gtfh3L35Nk+YzarAGVa55Lp8NgO9SGUyjzajbjIPFUQH48/FVqOuj1NAbrsQr+CTXnHg82cUgScSiNYCRcg8u49TvpoBT64RVfPF4/thLg8M67cdxa8+ycci8yK2OOraVLeY7ZbkbZmU4jQt5K2gEjgO0B/JWk2lq/aRlr3BrVkykU0QS1niWma114VJVL269Irh/bv+uuKS2LKeeVlQOxKeIhw3iigqen5oHRFHBtI7u3JIlTAaIh9c6HO05AqQvt3NTaApbFaayXq2kWRHXx4LVgDqPm97V9umDxS4LyPrvPVyFkc5i3KmwboE5naueGws5TT5GC0Z3weDfRUbWT0uGuMq6zmnOkRGoCzk6piyamr9tu4ssIR+Za0hwhEVu6OJPKu06ix6lcUZhpPy78vSURHBIAM+zD5ciER7YuhpysqtuYckRaQh6cofwf3pIzzm/zyszg3xaVDqUmCfhpm0MkzhSfFm9wSBDWkXVSLV2ZQK8lxKCIHaAiHdHm2l7KXCl7f/c/YgScihyUhSohjfZZIrCafd9Jo3RSY9XJ88kOerWYDwEZ+k99TDgoof/e3amOq1/zhqaiew7jii02EeXKea3LBf/ps="
 
 before_install:
   - sudo apt-get update
@@ -49,6 +49,6 @@ addons:
       description: "<Your project description here>"
     notification_email: pingkai010@gmail.com
     build_command_prepend: . setup.env;cd external/;./build_external.sh Linux;cd ../;mkdir build;cd build;cmake ../;
-    build_command: cmake --build . -j8
+    build_command: cmake --build . -- -j8
     branch_pattern: coverity_scan
 
