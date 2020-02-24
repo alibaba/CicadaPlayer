@@ -60,7 +60,6 @@ namespace Cicada {
     typedef enum APP_STATUS {
         APP_FOREGROUND,
         APP_BACKGROUND,
-        APP_FOREGROUND_CATCHUP,
     } APP_STATUS;
 
 
