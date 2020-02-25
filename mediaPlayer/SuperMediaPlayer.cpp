@@ -1522,6 +1522,14 @@ namespace Cicada {
 
         if (mPlayStatus == PLAYER_PLAYING) {
             if (!mBufferingFlag) {
+                if ((!mSeekNeedCatch && !dropLateVideoFrames)
+                        || !HAVE_VIDEO
+                        || !mVideoFrameQue.empty()) {
+                    if (mAudioRender) {
+                        mAudioRender->pause(false);
+                    }
+                }
+
                 rendered |= render();
             }
         }
@@ -1789,7 +1797,7 @@ namespace Cicada {
         bool audioRendered = false;
         bool videoRendered = false;
 
-        if ((mCurrentAudioIndex >= 0) && !mSeekNeedCatch) {
+        if (mCurrentAudioIndex >= 0) {
             int ret = RenderAudio();
 
             if (RENDER_NONE != ret) {
@@ -3670,10 +3678,6 @@ namespace Cicada {
 
             ChangePlayerStatus(PLAYER_PLAYING);
             mMasterClock.start();
-
-            if (mAudioRender) {
-                mAudioRender->pause(false);
-            }
         }
     }
 
