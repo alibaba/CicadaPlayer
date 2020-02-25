@@ -177,7 +177,7 @@ namespace Cicada {
         if (bPause) {
             pauseThread();
             pause_device();
-        } else {
+        } else if (state_running != mState) {
             startThread();
             start_device();
         }
