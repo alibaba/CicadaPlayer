@@ -163,7 +163,7 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
         self.containView0.contentSize = CGSizeMake(selfWidth, mediaButton.getMaxY+10);
         
         //containView1
-        NSArray *textFieldTitleArray = @[NSLocalizedString(@"启播缓冲时长" , nil),NSLocalizedString(@"卡顿恢复" , nil),NSLocalizedString(@"最大缓冲时长" , nil),NSLocalizedString(@"直播最大延迟" , nil),NSLocalizedString(@"网络超时" , nil),NSLocalizedString(@"probe大小" , nil),NSLocalizedString(@"请求refer" , nil),NSLocalizedString(@"httpProxy代理" , nil),NSLocalizedString(@"重连次数" , nil)];
+        NSArray *textFieldTitleArray = @[NSLocalizedString(@"启播缓冲时长" , nil),NSLocalizedString(@"卡顿恢复" , nil),NSLocalizedString(@"最大缓冲时长" , nil),NSLocalizedString(@"直播最大延迟" , nil),NSLocalizedString(@"网络超时" , nil),NSLocalizedString(@"请求refer" , nil),NSLocalizedString(@"httpProxy代理" , nil),NSLocalizedString(@"重连次数" , nil)];
         self.textFieldArray = [NSMutableArray array];
         CGFloat txtMaxY = 0;
         for (int i = 0; i<textFieldTitleArray.count; i++) {
