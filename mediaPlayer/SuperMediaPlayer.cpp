@@ -1564,6 +1564,7 @@ namespace Cicada {
 
             if (videoFrameSize < max_cache_size) {
                 int64_t startDecodeTime = af_getsteady_ms();
+                int64_t videoEarlyUs = 0;
 
                 do {
                     // if still in seeking, don't send data to decoder in background
@@ -1576,8 +1577,10 @@ namespace Cicada {
                         mVideoPacket = mBufferController.getPacket(BUFFER_TYPE_VIDEO);
                     }
 
+                    videoEarlyUs = mVideoPacket ? mVideoPacket->getInfo().dts - mMasterClock.GetTime() : 0;
+
                     // don't send too much data when in background
-                    if (mVideoPacket && APP_BACKGROUND == mAppStatus && mVideoPacket->getInfo().dts > mMasterClock.GetTime()) {
+                    if (mVideoPacket && APP_BACKGROUND == mAppStatus && videoEarlyUs > 0) {
                         break;
                     }
 
@@ -1603,7 +1606,7 @@ namespace Cicada {
                     if (af_getsteady_ms() - startDecodeTime > 50) {
                         break;
                     }
-                } while (mSeekNeedCatch || dropLateVideoFrames);
+                } while ((mSeekNeedCatch || dropLateVideoFrames) && (videoEarlyUs < 200 * 1000));
             }
         }
 
