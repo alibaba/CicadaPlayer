@@ -69,26 +69,25 @@ int ActiveDecoder::decode_func()
     int needWait = 0;
     int ret;
     int64_t pts = INT64_MIN;
-    bool empty;
-    {
+
+    if (!mPacket) {
         std::unique_lock<std::mutex> uMutex(mMutex);
-        empty = mInputQueue.empty();
+
+        if (!mInputQueue.empty()) {
+            mPacket = move(mInputQueue.front());
+            mInputQueue.pop();
+        }
     }
 
-    if (!empty) {
-        std::unique_lock<std::mutex> uMutex(mMutex);
-
-        if (mInputQueue.front().get()) {
-            pts = mInputQueue.front().get()->getInfo().pts;
-            ret = enqueue_decoder(mInputQueue.front());
-        } else {
-            ret = 0;
-        }
+    if (mPacket) {
+        pts = mPacket->getInfo().pts;
+        ret = enqueue_decoder(mPacket);
 
         if (ret == -EAGAIN) {
             needWait++;
         } else {
-            mInputQueue.pop();
+            //  assert(mPacket == nullptr);
+            mPacket = nullptr;
 
             if (ret == STATUS_EOS) {
                 bDecoderEOS = true;
@@ -318,6 +317,7 @@ void ActiveDecoder::flush()
         mHoldingQueue.pop();
     }
 
+    mPacket = nullptr;
 #endif
     clean_error();
     flush_decoder();
@@ -355,7 +355,7 @@ int ActiveDecoder::extract_decoder()
     int count = 0;
     int size;
     {
-        std::unique_lock <std::mutex> uMutex(mMutex);
+        std::unique_lock<std::mutex> uMutex(mMutex);
         size = mOutputQueue.size();
     }
 
@@ -363,7 +363,7 @@ int ActiveDecoder::extract_decoder()
         int ret = 0;
 
         do {
-            unique_ptr <IAFFrame> pFrame{};
+            unique_ptr<IAFFrame> pFrame{};
             ret = dequeue_decoder(pFrame);
 
             if (ret < 0 || ret == STATUS_EOS) {
@@ -379,7 +379,7 @@ int ActiveDecoder::extract_decoder()
             }
 
             if (pFrame) {
-                std::unique_lock <std::mutex> uMutex(mMutex);
+                std::unique_lock<std::mutex> uMutex(mMutex);
                 mOutputQueue.push(move(pFrame));
                 count++;
             }
