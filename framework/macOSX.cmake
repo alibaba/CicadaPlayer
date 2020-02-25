@@ -18,7 +18,7 @@ set(COMMON_INC_DIR ${COMMON_INC_DIR}
         ${MAC_INSTALL_DIR}/cares/Darwin/x86_64/include
         ${MAC_INSTALL_DIR}/../build/ffmpeg/Darwin/x86_64/
         ${MAC_INSTALL_DIR}/../boost/
-        ${MAC_INSTALL_DIR}/../external/external/ffmpeg/
+        ${MAC_INSTALL_DIR}/../external/ffmpeg/
         ${PROJECT_SOURCE_DIR})
 
 
