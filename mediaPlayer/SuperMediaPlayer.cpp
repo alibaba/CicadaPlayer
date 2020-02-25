@@ -45,7 +45,7 @@ namespace Cicada {
 
     static MsgParam dummyMsg{{nullptr}};
 
-    const int64_t SuperMediaPlayer::SEEK_ACCURATE_MAX = 11 * 1000 * 1000;
+    const int64_t SuperMediaPlayer::SEEK_ACCURATE_MAX = 21 * 1000 * 1000;
 
     SuperMediaPlayer::SuperMediaPlayer()
         : mMessageControl(*this),
