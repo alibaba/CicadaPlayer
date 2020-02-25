@@ -1522,7 +1522,8 @@ namespace Cicada {
 
         if (mPlayStatus == PLAYER_PLAYING) {
             if (!mBufferingFlag) {
-                if ((!mSeekNeedCatch && !dropLateVideoFrames)
+                // The audio render waits for the video frame to be ready, when switch to foreground from background
+                if (!dropLateVideoFrames
                         || !HAVE_VIDEO
                         || !mVideoFrameQue.empty()) {
                     if (mAudioRender) {
@@ -1573,6 +1574,7 @@ namespace Cicada {
 
             if (videoFrameSize < max_cache_size) {
                 int64_t startDecodeTime = af_getsteady_ms();
+                int64_t videoEarlyUs = 0;
 
                 do {
                     // if still in seeking, don't send data to decoder in background
@@ -1585,8 +1587,10 @@ namespace Cicada {
                         mVideoPacket = mBufferController.getPacket(BUFFER_TYPE_VIDEO);
                     }
 
+                    videoEarlyUs = mVideoPacket ? mVideoPacket->getInfo().dts - mMasterClock.GetTime() : 0;
+
                     // don't send too much data when in background
-                    if (mVideoPacket && APP_BACKGROUND == mAppStatus && mVideoPacket->getInfo().dts > mMasterClock.GetTime()) {
+                    if (APP_BACKGROUND == mAppStatus && videoEarlyUs > 0) {
                         break;
                     }
 
@@ -1612,7 +1616,7 @@ namespace Cicada {
                     if (af_getsteady_ms() - startDecodeTime > 50) {
                         break;
                     }
-                } while (mSeekNeedCatch || dropLateVideoFrames);
+                } while ((mSeekNeedCatch || dropLateVideoFrames) && (videoEarlyUs < 200 * 1000));
             }
         }
 
@@ -1797,7 +1801,7 @@ namespace Cicada {
         bool audioRendered = false;
         bool videoRendered = false;
 
-        if (mCurrentAudioIndex >= 0) {
+        if ((mCurrentAudioIndex >= 0) && !mSeekNeedCatch) {
             int ret = RenderAudio();
 
             if (RENDER_NONE != ret) {
