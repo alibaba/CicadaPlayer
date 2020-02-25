@@ -28,20 +28,18 @@ static void onVideoSize(int64_t width, int64_t height, void *userData)
     AF_TRACE;
     using IEvent = IEventReceiver::IEvent;
     auto *cont = static_cast<cicadaCont *>(userData);
-    auto *event = new IEvent(IEvent::TYPE_SET_VIEW);
 
     if (cont->receiver) {
-        cont->receiver->push(std::unique_ptr<IEvent>(event));
+        cont->receiver->push(std::unique_ptr<IEvent>(new IEvent(IEvent::TYPE_SET_VIEW)));
     }
 }
 
 static void onEOS(void *userData)
 {
     auto *cont = static_cast<cicadaCont *>(userData);
-    auto *event = new IEvent(IEvent::TYPE_EXIT);
 
     if (cont->receiver) {
-        cont->receiver->push(std::unique_ptr<IEvent>(event));
+        cont->receiver->push(std::unique_ptr<IEvent>(new IEvent(IEvent::TYPE_EXIT)));
     }
 }
 
