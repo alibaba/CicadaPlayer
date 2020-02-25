@@ -351,6 +351,7 @@ namespace Cicada {
 
         AF_TRACE;
         mAudioRender = nullptr;
+        mBRendingStart = false;
         AF_TRACE;
         {
             std::lock_guard<std::mutex> uMutex(mCreateMutex);
@@ -1105,6 +1106,14 @@ namespace Cicada {
         }
 
         doDeCode();
+
+        if (!mBRendingStart && mPlayStatus == PLAYER_PLAYING && !mBufferingFlag) {
+            if ((!HAVE_VIDEO || !mVideoFrameQue.empty())
+                    && (!HAVE_AUDIO || !mAudioFrameQue.empty())) {
+                startRendering(true);
+            }
+        }
+
         doRender();
         checkEOS();
         curTime = af_gettime_relative() / 1000;
@@ -1555,6 +1564,7 @@ namespace Cicada {
 
             if (videoFrameSize < max_cache_size) {
                 int64_t startDecodeTime = af_getsteady_ms();
+                int64_t videoEarlyUs = 0;
 
                 do {
                     // if still in seeking, don't send data to decoder in background
@@ -1567,8 +1577,10 @@ namespace Cicada {
                         mVideoPacket = mBufferController.getPacket(BUFFER_TYPE_VIDEO);
                     }
 
+                    videoEarlyUs = mVideoPacket ? mVideoPacket->getInfo().dts - mMasterClock.GetTime() : 0;
+
                     // don't send too much data when in background
-                    if (mVideoPacket && APP_BACKGROUND == mAppStatus && mVideoPacket->getInfo().dts > mMasterClock.GetTime()) {
+                    if (mVideoPacket && APP_BACKGROUND == mAppStatus && videoEarlyUs > 0) {
                         break;
                     }
 
@@ -1594,7 +1606,7 @@ namespace Cicada {
                     if (af_getsteady_ms() - startDecodeTime > 50) {
                         break;
                     }
-                } while (mSeekNeedCatch || dropLateVideoFrames);
+                } while ((mSeekNeedCatch || dropLateVideoFrames) && (videoEarlyUs < 200 * 1000));
             }
         }
 
@@ -3155,6 +3167,7 @@ namespace Cicada {
         mCurrentVideoMeta = nullptr;
         mAdaptiveVideo = false;
         dropLateVideoFrames = false;
+        mBRendingStart = false;
 
         if (mVideoRender) {
             mVideoRender->setSpeed(1);
@@ -3658,11 +3671,6 @@ namespace Cicada {
             }
 
             ChangePlayerStatus(PLAYER_PLAYING);
-            mMasterClock.start();
-
-            if (mAudioRender) {
-                mAudioRender->pause(false);
-            }
         }
     }
 
@@ -3673,11 +3681,7 @@ namespace Cicada {
         }
 
         ChangePlayerStatus(PLAYER_PAUSED);
-        mMasterClock.pause();
-
-        if (mAudioRender) {
-            mAudioRender->pause(true);
-        }
+        startRendering(false);
     }
 
     void SuperMediaPlayer::VideoRenderCallback(void *arg, int64_t pts, void *userData)
@@ -4029,6 +4033,25 @@ namespace Cicada {
             mSet.rate = speed;
             updateLoopGap();
             mMasterClock.SetScale(speed);
+        }
+    }
+
+    void SuperMediaPlayer::startRendering(bool start)
+    {
+        if (start == mBRendingStart) {
+            return;
+        }
+
+        mBRendingStart = start;
+
+        if (start) {
+            mMasterClock.start();
+        } else {
+            mMasterClock.pause();
+        }
+
+        if (mAudioRender) {
+            mAudioRender->pause(!start);
         }
     }
 }//namespace Cicada

@@ -60,8 +60,6 @@ namespace Cicada {
 
         mState = State::state_init;
         mRenderThread = std::unique_ptr<afThread>(NEW_AF_THREAD(renderLoop));
-        start_device();
-        startThread();
         return 0;
     }
 
