@@ -274,6 +274,7 @@ namespace Cicada {
         ret = avcodec_send_packet(mPDecoder->codecCont, pkt);
 
         if (0 == ret) {
+            pPacket = nullptr;
         } else if (ret == AVERROR(EAGAIN)) {
         } else if (ret == AVERROR_EOF) {
             AF_LOGD("Decode EOF\n");

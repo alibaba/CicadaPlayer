@@ -72,7 +72,7 @@ protected:
 protected:
 #if AF_HAVE_PTHREAD
     afThread *mDecodeThread = nullptr;
-    std::atomic_bool  mRunning{false};
+    std::atomic_bool mRunning{false};
 #endif
 private:
 
@@ -86,6 +86,7 @@ private:
     int maxOutQueueSize = 2;
     std::mutex mMutex{};
     std::mutex mSleepMutex{};
+    std::unique_ptr<IAFPacket> mPacket{nullptr};
 #endif
     bool bHolding = false;
     std::queue<std::unique_ptr<IAFPacket>> mHoldingQueue{};
