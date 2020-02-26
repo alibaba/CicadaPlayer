@@ -438,9 +438,13 @@ namespace Cicada {
             // open all stream in demuxer
             for (int i = 0; i < nbStream; ++i) {
                 mPDemuxer->GetStreamMeta(meta, i, false);
+                Stream_type subType = ((Stream_meta *) (*meta))->type;
+                Stream_type trackerType = (Stream_type) mPTracker->getStreamType();
+                AF_LOGD("sub type is %d\n", subType);
+                AF_LOGD("trackerType type is %d\n", trackerType);
 
-                if (((Stream_meta *) (*meta))->type == mPTracker->getStreamType()
-                        || mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
+                if ((trackerType == STREAM_TYPE_MIXED && subType != STREAM_TYPE_UNKNOWN) || subType == trackerType) {
+                    AF_LOGW("open stream  index is %d\n", i);
                     mPDemuxer->OpenStream(i);
                 }
 
@@ -936,7 +940,7 @@ namespace Cicada {
                         mPDemuxer->GetStreamMeta(&meta, i, false);
 
                         if (meta.type == mPTracker->getStreamType()
-                                || mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
+                                || (mPTracker->getStreamType() == STREAM_TYPE_MIXED && meta.type != STREAM_TYPE_UNKNOWN)) {
                             mPDemuxer->OpenStream(i);
                         }
 
@@ -963,6 +967,10 @@ namespace Cicada {
 
         if (packet != nullptr) {
             //  AF_LOGD("read a frame \n");
+            if (mPTracker->getStreamType() != STREAM_TYPE_MIXED) {
+                packet->getInfo().streamIndex = 0;
+            }
+
             if (mPacketFirstPts != INT64_MIN && packet->getInfo().pts != INT64_MIN) {
                 packet->getInfo().pts += mPacketFirstPts;
                 packet->getInfo().dts += mPacketFirstPts;
