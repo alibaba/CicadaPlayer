@@ -231,7 +231,7 @@ namespace Cicada {
                         }
 
                         prevbyterangeoffset = range.first + range.second;
-                        //   segment->setByteRange(range.first, prevbyterangeoffset - 1);
+                        pSegment->setByteRange(range.first, prevbyterangeoffset - 1);
                         ctx_byterange = nullptr;
                     }
 

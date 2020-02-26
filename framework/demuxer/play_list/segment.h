@@ -29,6 +29,8 @@ namespace Cicada{
 
         void setEncryption(SegmentEncryption enc);
 
+        void setByteRange(int64_t start, int64_t end);
+
     public:
         std::string mUri = "";
         uint64_t startTime = 0;
@@ -38,6 +40,8 @@ namespace Cicada{
         static const int SEQUENCE_INVALID;
         static const int SEQUENCE_FIRST;
         SegmentEncryption encryption;
+        int64_t rangeStart {INT64_MIN};
+        int64_t rangeEnd {INT64_MIN};
 
         std::shared_ptr<segment> init_section{nullptr};
 
