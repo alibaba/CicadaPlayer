@@ -574,12 +574,14 @@ namespace Cicada {
             assert(mParser != nullptr);
             mParser->parser(packet->getData(), packet->getSize());
             int poc = mParser->getPOC();
-            //   assert(poc >= 0);
-//            AF_LOGD("poc is %d\n", poc);
 
-            if (poc == 0) {
-                assert(keyFrame);
-            } else if (poc == 1) {
+            if (poc < 0 || (poc == 0 && !keyFrame)) {
+                AF_LOGE("error poc is %d\n", poc);
+                push_to_recovery_queue(unique_ptr<IAFPacket>(packet));
+                return;
+            }
+
+            if (poc == 1) {
                 mPocDelta = 1;
             }
 
