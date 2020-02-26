@@ -119,15 +119,15 @@ namespace Cicada {
             bool mixedVideo = false;
             bool mixedAudio = false;
 
-            if ((codecAttr->value.find_first_of("avc") != std::string::npos
-                    || codecAttr->value.find_first_of("hvc") != std::string::npos)
+            if ((codecAttr->value.find("avc") != std::string::npos
+                    || codecAttr->value.find("hvc") != std::string::npos)
                     && !videoAttr) {
                 mixedVideo = true;
             }
 
-            if ((codecAttr->value.find_first_of("mp4a") != std::string::npos
-                    || codecAttr->value.find_first_of("ac-3") != std::string::npos
-                    || codecAttr->value.find_first_of("ec-3") != std::string::npos
+            if ((codecAttr->value.find("mp4a") != std::string::npos
+                    || codecAttr->value.find("ac-3") != std::string::npos
+                    || codecAttr->value.find("ec-3") != std::string::npos
                 )
                     && !audioAttr) {
                 mixedAudio = true;
