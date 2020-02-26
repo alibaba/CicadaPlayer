@@ -2,6 +2,7 @@
 // Created by moqi on 2018/2/1.
 //
 #define LOG_TAG "demuxer_service"
+
 #include <utils/frame_work_log.h>
 #include <cassert>
 #include <utils/errors/framework_error.h>
@@ -368,7 +369,7 @@ namespace Cicada {
         return pHandle->mPDataSource->Seek(offset, whence);
     }
 
-    int demuxer_service::open_callback(void *arg, const char *url)
+    int demuxer_service::open_callback(void *arg, const char *url, int64_t start, int64_t end)
     {
         auto *pHandle = static_cast<demuxer_service *>(arg);
 
@@ -377,6 +378,7 @@ namespace Cicada {
             pHandle->mPProbBuffer = nullptr;
         }
 
+        pHandle->mPDataSource->setRange(start, end);
         return pHandle->mPDataSource->Open(url);
     }
 

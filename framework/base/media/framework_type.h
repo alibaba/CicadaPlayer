@@ -19,7 +19,7 @@ typedef int64_t (*demuxer_callback_seek)(void *arg, int64_t offset, int whence);
 
 typedef void (*demuxer_callback_interrupt_data)(void *arg, int inter);
 
-typedef int (*demuxer_callback_open)(void *arg, const char *url);
+typedef int (*demuxer_callback_open)(void *arg, const char *url, int64_t start, int64_t end);
 
 enum {
     EN_FRAMEWORK_SERVICE_PLAYER_BASE = 0x00001000,
