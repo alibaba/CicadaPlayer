@@ -129,9 +129,9 @@ namespace Cicada {
 
         CicadaJSONArray openInfoArray;
 
-        int openSegment(const string &uri);
+        int openSegment(const string &uri, int64_t start = INT64_MIN, int64_t end = INT64_MIN);
 
-        int tryOpenSegment(const string &uri);
+        int tryOpenSegment(const string &uri, int64_t start, int64_t end);
 
         int createDemuxer();
 

@@ -170,7 +170,7 @@ namespace Cicada {
         }
 
         uri = Helper::combinePaths(mPTracker->getBaseUri(), mCurSeg->init_section->mUri);
-        ret = tryOpenSegment(uri);
+        ret = tryOpenSegment(uri, mCurSeg->init_section->rangeStart, mCurSeg->init_section->rangeEnd);
 
         if (ret < 0) {
             return ret;
@@ -292,7 +292,7 @@ namespace Cicada {
             uri = Helper::combinePaths(mPTracker->getBaseUri(),
                                        mCurSeg->mUri);
             AF_LOGD("open uri is %s seq is %llu\n", uri.c_str(), mCurSeg->sequence);
-            ret = tryOpenSegment(uri);
+            ret = tryOpenSegment(uri, mCurSeg->rangeStart, mCurSeg->rangeEnd);
 
             if (isHttpError(ret)) {
                 resetSource();
@@ -457,14 +457,14 @@ namespace Cicada {
         return ret;
     }
 
-    int HLSStream::tryOpenSegment(const string &uri)
+    int HLSStream::tryOpenSegment(const string &uri, int64_t start, int64_t end)
     {
         int retryTimes = 0;
         int ret;
 
         do {
             resetSource();
-            ret = openSegment(uri);
+            ret = openSegment(uri, start, end);
             retryTimes++;
 
             if (retryTimes > 2) {
@@ -477,18 +477,21 @@ namespace Cicada {
         return ret;
     }
 
-    int HLSStream::openSegment(const string &uri)
+    int HLSStream::openSegment(const string &uri, int64_t start, int64_t end)
     {
         int ret;
 
         if (mExtDataSource) {
+            mExtDataSource->setRange(start, end);
             return mExtDataSource->Open(uri);
         }
 
         if (mPdataSource == nullptr) {
             recreateSource(uri);
+            mPdataSource->setRange(start, end);
             ret = mPdataSource->Open(0);
         } else {
+            mPdataSource->setRange(start, end);
             ret = mPdataSource->Open(uri);
         }
 
@@ -833,7 +836,7 @@ namespace Cicada {
                 mCurSeg = seg;
                 string uri = Helper::combinePaths(mPTracker->getBaseUri(),
                                                   seg->mUri);
-                ret = tryOpenSegment(uri);
+                ret = tryOpenSegment(uri, seg->rangeStart, seg->rangeEnd);
 
                 if (isHttpError(ret)) {
                     resetSource();
