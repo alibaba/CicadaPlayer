@@ -39,6 +39,10 @@ namespace Cicada {
             ret = FRAMEWORK_ERR_PROTOCOL_NOT_SUPPORT;
         }
 
+        if (rangeStart != INT64_MIN) {
+            ffurl_seek(mPuc, (int64_t) rangeStart, SEEK_SET);
+        }
+
         return ret;
     }
 
@@ -65,6 +69,14 @@ namespace Cicada {
 
     int ffmpegDataSource::Read(void *buf, size_t nbyte)
     {
+        if (rangeEnd != INT64_MIN) {
+            nbyte = std::min(nbyte, (size_t) (rangeEnd - Seek(0, SEEK_CUR)));
+
+            if (nbyte == 0) {
+                return 0;
+            }
+        }
+
         int ret = ffurl_read(mPuc, (unsigned char *) buf, nbyte);
 
         if (ret == AVERROR_EOF) {

@@ -11,7 +11,7 @@ typedef int (*readImpl)(void *arg, uint8_t *buffer, int size);
 
 typedef int64_t (*seekImpl)(void *arg, int64_t offset, int whence);
 
-typedef int (*openImpl)(void *arg, const char *url);
+typedef int (*openImpl)(void *arg, const char *url,int64_t start, int64_t end);
 
 typedef void (*interruptImpl)(void *arg, int inter);
 
