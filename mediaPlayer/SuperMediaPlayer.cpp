@@ -749,9 +749,16 @@ namespace Cicada {
     int64_t SuperMediaPlayer::GetPropertyInt(PropertyKey key)
     {
         switch (key) {
-            case PROPERTY_KEY_VIDEO_BUFFER_LEN:
-                return mBufferController.GetPacketDuration(BUFFER_TYPE_VIDEO);
-                break;
+            case PROPERTY_KEY_VIDEO_BUFFER_LEN: {
+                int64_t duration = mBufferController.GetPacketDuration(BUFFER_TYPE_VIDEO);
+
+                if (duration < 0) {
+                    duration = mBufferController.GetPacketLastPTS(BUFFER_TYPE_VIDEO) -
+                               mBufferController.GetPacketPts(BUFFER_TYPE_VIDEO);
+                }
+
+                return duration;
+            }
 
             case PROPERTY_KEY_REMAIN_LIVE_SEG:
                 return mRemainLiveSegment;
