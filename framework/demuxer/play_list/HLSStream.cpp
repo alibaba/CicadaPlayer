@@ -446,6 +446,7 @@ namespace Cicada {
                 if ((trackerType == STREAM_TYPE_MIXED && subType != STREAM_TYPE_UNKNOWN) || subType == trackerType) {
                     AF_LOGW("open stream  index is %d\n", i);
                     mPDemuxer->OpenStream(i);
+                    OpenedStreamIndex = i;
                 }
 
                 if (needUpdateMeta) {
@@ -1059,7 +1060,7 @@ namespace Cicada {
         meta->type = (Stream_type) mPTracker->getStreamType();
 
         if (meta->type != STREAM_TYPE_MIXED) {
-            index = 0;
+            index = OpenedStreamIndex;
         }
 
         uint64_t bandwidth;

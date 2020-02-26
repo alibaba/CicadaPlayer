@@ -212,6 +212,7 @@ namespace Cicada {
         int64_t mVttPtsOffSet = INT64_MIN;
 
         std::unique_ptr<DemuxerMetaInfo> mDemuxerMeta = nullptr;
+        int OpenedStreamIndex = 0;
     };
 }
 
