@@ -70,7 +70,7 @@ namespace Cicada {
 
         static int64_t seek_callback(void *arg, int64_t offset, int whence);
 
-        static int open_callback(void *arg, const char *url);
+        static int open_callback(void *arg, const char *url, int64_t start, int64_t end);
 
         static void interrupt_callback(void *arg, int inter);
 
