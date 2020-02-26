@@ -186,7 +186,7 @@ int CurlDataSource::Open(int flags)
         mPConnection->setInterrupt(&mInterrupt);
     }
 
-    int ret = curl_connect(mPConnection, 0);
+    int ret = curl_connect(mPConnection, rangeStart != INT64_MIN ? rangeStart : 0);
     mOpenTimeMS = af_gettime_relative() / 1000 - mOpenTimeMS;
 
     if (ret >= 0) {
@@ -203,13 +203,20 @@ int CurlDataSource::Open(const string &url)
         return Open(0);
     }
 
+    if (mUri == url) {
+        if (rangeStart != INT64_MIN) {
+            Seek(rangeStart, SEEK_SET);
+            return 0;
+        }
+    }
+
     mOpenTimeMS = af_gettime_relative() / 1000;
     mPConnection->disconnect();
     bool isRTMP = url.compare(0, 7, "rtmp://") == 0;
     mLocation = (isRTMP ? (url + " live=1").c_str() : url.c_str());
     // only change url, don,t change share and resolve
     curl_easy_setopt(mPConnection->getCurlHandle(), CURLOPT_URL, mLocation.c_str());
-    int ret = curl_connect(mPConnection, 0);
+    int ret = curl_connect(mPConnection, rangeStart != INT64_MIN ? rangeStart : 0);
     mOpenTimeMS = af_gettime_relative() / 1000 - mOpenTimeMS;
 
     if (ret >= 0) {
@@ -359,6 +366,14 @@ int64_t CurlDataSource::TrySeekByNewConnection(int64_t offset)
 int CurlDataSource::Read(void *buf, size_t size)
 {
     int ret = 0;
+
+    if (rangeEnd != INT64_MIN) {
+        size = std::min(size, (size_t) (rangeEnd - mPConnection->tell()));
+
+        if (size == 0) {
+            return 0;
+        }
+    }
 
     /* only request 1 byte, for truncated reads (only if not eof) */
     if ((mFileSize <= 0 || mPConnection->tell() < mFileSize) &&

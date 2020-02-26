@@ -75,6 +75,13 @@ namespace Cicada {
         return mOpts;
     }
 
+    int IDataSource::setRange(int64_t start, int64_t end)
+    {
+        rangeStart = start;
+        rangeEnd = end;
+        return 0;
+    }
+
     std::string IDataSource::SourceConfig::toString()
     {
         CicadaJSONItem item{};

@@ -24,7 +24,7 @@ namespace Cicada {
     int proxyDataSource::Open(const string &url)
     {
         if (mOpen) {
-            return mOpen(mUserArg, url.c_str());
+            return mOpen(mUserArg, url.c_str(), rangeStart, rangeEnd);
         }
 
         return -1;
