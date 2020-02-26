@@ -141,11 +141,6 @@ bool ActiveDecoder::needDrop(IAFPacket *packet)
         return true;
     }
 
-    // TODO: make sure HEVC not need drop also
-    if (packet->getInfo().codec_id != AF_CODEC_ID_HEVC) {
-        return false;
-    }
-
     if (bNeedKeyFrame) { // need a key frame, when first start or after seek
         if ((packet->getInfo().flags & AF_PKT_FLAG_KEY) == 0) { // drop the frame that not a key frame
             // TODO: return error?
@@ -158,6 +153,11 @@ bool ActiveDecoder::needDrop(IAFPacket *packet)
         }
     } else if (packet->getInfo().flags) {
         keyPts = INT64_MIN; // get the next key frame, stop to check
+    }
+
+    // TODO: make sure HEVC not need drop also
+    if (packet->getInfo().codec_id != AF_CODEC_ID_HEVC) {
+        return false;
     }
 
     if (packet->getInfo().pts < keyPts) { // after get the key frame, check the wrong frame use pts
