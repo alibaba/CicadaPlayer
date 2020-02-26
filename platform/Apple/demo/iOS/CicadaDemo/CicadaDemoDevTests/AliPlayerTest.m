@@ -1375,27 +1375,6 @@
 /**
  测试属性，设置再读取，看是否正确
  */
-- (void)testUserAgent_default {
-    [self.playerViewController initPlayer];
-    CicadaConfig *config = [self.playerViewController.player getConfig];
-    XCTAssertTrue(config.userAgent.length == 0, @"userAgent默认属性错误");
-    
-}
-
-/**
- 测试属性，设置再读取，看是否正确
- */
-- (void)testUserAgent {
-    [self.playerViewController initPlayer];
-    CicadaConfig *config = [self.playerViewController.player getConfig];
-    config.userAgent = @"agent";
-    XCTAssertEqual(config.userAgent,@"agent",@"userAgent属性设置错误");
-    
-}
-
-/**
- 测试属性，设置再读取，看是否正确
- */
 - (void)testClearShowWhenStop_default {
     [self.playerViewController initPlayer];
     CicadaConfig *config = [self.playerViewController.player getConfig];

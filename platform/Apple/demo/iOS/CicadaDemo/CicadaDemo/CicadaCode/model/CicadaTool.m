@@ -46,7 +46,7 @@
     NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:jsonData
                                                         options:NSJSONReadingMutableContainers
                                                           error:&error];
-    NSArray *keyArray = @[@"startBufferDuration",@"highBufferDuration",@"maxBufferDuration",@"maxDelayTime",@"networkTimeout",@"maxProbeSize",@"referer",@"httpProxy",@"networkRetryCount"];
+    NSArray *keyArray = @[@"startBufferDuration",@"highBufferDuration",@"maxBufferDuration",@"maxDelayTime",@"networkTimeout",@"referer",@"httpProxy",@"networkRetryCount"];
     NSMutableArray *backArray = [NSMutableArray array];
     for (NSString *key in keyArray) {
         NSString *value = dic[key];

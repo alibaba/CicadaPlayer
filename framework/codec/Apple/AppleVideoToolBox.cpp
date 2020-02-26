@@ -376,7 +376,7 @@ namespace Cicada {
                 return -EAGAIN;
             }
 
-            if (af_getsteady_ms() - startDecodeTime > 50) {
+            if (af_getsteady_ms() - startDecodeTime > 200) {
                 return -EAGAIN;
             }
         }

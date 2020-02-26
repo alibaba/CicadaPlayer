@@ -53,7 +53,7 @@ namespace Cicada{
         };
 
         /**
-         *  init the render, start to play after init success
+         *  init the render, not start to play after init success
          */
 
         virtual int init(const IAFFrame::audioInfo *info) = 0;
