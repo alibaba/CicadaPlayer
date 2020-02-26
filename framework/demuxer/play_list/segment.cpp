@@ -43,4 +43,10 @@ namespace Cicada {
     {
         encryption = enc;
     }
+
+    void segment::setByteRange(int64_t start, int64_t end)
+    {
+        rangeStart = start;
+        rangeEnd = end;
+    }
 }
