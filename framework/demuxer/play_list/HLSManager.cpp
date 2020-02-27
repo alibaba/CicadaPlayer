@@ -243,18 +243,22 @@ namespace Cicada {
             if (i->mPFrame) {
                 if (pFrameOut == nullptr) {
                     pFrameOut = i->mPFrame.get();
-                } else if (i->mPFrame->getInfo().pts < pFrameOut->getInfo().pts) {
+                } else if (i->mPFrame->getInfo().dts < pFrameOut->getInfo().dts) {
                     pFrameOut = i->mPFrame.get();
                 }
             }
         }
 
         if (index != -1) {
+            pFrameOut = nullptr;
+
             for (auto &i : mStreamInfoList) {
-                if (i->mPFrame->getInfo().streamIndex == index) {
-                    pFrameOut = i->mPFrame.get();
-                    packet = move(i->mPFrame);
-                    break;
+                if (i->mPStream->isOpened() && i->selected && i->mPFrame == nullptr && !i->eos) {
+                    if (i->mPFrame->getInfo().streamIndex == index) {
+                        pFrameOut = i->mPFrame.get();
+                        packet = move(i->mPFrame);
+                        break;
+                    }
                 }
             }
         } else {
