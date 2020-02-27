@@ -3619,7 +3619,7 @@ namespace Cicada {
         mVideoChangedFirstPts = INT64_MAX;
 
         if (willChangeInfo->videoBandwidth < currentInfo->videoBandwidth) {
-            mDemuxerService->SwitchStreamAligned(mCurrentVideoIndex, index);
+            mDemuxerService->SwitchStreamAligned(currentId, index);
         } else {
             mMixMode = (type == STREAM_TYPE_MIXED);
             int videoCount = 0;
