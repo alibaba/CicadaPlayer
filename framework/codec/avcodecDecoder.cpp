@@ -234,7 +234,8 @@ namespace Cicada {
         }
 
         if (mPDecoder->avFrame->decode_error_flags || mPDecoder->avFrame->flags) {
-            AF_LOGW("get a error picture\n");
+            AF_LOGW("get a error frame\n");
+            return -EAGAIN;
         }
 
 #ifdef ENABLE_HWDECODER
