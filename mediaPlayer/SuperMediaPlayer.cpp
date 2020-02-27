@@ -2348,10 +2348,28 @@ namespace Cicada {
             assert(0);
         }
 
-        int ret = mDemuxerService->readPacket(pMedia_Frame);
+        int index = -1;
+
+        if (HAVE_SUBTITLE && !mSubtitleEOS) {
+            if (mBufferController.GetPacketDuration(BUFFER_TYPE_SUBTITLE) <= 0) {
+                if (mSubtitleChangedFirstPts != INT64_MIN || 1) {
+                    index = mCurrentSubtitleIndex;
+                }
+            }
+        }
+
+        int ret = mDemuxerService->readPacket(pMedia_Frame, index);
 
         if (pMedia_Frame == nullptr) {
             //  AF_LOGD("Can't read packet %d\n", ret);
+            if (ret == 0) {
+                mSubtitleEOS = true;
+
+                if (index != -1) {
+                    ret = -EAGAIN;
+                }
+            }
+
             return ret;
         }
 
@@ -2637,6 +2655,7 @@ namespace Cicada {
 
         mSubtitleShowedQueue.clear();
         mSubtitleShowIndex = 0;
+        mSubtitleEOS = false;
     }
 
     void SuperMediaPlayer::PostBufferPositionMsg()
@@ -2690,7 +2709,11 @@ namespace Cicada {
 //            AF_LOGD("audioDuration is %lld\n",audioDuration);
         }
 
-        if (HAVE_SUBTITLE) {
+        /*
+         *  Do not let player loading when switching subtitle, we'll read subtitle first
+         *  in ReadPacket()
+         */
+        if (HAVE_SUBTITLE && !mSubtitleEOS && mSubtitleChangedFirstPts == INT64_MIN) {
             int64_t &duration_c = durations[i++];
             duration_c = mBufferController.GetPacketDuration(BUFFER_TYPE_SUBTITLE);
         }
@@ -3180,6 +3203,7 @@ namespace Cicada {
         mAdaptiveVideo = false;
         dropLateVideoFrames = false;
         mBRendingStart = false;
+        mSubtitleEOS = false;
 
         if (mVideoRender) {
             mVideoRender->setSpeed(1);
@@ -3659,18 +3683,9 @@ namespace Cicada {
         mCurrentSubtitleIndex = index;
         mBufferController.ClearPacket(BUFFER_TYPE_SUBTITLE);
         mEof = false;
+        mSubtitleEOS = false;
         FlushSubtitleInfo();
-        int64_t pts = 0;
-
-        if (mSeekPos > 0) {
-            pts = mSeekPos;
-        } else {
-            if (mPlayedVideoPts != INT64_MIN) {
-                pts = mPlayedVideoPts - mFirstVideoPts;
-            }
-        }
-
-        mDemuxerService->Seek(pts, 0, index);
+        mDemuxerService->Seek(getCurrentPosition(), 0, index);
     }
 
     void SuperMediaPlayer::ProcessStartMsg()

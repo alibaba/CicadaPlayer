@@ -432,6 +432,7 @@ namespace Cicada {
         int64_t mRemovedFirstAudioPts{INT64_MIN};;
         int64_t mFirstSeekStartTime{0};
         bool mEof{false};
+        bool mSubtitleEOS{false};
         bool mLowMem{false};
         bool mSeekFlag{false};
         bool mSeekInCache{false};
