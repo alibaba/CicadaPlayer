@@ -419,13 +419,18 @@ namespace Cicada {
             /* We'll need to create an adaptation set for each media group / alternative rendering
              * we create a list of playlist being and alternative/group */
             std::list<Tag *> mediaInfoTags = getTagsFromList(tagsList, AttributesTag::EXTXMEDIA);
+            std::list<AttributesTag *> dummyMediaInfoTags{};
 
             for (it = mediaInfoTags.begin(); it != mediaInfoTags.end(); ++it) {
                 auto *tag = dynamic_cast<AttributesTag *>(*it);
 
-                if (tag && tag->getAttributeByName("URI")) {
-                    std::pair<std::string, AttributesTag *> pair(tag->getAttributeByName("URI")->quotedString(), tag);
-                    groupsMap.insert(pair);
+                if (tag) {
+                    if (tag->getAttributeByName("URI")) {
+                        std::pair<std::string, AttributesTag *> pair(tag->getAttributeByName("URI")->quotedString(), tag);
+                        groupsMap.insert(pair);
+                    } else {
+                        dummyMediaInfoTags.push_back(tag);
+                    }
                 }
             }
 
@@ -439,6 +444,37 @@ namespace Cicada {
                     if (groupsMap.find(tag->getAttributeByName("URI")->value) == groupsMap.end()) {
                         /* not a group, belong to default adaptation set */
                         auto *represent = createRepresentation(adaptSet, tag);
+
+                        if (represent->mStreamType != STREAM_TYPE_MIXED && !dummyMediaInfoTags.empty()) {
+                            const Attribute *videoAttr = tag->getAttributeByName("VIDEO");
+                            const Attribute *audioAttr = tag->getAttributeByName("AUDIO");
+
+                            for (auto item : dummyMediaInfoTags) {
+                                const Attribute *group = item->getAttributeByName("GROUP-ID");
+
+                                if (!group || group->value.empty()) {
+                                    continue;
+                                }
+
+                                AF_LOGD("group name is %s\n", group->value.c_str());
+
+                                if ((videoAttr && group->value == videoAttr->value && represent->mStreamType != STREAM_TYPE_VIDEO) ||
+                                        (audioAttr && group->value == audioAttr->value && represent->mStreamType != STREAM_TYPE_AUDIO)) {
+                                    if (represent->mStreamType == STREAM_TYPE_UNKNOWN) {
+                                        if (audioAttr) {
+                                            represent->mStreamType = STREAM_TYPE_AUDIO;
+                                        } else {
+                                            represent->mStreamType = STREAM_TYPE_VIDEO;
+                                        }
+                                    } else {
+                                        represent->mStreamType = STREAM_TYPE_MIXED;
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+
                         adaptSet->addRepresentation(represent);
                     }
                 }
