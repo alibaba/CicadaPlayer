@@ -2763,7 +2763,12 @@ namespace Cicada {
             return;
         }
 
-        mDemuxerService->CloseStream(mCurrentVideoIndex);
+        if (mMixMode) {
+            mDemuxerService->CloseStream(GEN_STREAM_INDEX(mCurrentVideoIndex));
+        } else {
+            mDemuxerService->CloseStream(mCurrentVideoIndex);
+        }
+
         mDemuxerService->Seek(startTime / 1000 * 1000, 0, mWillChangedVideoStreamIndex);
 
         if (mMixMode) {
