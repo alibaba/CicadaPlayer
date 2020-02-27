@@ -3561,6 +3561,11 @@ namespace Cicada {
         StreamInfo *currentInfo = nullptr;
         StreamInfo *willChangeInfo = nullptr;
         int i;
+        int currentId = mCurrentVideoIndex;
+
+        if (type == STREAM_TYPE_MIXED) {
+            currentId = GEN_STREAM_INDEX(mCurrentVideoIndex);
+        }
 
         for (i = 0; i < count; i++) {
             StreamInfo *info = mStreamInfoQueue[i];
@@ -3569,7 +3574,7 @@ namespace Cicada {
                 willChangeInfo = info;
             }
 
-            if (mCurrentVideoIndex == info->streamIndex) {
+            if (currentId == info->streamIndex) {
                 currentInfo = info;
             }
         }
