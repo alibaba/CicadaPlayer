@@ -1108,7 +1108,7 @@ namespace Cicada {
         doDeCode();
 
         if (!mBRendingStart && mPlayStatus == PLAYER_PLAYING && !mBufferingFlag) {
-            if ((!HAVE_VIDEO || !mVideoFrameQue.empty())
+            if ((!HAVE_VIDEO || !mVideoFrameQue.empty() || (APP_BACKGROUND == mAppStatus))
                     && (!HAVE_AUDIO || !mAudioFrameQue.empty())) {
                 startRendering(true);
             }
