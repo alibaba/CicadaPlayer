@@ -172,7 +172,7 @@ static void onSubtitleShow(int64_t index, int64_t size, const void *buffer, void
 static void onSubtitleHide(int64_t index, int64_t size, const void *buffer, void *userData)
 {
 }
-
+#ifdef __APPLE__
 TEST(switch_stream, ExtSubtitle)
 {
     std::vector<player_command> commands;
@@ -191,3 +191,5 @@ TEST(switch_stream, ExtSubtitle)
         command_loop,
         &testCase, &listener);
 }
+
+#endif
