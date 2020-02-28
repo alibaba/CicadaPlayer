@@ -1,0 +1,81 @@
+[
+  {
+    "name": "MP4",
+    "samples": [
+      {
+        "url": "http://player.alicdn.com/video/aliyunmedia.mp4",
+        "type": "url",
+        "name": "VideoSolution"
+      },
+      {
+        "url": "https://alivc-demo-vod.aliyuncs.com/5892ebc19a6849d18f50d993fc65d0c2/b104de4e36f94fcca3686da241ff2626-0e9ff39437e4d8fe97267eed78b492a5-sd.mp4",
+        "type": "url",
+        "name": "Annual Meeting"
+      }
+    ]
+  },
+  {
+    "name": "HLS",
+    "samples": [
+      {
+        "url": "https://alivc-demo-vod.aliyuncs.com/ddb0c76ce153450081cd4c45118371a7/d30995ad97bc4643bf0a8c4cedd0c81f-e16b4635a4cb03424234c3a3d0e7f7e1-sd.m3u8",
+        "type": "url",
+        "name": "hls single bitrate"
+      },
+      {
+        "url": "https://alivc-demo-vod.aliyuncs.com/59f748948daa4438b42e42db755ae01e/9d44b2b86d334c6b9df649e35ad0240f.m3u8",
+        "type": "url",
+        "name": "hls multiple bitrate"
+      },
+      {
+        "url": "https://alivc-demo-vod.aliyuncs.com/d2c89d7210d443109434685f45ed607b/45ed0cccd8092bf25ee33764b5a52be4-sd-encrypt-stream.m3u8",
+        "type": "url",
+        "name": "hls aes-128"
+      }
+    ]
+  },
+  {
+    "name": "LIVE",
+    "samples": [
+      {
+        "url": "http://qt1.alivecdn.com/timeline/testshift.m3u8?auth_key=1594730859-0-0-b71fd57c57a62a3c2b014f24ca2b9da3",
+        "type": "url",
+        "name": "hls"
+      }
+    ]
+  },
+  {
+    "name": "HEVC",
+    "samples": [
+      {
+        "url": "https://alivc-demo-vod.aliyuncs.com/a2b7103c0bd049ecb7689472027cad2d/20144bf04b0e4f3c82ea2a7425a0a345-c4f5aabdcc7ba2861e8f0092d94db3bc-sd.mp4",
+        "type": "url",
+        "name": "mp4"
+      },
+      {
+        "url": "https://alivc-demo-vod.aliyuncs.com/b6e5d6f712dc49e783a95e410ee146a8/8bc13a7c1c744667bd0eb95711b3c3c0-c985bb021890b23af8478741023fc3d4-sd.m3u8",
+        "type": "url",
+        "name": "hls"
+      }
+    ]
+  },
+  {
+    "name": "Subtitle",
+    "samples": [
+      {
+        "url": "https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/1bb2b7f0e164494a88874c4911c3cec0.m3u8",
+        "type": "url",
+        "name": "subtitle"
+      },
+      {
+        "url": "https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/video/1bb2b7f0e164494a88874c4911c3cec0-85333fe978bd741193df2c08e697757b-video-ld.m3u8",
+        "type": "url",
+        "name": "subtitleExt",
+        "subtitle": {
+          "cn": "https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/subtitles/cn/c8d7d959e85977bedf8a61dd25f85583.vtt",
+          "en": "https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/subtitles/en-us/c8d7d959e85977bedf8a61dd25f85583.vtt"
+        }
+      }
+    ]
+  }
+]
