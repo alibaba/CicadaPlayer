@@ -139,7 +139,7 @@ function packet_iOS(){
     mkdir -p ${CicadaSDK_ARM}
 
     #cp clear CicadaDemo at first
-    cp -rf CicadaDemo/ ${TOP_DIR}/output/CicadaPlayerSDK/CicadaDemo
+    cp -rf ${TOP_DIR}/platform/Apple/demo/iOS/CicadaDemo/ ${TOP_DIR}/output/CicadaPlayerSDK/CicadaDemo
 
     cd ${DEMO_SOURCE_DIR_IOS}/SDK/
     ALL_FRAMEWORK_PATH=${DEMO_SOURCE_DIR_IOS}/SDK/ARM_SIMULATOR
