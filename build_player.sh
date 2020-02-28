@@ -170,14 +170,14 @@ function packet_iOS(){
     xcrun bitcode_strip ${nobit_path}/alivcffmpeg.framework/alivcffmpeg -r -o ${nobit_path}/alivcffmpeg.framework/alivcffmpeg
 
     #build app without SDK
-    mv CicadaPlayerSDK.xcodeproj CicadaPlayerSDKBak.xcodeproj
-    cd ${DEMO_SOURCE_DIR_IOS}/CicadaDemo
-    sh packetIPA.sh
-    cp ./build/Release-iphoneos/CicadaDemo.ipa ${TOP_DIR}/output
-    cd ./build/Release-iphoneos/CicadaDemo.xcarchive/dSYMs
-    tar -cjvf ${TOP_DIR}/output/CicadaDemo.app.dSYM.bz2 ./CicadaDemo.app.dSYM
-    cd ${DEMO_SOURCE_DIR_IOS}/SDK/
-    mv CicadaPlayerSDKBak.xcodeproj CicadaPlayerSDK.xcodeproj
+#    mv CicadaPlayerSDK.xcodeproj CicadaPlayerSDKBak.xcodeproj
+#    cd ${DEMO_SOURCE_DIR_IOS}/CicadaDemo
+#    sh packetIPA.sh
+#    cp ./build/Release-iphoneos/CicadaDemo.ipa ${TOP_DIR}/output
+#    cd ./build/Release-iphoneos/CicadaDemo.xcarchive/dSYMs
+#    tar -cjvf ${TOP_DIR}/output/CicadaDemo.app.dSYM.bz2 ./CicadaDemo.app.dSYM
+#    cd ${DEMO_SOURCE_DIR_IOS}/SDK/
+#    mv CicadaPlayerSDKBak.xcodeproj CicadaPlayerSDK.xcodeproj
 
     cd ${TOP_DIR}/output/
     tar -cjvf ${TOP_DIR}/output/CicadaPlayerSDK_${MUPP_BUILD_ID}.bz2 CicadaPlayerSDK/
