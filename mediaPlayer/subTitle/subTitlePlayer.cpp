@@ -10,17 +10,19 @@ using namespace std;
 namespace Cicada {
 
     subTitlePlayer::subTitlePlayer(Listener &listener)
-            : mListener(listener)
+        : mListener(listener)
     {
-
     }
 
     subTitlePlayer::~subTitlePlayer()
     {
-        // TODO:
-        /*
-         * 1. interrupt addings
-         */
+        for (auto &item : mAddings) {
+            item->mSource->close();
+        }
+
+        for (auto &item : mAddings) {
+            item->mFuture.wait();
+        }
     }
 
     int subTitlePlayer::add(const std::string &uri)
@@ -37,12 +39,15 @@ namespace Cicada {
 
     void subTitlePlayer::onNoop()
     {
-        if (mAddings.empty())
+        if (mAddings.empty()) {
             return;
+        }
+
         future_status status = mAddings[0]->mFuture.wait_for(chrono::milliseconds(1));
 
         if (status == future_status::ready) {
             int ret = mAddings[0]->mFuture.get();
+
             if (ret < 0) {
                 mListener.onAdded(mAddings[0]->mSource->getUri(), ret);
             } else {
@@ -50,9 +55,9 @@ namespace Cicada {
                 mListener.onAdded(mAddings[0]->mSource->getUri(), mAddings[0]->mSource->getID());
                 mSources.push_back(unique_ptr<SourceInfo>(new SourceInfo(mAddings[0]->mSource.release())));
             }
+
             mAddings.erase(mAddings.begin());
         }
-
     }
 
     void subTitlePlayer::remove(int id)
@@ -61,41 +66,52 @@ namespace Cicada {
             if ((*item)->mSource->getID() == id) {
                 item = mSources.erase(item);
                 break;
-            } else
+            } else {
                 ++item;
+            }
         }
     }
 
     int subTitlePlayer::select(int index, bool bSelect)
     {
         bool find = false;
+
         for (auto item = mSources.begin(); item != mSources.end();) {
             if ((*item)->mSource->getID() == index) {
                 if ((*item)->mSelected != bSelect) {
                     (*item)->mSelected = bSelect;
-                    if (bSelect)
+
+                    if (bSelect) {
                         ++mSelectNum;
-                    else {
+                    } else {
                         --mSelectNum;
+
                         if ((*item)->mPacket) {
                             IAFPacket *packet = (*item)->mPacket.get();
+
                             if (packet->getDiscard()) {
                                 mListener.onRender(false, (*item)->mPacket.release());
                             }
+
                             (*item)->mPacket = nullptr;
                         }
                     }
                 }
+
                 find = true;
                 break;
             }
+
             ++item;
         }
+
         assert(mSelectNum >= 0);
-        if (find)
+
+        if (find) {
             return 0;
-        else
+        } else {
             return -EINVAL;
+        }
     }
 
     bool subTitlePlayer::isActive()
@@ -113,16 +129,21 @@ namespace Cicada {
         for (auto item = mSources.begin(); item != mSources.end();) {
             if ((*item)->mSelected) {
                 (*item)->mSource->seek(pts);
+
                 if ((*item)->mPacket) {
                     IAFPacket *packet = (*item)->mPacket.get();
+
                     if (packet->getDiscard()) {
                         mListener.onRender(false, (*item)->mPacket.release());
                     }
+
                     (*item)->mPacket = nullptr;
                 }
             }
+
             ++item;
         }
+
         return 0;
     }
 
@@ -132,26 +153,32 @@ namespace Cicada {
 
         do {
             int ret = info.getPacket(&packet);
-            if (packet == nullptr)
+
+            if (packet == nullptr) {
                 break;
+            }
+
             if (packet->getInfo().pts + packet->getInfo().duration <= pts) {
                 if (packet->getDiscard()) {
                     mListener.onRender(false, info.mPacket.release());
                 }
-                info.mPacket = nullptr;
-            } else
-                break;
 
+                info.mPacket = nullptr;
+            } else {
+                break;
+            }
         } while (true);
-        if (packet == nullptr)
+
+        if (packet == nullptr) {
             return;
+        }
+
         if (packet->getInfo().pts <= pts) {
             if (!packet->getDiscard()) {
                 mListener.onRender(true, packet);
                 packet->setDiscard(true);
             }
         }
-
     }
 
     void subTitlePlayer::update(int64_t pts)
@@ -160,8 +187,8 @@ namespace Cicada {
             if ((*item)->mSelected) {
                 render(*(*item), pts);
             }
+
             ++item;
         }
-
     }
 }
