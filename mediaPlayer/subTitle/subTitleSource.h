@@ -11,7 +11,7 @@
 
 namespace Cicada {
 
-    class subTitleSource :public OptionOwner{
+    class subTitleSource : public OptionOwner {
     public:
         explicit subTitleSource(std::string uri);
 
@@ -25,12 +25,28 @@ namespace Cicada {
 
         void setID(int id);
 
+        void close()
+        {
+            if (mDataSource)
+                mDataSource->Interrupt(true);
+            if (mDemuxer)
+                mDemuxer->interrupt(true);
+        }
+
         int getID();
 
         std::string getUri()
         {
             return mUrl;
         }
+
+//    private:
+//        class dataSourceListener : public Cicada::IDataSource::Listener {
+//            NetWorkRetryStatus onNetWorkRetry(int error) override
+//            {
+//
+//            }
+//        };
 
     private:
         std::unique_ptr<IDataSource> mDataSource{nullptr};
