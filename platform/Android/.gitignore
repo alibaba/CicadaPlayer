@@ -7,7 +7,7 @@ CMakeFiles/
 CMakeCache*.txt
 Makefile*
 cmake_install*.cmake
-*.json
+#*.json
 source/listapp/wrap_add_dir/
 motuAsan/app/wrap_add_dir/
 motuAsan/releaseLibs/
