@@ -22,6 +22,8 @@ namespace Cicada {
 
         void setSource(const std::string &location, struct curl_slist *headerList);
 
+        void updateSource(const std::string &location);
+
         void setInterrupt(std::atomic_bool *inter);
 
         void SetResume(int64_t pos);

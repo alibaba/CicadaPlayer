@@ -78,7 +78,7 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
 
         if (length > 0.0) {
             mFileSize = pConnection->tell() + (int64_t) length;
-            //           AF_LOGE(TAG,"file size is %lld\n",curlContext.fileSize);
+            //AF_LOGE("file size is %lld\n",mFileSize);
         }
 
 //        if (curlContext.fileSize == 0)
@@ -215,7 +215,7 @@ int CurlDataSource::Open(const string &url)
     bool isRTMP = url.compare(0, 7, "rtmp://") == 0;
     mLocation = (isRTMP ? (url + " live=1").c_str() : url.c_str());
     // only change url, don,t change share and resolve
-    curl_easy_setopt(mPConnection->getCurlHandle(), CURLOPT_URL, mLocation.c_str());
+    mPConnection->updateSource(mLocation);
     int ret = curl_connect(mPConnection, rangeStart != INT64_MIN ? rangeStart : 0);
     mOpenTimeMS = af_gettime_relative() / 1000 - mOpenTimeMS;
 
@@ -376,13 +376,12 @@ int CurlDataSource::Read(void *buf, size_t size)
     }
 
     /* only request 1 byte, for truncated reads (only if not eof) */
-    if ((mFileSize <= 0 || mPConnection->tell() < mFileSize) &&
-            (ret = mPConnection->FillBuffer(1)) < 0) {
+    if (mFileSize <= 0 || mPConnection->tell() < mFileSize) {
+        ret = mPConnection->FillBuffer(1);
+
         if (ret < 0) {
             return ret;
         }
-
-        return 0;
     }
 
     return mPConnection->readBuffer(buf, size);
