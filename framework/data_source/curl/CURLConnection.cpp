@@ -705,3 +705,9 @@ int CURLConnection::readBuffer(void *buf, size_t size)
 
     return 0;
 }
+
+void CURLConnection::updateSource(const string &location)
+{
+    curl_easy_setopt(mHttp_handle, CURLOPT_URL, location.c_str());
+    mFileSize = -1;
+}
