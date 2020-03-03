@@ -150,6 +150,7 @@ static int ExtSubtitleOnCallback(Cicada::MediaPlayer *player, void *arg)
         "https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/subtitles/cn/c8d7d959e85977bedf8a61dd25f85583.vtt");
     player->AddExtSubtitle(
         "https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/subtitles/en-us/c8d7d959e85977bedf8a61dd25f85583.vtt");
+    return 0;
 }
 
 void onSubtitleExtAdd(int64_t index, const void *errorMsg, void *userData)
@@ -172,7 +173,6 @@ static void onSubtitleShow(int64_t index, int64_t size, const void *buffer, void
 static void onSubtitleHide(int64_t index, int64_t size, const void *buffer, void *userData)
 {
 }
-#ifdef __APPLE__
 TEST(switch_stream, ExtSubtitle)
 {
     std::vector<player_command> commands;
@@ -191,5 +191,3 @@ TEST(switch_stream, ExtSubtitle)
         command_loop,
         &testCase, &listener);
 }
-
-#endif

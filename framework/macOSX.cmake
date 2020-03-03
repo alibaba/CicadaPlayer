@@ -51,7 +51,8 @@ set(FRAMEWORK_LIBS
 
 set(TARGET_LIBRARY_TYPE STATIC)
 
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=return-type")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=return-type")
 if (USEASAN)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope")

@@ -24,6 +24,9 @@ set(COMMON_INC_DIR ${COMMON_INC_DIR}
 
 set(FFMPEG_SOURCE_DIR ${TOPDIR}/external/external/ffmpeg/)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=return-type")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=return-type")
+
 #find_library(VIDEO_TOOL_BOX VideoToolbox)
 #find_library(AUDIO_TOOL_BOX AudioToolbox)
 #find_library(COREMEDIA CoreMedia)
