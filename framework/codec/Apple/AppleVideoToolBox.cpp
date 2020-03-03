@@ -93,10 +93,11 @@ namespace Cicada {
 //            return ret;
 //        mGotFirstFrame = false;
 
-        if (meta->extradata && meta->extradata_size > 0) {
+        if (meta->extradata && meta->extradata_size > 0  && mActive) {
             ret = createDecompressionSession(meta->extradata, meta->extradata_size, meta->width, meta->height);
 
             if (ret < 0) {
+                AF_LOGE("createDecompressionSession error\n");
                 return ret;
             }
         }
@@ -522,8 +523,9 @@ namespace Cicada {
         CFRelease(sampleBuffer);
 
         if (rv == kVTInvalidSessionErr) {
-            mActive = false;
+            AF_LOGW("kVTInvalidSessionErr\n");
             pPacket.reset(packet);
+            close_decoder();
             return -EAGAIN;
         }
 
