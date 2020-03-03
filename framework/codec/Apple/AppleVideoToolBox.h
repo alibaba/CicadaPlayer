@@ -13,7 +13,7 @@
 #include <utils/bitStreamParser.h>
 #include "../codecPrototype.h"
 
-namespace Cicada{
+namespace Cicada {
 
     class CICADA_CPLUS_EXTERN AFVTBDecoder : public ActiveDecoder, private codecPrototype, private IOSNotificationObserver {
     public:
@@ -105,8 +105,8 @@ namespace Cicada{
         int mInputCount{0};
         bool mThrowPacket{false};
         std::mutex mActiveStatusMutex;
-        bool mActive{true};
         pix_fmt mVTOutFmt = AF_PIX_FMT_NONE;
+        std::atomic_bool mActive{true};
         std::unique_ptr<streamMeta> mPInMeta{nullptr};
         std::queue<std::unique_ptr<IAFPacket>> mRecoveryQueue{};
         std::queue<std::unique_ptr<IAFPacket>> mRecoveringQueue{};
