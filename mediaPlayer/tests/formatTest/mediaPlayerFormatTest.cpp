@@ -76,6 +76,7 @@ static int liveOnCallback(Cicada::MediaPlayer *player, void *arg)
     playerConfig.maxDelayTime = 2000;
     playerConfig.startBufferDuration = playerConfig.maxDelayTime + 1000;
     player->SetConfig(&playerConfig);
+    return 0;
 }
 
 //TEST(flv, live)
