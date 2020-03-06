@@ -1525,7 +1525,8 @@ namespace Cicada {
                 // The audio render waits for the video frame to be ready, when switch to foreground from background
                 if (!dropLateVideoFrames
                         || !HAVE_VIDEO
-                        || !mVideoFrameQue.empty()) {
+                        || !mVideoFrameQue.empty()
+                        || (APP_BACKGROUND == mAppStatus)) {
                     if (mAudioRender) {
                         mAudioRender->pause(false);
                     }
