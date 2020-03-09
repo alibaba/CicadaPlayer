@@ -117,7 +117,7 @@ namespace Cicada{
         std::queue<std::unique_ptr<IAFFrame>> mReorderedQueue{};
         std::mutex mReorderMutex{};
 
-        bool mResignActiveFromRunning{false};
+        bool mResignActive{false};
         bool mIsDummy = false;
     };
 
