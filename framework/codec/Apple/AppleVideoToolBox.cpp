@@ -357,6 +357,16 @@ namespace Cicada {
 
     int AFVTBDecoder::enqueue_decoder(unique_ptr<IAFPacket> &pPacket)
     {
+        if (mResignActive) {
+            close_decoder();
+            std::lock_guard<std::mutex> lock(mActiveStatusMutex);
+            mResignActive = false;
+        }
+
+        if (!mActive) {
+            return -EAGAIN;
+        }
+
         if (mVTDecompressSessionRef == nullptr) {
             gen_recovering_queue();
             init_decoder_internal();
@@ -373,7 +383,7 @@ namespace Cicada {
                 return -EAGAIN;
             }
 
-            if (!mRunning) {
+            if (!mRunning || !mActive) {
                 return -EAGAIN;
             }
 
@@ -693,6 +703,12 @@ namespace Cicada {
 
     void AFVTBDecoder::gen_recovering_queue()
     {
+        // push the RecoveringQueue to RecoveryQueue
+        while (!mRecoveringQueue.empty()) {
+            mRecoveryQueue.push(move(mRecoveringQueue.front()));
+            mRecoveringQueue.pop();
+        }
+
         assert(mRecoveringQueue.empty());
 
         while (!mRecoveryQueue.empty()) {
@@ -763,22 +779,8 @@ namespace Cicada {
     {
         std::lock_guard<std::mutex> lock(mActiveStatusMutex);
         AF_LOGD("ios bg decoder appWillResignActive");
-
-        if (mDecodeThread) {
-            mResignActiveFromRunning = mDecodeThread->getStatus() == afThread::THREAD_STATUS_RUNNING;
-            mRunning = false;
-            mDecodeThread->pause();
-        }
-
-        close_decoder();
         mActive = false;
-
-        // push the RecoveringQueue to RecoveryQueue
-        while (!mRecoveringQueue.empty()) {
-            mRecoveryQueue.push(move(mRecoveringQueue.front()));
-            mRecoveringQueue.pop();
-        }
-
+        mResignActive = true;
 //        if (mDecodedHandler) {
 //            mDecodedHandler->OnDecodedMsgHandle(CICADA_VDEC_WARNING_IOS_RESIGN_ACTIVE);
 //        }
@@ -788,17 +790,8 @@ namespace Cicada {
     {
         std::lock_guard<std::mutex> lock(mActiveStatusMutex);
         AF_LOGD("ios bg decoder appDidBecomeActive");
-        mActive = true;
         mThrowPacket = true;
-
-        if (mResignActiveFromRunning && mDecodeThread) {
-            mRunning = true;
-            mDecodeThread->start();
-        }
-
-//        if (mDecodedHandler) {
-//            mDecodedHandler->OnDecodedMsgHandle(CICADA_VDEC_WARNING_IOS_BECOME_ACTIVE);
-//        }
+        mActive = true;
     }
 
 } // namespace
