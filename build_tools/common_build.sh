@@ -49,7 +49,7 @@ function build_static_lib(){
 
     local build_openssl="true"
     if [ "$1" == "iOS" ] || [ "$1" == "Darwin" ];then
-        if [ ${SSL_USE_NATIVE} == "TRUE" ];then
+        if [ "${SSL_USE_NATIVE}" == "TRUE" ];then
             build_openssl="false"
         fi
     fi

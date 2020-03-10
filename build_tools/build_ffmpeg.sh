@@ -13,7 +13,7 @@ function build_ffmpeg(){
     then
         ffmpeg_cross_compile_set_iOS $2
         if [[ "${SSL_USE_NATIVE}" != "TRUE" ]];then
-            fmpeg_config_add_user "--disable-securetransport"
+            ffmpeg_config_add_user "--disable-securetransport"
         fi
     elif [ "$1" == "win32" ];then
         ffmpeg_cross_compile_set_win32 $2
