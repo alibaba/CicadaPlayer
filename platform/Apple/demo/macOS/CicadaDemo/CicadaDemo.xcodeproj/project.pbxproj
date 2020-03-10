@@ -15,6 +15,7 @@
 		1F940553239DFA9F00F07BEE /* source.json in Resources */ = {isa = PBXBuildFile; fileRef = 1F94054C239DFA9F00F07BEE /* source.json */; };
 		1F940554239DFA9F00F07BEE /* CicadaCacheConfig+refresh.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F94054E239DFA9F00F07BEE /* CicadaCacheConfig+refresh.m */; };
 		1F940555239DFA9F00F07BEE /* CicadaConfig+refresh.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F940550239DFA9F00F07BEE /* CicadaConfig+refresh.m */; };
+		633C691473E2A7EDF4A36757 /* libPods-CicadaDemo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F4F953ED427601A6122C53FF /* libPods-CicadaDemo.a */; };
 		92560B6321FEB1B6001244CA /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 92560B6221FEB1B6001244CA /* AppDelegate.m */; };
 		92560B6621FEB1B6001244CA /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92560B6521FEB1B6001244CA /* ViewController.m */; };
 		92560B6821FEB1B7001244CA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 92560B6721FEB1B7001244CA /* Assets.xcassets */; };
@@ -38,7 +39,6 @@
 		9282EB4C22168F410032F3DF /* RightView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9282EB4B22168F410032F3DF /* RightView.m */; };
 		9282EB4E22168F520032F3DF /* RightView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9282EB4D22168F520032F3DF /* RightView.xib */; };
 		92B040CD222788C800FFA403 /* ConfigSetView.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B040CC222788C800FFA403 /* ConfigSetView.m */; };
-		A81A9BB14C9600DA3D81778C /* libPods-AliPlayerDemo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0753A2CA8BE4F3711851FF43 /* libPods-AliPlayerDemo.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -158,7 +158,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		0753A2CA8BE4F3711851FF43 /* libPods-AliPlayerDemo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AliPlayerDemo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = CicadaPlayerSDK.xcodeproj; path = ../SDK/CicadaPlayerSDK.xcodeproj; sourceTree = "<group>"; };
 		1F94053D239DF28700F07BEE /* CicadaPlayerSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CicadaPlayerSDK.framework; path = ../SDK/CicadaPlayerSDK.framework; sourceTree = "<group>"; };
 		1F94053E239DF28700F07BEE /* alivcffmpeg.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = alivcffmpeg.framework; path = ../SDK/alivcffmpeg.framework; sourceTree = "<group>"; };
@@ -212,7 +211,10 @@
 		92B040CB222788C800FFA403 /* ConfigSetView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigSetView.h; sourceTree = "<group>"; };
 		92B040CC222788C800FFA403 /* ConfigSetView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConfigSetView.m; sourceTree = "<group>"; };
 		B97ADCAB94193F6589D4DA69 /* Pods-AliPlayerDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AliPlayerDemo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AliPlayerDemo/Pods-AliPlayerDemo.debug.xcconfig"; sourceTree = "<group>"; };
+		D622A9A7E2A93156E086DEFA /* Pods-CicadaDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CicadaDemo.release.xcconfig"; path = "Pods/Target Support Files/Pods-CicadaDemo/Pods-CicadaDemo.release.xcconfig"; sourceTree = "<group>"; };
 		E9E63D7913B0D1BB3B3E4672 /* Pods-AliPlayerDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AliPlayerDemo.release.xcconfig"; path = "Pods/Target Support Files/Pods-AliPlayerDemo/Pods-AliPlayerDemo.release.xcconfig"; sourceTree = "<group>"; };
+		F4F953ED427601A6122C53FF /* libPods-CicadaDemo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CicadaDemo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F85252A8293421B21653C110 /* Pods-CicadaDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CicadaDemo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-CicadaDemo/Pods-CicadaDemo.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -220,9 +222,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A81A9BB14C9600DA3D81778C /* libPods-AliPlayerDemo.a in Frameworks */,
 				1F940546239DF29100F07BEE /* CicadaPlayerSDK.framework in Frameworks */,
 				1F940544239DF28F00F07BEE /* alivcffmpeg.framework in Frameworks */,
+				633C691473E2A7EDF4A36757 /* libPods-CicadaDemo.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -268,7 +270,7 @@
 			children = (
 				1F94053E239DF28700F07BEE /* alivcffmpeg.framework */,
 				1F94053D239DF28700F07BEE /* CicadaPlayerSDK.framework */,
-				0753A2CA8BE4F3711851FF43 /* libPods-AliPlayerDemo.a */,
+				F4F953ED427601A6122C53FF /* libPods-CicadaDemo.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -278,6 +280,8 @@
 			children = (
 				B97ADCAB94193F6589D4DA69 /* Pods-AliPlayerDemo.debug.xcconfig */,
 				E9E63D7913B0D1BB3B3E4672 /* Pods-AliPlayerDemo.release.xcconfig */,
+				F85252A8293421B21653C110 /* Pods-CicadaDemo.debug.xcconfig */,
+				D622A9A7E2A93156E086DEFA /* Pods-CicadaDemo.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -569,7 +573,7 @@
 			);
 			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-AliPlayerDemo-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-CicadaDemo-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -740,7 +744,7 @@
 		};
 		92560B7321FEB1B7001244CA /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B97ADCAB94193F6589D4DA69 /* Pods-AliPlayerDemo.debug.xcconfig */;
+			baseConfigurationReference = F85252A8293421B21653C110 /* Pods-CicadaDemo.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = AliPlayerDemo/AliPlayerDemo.entitlements;
@@ -772,7 +776,7 @@
 		};
 		92560B7421FEB1B7001244CA /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E9E63D7913B0D1BB3B3E4672 /* Pods-AliPlayerDemo.release.xcconfig */;
+			baseConfigurationReference = D622A9A7E2A93156E086DEFA /* Pods-CicadaDemo.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = AliPlayerDemo/AliPlayerDemo.entitlements;
