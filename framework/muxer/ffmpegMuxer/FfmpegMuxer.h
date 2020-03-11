@@ -97,13 +97,13 @@ protected:
     virtual int muxerWrite(uint8_t *buf, int size);
 
     virtual int muxerWriteDataType(uint8_t *buf, int size,
-                                   enum ApsaraDataType type, int64_t time);
+                                   DataType type, int64_t time);
 
 private:
 
     void insertStreamInfo(const AVStream *st, const Stream_meta *meta);
 
-    ApsaraDataType mapType(AVIODataMarkerType type);
+    static IMuxer::DataType mapType(AVIODataMarkerType type);
 
     static int64_t io_seek(void *opaque, int64_t offset, int whence);
 

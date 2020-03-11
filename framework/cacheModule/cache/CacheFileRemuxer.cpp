@@ -113,7 +113,7 @@ int CacheFileRemuxer::muxThreadRun()
         mDestFileCntl = new FileCntl(mDestFilePath);
     }
 
-    if(mMuxer == nullptr){
+    if (mMuxer == nullptr) {
         sendError(CACHE_ERROR_ENCRYPT_CHECK_FAIL);
         return -1;
     }
@@ -123,7 +123,6 @@ int CacheFileRemuxer::muxThreadRun()
 
     if (openRet != 0) {
         AF_LOGE("muxThreadRun() mMuxer->open() fail...ret = %d ", openRet);
-
         //open fail..
         sendError(CACHE_ERROR_MUXER_OPEN);
         return -1;
@@ -144,6 +143,7 @@ int CacheFileRemuxer::muxThreadRun()
 
                 if (ret < 0) {
                     AF_LOGW("muxThreadRun() mMuxer error ret = %d ", ret);
+
                     //no space error .
                     if (ENOSPC == errno) {
                         sendError(CACHE_ERROR_NO_SPACE);
@@ -221,7 +221,7 @@ int CacheFileRemuxer::io_write(void *opaque, uint8_t *buf, int size)
 }
 
 int CacheFileRemuxer::io_write_data_type(void *opaque, uint8_t *buf, int size,
-        enum ApsaraDataType type, int64_t time)
+        IMuxer::DataType type, int64_t time)
 {
     return io_write(opaque, buf, size);
 }
@@ -261,13 +261,16 @@ void CacheFileRemuxer::clearStreamMetas()
     }
 }
 
-void CacheFileRemuxer::sendError(const CacheRet &ret) {
+void CacheFileRemuxer::sendError(const CacheRet &ret)
+{
     mRemuxSuc = false;
+
     if (mErrorCallback != nullptr) {
         mErrorCallback(ret.mCode, ret.mMsg);
     }
 }
 
-bool CacheFileRemuxer::isRemuxSuccess() {
+bool CacheFileRemuxer::isRemuxSuccess()
+{
     return mRemuxSuc;
 }
