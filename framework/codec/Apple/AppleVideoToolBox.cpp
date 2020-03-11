@@ -61,9 +61,8 @@ namespace Cicada {
             }
         }
 
-#else
-        return true;
 #endif
+        return true;
     }
 
     int AFVTBDecoder::init_decoder_internal()
