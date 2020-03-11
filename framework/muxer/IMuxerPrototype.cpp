@@ -5,6 +5,7 @@
 #include "IMuxerPrototype.h"
 
 using namespace Cicada;
+using namespace std;
 
 IMuxerPrototype *IMuxerPrototype::muxerPrototypeQueue[];
 int IMuxerPrototype::_nextSlot;

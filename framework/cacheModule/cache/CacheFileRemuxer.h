@@ -67,7 +67,7 @@ private :
     static int io_write(void *opaque, uint8_t *buf, int size);
 
     static int io_write_data_type(void *opaque, uint8_t *buf, int size,
-                                  enum ApsaraDataType type, int64_t time);
+                                  IMuxer::DataType type, int64_t time);
 
 
 private:
