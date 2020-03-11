@@ -20,7 +20,7 @@ extern "C" {
 
 #define IO_BUFFER_SIZE 32768
 
-
+using namespace std;
 FfmpegMuxer FfmpegMuxer::se(0);
 
 FfmpegMuxer::FfmpegMuxer(string destFilePath, string destFormat)
