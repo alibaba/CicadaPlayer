@@ -123,4 +123,8 @@ iOS_check_env.sh
 
 build_libs iOS "${IOS_ARCHS}"
 build_fat_libs
-build_shared_framework
+if [[ "${BUILD_SHARED_LIB}" == "FALSE" ]];then
+    echo "skip build shared lib"
+else
+    build_shared_framework
+fi

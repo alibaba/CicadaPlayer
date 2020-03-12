@@ -2,10 +2,10 @@
 
 function clone_git() {
 
-if [ -n "$2" ];then
+if [[ -n "$3" ]];then
     git clone $1 -b $2 $3
   else
-    git clone $1 $3
+    git clone $1 -b $2
   fi
 
 }
