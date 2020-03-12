@@ -49,13 +49,13 @@ ffmpeg_config_debug="--disable-optimizations \
 ffmpeg_inited=false
 
 function ffmpeg_init_vars(){
-    if [ "${ffmpeg_inited}" == "TRUE" ]
+    if [[ "${ffmpeg_inited}" == "TRUE" ]]
     then
         echo "inited"
         return
     fi
 
-    if [ -f ${FFMPEG_SOURCE_DIR}/config.h ]
+    if [[ -f ${FFMPEG_SOURCE_DIR}/config.h ]]
     then
         rm ${FFMPEG_SOURCE_DIR}/config.h
     fi
@@ -76,10 +76,10 @@ function ffmpeg_config_add_decoders(){
     for i in $*; do
         ffmpeg_config_add_component decoder ${i}
         local ret=$?
-        if [ ${ret} -eq 0 ]
+        if [[ ${ret} -eq 0 ]]
         then
             FFMPEG_DECODER_LIST_ADDED="${FFMPEG_DECODER_LIST_ADDED} ${i}"
-        elif [ ${ret} -eq 2 ]
+        elif [[ ${ret} -eq 2 ]]
         then
             exit 1
         fi
@@ -90,7 +90,7 @@ function ffmpeg_config_add_encoders(){
     local i;
     for i in $*; do
         ffmpeg_config_add_component encoder ${i}
-        if [ "$?" == "0" ]
+        if [[ "$?" == "0" ]]
         then
             FFMPEG_ENCODER_LIST_ADDED="${FFMPEG_ENCODER_LIST_ADDED} $i"
         fi
@@ -105,7 +105,7 @@ function ffmpeg_config_add_demuxers(){
 #        echo to add demuxer ${i}
         ffmpeg_config_add_component demuxer  ${i}
         local ret=$?
-        if [ $? == 0 ]
+        if [[ $? == 0 ]]
         then
 #            echo add demuxer ${i}
             FFMPEG_DEMUXER_LIST_ADDED="${FFMPEG_DEMUXER_LIST_ADDED}  ${i}"
@@ -118,7 +118,7 @@ function ffmpeg_config_add_muxers(){
     local i;
     for i in $*; do
         ffmpeg_config_add_component muxer  ${i}
-        if [ $? == 0 ]
+        if [[ $? == 0 ]]
         then
             FFMPEG_MUXER_LIST_ADDED="${FFMPEG_MUXER_LIST_ADDED}  ${i}"
         fi
@@ -130,7 +130,7 @@ function ffmpeg_config_add_parsers(){
     local i;
     for i in $*; do
         ffmpeg_config_add_component parser  ${i}
-        if [ $? == 0 ]
+        if [[ $? == 0 ]]
         then
             FFMPEG_PARSER_LIST_ADDED="${FFMPEG_PARSER_LIST_ADDED}  ${i}"
         fi
@@ -142,7 +142,7 @@ function ffmpeg_config_add_bsfs(){
     local i;
     for i in $*; do
         ffmpeg_config_add_component bsf  ${i}
-        if [ $? == 0 ]
+        if [[ $? == 0 ]]
         then
             FFMPEG_BSF_LIST_ADDED="${FFMPEG_BSF_LIST_ADDED} ${i}"
         fi
@@ -154,7 +154,7 @@ function ffmpeg_config_add_hwaccels(){
     local i;
     for i in $*; do
         ffmpeg_config_add_component hwaccel ${i}
-        if [ $? == 0 ]
+        if [[ $? == 0 ]]
         then
             FFMPEG_HWACCEL_LIST_ADDED="${FFMPEG_HWACCEL_LIST_ADDED} ${i}"
         fi
@@ -167,7 +167,7 @@ function ffmpeg_config_add_protocols(){
     for i in $*; do
  #       echo to add protocol ${i}
         ffmpeg_config_add_component protocol ${i}
-        if [ $? == 0 ]
+        if [[ $? == 0 ]]
         then
 #            echo  add protocol ${i}
             FFMPEG_PROTOCOL_LIST_ADDED="${FFMPEG_PROTOCOL_LIST_ADDED} ${i}"
@@ -180,7 +180,7 @@ function ffmpeg_config_add_filters(){
     local i;
     for i in $*; do
         ffmpeg_config_add_component filter ${i}
-        if [ $? == 0 ]
+        if [[ $? == 0 ]]
         then
             FFMPEG_FILTER_LIST_ADDED="${FFMPEG_FILTER_LIST_ADDED} ${i}"
         fi
@@ -192,7 +192,7 @@ function ffmpeg_config_add_component(){
     local component_list="";
     local component_class;
     ffmpeg_check_component_supported $1 $2
-    if [ $? -ne 0 ]
+    if [[ $? -ne 0 ]]
     then
         print_error "$1 $2 not support"
         return 2
@@ -200,7 +200,7 @@ function ffmpeg_config_add_component(){
 
     for component_class in ${component_classes}
     do
-        if [ "$1" == "${component_class}" ]
+        if [[ "$1" == "${component_class}" ]]
         then
             local component=$(echo ${component_class} | tr '[a-z]' '[A-Z]')
             component_list=FFMPEG_${component}_LIST_ADDED
@@ -210,7 +210,7 @@ function ffmpeg_config_add_component(){
     local component
     for component in ${!component_list}
     do
-        if [ "$component" == "$2" ]
+        if [[ "$component" == "$2" ]]
         then
             print_warning "$1 $2 already added"
             return 1;
@@ -250,14 +250,14 @@ function ffmpeg_check_component_supported(){
     local component_list="";
     for component_class in ${component_classes}
     do
-        if [ "$1" == "${component_class}" ]
+        if [[ "$1" == "${component_class}" ]]
         then
             local component=$(echo ${component_class} | tr '[a-z]' '[A-Z]')
             component_list=FFMPEG_${component}_LIST_SUPPORT
         fi
     done
 
-    if [ -z "${!component_list}" ]
+    if [[ -z "${!component_list}" ]]
     then
         echo component_class $1 not found
         return -1;
@@ -266,7 +266,7 @@ function ffmpeg_check_component_supported(){
 
     for component in ${!component_list}
     do
-        if [ "${component}" == "$2" ]
+        if [[ "${component}" == "$2" ]]
         then
 #            echo support $1 $2
             return 0
@@ -372,11 +372,11 @@ function ffmpeg_config_set_as(){
 }
 
 function ffmpeg_config_add_extra_cflags(){
-    if [ "$1" == "" ]
+    if [[ "$1" == "" ]]
     then
         return;
     fi
-    if [ "$ffmpeg_extra_cflags" == "" ]
+    if [[ "$ffmpeg_extra_cflags" == "" ]]
     then
         ffmpeg_extra_cflags="$1"
     else
@@ -385,11 +385,11 @@ function ffmpeg_config_add_extra_cflags(){
 
 }
 function ffmpeg_config_add_extra_ldflags(){
-    if [ "$1" == "" ]
+    if [[ "$1" == "" ]]
     then
         return;
     fi
-    if [ "$ffmpeg_extra_ldlags" == "" ]
+    if [[ "$ffmpeg_extra_ldlags" == "" ]]
     then
         ffmpeg_extra_ldlags="$1"
     else
@@ -432,7 +432,7 @@ function ffmpeg_config(){
     fi
 
     echo ${ff_config}
-    if [ "${BUILD}" != "False" ] || [ "${BUILD_FFMPEG}" != "False" ];then
+    if [[ "${BUILD}" != "False" ]] || [[ "${BUILD_FFMPEG}" != "False" ]];then
         ${FFMPEG_SOURCE_DIR}/configure   ${ff_config} \
             "--as=${ffmpeg_config_as}"                \
             "--cc=${ffmpeg_config_cc}"              \
@@ -449,7 +449,7 @@ function ffmpeg_config(){
 }
 
 function ffmpeg_build(){
-    if [ "${BUILD}" != "False" ] || [ "${BUILD_FFMPEG}" != "False" ];then
+    if [[ "${BUILD}" != "False" ]] || [[ "${BUILD_FFMPEG}" != "False" ]];then
         make -j8 V=1
         make install
     fi

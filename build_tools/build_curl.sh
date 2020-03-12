@@ -37,15 +37,15 @@ function build_curl(){
         if [[ "${SSL_USE_NATIVE}" == "TRUE" ]];then
             ssl_opt="--with-darwinssl"
         fi
-    elif [ "$1" == "win32" ];then
+    elif [[ "$1" == "win32" ]];then
         cross_compile_set_platform_win32 $2
-    elif [ "$1" == "Darwin" ];then
+    elif [[ "$1" == "Darwin" ]];then
         LIBSDEPEND="LIBS=-lresolv"
         if [[ "${SSL_USE_NATIVE}" == "TRUE" ]];then
             ssl_opt="--with-darwinssl"
         fi
         print_warning "native build for $1"
-    elif [ "$1" == "Linux" ];then
+    elif [[ "$1" == "Linux" ]];then
         LIBSDEPEND="LIBS=-lresolv"
         print_warning "native build for $1"
     else
