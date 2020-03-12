@@ -7,6 +7,7 @@
 extern "C" {
 #include <libavutil/md5.h>
 #include <libavutil/mem.h>
+#include <libavutil/sha.h>
 }
 
 #include <cstring>
@@ -15,21 +16,54 @@ namespace Cicada {
 
     std::string Md5Utils::getMd5(const std::string &source)
     {
-        unsigned char outTmp[256] = {0};
+        unsigned char outTmp[16] = {0};
         struct AVMD5 *ctx = av_md5_alloc();
         av_md5_init(ctx);
         av_md5_update(ctx, (const uint8_t *) source.c_str(), source.length());
         av_md5_final(ctx, outTmp);
         av_free(ctx);
-        unsigned char out[33] = {0};
-        char hex[4] = {0};
+        char out[33] = {0};
+        int p = 0;
 
-        for (int i = 0; i < 16; i++) {
-            sprintf(hex, "%02x", outTmp[i]);
-            strcat((char *) out, hex);
+        for (unsigned char i : outTmp) {
+            sprintf(out + p, "%02x", i);
+            p += 2;
         }
 
-        return std::string((char *) out);
+        return std::string(out);
     }
 
+//    std::string SHA1Utils::getSha256(const std::string &source)
+//    {
+//        struct AVSHA *sha = av_sha_alloc();
+//        unsigned char outTmp[32] = {0};
+//        av_sha_init(sha, 256);
+//        av_sha_update(sha, (const uint8_t *) source.c_str(), source.length());
+//        av_sha_final(sha, outTmp);
+//        av_free(sha);
+//        int p = 0;
+//        char out[65] = {0};
+//        for (unsigned char i : outTmp) {
+//            sprintf(out + p, "%02x", i);
+//            p += 2;
+//        }
+//        return std::string(out);
+//
+//    }
+}
+
+unsigned char *SHA256(const unsigned char *d, size_t n, unsigned char *md)
+{
+    struct AVSHA *sha = av_sha_alloc();
+    static unsigned char m[32];
+
+    if (md == nullptr) {
+        md = m;
+    }
+
+    av_sha_init(sha, 256);
+    av_sha_update(sha, d, n);
+    av_sha_final(sha, md);
+    av_free(sha);
+    return md;
 }
