@@ -78,6 +78,6 @@ function build_shared_framework(){
 
 build_libs $(uname) $(uname -m)
 
-if [ "$(uname)" == "Darwin" ];then
+if [[ "$(uname)" == "Darwin"  &&  "${BUILD_SHARED_LIB}" != "FALSE" ]];then
     build_shared_framework
 fi

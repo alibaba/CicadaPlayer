@@ -37,7 +37,7 @@ function load_source() {
     local user_sources=$(cd ${PWD};ls ../*_git_source_list.sh)
     local user_source
     echo "user_sources is ${user_sources}"
-    if [ "${user_sources}" == "" ];then
+    if [[ "${user_sources}" == "" ]];then
         print_error "no source list config found"
         return 1;
     else
