@@ -15,7 +15,7 @@ CWD=$PWD
 function build_fat_lib(){
 
     local lib_names=$(cd ./install/$1/iOS/${IOS_ARCHS%% *}/lib; ls *.a)
-    if  [ ! -n "$lib_names" ] ;then
+    if  [[ ! -n "$lib_names" ]] ;then
         echo "break create $1 fat"
         return
     fi
@@ -77,7 +77,7 @@ function build_shared_framework(){
 
     for support_lib in ${support_libs}
     do
-        if [ -d "install/${support_lib}/iOS/fat/lib" ];then
+        if [[ -d "install/${support_lib}/iOS/fat/lib" ]];then
             SRC_LIBRARIES_DIR="$SRC_LIBRARIES_DIR $CWD/install/${support_lib}/iOS/fat/lib"
             local libs="$(cd install/${support_lib}/iOS/fat/lib; ls)"
             SRC_LIBRARIES="$SRC_LIBRARIES $libs"

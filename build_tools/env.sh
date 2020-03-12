@@ -23,7 +23,7 @@ BUILD=
 BUILD_FFMPEG=
 #BUILD_FFMPEG="False"
 
-if [ -f $PWD/user_env.sh ];then
+if [[ -f $PWD/user_env.sh ]];then
     source user_env.sh
 else
     print_error "user_env.sh not found"
