@@ -5,6 +5,7 @@
 #ifndef CICADAMEDIA_OPENSSAESDECRYPT_H
 #define CICADAMEDIA_OPENSSAESDECRYPT_H
 
+#include <openssl/aes.h>
 #include "IAESDecrypt.h"
 
 namespace Cicada {

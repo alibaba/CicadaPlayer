@@ -67,3 +67,22 @@ unsigned char *SHA256(const unsigned char *d, size_t n, unsigned char *md)
     av_free(sha);
     return md;
 }
+
+void MD5(unsigned char *src, int len, unsigned char *dst)
+{
+    static unsigned char outTmp[16] = {0};
+
+    if (dst == nullptr) {
+        dst = outTmp;
+    }
+
+    struct AVMD5 *ctx = av_md5_alloc();
+
+    av_md5_init(ctx);
+
+    av_md5_update(ctx, src, len);
+
+    av_md5_final(ctx, dst);
+
+    av_free(ctx);
+}

@@ -66,13 +66,16 @@ set(SOURCE_FILES demuxer_service.cpp
         sample_decrypt/ISampleDecrypt2c.cpp
         sample_decrypt/ISampleDecrypt2c.h
         decrypto/IAESDecrypt.h
-        decrypto/avAESDecrypt.cpp decrypto/avAESDecrypt.h
+        decrypto/avAESDecrypt.cpp
+        decrypto/avAESDecrypt.h
         )
 
 if (USE_OPENSSL)
     list(APPEND ${SOURCE_FILES}
             decrypto/OpenSSAESDecrypt.cpp
             decrypto/OpenSSAESDecrypt.h
+            decrypto/OpenSSAESEncrypt.cpp
+            decrypto/OpenSSAESEncrypt.h
             )
 endif ()
 

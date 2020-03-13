@@ -2,7 +2,6 @@
 // Created by moqi on 2020/2/20.
 //
 
-#include <openssl/aes.h>
 #include "OpenSSAESDecrypt.h"
 
 using namespace Cicada;
