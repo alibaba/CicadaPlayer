@@ -6,6 +6,7 @@
 #define SOURCE_MD5UTILS_H
 
 #include <string>
+
 namespace Cicada {
 
     class Md5Utils {
@@ -18,6 +19,9 @@ namespace Cicada {
 //    };
 
 }
+
 unsigned char *SHA256(const unsigned char *d, size_t n, unsigned char *md);
+
+void MD5(unsigned char *src, int len, unsigned char *dst);
 
 #endif //SOURCE_MD5UTILS_H
