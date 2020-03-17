@@ -41,9 +41,9 @@ if [[ -z "${DAV1D_EXTERNAL_DIR}" ]];then
     if [[ -n "${DAV1D_SOURCE_DIR}" ]];then
         echo "check out dav1d"
         if [ -z "${DAV1D_GIT}" ];then
-            DAV1D_GIT="https://code.videolan.org/videolan/dav1d.git"
+            DAV1D_GIT="https://github.com/videolan/dav1d.git"
         fi
-        DAV1D_BRANCH="0.5.2"
+        DAV1D_BRANCH="0.6.0"
         clone_git $DAV1D_GIT $DAV1D_BRANCH
     fi
 fi
