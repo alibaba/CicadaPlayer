@@ -53,6 +53,12 @@ function build_ffmpeg(){
         ffmpeg_config_add_extra_cflags "-I${OPENSSL_INSTALL_DIR}/include"
         ffmpeg_config_add_extra_ldflags "-L${OPENSSL_INSTALL_DIR}/lib"
     fi
+
+    if [[ -d "${DAV1D_INSTALL_DIR}" ]];then
+        ffmpeg_config_add_user "--enable-libdav1d --enable-decoder=libdav1d"
+        ffmpeg_config_add_extra_cflags "-I${DAV1D_INSTALL_DIR}/include"
+        ffmpeg_config_add_extra_ldflags "-L${DAV1D_INSTALL_DIR}/lib -ldav1d"
+    fi
     if [[ "$native_build" == "yes" ]];then
         echo native_build
     else
