@@ -25,12 +25,22 @@ function patch_ffmpeg() {
     git_am_patch ../../contribute/ffmpeg/0006-flv-add-extensions-for-H.265-HEVC.patch
 }
 
+function git_apply_patch() {
+    git apply $1
+    if [[ $? -ne 0 ]]; then
+        print_warning "patch error, may be patched"
+        git am --abort
+    fi
+}
+
 function patch_dav1d() {
     cd ${DAV1D_SOURCE_DIR}
-    git reset --hard 39667c751d427e447cbe8be783cfecd296659e24
     if [[ "$TARGET_PLATFORM" == "iOS" ]];then
-        git_am_patch ../../contribute/dav1d/0001-chore-enable-bitcode.patch
+        git_apply_patch ${TOP_DIR}/CicadaPlayer/external/contribute/dav1d/0001-chore-enable-bitcode.patch
+    else
+        git reset --hard HEAD #reset the ios patch
     fi
+
 }
 
 function load_source() {
