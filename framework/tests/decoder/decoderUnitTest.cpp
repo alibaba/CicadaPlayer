@@ -8,6 +8,7 @@
 #include <utils/timer.h>
 #include "gtest/gtest.h"
 #include <string>
+#include <utils/AFUtils.h>
 
 using namespace Cicada;
 using namespace std;
@@ -74,12 +75,12 @@ static void test_codec(const string &url, AFCodecID codec, int flags)
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
+    ignore_signal(SIGPIPE);
     return RUN_ALL_TESTS();
 }
 #ifdef  __APPLE__
 TEST(hardCodec, H264)
 {
-
     std::string url = "http://player.alicdn.com/video/aliyunmedia.mp4";
     test_codec(url, AF_CODEC_ID_H264, DECFLAG_HW);
 }
