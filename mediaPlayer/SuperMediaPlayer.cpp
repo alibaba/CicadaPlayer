@@ -21,6 +21,7 @@
 #include <utils/file/FileUtils.h>
 #include <data_source/dataSourcePrototype.h>
 #include <demuxer/IDemuxer.h>
+#include <utils/af_string.h>
 
 
 #ifdef __APPLE__
@@ -559,6 +560,8 @@ namespace Cicada {
             mSet.bEnableVRC = (atoi(value) != 0);
         } else if (theKey == "maxAccurateSeekDelta") {
             mSet.maxASeekDelta = atoi(value) * 1000;
+        } else if (theKey == "maxVideoRecoverSize") {
+            mSet.maxVideoRecoverSize = atoi(value);
         }
 
         return 0;
@@ -4048,6 +4051,15 @@ namespace Cicada {
     {
         if (mVideoDecoder) {
             mVideoDecoder->holdOn(hold);
+
+            if (!hold) {
+                int size = mVideoDecoder->getRecoverQueueSize();
+
+                if (size > mSet.maxVideoRecoverSize) {
+                    string des = "video decoder recover size too large:" + AfString::to_string(size);
+                    mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_DECODER_RECOVER_SIZE, des.c_str());
+                }
+            }
         }
     }
 
