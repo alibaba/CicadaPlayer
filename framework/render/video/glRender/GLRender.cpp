@@ -498,7 +498,8 @@ IProgramContext *GLRender::getProgram(int frameFormat, IAFFrame *frame)
         }
     } else
 #endif
-        if (frameFormat == AF_PIX_FMT_YUV420P || frameFormat == AF_PIX_FMT_YUVJ420P) {
+        if (frameFormat == AF_PIX_FMT_YUV420P || frameFormat == AF_PIX_FMT_YUVJ420P
+                || frameFormat == AF_PIX_FMT_YUV422P || frameFormat == AF_PIX_FMT_YUVJ422P) {
             targetProgram = unique_ptr<IProgramContext>(new YUVProgramContext());
         }
 

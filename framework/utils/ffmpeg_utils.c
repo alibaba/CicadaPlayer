@@ -365,6 +365,7 @@ typedef struct pix_fmt_pair_t {
 static pix_fmt_pair pix_fmt_pair_table[] = {
     {AF_PIX_FMT_NONE,      AV_PIX_FMT_NONE},
     {AF_PIX_FMT_YUV420P,   AV_PIX_FMT_YUV420P},
+    {AF_PIX_FMT_YUV422P,   AV_PIX_FMT_YUV422P},
     {AF_PIX_FMT_YUVJ420P,  AV_PIX_FMT_YUVJ420P},
     {AF_PIX_FMT_YUVJ422P,  AV_PIX_FMT_YUVJ422P},
     {AF_PIX_FMT_D3D11,     AV_PIX_FMT_D3D11},
