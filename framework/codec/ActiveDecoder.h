@@ -94,6 +94,7 @@ private:
 #endif
     bool bHolding = false;
     std::queue<std::unique_ptr<IAFPacket>> mHoldingQueue{};
+    enum AFCodecID mCodecId{AF_CODEC_ID_NONE};
 
 };
 

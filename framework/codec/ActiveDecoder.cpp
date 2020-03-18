@@ -26,6 +26,7 @@ int ActiveDecoder::open(const Stream_meta *meta, void *voutObsr, uint64_t flags)
     }
 
     mRunning = true;
+    mCodecId = meta->codec;
 #if AF_HAVE_PTHREAD
     auto func = [this]() -> int { return this->decode_func(); };
     mDecodeThread = new afThread(func, LOG_TAG);
@@ -156,7 +157,7 @@ bool ActiveDecoder::needDrop(IAFPacket *packet)
     }
 
     // TODO: make sure HEVC not need drop also
-    if (packet->getInfo().codec_id != AF_CODEC_ID_HEVC) {
+    if (mCodecId != AF_CODEC_ID_HEVC) {
         return false;
     }
 

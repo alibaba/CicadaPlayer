@@ -11,7 +11,6 @@
 #include <vector>
 #include <memory>
 #include <utils/frame_work_log.h>
-#include <utils/AFMediaType.h>
 #include <cstring>
 
 extern "C" {
@@ -43,8 +42,6 @@ public:
 
         uint8_t *extra_data;
         int extra_data_size;
-
-        AFCodecID codec_id;
 
         void dump();
 
