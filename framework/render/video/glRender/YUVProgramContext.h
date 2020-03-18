@@ -31,7 +31,7 @@ private:
 
     void createYUVTextures();
 
-    void fillDataToYUVTextures(uint8_t **data, int *pLineSize);
+    void fillDataToYUVTextures(uint8_t **data, int *pLineSize, int format);
 
     void bindYUVTextures();
 
