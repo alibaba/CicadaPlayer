@@ -9,6 +9,7 @@
 #include "tests/player_command.h"
 #include <vector>
 #include <utils/mediaFrame.h>
+#include <utils/AFUtils.h>
 
 using namespace std;
 
@@ -16,6 +17,7 @@ int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
 //    log_set_level(AF_LOG_LEVEL_TRACE, 1);
+    ignore_signal(SIGPIPE);
     return RUN_ALL_TESTS();
 }
 
@@ -31,20 +33,22 @@ TEST(cmd, volume)
     commands.push_back(cmd);
     cmd.mID = player_command::setVolume;
     int64_t start_time = af_getsteady_ms();
+
     for (int i = 0; i <= 10; i++) {
         cmd.timestamp = i * posDelta + start_time;
         cmd.arg0 = 10 + i;
         commands.push_back(cmd);
     }
+
     start_time += 11 * posDelta;
+
     for (int i = 0; i <= 20; i++) {
         cmd.timestamp = i * posDelta + start_time;
         cmd.arg0 = 20 - i;
         commands.push_back(cmd);
     }
+
     commandsCase testCase(commands, true);
-
-
     test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", nullptr, command_loop,
                 &testCase, nullptr);
 }
@@ -61,19 +65,22 @@ TEST(cmd, speed)
     commands.push_back(cmd);
     cmd.mID = player_command::setSpeed;
     int64_t start_time = af_getsteady_ms();
+
     for (int i = 0; i <= 10; i++) {
         cmd.timestamp = i * posDelta + start_time;
         cmd.arg0 = 10 + i;
         commands.push_back(cmd);
     }
+
     start_time += 11 * posDelta;
+
     for (int i = 0; i <= 15; i++) {
         cmd.timestamp = i * posDelta + start_time;
         cmd.arg0 = 20 - i;
         commands.push_back(cmd);
     }
-    commandsCase testCase(commands, true);
 
+    commandsCase testCase(commands, true);
     test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", nullptr, command_loop,
                 &testCase, nullptr);
 }
@@ -90,6 +97,7 @@ TEST(cmd, backGround)
     commands.push_back(cmd);
     cmd.mID = player_command::backGround;
     int64_t start_time = af_getsteady_ms() + 2000;
+
     for (int i = 0; i < 4; i++) {
         cmd.timestamp = i * posDelta + start_time;
         cmd.arg0 = (i + 1) % 2;
@@ -97,7 +105,6 @@ TEST(cmd, backGround)
     }
 
     commandsCase testCase(commands, true);
-
     test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", nullptr, command_loop,
                 &testCase, nullptr);
 }
@@ -133,13 +140,10 @@ TEST(event, EOS)
     cmd.timestamp = af_getsteady_ms() + 2000;
     cmd.arg0 = (4 * 60 + 15) * 1000;
     commands.push_back(cmd);
-
     commandsCase testCase(commands, false);
-
     playerListener listener{nullptr};
     listener.Completion = onCompletion;
     listener.userData = &testCase;
-
     test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", nullptr, command_loop,
                 &testCase, &listener);
     ASSERT_TRUE(testCase.mExitOnEmpty);
@@ -153,7 +157,6 @@ static void pictureApiOnPrepared(void *arg)
     ASSERT_TRUE(apiPlayer);
     apiPlayer->CaptureScreen();
     apiPlayer->SetMirrorMode(MIRROR_MODE_HORIZONTAL);
-
     MirrorMode mode = apiPlayer->GetMirrorMode();
     apiPlayer->SetRotateMode(ROTATE_MODE_0);
     apiPlayer->GetRotateMode();
@@ -202,11 +205,9 @@ static void getApiOnPrepared(void *arg)
     apiPlayer->GetPropertyString(PROPERTY_KEY_DELAY_INFO);
     apiPlayer->GetPropertyString(PROPERTY_KEY_REMAIN_LIVE_SEG);
     apiPlayer->GetPropertyString(PROPERTY_KEY_NETWORK_IS_CONNECTED);
-
     Stream_meta meta{};
     apiPlayer->GetCurrentStreamMeta(&meta, ST_TYPE_VIDEO);
     releaseMeta(&meta);
-
 }
 
 TEST(coverag, getApi)

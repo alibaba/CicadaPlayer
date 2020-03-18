@@ -5,11 +5,15 @@
 #ifndef SOURCE_AFUTILS_H
 #define SOURCE_AFUTILS_H
 
+#include <signal.h>
+
 #ifdef __cplusplus
 extern "C"{
 #endif
 
 int AFGetCpuCount();
+
+void ignore_signal(int sig);
 
 #ifdef __cplusplus
 };
