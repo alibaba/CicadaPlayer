@@ -299,11 +299,11 @@ namespace Cicada {
         const uint8_t *new_extradata = av_packet_get_side_data(pkt,
                                        AV_PKT_DATA_NEW_EXTRADATA,
                                        &new_extradata_size);
-        int streamIndex = pkt->stream_index;
-        AVCodecParameters *codecpar = mCtx->streams[streamIndex]->codecpar;
 
         if (new_extradata) {
             AF_LOGI("AV_PKT_DATA_NEW_EXTRADATA");
+            int streamIndex = pkt->stream_index;
+            AVCodecParameters *codecpar = mCtx->streams[streamIndex]->codecpar;
             av_free(codecpar->extradata);
             codecpar->extradata = static_cast<uint8_t *>(av_malloc(new_extradata_size + AV_INPUT_BUFFER_PADDING_SIZE));
             memcpy(codecpar->extradata, new_extradata, new_extradata_size);
@@ -350,15 +350,7 @@ namespace Cicada {
 
         if (needUpdateExtraData) {
             packet->setExtraData(new_extradata, new_extradata_size);
-        } else if (!bFillExtraData && (nullptr == packet->getInfo().extra_data) && (nullptr != codecpar->extradata)) {
-            packet->setExtraData(codecpar->extradata, codecpar->extradata_size);
         }
-
-        if (packet->getInfo().extra_data) {
-            bFillExtraData = true;
-        }
-
-        packet->getInfo().codec_id = AVCodec2CicadaCodec(codecpar->codec_id);
 
         if (packet->getInfo().pts != INT64_MIN) {
             packet->getInfo().timePosition = packet->getInfo().pts - mCtx->start_time;
@@ -554,7 +546,6 @@ namespace Cicada {
             mPthread->stop();
         }
 
-        bFillExtraData = false;
 #endif
     }
 
