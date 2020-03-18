@@ -6,6 +6,7 @@
 #include <demuxer/demuxerPrototype.h>
 #include <data_source/dataSourcePrototype.h>
 #include <demuxer/demuxer_service.h>
+#include <utils/AFUtils.h>
 #include "demuxerUtils.h"
 
 using namespace Cicada;
@@ -13,6 +14,7 @@ using namespace Cicada;
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
+    ignore_signal(SIGPIPE);
     return RUN_ALL_TESTS();
 }
 
@@ -27,7 +29,6 @@ TEST(format, mp4)
     service->close();
     delete source;
 }
-
 int callback_read(void *arg, uint8_t *buffer, int size)
 {
     Cicada::IDataSource *source = (Cicada::IDataSource *) arg;
