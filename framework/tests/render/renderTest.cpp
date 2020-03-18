@@ -11,8 +11,9 @@
 #include <codec/decoderFactory.h>
 #include <utils/timer.h>
 #ifdef ENABLE_SDL
-#include <SDL2/SDL.h>
+    #include <SDL2/SDL.h>
 #endif
+#include <utils/AFUtils.h>
 
 using namespace std;
 using namespace Cicada;
@@ -54,13 +55,16 @@ static void test_render(const string &url, Stream_type type, int flags, int samp
     do {
         if (type == STREAM_TYPE_VIDEO) {
 #ifdef ENABLE_SDL
+
             if (SDL_PollEvent(&event)) {
                 if (event.type == SDL_QUIT) {
                     break;
                 }
             }
+
 #endif
         }
+
         if (frame == nullptr) {
             int decoder_ret;
             ret = demuxer->readPacket(packet, 0);
@@ -131,6 +135,7 @@ static void test_render(const string &url, Stream_type type, int flags, int samp
     delete source;
     delete demuxer;
 #ifdef ENABLE_SDL
+
     if (mVideoRender != nullptr) {
         SDL_DestroyRenderer(mVideoRender);
         mVideoRender = nullptr;
@@ -140,12 +145,14 @@ static void test_render(const string &url, Stream_type type, int flags, int samp
         SDL_DestroyWindow(window);
         window = nullptr;
     }
+
 #endif
 }
 
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
+    ignore_signal(SIGPIPE);
     return RUN_ALL_TESTS();
 }
 

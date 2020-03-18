@@ -10,6 +10,7 @@
 #include "tests/player_command.h"
 #include <vector>
 #include "../mediaPlayerTest.h"
+#include <utils/AFUtils.h>
 
 using namespace std;
 
@@ -17,6 +18,7 @@ int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
 //    log_set_level(AF_LOG_LEVEL_TRACE, 1);
+    ignore_signal(SIGPIPE);
     return RUN_ALL_TESTS();
 }
 
