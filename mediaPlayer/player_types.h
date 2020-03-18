@@ -57,7 +57,9 @@ namespace Cicada {
         int mDefaultBandWidth = 0;
         playerOptions mOptions;
         bool bEnableVRC = false;
-        int maxASeekDelta = 21 * 1000 * 1000;
+        int maxASeekDelta = 21 * 1000 * 1000;//us
+
+        int maxVideoRecoverSize;
     };
 }
 
