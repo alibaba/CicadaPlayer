@@ -557,6 +557,8 @@ namespace Cicada {
             return 0;
         } else if (theKey == "enableVRC") {
             mSet.bEnableVRC = (atoi(value) != 0);
+        } else if (theKey == "maxAccurateSeekDelta") {
+            mSet.maxASeekDelta = atoi(value) * 1000;
         }
 
         return 0;
@@ -2384,7 +2386,7 @@ namespace Cicada {
         }
 
         if (mSeekFlag && mSeekNeedCatch) {
-            if (pFrame->getInfo().timePosition < (mSeekPos - SEEK_ACCURATE_MAX)) {
+            if (pFrame->getInfo().timePosition < (mSeekPos - mSet.maxASeekDelta)) {
                 // first frame is far away from seek position, don't suppport accurate seek
                 mSeekNeedCatch = false;
             }
@@ -3887,7 +3889,7 @@ namespace Cicada {
             if (mSeekNeedCatch) {
                 int64_t videoPos = mBufferController.GetKeyTimePositionBefore(BUFFER_TYPE_VIDEO, mSeekPos);
 
-                if (videoPos < (mSeekPos - SEEK_ACCURATE_MAX)) {
+                if (videoPos < (mSeekPos - mSet.maxASeekDelta)) {
                     // first frame is far away from seek position, don't suppport accurate seek
                     mSeekNeedCatch = false;
                 } else {
