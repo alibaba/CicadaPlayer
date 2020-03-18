@@ -57,6 +57,7 @@ namespace Cicada {
         mDefaultBandWidth = 0;
         // Don't reset AnalyticsID
         mOptions.reset();
+        maxASeekDelta = 21 * 1000 * 1000;
     }
 }
 

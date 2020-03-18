@@ -56,9 +56,8 @@ namespace Cicada {
         int64_t AnalyticsID = -1;
         int mDefaultBandWidth = 0;
         playerOptions mOptions;
-
-
         bool bEnableVRC = false;
+        int maxASeekDelta = 21 * 1000 * 1000;
     };
 }
 
