@@ -38,9 +38,10 @@ namespace Cicada{
 
         void flush_decoder() override;
 
+        int get_decoder_recover_size() override;
+
         void flushReorderQueue();
 
-    private:
     private:
         explicit AFVTBDecoder(int dummy)
         {

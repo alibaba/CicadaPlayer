@@ -38,6 +38,8 @@ public:
 
     int holdOn(bool hold) override;
 
+    int getRecoverQueueSize() override;
+
 private:
 
     virtual int enqueue_decoder(std::unique_ptr<IAFPacket> &pPacket) = 0;
@@ -49,6 +51,8 @@ private:
     virtual void close_decoder() = 0;
 
     virtual void flush_decoder() = 0;
+
+    virtual int get_decoder_recover_size() = 0;
 
 
 private:

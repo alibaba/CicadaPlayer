@@ -88,6 +88,11 @@ namespace Cicada{
 
         void flush_decoder() override;
 
+        int get_decoder_recover_size() override
+        {
+            return 0;
+        };
+
     private:
         decoder_handle_v *mPDecoder = nullptr;
     };
