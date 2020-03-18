@@ -164,6 +164,8 @@ namespace Cicada {
 
         virtual int holdOn(bool hold) = 0;
 
+        virtual int getRecoverQueueSize() = 0;
+
     protected:
         std::string mName;
         int mFlags = 0; // VFLAG_HW,VFLAG_OUT

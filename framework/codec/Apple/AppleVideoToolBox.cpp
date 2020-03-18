@@ -793,4 +793,10 @@ namespace Cicada {
         mActive = true;
     }
 
+    int AFVTBDecoder::get_decoder_recover_size()
+    {
+        std::lock_guard<std::mutex> lock(mActiveStatusMutex);
+        return mRecoveryQueue.size();
+    }
+
 } // namespace
