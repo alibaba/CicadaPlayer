@@ -76,7 +76,7 @@ function build_shared_framework(){
     return;
 }
 
-build_libs $(uname) $((uname -m))
+build_libs $(uname) x86_64 #$((uname -m)) Travis use uname -m get a 0...
 
 if [[ "$(uname)" == "Darwin"  &&  "${BUILD_SHARED_LIB}" != "FALSE" ]];then
     build_shared_framework
