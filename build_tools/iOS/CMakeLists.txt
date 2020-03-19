@@ -32,9 +32,9 @@ set_target_properties(${LIB_NAME} PROPERTIES
         #        MACOSX_FRAMEWORK_INFO_PLIST Info.plist
         #        PUBLIC_HEADER dynamicFramework.h
         # XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
-        XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS[variant=MinSizeRel] YES
+        XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS YES
         XCODE_ATTRIBUTE_ENABLE_BITCODE "YES"
-        XCODE_ATTRIBUTE_BITCODE_GENERATION_MODE[variant=MinSizeRel] bitcode
+        XCODE_ATTRIBUTE_BITCODE_GENERATION_MODE bitcode
         )
 else ()
     set_target_properties(${LIB_NAME} PROPERTIES
