@@ -89,7 +89,11 @@ typedef enum CicadaEventWithString: NSUInteger {
     CICADA_EVENT_PLAYER_LOW_MEMORY          = 111,
     /**@brief 网络重试成功。无额外信息。*/
     /****@brief Network retry successful. No additional information is provided.*/
-    CICADA_EVENT_PLAYER_NETWORK_RETRY_SUCCESS  = 113,
+    CICADA_EVENT_PLAYER_NETWORK_RETRY_SUCCESS             = 113,
+    /**@brief 选择字幕错误。*/
+    /****@brief select subtitle error.*/
+    CICADA_EVENT_MEDIA_PLAYER_EVENT_SUBTITLE_SELECT_ERROR = 114,
+
 } CicadaEventWithString;
 
 #endif
