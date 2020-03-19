@@ -259,6 +259,18 @@ void NativeBase::java_SeekTo(JNIEnv *env, jobject instance, jlong position, jint
     player->SeekTo(position, (SeekMode) mode);
 }
 
+void NativeBase::java_SetMaxAccurateSeekDelta(JNIEnv *env, jobject instance, jint delta)
+{
+    AF_TRACE;
+    MediaPlayer *player = getPlayer(env, instance);
+
+    if (player == nullptr) {
+        return;
+    }
+
+    player->SetOption("maxAccurateSeekDelta", AfString::to_string((int)delta).c_str());
+}
+
 
 void NativeBase::java_Stop(JNIEnv *env, jobject instance)
 {
@@ -908,6 +920,7 @@ static JNINativeMethod nativePlayer_method_table[] = {
     {"nSetVolume",              "(F)V",                                    (void *) NativeBase::java_SetVolume},
     {"nGetVolume",              "()F",                                     (void *) NativeBase::java_GetVolume},
     {"nSeekTo",                 "(JI)V",                                   (void *) NativeBase::java_SeekTo},
+    {"nSetMaxAccurateSeekDelta", "(I)V",                                    (void *) NativeBase::java_SetMaxAccurateSeekDelta},
     {"nStop",                   "()V",                                     (void *) NativeBase::java_Stop},
     {"nRelease",                "()V",                                     (void *) NativeBase::java_Release},
     {"nGetDuration",            "()J",                                     (void *) NativeBase::java_GetDuration},

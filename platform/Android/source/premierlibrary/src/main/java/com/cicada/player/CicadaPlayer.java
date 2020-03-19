@@ -698,6 +698,18 @@ public interface CicadaPlayer {
     abstract public void seekTo(long position, SeekMode seekMode);
 
     /**
+     * 设置精准seek的最大间隔。
+     * @param delta 间隔时间，单位毫秒
+     */
+
+    /****
+    * set the maximum interval of precision seek.
+    * @param delta interval in milliseconds
+    */
+
+    abstract public void setMaxAccurateSeekDelta(int delta);
+
+    /**
      * 重置。
      */
     /****

@@ -49,6 +49,7 @@ public class NativePlayerBase {
         System.loadLibrary("CicadaPlayer");
     }
 
+
     private static class MainHandler extends Handler {
         private WeakReference<NativePlayerBase> playerWeakReference;
 
@@ -192,6 +193,11 @@ public class NativePlayerBase {
         log(TAG, "seekTo   =  " + position + " ms ");
         mCurrentThreadHandler.removeMessages(UPDATE_CURRENT_POSITION);
         nSeekTo(position, mode);
+    }
+
+
+    public void setMaxAccurateSeekDelta(int delta) {
+        nSetMaxAccurateSeekDelta(delta);
     }
 
     public long getDuration() {
@@ -468,6 +474,8 @@ public class NativePlayerBase {
     protected native float nGetVolume();
 
     protected native void nSeekTo(long position, int mode);
+
+    protected native void nSetMaxAccurateSeekDelta(int delta);
 
     protected native void nStop();
 

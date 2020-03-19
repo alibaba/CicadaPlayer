@@ -67,6 +67,8 @@ public:
 
     static void java_SeekTo(JNIEnv *env, jobject instance, jlong position, jint mode);
 
+    static void java_SetMaxAccurateSeekDelta(JNIEnv *env, jobject instance, jint delta);
+
     static void java_Stop(JNIEnv *env, jobject instance);
 
     static void java_Release(JNIEnv *env, jobject instance);
