@@ -71,7 +71,7 @@ function build_shared_framework(){
     mkdir -p Xcode
     cd Xcode
     cmake ../ -G Xcode
-    xcodebuild -configuration Release -target ALL_BUILD
+    xcodebuild -configuration MinSizeRel -target ALL_BUILD
 
     return;
 }

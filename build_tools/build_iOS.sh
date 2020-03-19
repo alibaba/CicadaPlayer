@@ -105,7 +105,7 @@ function build_shared_framework(){
     cmake  -DCMAKE_TOOLCHAIN_FILE=${BUILD_TOOLS_DIR}/iOS/iOS.cmake \
     -DIOS_PLATFORM=OS ../../  \
     -G Xcode
-    xcodebuild -destination generic/platform=iOS -configuration Release -target ALL_BUILD
+    xcodebuild -destination generic/platform=iOS -configuration MinSizeRel -target ALL_BUILD
 
     cd -
     mkdir -p Xcode/SIMULATOR64
@@ -114,7 +114,7 @@ function build_shared_framework(){
     -DIOS_PLATFORM=SIMULATOR64 ../../  \
     -G Xcode
 
-    xcodebuild -destination "platform=iOS Simulator" -configuration Release -target ALL_BUILD
+    xcodebuild -destination "platform=iOS Simulator" -configuration MinSizeRel -target ALL_BUILD
 
     return;
 }
