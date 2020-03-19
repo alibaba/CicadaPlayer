@@ -118,6 +118,16 @@ OBJC_EXPORT
 -(void)seekToTime:(int64_t)time seekMode:(CicadaSeekMode)seekMode;
 
 /**
+ * 设置精准seek的最大间隔。
+ * @param delta 间隔时间，单位毫秒
+ */
+/****
+* set the maximum interval of precision seek.
+* @param delta interval in milliseconds
+*/
+-(void)setMaxAccurateSeekDelta:(int)delta;
+
+/**
  @brief 截图 CicadaImage: mac平台返回NSImage，iOS平台返回UIImage
  */
 /****
