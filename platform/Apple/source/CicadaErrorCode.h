@@ -93,7 +93,9 @@ typedef enum CicadaEventWithString: NSUInteger {
     /**@brief 选择字幕错误。*/
     /****@brief select subtitle error.*/
     CICADA_EVENT_MEDIA_PLAYER_EVENT_SUBTITLE_SELECT_ERROR = 114,
-
+    /**@brief 后台恢复时所需解码帧过多 */
+    /****@brief  decoder recover size is too large for background recovery.*/
+    CICADA_EVENT_PLAYER_EVENT_DECODER_RECOVER_SIZE        = 115,
 } CicadaEventWithString;
 
 #endif
