@@ -778,6 +778,11 @@ import java.lang.ref.WeakReference;
         mCorePlayer.seekTo(positionMs, mode.getValue());
     }
 
+    @Override
+    public void setMaxAccurateSeekDelta(int delta){
+        mCorePlayer.setMaxAccurateSeekDelta(delta);
+    }
+
 
 //    @Override
 //    public int getPlayerStatus() {
