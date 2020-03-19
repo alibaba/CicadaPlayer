@@ -13,6 +13,7 @@
 #import "MediaPlayer.h"
 #import "CicadaPlayer.h"
 #import "CicadaPlayerView.h"
+#import "utils/af_string.h"
 #import "utils/CicadaDynamicLoader.h"
 #import "utils/frame_work_log.h"
 #import "thumbnail/CicadaThumbnail.h"
@@ -457,6 +458,13 @@ static int logOutput = 1;
                 break;
         }
         self.player->SeekTo(time, mode);
+    }
+}
+
+-(void)setMaxAccurateSeekDelta:(int)delta
+{
+    if (self.player) {
+        self.player->SetOption("maxAccurateSeekDelta", AfString::to_string(delta).c_str());
     }
 }
 
