@@ -33,11 +33,14 @@ function build_dav1d(){
     local build_dir="build/dav1d/$1/$2"
     local crossfile=""
 
+    local nativeBuild=false
+    local cross_opt
+
     DAV1D_INSTALL_DIR=
 
-    if [ "$1" == "Android" ]
+    if [[ "$1" == "Android" ]]
     then
-        if [ "$2" != "arm64-v8a" ]; then
+        if [[ "$2" != "arm64-v8a" ]]; then
             echo "Only enable arm64-v8a for av1 at present, break $2"
             return;
         fi
@@ -51,9 +54,9 @@ function build_dav1d(){
         DAV1D_SYSTEM="linux"
         DAV1D_CPU_FAMILY="aarch64"
         DAV1D_CPU="arm"
-    elif [ "$1" == "iOS" ]
+    elif [[ "$1" == "iOS" ]]
     then
-        if [ "$2" != "arm64" ]; then
+        if [[ "$2" != "arm64" ]]; then
             echo "Only enable arm64 for av1 at present, break $2"
             return;
         fi
@@ -67,6 +70,10 @@ function build_dav1d(){
         DAV1D_SYSTEM="darwin"
         DAV1D_CPU_FAMILY="aarch64"
         DAV1D_CPU="arm"
+    elif [[ "$1" == "Darwin" ]]
+    then
+        echo "native build for $1"
+        nativeBuild=true;
     else
         echo "Unsupported platform"
         return;
@@ -74,14 +81,19 @@ function build_dav1d(){
 
     local install_dir="${CWD}/install/dav1d/$1/$2"
 
-    if [ "${BUILD}" != "False" ];then
+    if [[ "${BUILD}" != "False" ]];then
         local build_dir="build/dav1d/$1/$2"
         rm -rf ${build_dir}
         mkdir -p ${build_dir}
 
-        echo "Generating toolchain description..."
-        user_config=${CWD}/${build_dir}/config.txt
-        create_dav1d_config
+
+        if [[ ${nativeBuild} == false ]]
+        then
+            echo "Generating toolchain description..."
+            user_config=${CWD}/${build_dir}/config.txt
+            create_dav1d_config
+            cross_opt="--cross-file ${user_config}"
+        fi
 
         #clear env flag due to meson don't fully support
         CFLAGS=
@@ -89,7 +101,7 @@ function build_dav1d(){
         CC=
 
         cd ${build_dir}
-        meson ${DAV1D_SOURCE_DIR} --buildtype release --prefix ${install_dir} --default-library static --cross-file ${user_config}
+        meson ${DAV1D_SOURCE_DIR} --buildtype release --prefix ${install_dir} --default-library static ${cross_opt}
         ninja -C ./
         meson install
 

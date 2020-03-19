@@ -9,6 +9,7 @@ set(COMMON_LIB_DIR ${COMMON_LIB_DIR}
         ${MAC_INSTALL_DIR}/ffmpeg/Darwin/x86_64/lib
         ${MAC_INSTALL_DIR}/fdk-aac/Darwin/x86_64/lib
         ${MAC_INSTALL_DIR}/cares/Darwin/x86_64/lib
+        ${MAC_INSTALL_DIR}/dav1d/Darwin/x86_64/lib
         )
 set(COMMON_INC_DIR ${COMMON_INC_DIR}
         ${MAC_INSTALL_DIR}/curl/Darwin/x86_64/include
