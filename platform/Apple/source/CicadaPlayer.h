@@ -407,10 +407,10 @@ OBJC_EXPORT
 @property (nonatomic, readonly) int rotation;
 
 /**
- @brief 获取/设置播放器的音量，支持KVO
+ @brief 获取/设置播放器的音量（非系统音量），支持KVO，范围0.0~2.0，当音量大于1.0时，可能出现噪音，不推荐使用。
  */
 /****
- @brief Query or set the volume of the player. KVO is supported.
+ @brief Query or set the volume of the player(Not system volume). KVO is supported. The range is 0.0~2.0，it maybe lead to noise if set volume more then 1.0, not recommended.
  */
 @property (nonatomic, assign) float volume;
 
