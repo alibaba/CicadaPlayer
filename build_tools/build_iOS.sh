@@ -13,12 +13,19 @@ source build_ares.sh
 source build_curl.sh
 CWD=$PWD
 function build_fat_lib(){
+    local lib_names=
+    local searchLibs=$(find install/$1/iOS -name *.a)
+    for searchLib in ${searchLibs}
+    do
+        lib=$(basename $searchLib)
+        [[ $lib_names =~ $lib ]] || lib_names="$lib_names $(basename $searchLib)"
+    done
 
-    local lib_names=$(cd ./install/$1/iOS/${IOS_ARCHS%% *}/lib; ls *.a)
     if  [[ ! -n "$lib_names" ]] ;then
         echo "break create $1 fat"
         return
     fi
+    echo "lib_names: $lib_names"
 
     local fat_dir=install/$1/iOS/fat/lib
     rm -rf ${fat_dir}
