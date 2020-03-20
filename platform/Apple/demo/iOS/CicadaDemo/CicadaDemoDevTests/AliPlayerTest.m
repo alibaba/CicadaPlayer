@@ -1312,27 +1312,6 @@
 /**
  测试属性，设置再读取，看是否正确
  */
-- (void)testMaxProbeSize_default {
-    [self.playerViewController initPlayer];
-    CicadaConfig *config = [self.playerViewController.player getConfig];
-    XCTAssertEqual(config.maxProbeSize,-1,@"maxProbeSize默认属性错误");
-    
-}
-
-/**
- 测试属性，设置再读取，看是否正确
- */
-- (void)testMaxProbeSize {
-    [self.playerViewController initPlayer];
-    CicadaConfig *config = [self.playerViewController.player getConfig];
-    config.maxProbeSize = 8000;
-    XCTAssertEqual(config.maxProbeSize,8000,@"maxProbeSize属性设置错误");
-    
-}
-
-/**
- 测试属性，设置再读取，看是否正确
- */
 - (void)testReferer_default {
     [self.playerViewController initPlayer];
     CicadaConfig *config = [self.playerViewController.player getConfig];

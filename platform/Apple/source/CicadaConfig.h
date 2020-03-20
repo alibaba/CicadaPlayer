@@ -63,13 +63,6 @@ OBJC_EXPORT
 @property (nonatomic, assign) int networkRetryCount;
 
 /**
- @brief probe数据大小，默认-1,表示不设置
- */
-/****
- @brief The size of the probe data. Default: -1. Value -1 indicates that the probe data size is not specified. */
-@property (nonatomic, assign) int maxProbeSize;
-
-/**
  @brief 请求referer
  */
 /****
