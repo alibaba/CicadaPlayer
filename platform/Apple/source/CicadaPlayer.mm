@@ -828,6 +828,13 @@ static int logOutput = 1;
     return @"";
 }
 
+-(void) setDefaultBandWidth:(int)bandWidth
+{
+    if (self.player) {
+        self.player->SetDefaultBandWidth(bandWidth);
+    }
+}
+
 + (NSString *) getSDKVersion
 {
     string version = MediaPlayer::GetSdkVersion();
