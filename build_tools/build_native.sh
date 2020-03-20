@@ -66,7 +66,8 @@ function build_shared_framework(){
 
     create_cmake_config
 
-    touch dummy.c
+    cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
+    sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
     rm -rf Xcode/
     mkdir -p Xcode
     cd Xcode

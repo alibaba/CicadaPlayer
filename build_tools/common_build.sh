@@ -214,8 +214,14 @@ function link_shared_lib_Android(){
         ldflags="$ldflags -lx264 -L${X264_INSTALL_DIR}/lib/"
     fi
 
-    ${CROSS_COMPILE}-gcc -lm -lz -shared --sysroot=${SYSTEM_ROOT}  -Wl,--no-undefined -Wl,-z,noexecstack ${CPU_LD_FLAGS}  -landroid -llog -Wl,-soname,lib${LIB_NAME}.so \
+    cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
+    sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
+
+    ${CROSS_COMPILE}-gcc build_version.cpp -lm -lz -shared --sysroot=${SYSTEM_ROOT} \
+     -Wl,--no-undefined -Wl,-z,noexecstack ${CPU_LD_FLAGS}  -landroid -llog -Wl,-soname,lib${LIB_NAME}.so \
     ${objs} \
     -o ${install_dir}/lib${LIB_NAME}.so \
     -Wl,--whole-archive   ${ldflags} -Wl,--no-whole-archive
+
+    rm build_version.cpp version.h
 }

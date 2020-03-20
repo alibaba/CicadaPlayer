@@ -17,7 +17,7 @@ set(LIBRARYS ${SRC_LIBRARIES})
 
 link_directories(${SRC_LIBRARIES_DIR})
 add_library(${LIB_NAME} SHARED
-        dummy.c
+        build_version.cpp
         )
 if (IOS)
 set_target_properties(${LIB_NAME} PROPERTIES

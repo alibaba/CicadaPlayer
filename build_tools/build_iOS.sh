@@ -61,7 +61,7 @@ function create_cmake_config(){
 }
 #build to ffmpeg
 function build_shared_framework(){
-    if [ -z "${LIB_NAME}" ];then
+    if [[ -z "${LIB_NAME}" ]];then
         export LIB_NAME=ffmpeg
     fi
     SRC_LIBRARIES="$(cd ./install/ffmpeg/iOS/fat/lib; ls)"
@@ -84,7 +84,7 @@ function build_shared_framework(){
         fi
     done
 
-    if [ -d "${DAV1D_EXTERNAL_DIR}/iOS/fat" ];then
+    if [[ -d "${DAV1D_EXTERNAL_DIR}/iOS/fat" ]];then
         SRC_LIBRARIES_DIR="$SRC_LIBRARIES_DIR ${DAV1D_EXTERNAL_DIR}/iOS/fat/lib"
         SRC_LIBRARIES="$SRC_LIBRARIES dav1d"
     fi
@@ -98,7 +98,8 @@ function build_shared_framework(){
 
     create_cmake_config
 
-    touch dummy.c
+    cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
+    sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
     rm -rf Xcode/
     mkdir -p Xcode/OS
     cd Xcode/OS
