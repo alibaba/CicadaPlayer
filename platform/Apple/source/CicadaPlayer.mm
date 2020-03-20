@@ -835,6 +835,14 @@ static int logOutput = 1;
     }
 }
 
+- (void) setDelegate:(id<CicadaDelegate>)theDelegate
+{
+    _delegate = theDelegate;
+    if (self.player && [_delegate respondsToSelector:@selector(onVideoRendered:timeMs:pts:)]) {
+        self.player->EnableVideoRenderedCallback(true);
+    }
+}
+
 -(NSString *) getOption:(CicadaOption)key
 {
     if (nullptr == self.player) {

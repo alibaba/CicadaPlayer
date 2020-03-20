@@ -256,6 +256,21 @@
  */
 - (void)onSEIData:(CicadaPlayer*)player type:(int)type data:(NSData *)data;
 
+/**
+ @brief 播放器渲染信息回调
+ @param player 播放器player指针
+ @param timeMs 渲染时的系统时间
+ @param pts  视频帧pts
+ */
+/****
+ @brief Player render info callback.
+ @param player Player pointer.
+ @param timeMs system time when render.
+ @param pts  video frame pts
+ @see AVPEventType
+ */
+-(void)onVideoRendered:(CicadaPlayer*)player timeMs:(int64_t)timeMs pts:(int64_t)pts;
+
 @end
 
 #endif /* CicadaDelegate_h */

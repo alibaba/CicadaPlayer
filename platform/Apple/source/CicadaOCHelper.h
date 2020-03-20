@@ -20,6 +20,8 @@ protected:
 
     static void onEvent(int64_t code, const void *msg, /*void *extra, */void *userData);
 
+    static void onVideoRendered(int64_t theTimeMs, int64_t thePts, void *userData);
+
     static void onPrepared(void *userData);
 
     static void onCompletion(void *userData);
