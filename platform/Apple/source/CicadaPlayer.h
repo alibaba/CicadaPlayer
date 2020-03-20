@@ -276,6 +276,16 @@ OBJC_EXPORT
 -(NSString *) getPropertyString:(CicadaPropertyKey)key;
 
 /**
+ @brief 设置多码率时默认播放的码率。将会选择与之最接近的一路流播放。
+ @param bandWidth 播放的码率。
+ */
+/****
+ @brief Set the default playback bitrate for multi-bit rate. The nearest stream will be selected.
+ @param bandWidth bit rate .
+ */
+-(void) setDefaultBandWidth:(int)bandWidth;
+
+/**
  @brief 获取SDK版本号信息
  */
 /****
