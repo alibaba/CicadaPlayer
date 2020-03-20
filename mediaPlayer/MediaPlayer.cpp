@@ -212,19 +212,14 @@ namespace Cicada {
             mCacheManager = new CacheManager();
             mCacheManager->setCacheConfig(mCacheConfig);
             mCacheManager->setSourceUrl(url);
-
             char descriptionLen[MAX_OPT_VALUE_LENGTH] = {0};
             CicadaGetOption(handle, "descriptionLen", descriptionLen);
             int len = atoi(descriptionLen);
-
             char *value = static_cast<char *>(malloc(len + 1));
-            memset(value,0 , len+1);
-
+            memset(value, 0, len + 1);
             CicadaGetOption(handle, "description", value);
             mCacheManager->setDescription(value);
-
             free(value);
-
             mCacheManager->setCacheFailCallback([this](int code, string msg) -> void {
                 AF_LOGE("Cache fail : code = %d , msg = %s", code, msg.c_str());
                 this->eventCallback(MEDIA_PLAYER_EVENT_CACHE_ERROR, msg.c_str(), this);
@@ -775,7 +770,10 @@ namespace Cicada {
     void  MediaPlayer::videoRenderedCallback(int64_t timeMs, int64_t pts, void *userData)
     {
         GET_MEDIA_PLAYER
-        player->mListener.VideoRendered(timeMs, pts, player->mListener.userData);
+
+        if (player->mListener.VideoRendered) {
+            player->mListener.VideoRendered(timeMs, pts, player->mListener.userData);
+        }
     }
 
 
