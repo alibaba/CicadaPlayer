@@ -15,42 +15,42 @@ OBJC_EXPORT
 @interface CicadaConfig : NSObject
 
 /**
- @brief 直播最大延迟 默认5000毫秒
+ @brief 直播最大延迟 默认5000毫秒，单位毫秒
  */
 /****
- @brief The maximum broadcasting delay. Default: 5000 milliseconds.
+ @brief The maximum broadcasting delay. Default: 5000 milliseconds, Unit: millisecond.
  */
 @property (nonatomic, assign) int maxDelayTime;
 
 /**
- @brief 卡顿后缓存数据的高水位，当播放器缓存数据大于此值时开始播放
+ @brief 卡顿后缓存数据的高水位，当播放器缓存数据大于此值时开始播放，单位毫秒
  */
 /****
- @brief The size of data to be cached before the player can be resumed from playback lag. When the size of the data cached by the player reaches this value, the playback is resumed.
+ @brief The size of data to be cached before the player can be resumed from playback lag. When the size of the data cached by the player reaches this value, the playback is resumed, Unit: millisecond.
  */
 @property (nonatomic, assign) int highBufferDuration;
 
 /**
- @brief 开始起播缓存区数据长度，默认500ms
+ @brief 开始起播缓存区数据长度，默认500ms，单位毫秒
  */
 /****
- @brief The size of the cache data required for starting playback. Default: 500 milliseconds.
+ @brief The size of the cache data required for starting playback. Default: 500 milliseconds, Unit: millisecond.
  */
 @property (nonatomic, assign) int startBufferDuration;
 
 /**
- @brief 播放器最大的缓存数据长度，默认50秒
+ @brief 播放器最大的缓存数据长度，默认50秒，单位毫秒
  */
 /****
- @brief The maximum size of cache data. Default: 50 seconds.
+ @brief The maximum size of cache data. Default: 50 seconds, Unit: millisecond.
  */
 @property (nonatomic, assign) int maxBufferDuration;
 
 /**
- @brief 网络超时时间，默认15秒
+ @brief 网络超时时间，默认15秒，单位毫秒
  */
 /****
- @brief Network connection timeout time. Default: 15 seconds.
+ @brief Network connection timeout time. Default: 15 seconds, Unit: millisecond.
  */
 @property (nonatomic, assign) int networkTimeout;
 
