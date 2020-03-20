@@ -15,7 +15,6 @@
 @synthesize startBufferDuration;
 @synthesize maxBufferDuration;
 @synthesize networkTimeout;
-@synthesize maxProbeSize;
 @synthesize referer;
 @synthesize userAgent;
 @synthesize httpProxy;
@@ -27,7 +26,6 @@
     if (self = [super init]) {
         referer = nil;
         httpProxy = nil;
-        maxProbeSize = -1;
         networkTimeout = 15000;
         maxBufferDuration = 50000;
         startBufferDuration = 500;

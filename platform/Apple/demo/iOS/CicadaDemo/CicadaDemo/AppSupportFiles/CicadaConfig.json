@@ -4,7 +4,6 @@
     "startBufferDuration": "500",
     "maxBufferDuration": "50000",
     "networkTimeout": "15000",
-    "maxProbeSize": "",
     "referer": "",
     "httpProxy": "",
     "networkRetryCount": "2",
