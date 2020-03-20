@@ -157,6 +157,7 @@ void CicadaOCHelper::getListener(playerListener &listener)
     listener.CaptureScreen = onCaptureScreen;
     listener.SubtitleShow = onShowSubtitle;
     listener.SubtitleHide = onHideSubtitle;
+    listener.VideoRendered = onVideoRendered;
     listener.EventCallback = onEvent;
     listener.ErrorCallback = onError;
     listener.Prepared = onPrepared;
@@ -428,6 +429,16 @@ void CicadaOCHelper::onEvent(int64_t code, const void *msg, void *userData) {
 
             CicadaEventWithString eventCode = (CicadaEventWithString)EventCodeMap::getInstance()->getValue(static_cast<int>(code));
             [player.delegate onPlayerEvent:player eventWithString:(CicadaEventWithString)eventCode description:str];
+        });
+    }
+}
+
+void CicadaOCHelper::onVideoRendered(int64_t theTimeMs, int64_t thePts, void *userData) {
+    __weak CicadaPlayer * player = getOCPlayer(userData);
+
+    if (player.delegate && [player.delegate respondsToSelector:@selector(onVideoRendered:timeMs:pts:)]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [player.delegate onVideoRendered:player timeMs:theTimeMs pts:thePts];
         });
     }
 }
