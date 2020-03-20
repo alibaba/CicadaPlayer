@@ -156,6 +156,16 @@ typedef enum CicadaPropertyKey: NSUInteger {
     CICADA_KEY_CONNECT_INFO  = 1,
 } CicadaPropertyKey;
 
+typedef enum CicadaOption: NSUInteger {
+    /**
+     * @brief 渲染的fps。类型为Float
+     */
+    /****
+     * @brief render fps. Return value type is Float
+     */
+    CICADA_OPTION_RENDER_FPS = 0,
+} CicadaOption;
+
 /**
  @brief CicadaErrorModel为播放错误信息描述
  */

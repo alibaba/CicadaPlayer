@@ -835,6 +835,25 @@ static int logOutput = 1;
     }
 }
 
+-(NSString *) getOption:(CicadaOption)key
+{
+    if (nullptr == self.player) {
+        return @"";
+    }
+
+    char value[256] = {0};
+
+    switch (key) {
+        case CICADA_OPTION_RENDER_FPS:
+            self.player->GetOption("renderFps", value);
+            break;
+        default:
+            break;
+    }
+
+    return [NSString stringWithUTF8String:value];
+}
+
 + (NSString *) getSDKVersion
 {
     string version = MediaPlayer::GetSdkVersion();
