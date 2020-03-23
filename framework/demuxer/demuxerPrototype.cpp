@@ -68,7 +68,9 @@ Cicada::IDemuxer *demuxerPrototype::create(const string &uri, int type)
 void demuxerPrototype::dummy(int dummy)
 {
     if (dummy == 8888) {
+#ifdef ENABLE_HLS
         unique_ptr<IDemuxer> demuxer = unique_ptr<IDemuxer>(new playList_demuxer());
+#endif
         unique_ptr<IDemuxer> demuxer1 = unique_ptr<IDemuxer>(new avFormatDemuxer());
         unique_ptr<IDemuxer> demuxer2 = unique_ptr<IDemuxer>(new avFormatSubtitleDemuxer());
         assert(0);

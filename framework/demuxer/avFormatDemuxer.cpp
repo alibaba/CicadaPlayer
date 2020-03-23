@@ -644,10 +644,13 @@ namespace Cicada {
     bool avFormatDemuxer::is_supported(const string &uri, const uint8_t *buffer, int64_t size, int *type, const Cicada::DemuxerMeta *meta,
                                        const Cicada::options *opts)
     {
+#ifdef ENABLE_HLS
+
         if (HlsParser::probe(buffer, size) > 0) {
             return false;
         }
 
+#endif
         AVProbeData pd = {uri.c_str(), const_cast<unsigned char *>(buffer), static_cast<int>(size)};
         int score = AVPROBE_SCORE_RETRY;
         AVInputFormat *fmt = av_probe_input_format2(&pd, 1, &score);

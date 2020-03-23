@@ -41,6 +41,8 @@ if ($ENV{VERSION})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVERSION=$ENV{VERSION}")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DVERSION=$ENV{VERSION}")
 endif ()
+
+include(module_config.cmake)
 add_subdirectory(demuxer)
 add_subdirectory(codec)
 add_subdirectory(utils)

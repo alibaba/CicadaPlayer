@@ -1,0 +1,2 @@
+
+set(ENABLE_HLS ON)
