@@ -11,7 +11,6 @@ project(framework_Demuxer)
 
 set(CMAKE_CXX_STANDARD 11)
 
-option(ENABLE_HLS "enable hls demuxer" ON)
 
 add_library(demuxer ${TARGET_LIBRARY_TYPE} "")
 
@@ -43,8 +42,8 @@ target_sources(demuxer PRIVATE
         decrypto/avAESDecrypt.h
         )
 
-if (ENABLE_HLS)
-    target_compile_definitions(demuxer PRIVATE ENABLE_HLS)
+if (ENABLE_HLS_DEMUXER)
+    target_compile_definitions(demuxer PRIVATE ENABLE_HLS_DEMUXER)
     target_sources(demuxer PRIVATE
             play_list/segment.cpp
             play_list/Representation.cpp
@@ -93,8 +92,7 @@ target_include_directories(demuxer PRIVATE
         ${FFMPEG_SOURCE_DIR}
         ${COMMON_INC_DIR})
 
-target_link_directories(demuxer PRIVATE
-        #${CICADA_FRAMEWORK_INSTALL_LIB_DIR}
+link_directories(
         ${CICADA_FRAMEWORK_INSTALL_BOOST_LIB_DIR}
         ${COMMON_LIB_DIR})
 
@@ -105,7 +103,7 @@ else ()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -U_FORTIFY_SOURCE -fstack-protector-all")
 endif ()
 
-target_link_directories(demuxer PRIVATE ${LINNK_LIBRARYS})
+link_directories(${LINNK_LIBRARYS})
 
 if (HAVE_COVERAGE_CONFIG)
     target_link_libraries(demuxer PUBLIC coverage_config)

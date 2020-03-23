@@ -4,9 +4,6 @@ project(codec)
 set(CMAKE_CXX_STANDARD 11)
 
 add_library(videodec ${TARGET_LIBRARY_TYPE} "")
-option(ENABLE_AVCODEC_DECODER "enable avcodec soft decoder" ON)
-option(ENABLE_MEDIA_CODEC_DECODER "enable android media codec  decoder" ON)
-option(ENABLE_VTB_DECODER "enable apple video tool box decoder" ON)
 
 target_sources(videodec PRIVATE
         IVideoFrame.h

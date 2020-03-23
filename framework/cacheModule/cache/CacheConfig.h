@@ -12,15 +12,28 @@ using namespace std;
 
 class CacheConfig {
 public:
-    CacheConfig();
+    CacheConfig() = default;
 
-    ~CacheConfig();
+    ~CacheConfig() = default;
 
-    void reset();
+    void reset()
+    {
+        mEnable = false;
+        mMaxDurationS = 0;
+        mMaxDirSizeMB = 0;
+        mCacheDir = "";
+        mCacheFileName = "";
+        mSourceSize = 0;
+    };
 
-    bool isSame(const CacheConfig &config);
+    bool isSame(const CacheConfig &config) const
+    {
+        return config.mEnable == mEnable && config.mMaxDurationS == mMaxDurationS &&
+               config.mMaxDirSizeMB == mMaxDirSizeMB && config.mCacheDir == mCacheDir &&
+               config.mCacheFileName == mCacheFileName && config.mSourceSize == mSourceSize;
+    }
 
-    std::string toString() const;
+//    std::string toString() const;
 public:
     bool mEnable = false;
     int64_t mMaxDurationS = 0;
