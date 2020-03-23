@@ -3,7 +3,12 @@ project(codec)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES
+add_library(videodec ${TARGET_LIBRARY_TYPE} "")
+option(ENABLE_AVCODEC_DECODER "enable avcodec soft decoder" ON)
+option(ENABLE_MEDIA_CODEC_DECODER "enable android media codec  decoder" ON)
+option(ENABLE_VTB_DECODER "enable apple video tool box decoder" ON)
+
+target_sources(videodec PRIVATE
         IVideoFrame.h
         IDecoder.h
         codecPrototype.cpp
@@ -12,11 +17,20 @@ set(SOURCE_FILES
         decoderFactory.cpp
         decoderFactory.h
         ActiveDecoder.cpp
-        ActiveDecoder.h
-        avcodecDecoder.cpp
-        avcodecDecoder.h)
-if (ANDROID)
-    set(SOURCE_FILES ${SOURCE_FILES}
+        ActiveDecoder.h)
+
+if (ENABLE_AVCODEC_DECODER)
+    target_compile_definitions(videodec PRIVATE ENABLE_AVCODEC_DECODER)
+    target_sources(videodec PRIVATE
+            avcodecDecoder.cpp
+            avcodecDecoder.h
+            )
+
+endif ()
+
+if (ANDROID AND ENABLE_MEDIA_CODEC_DECODER)
+    target_compile_definitions(videodec PRIVATE ENABLE_MEDIA_CODEC_DECODER)
+    target_sources(videodec PRIVATE
             Android/mediaCodec.h
             Android/mediaCodec.cpp
             Android/mediacodec_jni.h
@@ -26,8 +40,9 @@ if (ANDROID)
             )
 endif ()
 
-if (APPLE)
-    list(APPEND SOURCE_FILES
+if (APPLE AND ENABLE_VTB_DECODER)
+    target_compile_definitions(videodec PRIVATE ENABLE_VTB_DECODER)
+    target_sources(videodec PRIVATE
             Apple/AppleVideoToolBox.cpp
             Apple/AppleVideoToolBox.h
             Apple/video_tool_box_utils.c
@@ -41,17 +56,11 @@ if (IOS)
 endif ()
 
 
-include_directories(
-#        ${CICADA_FRAMEWORK_DIR}/inc
-#        ${CICADA_FRAMEWORK_INSTALL_BOOST_INC_DIR}
-#        ${CICADA_FRAMEWORK_DIR}/src/mdf
-#        ${CICADA_FRAMEWORK_DIR}/src
-#        ${CICADA_FRAMEWORK_DIR}/src/message
+target_include_directories(videodec PRIVATE
         ${FFMPEG_SOURCE_DIR}
         ${COMMON_INC_DIR})
 
 link_directories(
-#        ${CICADA_FRAMEWORK_INSTALL_LIB_DIR}
         ${CICADA_FRAMEWORK_INSTALL_BOOST_LIB_DIR}
         ${COMMON_LIB_DIR})
 
@@ -63,9 +72,7 @@ else ()
 endif ()
 
 
-link_libraries(${LINNK_LIBRARYS})
-
-add_library(videodec ${TARGET_LIBRARY_TYPE} ${SOURCE_FILES})
+target_link_libraries(videodec PRIVATE ${LINNK_LIBRARYS})
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations")
 
 if (HAVE_COVERAGE_CONFIG)

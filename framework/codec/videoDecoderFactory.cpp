@@ -25,9 +25,14 @@ namespace Cicada {
     IDecoder *VideoDecoderFactoryManager::create(enum AFCodecID codec, int flag, bool buildIn)
     {
         if (buildIn) {
+#ifdef ENABLE_AVCODEC_DECODER
+
             if (avcodecDecoder::is_supported(codec)) {
                 return new avcodecDecoder();
             }
+
+#endif
+            return nullptr;
         }
 
         std::lock_guard<std::mutex> lock(gMutex);
