@@ -176,11 +176,15 @@ function check_yasm(){
     echo `nasm --version`
 }
 
+if [[ -f "${CICADA_FFMPEG_CONFIG_FILE}" ]]; then
+    rm player_ffmpeg_config.sh
+    cp "${CICADA_FFMPEG_CONFIG_FILE}" ./
+fi
 
 mkdir external
 cd external
 load_source
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
     echo "load_source error break"
     exit 1;
 fi
@@ -189,25 +193,25 @@ cd ${TOP_DIR}
 
 export TARGET_PLATFORM=$1
 
-if [ "$1" == "Android" ];then
-    if  [ -z "${ANDROID_NDK}" ];then
+if [[ "$1" == "Android" ]];then
+    if  [[ -z "${ANDROID_NDK}" ]];then
         export ANDROID_NDK=~/Android-env/android-ndk-r14b/
     fi
     check_android_tools
     check_dav1d
     ../build_tools/build_Android.sh
 
-elif [ "$1" == "iOS" ];then
+elif [[ "$1" == "iOS" ]];then
     #export HOMEBREW_NO_AUTO_UPDATE=true
     check_cmake
     check_yasm
     check_dav1d
     ../build_tools/build_iOS.sh
-elif [ "$1" == "macOS" ];then
+elif [[ "$1" == "macOS" ]];then
     ../build_tools/build_native.sh 
-elif [ "$1" == "Linux" ];then
+elif [[ "$1" == "Linux" ]];then
     ../build_tools/build_native.sh
-elif [ "$1" == "Windows" ];then
+elif [[ "$1" == "Windows" ]];then
     ../build_tools/build_win32.sh
 fi
 
