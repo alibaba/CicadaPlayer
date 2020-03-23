@@ -644,7 +644,7 @@ namespace Cicada {
     bool avFormatDemuxer::is_supported(const string &uri, const uint8_t *buffer, int64_t size, int *type, const Cicada::DemuxerMeta *meta,
                                        const Cicada::options *opts)
     {
-#ifdef ENABLE_HLS
+#ifdef ENABLE_HLS_DEMUXER
 
         if (HlsParser::probe(buffer, size) > 0) {
             return false;

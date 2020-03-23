@@ -24,6 +24,8 @@ add_subdirectory(../mediaPlayer mediaPlayer.out)
 
 include(../framework/${TARGET_PLATFORM}.cmake)
 
+include(../framework/module_config.cmake)
+
 list(APPEND SRC_FILE
         cicadaPlayer.cpp
         NetWorkEventReceiver.cpp
@@ -50,8 +52,6 @@ target_link_libraries(cicadaPlayer PRIVATE
         media_player
         demuxer
         data_source
-        cacheModule
-        muxer
         render
         videodec
         framework_filter
@@ -64,6 +64,15 @@ target_link_libraries(cicadaPlayer PRIVATE
         curl
         pthread
         ${FRAMEWORK_LIBS})
+if (ENABLE_CACHE_MODULE)
+    target_link_libraries(cicadaPlayer PRIVATE
+            cacheModule)
+endif ()
+if (ENABLE_MUXER)
+    target_link_libraries(cicadaPlayer PRIVATE
+            muxer)
+
+endif ()
 if (ENABLE_SDL)
     target_link_libraries(cicadaPlayer PUBLIC
             SDL2

@@ -48,8 +48,15 @@ add_subdirectory(codec)
 add_subdirectory(utils)
 add_subdirectory(filter)
 add_subdirectory(render)
-add_subdirectory(cacheModule)
-add_subdirectory(muxer)
+if (ENABLE_CACHE_MODULE)
+    set(ENABLE_MUXER ON)
+    add_definitions(-DENABLE_CACHE_MODULE)
+    add_subdirectory(cacheModule)
+endif ()
+if (ENABLE_MUXER)
+    add_definitions(-DENABLE_MUXER)
+    add_subdirectory(muxer)
+endif ()
 
 if (NOT EMSCRIPTEN)
     add_subdirectory(data_source)
@@ -125,125 +132,125 @@ if (EMSCRIPTEN)
 endif ()
 
 if (BUILD_TEST)
-#   add_subdirectory(tests)
-#        link_libraries(
-#                demuxer
-#                videodec
-#                data_source
-#                framework_utils
-#                avformat
-#                avcodec
-#                swresample
-#                avutil
-#                swscale
-#                iconv
-#                z
-#                bz2
-#                curl
-#                ssl
-#                crypto
-#                ${FRAMEWORK_LIBS})
-#        add_executable(DemuxerTest ${DEMUXER_TEST_FILES})
-#       add_executable(DataSourceTest ${DATA_SOURCE_TEST_FILES})
-#    #    #    add_executable(simple_player ${PlAYER_TEST_FILES})
-#    #    add_executable(TimedEventQueue ${TIMED_QUEUE_FILES})
-#    #    add_executable(curl_test curl_test.cpp)
-#    #    add_executable(errorTest utils/errors/error_test.cpp)
-#    #    add_executable(clock_test ${CLOCK_TEST_FILES})
-#    #    add_executable(property_test utils/testProperty.c)
-#    #    add_executable(afTreadTest utils/afThreadTest.cpp)
-#    add_executable(ffmpeg_test ffmpeg/ffmpeg_test.cpp)
-#    target_link_libraries(ffmpeg_test
-#            demuxer
-#            videodec
-#            avformat
-#            avcodec
-#            avutil
-#            framework_utils
-#            z
-#            bz2
-#            ssl
-#            crypto
-#            SDL2
-#            iconv
-#            )
-#
-#    if (ENABLE_SDL)
-#        add_executable(sdl_test ffmpeg/sdl_test.cpp)
-#        target_link_libraries(sdl_test
-#                render
-#                demuxer
-#                videodec
-#                avformat
-#                avcodec
-#                avutil
-#                swresample
-#                avfilter
-#                framework_utils
-#                framework_filter
-#                z
-#                bz2
-#                ssl
-#                crypto
-#                SDL2
-#                iconv
-#                )
-#        add_executable(filter_audio_test filter/avFilterAudio_test.cpp)
-#        target_link_libraries(filter_audio_test
-#                render
-#                bitStreamDecoder
-#                demuxer
-#                videodec
-#                avformat
-#                avcodec
-#                avutil
-#                swresample
-#                avfilter
-#                framework_utils
-#                framework_filter
-#                z
-#                bz2
-#                ssl
-#                crypto
-#                iconv
-#                SDL2
-#                )
-#    endif ()
-#    #   add_executable(vsyncTest render/test_vsync.cpp)
-#    #    target_link_libraries(vsyncTest PRIVATE
-#    #            render
-#    #            framework_utils
-#    #            avformat
-#    #            avcodec
-#    #            avutil
-#    #            ssl
-#    #            crypto
-#    #            bz2
-#    #            z
-#    #            iconv
-#    #            )
-#    if (ENABLE_SDL)
-#        add_executable(audioRender_test render/audioRender_test.cpp)
-#        target_link_libraries(audioRender_test
-#                render
-#                bitStreamDecoder
-#                demuxer
-#                videodec
-#                avformat
-#                avcodec
-#                avutil
-#                swresample
-#                avfilter
-#                framework_utils
-#                framework_filter
-#                z
-#                bz2
-#                ssl
-#                crypto
-#                iconv
-#                SDL2
-#                )
-#    endif ()
+    #   add_subdirectory(tests)
+    #        link_libraries(
+    #                demuxer
+    #                videodec
+    #                data_source
+    #                framework_utils
+    #                avformat
+    #                avcodec
+    #                swresample
+    #                avutil
+    #                swscale
+    #                iconv
+    #                z
+    #                bz2
+    #                curl
+    #                ssl
+    #                crypto
+    #                ${FRAMEWORK_LIBS})
+    #        add_executable(DemuxerTest ${DEMUXER_TEST_FILES})
+    #       add_executable(DataSourceTest ${DATA_SOURCE_TEST_FILES})
+    #    #    #    add_executable(simple_player ${PlAYER_TEST_FILES})
+    #    #    add_executable(TimedEventQueue ${TIMED_QUEUE_FILES})
+    #    #    add_executable(curl_test curl_test.cpp)
+    #    #    add_executable(errorTest utils/errors/error_test.cpp)
+    #    #    add_executable(clock_test ${CLOCK_TEST_FILES})
+    #    #    add_executable(property_test utils/testProperty.c)
+    #    #    add_executable(afTreadTest utils/afThreadTest.cpp)
+    #    add_executable(ffmpeg_test ffmpeg/ffmpeg_test.cpp)
+    #    target_link_libraries(ffmpeg_test
+    #            demuxer
+    #            videodec
+    #            avformat
+    #            avcodec
+    #            avutil
+    #            framework_utils
+    #            z
+    #            bz2
+    #            ssl
+    #            crypto
+    #            SDL2
+    #            iconv
+    #            )
+    #
+    #    if (ENABLE_SDL)
+    #        add_executable(sdl_test ffmpeg/sdl_test.cpp)
+    #        target_link_libraries(sdl_test
+    #                render
+    #                demuxer
+    #                videodec
+    #                avformat
+    #                avcodec
+    #                avutil
+    #                swresample
+    #                avfilter
+    #                framework_utils
+    #                framework_filter
+    #                z
+    #                bz2
+    #                ssl
+    #                crypto
+    #                SDL2
+    #                iconv
+    #                )
+    #        add_executable(filter_audio_test filter/avFilterAudio_test.cpp)
+    #        target_link_libraries(filter_audio_test
+    #                render
+    #                bitStreamDecoder
+    #                demuxer
+    #                videodec
+    #                avformat
+    #                avcodec
+    #                avutil
+    #                swresample
+    #                avfilter
+    #                framework_utils
+    #                framework_filter
+    #                z
+    #                bz2
+    #                ssl
+    #                crypto
+    #                iconv
+    #                SDL2
+    #                )
+    #    endif ()
+    #    #   add_executable(vsyncTest render/test_vsync.cpp)
+    #    #    target_link_libraries(vsyncTest PRIVATE
+    #    #            render
+    #    #            framework_utils
+    #    #            avformat
+    #    #            avcodec
+    #    #            avutil
+    #    #            ssl
+    #    #            crypto
+    #    #            bz2
+    #    #            z
+    #    #            iconv
+    #    #            )
+    #    if (ENABLE_SDL)
+    #        add_executable(audioRender_test render/audioRender_test.cpp)
+    #        target_link_libraries(audioRender_test
+    #                render
+    #                bitStreamDecoder
+    #                demuxer
+    #                videodec
+    #                avformat
+    #                avcodec
+    #                avutil
+    #                swresample
+    #                avfilter
+    #                framework_utils
+    #                framework_filter
+    #                z
+    #                bz2
+    #                ssl
+    #                crypto
+    #                iconv
+    #                SDL2
+    #                )
+    #    endif ()
     #add_executable(sliceTest data_source/cache/sliceTest.cpp)
     #add_executable(cachedSourceTest data_source/cache/cachedSourceTest.cpp)
     #add_executable(cachedDemuxerTest cachedDemuxerTest.cpp)

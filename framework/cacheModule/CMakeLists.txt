@@ -23,7 +23,6 @@ add_library(cacheModule STATIC
         CacheManager.cpp
         CacheManager.h
 
-        cache/CacheConfig.cpp
         cache/CacheConfig.h
         cache/CacheFileRemuxer.cpp
         cache/CacheFileRemuxer.h

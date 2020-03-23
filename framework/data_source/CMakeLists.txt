@@ -11,9 +11,6 @@ project(framework_DataSource)
 set(CMAKE_CXX_STANDARD 11)
 add_library(data_source ${TARGET_LIBRARY_TYPE} "")
 
-option(ENABLE_CACHED_SOURCE "enable cached source" ON)
-option(ENABLE_CURL_SOURCE "enable curl http https source" ON)
-
 target_sources(data_source PRIVATE
         DataSourceUtils.h
         DataSourceUtils.cpp
@@ -67,7 +64,7 @@ target_include_directories(data_source PRIVATE
         ${COMMON_INC_DIR}
 )
 
-target_link_directories(data_source PRIVATE
+link_directories(
         ${CICADA_FRAMEWORK_INSTALL_BOOST_LIB_DIR}
         ${COMMON_LIB_DIR})
 
