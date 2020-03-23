@@ -53,7 +53,16 @@ target_link_libraries(cicadaPlayer PRIVATE
         demuxer
         data_source
         render
-        videodec
+        videodec)
+if (ENABLE_CACHE_MODULE)
+    target_link_libraries(cicadaPlayer PRIVATE
+            cacheModule)
+endif ()
+if (ENABLE_MUXER)
+    target_link_libraries(cicadaPlayer PRIVATE
+            muxer)
+endif ()
+target_link_libraries(cicadaPlayer PRIVATE
         framework_filter
         framework_utils
         avfilter
@@ -64,15 +73,6 @@ target_link_libraries(cicadaPlayer PRIVATE
         curl
         pthread
         ${FRAMEWORK_LIBS})
-if (ENABLE_CACHE_MODULE)
-    target_link_libraries(cicadaPlayer PRIVATE
-            cacheModule)
-endif ()
-if (ENABLE_MUXER)
-    target_link_libraries(cicadaPlayer PRIVATE
-            muxer)
-
-endif ()
 if (ENABLE_SDL)
     target_link_libraries(cicadaPlayer PUBLIC
             SDL2
