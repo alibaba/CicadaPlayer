@@ -9,57 +9,65 @@ project(framework_DataSource)
 #endif ()
 
 set(CMAKE_CXX_STANDARD 11)
+add_library(data_source ${TARGET_LIBRARY_TYPE} "")
 
+option(ENABLE_CACHED_SOURCE "enable cached source" ON)
+option(ENABLE_CURL_SOURCE "enable curl http https source" ON)
 
-set(SOURCE_FILES ${SOURCE_FILES}
-        #data_source_service.cpp
+target_sources(data_source PRIVATE
         DataSourceUtils.h
         DataSourceUtils.cpp
         IDataSource.h
         IDataSource.cpp
-        #        file_data_source.cpp
         ffmpeg_data_source.cpp
         ffmpeg_data_source.h
-        #        alivc_data_source.cpp
-        #        alivc_data_source.h
-        curl/curl_data_source.cpp
-        curl/curl_data_source.h
-        curl/CURLShareInstance.cpp
-        curl/CURLShareInstance.h
         dataSourceIO.cpp
         dataSourceIO.h
-        cache/slice.cpp
-        cache/slice.h
-        cache/cachedSource.cpp
-        cachedSource.h
-        cache/ISliceManager.h
-        cache/ISliceManager.cpp
-        cache/memPool.cpp
-        cache/memPool.h
-        cache/memPoolSlice.cpp
-        cache/memPoolSlice.h
-        cache/sliceBufferSource.cpp
-        cache/sliceBufferSource.h
         SourceReader.h
         SourceReader.cpp
         proxyDataSource.cpp
         proxyDataSource.h
         dataSourcePrototype.cpp
-        dataSourcePrototype.h curl/curlShare.cpp curl/curlShare.h curl/CURLConnection.cpp curl/CURLConnection.h)
+        dataSourcePrototype.h)
+
+if (ENABLE_CURL_SOURCE)
+    target_compile_definitions(data_source PRIVATE ENABLE_CURL_SOURCE)
+    target_sources(data_source PRIVATE
+            curl/curl_data_source.cpp
+            curl/curl_data_source.h
+            curl/CURLShareInstance.cpp
+            curl/CURLShareInstance.h
+            curl/curlShare.cpp
+            curl/curlShare.h
+            curl/CURLConnection.cpp
+            curl/CURLConnection.h
+            )
+endif ()
+
+if (ENABLE_CACHED_SOURCE)
+    target_sources(data_source PRIVATE
+            cachedSource.h
+            cache/slice.cpp
+            cache/slice.h
+            cache/cachedSource.cpp
+            cache/ISliceManager.h
+            cache/ISliceManager.cpp
+            cache/memPool.cpp
+            cache/memPool.h
+            cache/memPoolSlice.cpp
+            cache/memPoolSlice.h
+            cache/sliceBufferSource.cpp
+            cache/sliceBufferSource.h
+            )
+endif ()
 
 
-include_directories(
-#${CICADA_FRAMEWORK_DIR}/inc
- #       ${CICADA_FRAMEWORK_INSTALL_BOOST_INC_DIR}
- #       ${CICADA_FRAMEWORK_DIR}/src/mdf
- #       ${CICADA_FRAMEWORK_DIR}/src
- #      ${CICADA_FRAMEWORK_DIR}/src/message
+target_include_directories(data_source PRIVATE
         ${FFMPEG_SOURCE_DIR}
         ${COMMON_INC_DIR}
 )
 
-link_directories(
-#${CICADA_FRAMEWORK_INSTALL_LIB_DIR}
+target_link_directories(data_source PRIVATE
         ${CICADA_FRAMEWORK_INSTALL_BOOST_LIB_DIR}
         ${COMMON_LIB_DIR})
 
@@ -70,9 +78,7 @@ else ()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -U_FORTIFY_SOURCE -fstack-protector-all")
 endif ()
 
-link_libraries(${LINNK_LIBRARYS})
-
-add_library(data_source ${TARGET_LIBRARY_TYPE} ${SOURCE_FILES})
+target_link_libraries(data_source PRIVATE ${LINNK_LIBRARYS})
 if (HAVE_COVERAGE_CONFIG)
     target_link_libraries(data_source PUBLIC coverage_config)
 endif ()

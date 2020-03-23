@@ -22,22 +22,34 @@ Cicada::IDataSource *dataSourcePrototype::create(const std::string &uri, const C
     int score_res = 0;
     dataSourcePrototype *dataSource = nullptr;
     IDataSource *source = nullptr;
+
     for (int i = 0; i < _nextSlot; ++i) {
         int score = dataSourceQueue[i]->probeScore(uri, opts);
+
         if (score > score_res) {
             score_res = score;
             dataSource = dataSourceQueue[i];
         }
-        if (score >= SUPPORT_MAX)
+
+        if (score >= SUPPORT_MAX) {
             break;
+        }
     }
+
     if (dataSource) {
         source = dataSource->clone(uri);
-    } else if (CurlDataSource::probe(uri)) {
+    }
+
+#ifdef ENABLE_CURL_SOURCE
+    else if (CurlDataSource::probe(uri)) {
         source = new CurlDataSource(uri);
-    } else {
+    }
+
+#endif
+    else {
         source = new ffmpegDataSource(uri);
     }
+
     source->setOptions(opts);
     return source;
 }
