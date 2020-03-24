@@ -47,7 +47,7 @@ if (APPLE AND ENABLE_VTB_DECODER)
 endif ()
 
 if (IOS)
-    list(APPEND SOURCE_FILES
+    target_sources(videodec PRIVATE
             utils_ios.mm
             )
 endif ()
