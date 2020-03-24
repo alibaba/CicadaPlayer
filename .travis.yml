@@ -2,53 +2,77 @@ language: cpp
 sudo: required
 dist: bionic
 compiler:
-  - clang
+    - clang
 os:
-  - linux
+    - linux
 
 env:
-  global:
-    - secure: "KFiM/zhhgLJXB7AXD7Y22zLfB5z/K4MnRH8WWrq27+ByxRH22nY4IqhdQ0BS9dS7/Lhtrt1JEaNs1G+IFAUM/IMszUVUSA8DFjDSq7zlAIv5qC8PQIjvHfUhDvTJiXE4Zy6rHtnGo915sX/UffNEVOhV5CRr/kJUhlihUTpE4r7z3KF3k25dXLPn3gDKsTA5W77LrVCGrvDQZkcZNCKxMYZUphRUsoF48ZLGgxmdbUEIfnkkXtP95LSDzd2ReLr+42eUGLuiSrv1WmGkf7YaXiOao7sNDIEPO+WB4+YSXrkUnOuKJ1yOdTf3rd1rJr4D+Co0awSvhmWG1D8PqBZnQF3ImOmocIiVmflIIeDjEAGw/pacHV5Lsa/5Qa1NPbqalb3617XCu1kKitxI9NOXAXLsfMKmSfApGn4mBk6foN7zJSS4NxOLjbW4BoKASKmoaVoQ4pvDVN/hfi/x8ktuGb/h5/LxF2ErO9t/vShqgQ35Qf6F396SfVPuusBwuWl55dzO1p0A/VJHgpT1gNSCXJ0+Nh1bEz2ExebTyQtnBsSJ0A/w/N1M5qlGGbSv7N3OTBodTVJY/f5IpmbwIrdxIO6r1MV8unVY1xQ6CL0JLJf2zE3kT+7yudbhCSdm8wOzivIlWZcoWqut87sY9VXfrkFEHLeWMLdvpq6txsxwGCk="
-
+    global:
+        - secure: "KFiM/zhhgLJXB7AXD7Y22zLfB5z/K4MnRH8WWrq27+ByxRH22nY4IqhdQ0BS9dS7/Lhtrt1JEaNs1G+IFAUM/IMszUVUSA8DFjDSq7zlAIv5qC8PQIjvHfUhDvTJiXE4Zy6rHtnGo915sX/UffNEVOhV5CRr/kJUhlihUTpE4r7z3KF3k25dXLPn3gDKsTA5W77LrVCGrvDQZkcZNCKxMYZUphRUsoF48ZLGgxmdbUEIfnkkXtP95LSDzd2ReLr+42eUGLuiSrv1WmGkf7YaXiOao7sNDIEPO+WB4+YSXrkUnOuKJ1yOdTf3rd1rJr4D+Co0awSvhmWG1D8PqBZnQF3ImOmocIiVmflIIeDjEAGw/pacHV5Lsa/5Qa1NPbqalb3617XCu1kKitxI9NOXAXLsfMKmSfApGn4mBk6foN7zJSS4NxOLjbW4BoKASKmoaVoQ4pvDVN/hfi/x8ktuGb/h5/LxF2ErO9t/vShqgQ35Qf6F396SfVPuusBwuWl55dzO1p0A/VJHgpT1gNSCXJ0+Nh1bEz2ExebTyQtnBsSJ0A/w/N1M5qlGGbSv7N3OTBodTVJY/f5IpmbwIrdxIO6r1MV8unVY1xQ6CL0JLJf2zE3kT+7yudbhCSdm8wOzivIlWZcoWqut87sY9VXfrkFEHLeWMLdvpq6txsxwGCk="
+        - "CHECK_FORMAT=ON"
 before_install:
-  - sudo apt-get update
-  - sudo apt-get install -y yasm
-  - sudo apt-get install -y libsdl2-dev
-  - wget "https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.16.2-Linux-x86_64.tar.gz"
-  - tar zxf cmake-3.16.2-Linux-x86_64.tar.gz
-  - export PATH=`pwd`/cmake-3.16.2-Linux-x86_64/bin:$PATH
-  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+    - sudo apt-get update
+    - sudo apt-get install -y yasm
+    - sudo apt-get install -y libsdl2-dev
+    - sudo apt-get install -y clang-format
+    - wget "https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.16.2-Linux-x86_64.tar.gz"
+    - tar zxf cmake-3.16.2-Linux-x86_64.tar.gz
+    - export PATH=`pwd`/cmake-3.16.2-Linux-x86_64/bin:$PATH
+    - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 before_script:
-  - . setup.env
-  - cd external/
-  - ./build_external.sh Linux
-  - cd ../
+    - |
+        if [[ "$CHECK_FORMAT" == "ON" && "$TRAVIS_PULL_REQUEST" != "false" ]]; then
+          # Install the clang format diff tool, but only for pull requests.
+          curl -L http://llvm.org/svn/llvm-project/cfe/trunk/tools/clang-format/clang-format-diff.py -o clang-format-diff.py;
+        fi
+    - . setup.env
+    - cd external/
+    - ./build_external.sh Linux
+    - cd ../
 
 script:
-  - mkdir build
-  - cd build
-  - cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
-  - cmake --build . --config Debug -j8
+    - |
+        if [[ "$CHECK_FORMAT" == "ON" ]]; then
+          if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then
+            # Run the clang format check only for pull request builds because the
+            # master branch is needed to do the git diff.
+            echo "Checking clang-format between TRAVIS_BRANCH=$TRAVIS_BRANCH and TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH"
+            if [[ -n $(git diff -U0 --no-color HEAD^ | python ./clang-format-diff.py -p1 -i) ]]; then
+              echo "Run clang-format before submitting a pull request."
+              echo ""
+              git diff -U0 --no-color HEAD^ | python ./clang-format-diff.py -p1 -i
+              exit -1
+            else
+              echo -e "\033[1;32m\xE2\x9C\x93 passed:\033[0m $1";
+            fi
+          else
+            echo "Skipping clang-format check since this is not a pull request."
+          fi
+        fi
+    - mkdir build
+    - cd build
+    - cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
+    - cmake --build . --config Debug -j8
 
 after_success:
-  - cd mediaPlayer/tests/
-  - ctest -j8 --output-on-failure
-  - bash <(curl -s https://codecov.io/bash) -x "llvm-cov gcov" || echo "Codecov did not collect coverage reports"
-  - cd ../../framework/tests/
-  - ctest -j8 --output-on-failure
-  - bash <(curl -s https://codecov.io/bash) -x "llvm-cov gcov" || echo "Codecov did not collect coverage reports"
+    - cd mediaPlayer/tests/
+    - ctest -j8 --output-on-failure
+    - bash <(curl -s https://codecov.io/bash) -x "llvm-cov gcov" || echo "Codecov did not collect coverage reports"
+    - cd ../../framework/tests/
+    - ctest -j8 --output-on-failure
+    - bash <(curl -s https://codecov.io/bash) -x "llvm-cov gcov" || echo "Codecov did not collect coverage reports"
 
 
 
 
 addons:
-  coverity_scan:
-    project:
-      name: "alibaba/CicadaPlayer"
-      description: "<Your project description here>"
-    notification_email: pingkai010@gmail.com
-    build_command_prepend: . setup.env;cd external/;./build_external.sh Linux;cd ../;mkdir build;cd build;cmake ../;
-    build_command: cmake --build . -j8
-    branch_pattern: coverity_scan
+    coverity_scan:
+        project:
+            name: "alibaba/CicadaPlayer"
+            description: "<Your project description here>"
+        notification_email: pingkai010@gmail.com
+        build_command_prepend: . setup.env;cd external/;./build_external.sh Linux;cd ../;mkdir build;cd build;cmake ../;
+        build_command: cmake --build . -j8
+        branch_pattern: coverity_scan
 
