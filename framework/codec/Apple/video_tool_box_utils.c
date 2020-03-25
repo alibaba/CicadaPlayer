@@ -165,7 +165,7 @@ int parser_extradata(const uint8_t *pData, int size, parserInfo *pInfo, enum AFC
 
     return ret;
 }
-
+#if 0
 static CFDataRef ff_videotoolbox_avcc_extradata_create(const uint8_t *pData, int size, parserInfo *pInfo)
 {
     int ret;
@@ -234,7 +234,6 @@ static CFDataRef ff_videotoolbox_avcc_extradata_create(const uint8_t *pData, int
 
     return data;
 }
-
 static CFDataRef ff_videotoolbox_hvcc_extradata_create(const uint8_t *pData, int size, parserInfo *pInfo)
 {
     int ret;
@@ -466,7 +465,7 @@ CFDictionaryRef videotoolbox_decoder_config_create(CMVideoCodecType codec_type, 
     CFRelease(avc_info);
     return config_info;
 }
-
+#endif
 CFDictionaryRef videotoolbox_buffer_attributes_create(int width, int height, OSType pix_fmt)
 {
     CFMutableDictionaryRef buffer_attributes;
