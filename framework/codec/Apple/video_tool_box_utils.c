@@ -3,12 +3,13 @@
 //
 
 #include "video_tool_box_utils.h"
+#include <VideoToolbox/VideoToolbox.h>
+#include <config.h>
 #include <libavcodec/bytestream.h>
 #include <libavcodec/h264_parse.h>
 #include <libavcodec/hevc_parse.h>
-#include <VideoToolbox/VideoToolbox.h>
-#include <utils/frame_work_log.h>
 #include <utils/ffmpeg_utils.h>
+#include <utils/frame_work_log.h>
 
 #ifndef kVTVideoDecoderSpecification_RequireHardwareAcceleratedVideoDecoder
     #define kVTVideoDecoderSpecification_RequireHardwareAcceleratedVideoDecoder CFSTR("RequireHardwareAcceleratedVideoDecoder")
@@ -88,6 +89,7 @@ int parser_extradata(const uint8_t *pData, int size, parserInfo *pInfo, enum AFC
     AVCodecContext *avctx = avcodec_alloc_context3(codec);
 
     if (avCodecId == AV_CODEC_ID_H264) {
+#if CONFIG_H264_PARSER
         H264ParamSets ps;
         const PPS *pps = NULL;
         const SPS *sps = NULL;
@@ -122,7 +124,11 @@ int parser_extradata(const uint8_t *pData, int size, parserInfo *pInfo, enum AFC
             ret = -EINVAL;
 
         ff_h264_ps_uninit(&ps);
+#else
+        ret = -EINVAL;
+#endif
     } else if (avCodecId == AV_CODEC_ID_HEVC) {
+#if CONFIG_HEVC_PARSER
         HEVCParamSets ps;
 #if (LIBAVCODEC_VERSION_MAJOR < 58)
         HEVCSEIContext sei;
@@ -152,6 +158,9 @@ int parser_extradata(const uint8_t *pData, int size, parserInfo *pInfo, enum AFC
             ret = -EINVAL;
 
         ff_hevc_ps_uninit(&ps);
+#else
+        ret = -EINVAL;
+#endif
     }
 
     return ret;
