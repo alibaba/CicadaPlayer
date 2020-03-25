@@ -23,6 +23,7 @@ function patch_ffmpeg() {
     git_am_patch ../../contribute/ffmpeg/0004-chore-fix-Linux-build.patch
     git_am_patch ../../contribute/ffmpeg/0005-chore-disable-libdav1d-check.patch
     git_am_patch ../../contribute/ffmpeg/0006-flv-add-extensions-for-H.265-HEVC.patch
+    git_am_patch ../../contribute/ffmpeg/0007-build-libavformat-compile-avc.c-and-hevc.c-default.patch
 }
 
 function git_apply_patch() {
