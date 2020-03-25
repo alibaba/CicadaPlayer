@@ -1,0 +1,26 @@
+From 6689eb0df4659c5ce6748ee5069d3ac4d2e4afe6 Mon Sep 17 00:00:00 2001
+From: pingkai <pingkai010@gmail.com>
+Date: Wed, 25 Mar 2020 11:05:49 +0800
+Subject: [PATCH 7/7] build(libavformat): compile avc.c and hevc.c default
+
+Signed-off-by: pingkai <pingkai010@gmail.com>
+---
+ libavformat/Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/libavformat/Makefile b/libavformat/Makefile
+index a434b005a4..b53ba7d48b 100644
+--- a/libavformat/Makefile
++++ b/libavformat/Makefile
+@@ -23,6 +23,8 @@ OBJS = allformats.o         \
+        sdp.o                \
+        url.o                \
+        utils.o              \
++       avc.o                \
++       hevc.o               \
+ 
+ OBJS-$(HAVE_LIBC_MSVCRT)                 += file_open.o
+ 
+-- 
+2.26.0
+
