@@ -132,7 +132,7 @@ void af_scalable_clock::set(int64_t time)
 
 int64_t af_scalable_clock::get()
 {
-    return static_cast<int64_t>(mSetTime + mClock.get() * mScale);
+    return mSetTime + static_cast<int64_t>(mClock.get() * mScale);
 }
 
 float af_scalable_clock::getSpeed()
