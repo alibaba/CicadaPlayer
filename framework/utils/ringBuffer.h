@@ -15,6 +15,8 @@ typedef struct RingBuffer_t RingBuffer;
 
 RingBuffer *RingBufferCreate(uint32_t size);
 
+void RingBufferSetBackSize(RingBuffer *rBuf,uint32_t size);
+
 void RingBufferDestroy(RingBuffer *rBuf);
 
 void RingBufferClear(RingBuffer *rBuf);
@@ -36,6 +38,7 @@ unsigned int RingBuffergetWritePtr(RingBuffer *rBuf);
 uint32_t RingBuffergetMaxReadSize(RingBuffer *rBuf);
 
 uint32_t RingBuffergetMaxWriteSize(RingBuffer *rBuf);
+uint32_t RingBuffergetMaxBackSize(RingBuffer *rBuf);
 
 #ifdef __cplusplus
 }

@@ -10,6 +10,7 @@ set(SOURCE_FILES
         timer.h
         af_string.h
         af_clock.h
+        ringBuffer.cpp
         ringBuffer.h
         cJSON.h
         CicadaJSON.cpp
@@ -20,7 +21,6 @@ set(SOURCE_FILES
         af_string.cpp
         errors/framework_error.c
         af_clock.cpp
-        ringBuffer.c
         cJSON.c
         globalSettings.cpp
         property.cpp

@@ -26,6 +26,8 @@ set(SOURCE_FILES ${SOURCE_FILES}
         curl/curl_data_source.h
         curl/CURLShareInstance.cpp
         curl/CURLShareInstance.h
+        curl/CURLConnection.cpp
+        curl/CURLConnection.h
         dataSourceIO.cpp
         dataSourceIO.h
         opensslthreadlock.c
