@@ -75,6 +75,10 @@ namespace Cicada {
             return FORMAT_NOT_SUPPORT;
         }
 
+        if (mOutputInfo.nb_samples == 0) {
+            mOutputInfo.nb_samples = frame->getInfo().audio.nb_samples;
+        }
+
         mFrameQue.push(move(frame));
         mFrameQueCondition.notify_one();
         return 0;
@@ -99,7 +103,7 @@ namespace Cicada {
 
     int64_t filterAudioRender::getPosition()
     {
-        return device_get_position() + static_cast<int64_t>(mSpeedDeltaDuration / (mOutputInfo.sample_rate / 1000000.0f));;
+        return device_get_position() + static_cast<int64_t>(mSpeedDeltaDuration / (mOutputInfo.sample_rate / 1000000.0f));
     }
 
     void filterAudioRender::mute(bool bMute)
