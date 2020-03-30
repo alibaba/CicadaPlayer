@@ -1457,9 +1457,9 @@ namespace Cicada {
     {
         int recoverGap = 50 * 1000;
 
-        if (mSet.RTMaxDelayTime >= 1000) {
+        if (mSet.RTMaxDelayTime >= 1000 * 1000) {
             recoverGap = 500 * 1000;
-        } else if (mSet.RTMaxDelayTime >= 200) {
+        } else if (mSet.RTMaxDelayTime >= 200 * 1000) {
             recoverGap = 100 * 1000;
         }
 
