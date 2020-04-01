@@ -11,10 +11,11 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <utils/CicadaType.h>
 
 namespace Cicada {
 
-    class MediaPlayerConfig {
+    class CICADA_CPLUS_EXTERN MediaPlayerConfig {
     public:
         MediaPlayerConfig();
 
