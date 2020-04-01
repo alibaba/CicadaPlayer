@@ -224,7 +224,6 @@ namespace Cicada {
                 }
 
                 if (mCtx->pb && mCtx->pb->error == FRAMEWORK_ERR_EXIT) {
-                    mCtx->pb->error = 0;
                     av_packet_free(&pkt);
                     return FRAMEWORK_ERR_EXIT;
                 }
@@ -457,6 +456,10 @@ namespace Cicada {
 
         if (mInterruptCb) {
             mInterruptCb(mUserArg, 0);
+        }
+        if(mCtx->pb->error < 0) {
+            mCtx->pb->error = 0;
+            avio_feof(mCtx->pb);
         }
 
         mPacketQueue.clear();
