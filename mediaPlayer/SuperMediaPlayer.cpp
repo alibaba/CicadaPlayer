@@ -1355,7 +1355,6 @@ namespace Cicada {
             int64_t maxBufferDuration = getPlayerBufferDuration(true);
 
             if (maxBufferDuration > mSet.RTMaxDelayTime + 1000 * 1000 * 5) {
-                ProcessSetSpeed(1.0);
                 //drop frame
                 int64_t lastVideoPos = mBufferController.GetPacketLastTimePos(BUFFER_TYPE_VIDEO);
                 int64_t lastAudioPos = mBufferController.GetPacketLastTimePos(BUFFER_TYPE_AUDIO);
@@ -1372,9 +1371,9 @@ namespace Cicada {
 
                 lastPos -= min(mSet.RTMaxDelayTime, 500 * 1000);
                 int64_t lastVideoKeyTimePos = mBufferController.GetKeyTimePositionBefore(BUFFER_TYPE_VIDEO, lastPos);
-                AF_LOGD("drop left lastPts %lld, lastVideoKeyPts %lld", lastPos, lastVideoKeyTimePos);
-
                 if (lastVideoKeyTimePos != INT64_MIN) {
+                    AF_LOGD("drop left lastPts %lld, lastVideoKeyPts %lld", lastPos, lastVideoKeyTimePos);
+                    ProcessSetSpeed(1.0);
                     int64_t dropVideoCount = mBufferController.ClearPacketBeforeTimePos(BUFFER_TYPE_VIDEO, lastVideoKeyTimePos);
                     int64_t dropAudioCount = mBufferController.ClearPacketBeforeTimePos(BUFFER_TYPE_AUDIO, lastVideoKeyTimePos);
 
