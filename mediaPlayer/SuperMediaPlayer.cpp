@@ -1916,7 +1916,7 @@ namespace Cicada {
 
                 mAudioTime.deltaTimeTmp += offset;
 
-                if (llabs(mAudioTime.deltaTimeTmp) > 200000) {
+                if (llabs(mAudioTime.deltaTimeTmp) > 100000) {
                     AF_LOGW("correct audio and master clock offset is %lld, frameDuration :%lld", mAudioTime.deltaTimeTmp,
                             mLastAudioFrameDuration);
                     mAudioTime.deltaTime += mAudioTime.deltaTimeTmp;
