@@ -46,9 +46,9 @@ public:
 
     void interrupt();
 
-    bool isRemuxSuccess();
-
     void setErrorCallback(function<void(int, string)> callback);
+
+    void setResultCallback(function<void(bool)> callback);
 
     void setStreamMeta(const vector<Stream_meta *> &streamMetas);
 
@@ -79,6 +79,7 @@ private:
 
     std::atomic_bool mInterrupt{false};
     std::atomic_bool mWantStop {false};
+    std::atomic_bool mFrameEof{false};
     bool mRemuxSuc = true;
 
 
@@ -91,6 +92,7 @@ private:
     FileCntl *mDestFileCntl = nullptr;
 
     function<void(int, string)> mErrorCallback = nullptr;
+    function<void(bool)> mResultCallback = nullptr;
 
     vector<Stream_meta *> mStreamMetas{};
 

@@ -64,6 +64,8 @@ public:
 
     void setErrorCallback(function<void(int, string)> callback);
 
+    void setResultCallback(function<void(bool)> callback);
+
     CacheRet checkCanBeCached(const string &acturalPlayURL);
 
     CacheRet start();
@@ -96,7 +98,6 @@ private:
 private:
 
     bool mMediaInfoSet = false;
-    bool mEos          = false;
     CacheStatus mCacheRet = CacheStatus::idle;
 
     mutex  mStatusMutex;
@@ -109,7 +110,8 @@ private:
     CachePath         mCachePath;
     string mDescription;
 
-    function<void(int, string)>                mErrorCallback = nullptr;
+    function<void(int, string)> mErrorCallback = nullptr;
+    function<void(bool)> mResultCallback = nullptr;
 
     vector<Stream_meta*> mStreamMetas{};
 
