@@ -91,7 +91,7 @@ void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket> &frame, StreamType
             if (metaRet == 0) {
                 videoMeta->type = Stream_type::STREAM_TYPE_VIDEO;
                 streamMetas.push_back(videoMeta);
-            }else {
+            } else {
                 releaseMeta(videoMeta);
                 free(videoMeta);
             }
@@ -119,6 +119,19 @@ void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket> &frame, StreamType
                 mCacheFailCallback(code, msg);
             }
         });
+        mCacheModule.setResultCallback([this](bool success) -> void {
+            if (success)
+            {
+                if (mCacheSuccessCallback != nullptr) {
+                    mCacheSuccessCallback();
+                }
+            } else
+            {
+                if (mCacheFailCallback != nullptr) {
+                    mCacheFailCallback(-1, mStopReason);
+                }
+            }
+        });
         const CacheRet &startRet = mCacheModule.start();
 
         if (startRet.mCode != CACHE_SUCCESS.mCode) {
@@ -135,36 +148,17 @@ void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket> &frame, StreamType
     mCacheModule.addFrame(frame, type);
 }
 
-
-
 void CacheManager::stop(const string &reason)
 {
-    mCacheModule.stop();
-    CacheModule::CacheStatus status = mCacheModule.getCacheStatus();
     mNeedProcessFrame = false;
-    mCacheModule.reset();
-
-    if (status == CacheModule::CacheStatus::fail) {
-        if (mCacheFailCallback != nullptr) {
-            mCacheFailCallback(-1, reason);
-        }
-    }
+    std::unique_lock<mutex> lock(mStopMutex);
+    mStopReason = reason;
+    mCacheModule.stop();
 }
 
 void CacheManager::complete()
 {
-    if (mCacheConfig.mEnable) {
-        mCacheModule.streamEnd();
-        CacheModule::CacheStatus cacheStatus = mCacheModule.getCacheStatus();
-
-        if (cacheStatus == CacheModule::success) {
-            if (mCacheSuccessCallback != nullptr) {
-                mCacheSuccessCallback();
-            }
-        }
-
-        AF_LOGD("eventCallback ==== cacheComplete cacheSuccess is %d", cacheStatus);
-    }
+    mCacheModule.streamEnd();
 }
 
 CacheModule::CacheStatus CacheManager::getCacheStatus()

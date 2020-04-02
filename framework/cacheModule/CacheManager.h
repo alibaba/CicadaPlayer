@@ -31,7 +31,7 @@ public:
 
     void setCacheConfig(const CacheConfig &config);
 
-    void setDescription(const string& description);
+    void setDescription(const string &description);
 
     void setSourceUrl(const string &url);
 
@@ -49,19 +49,23 @@ public:
 
     static string getCachePath(const string &url, CacheConfig &config);
 
-    void setCacheFailCallback(function<void(int,string)> resultCallback);
+    void setCacheFailCallback(function<void(int, string)> resultCallback);
+
     void setCacheSuccessCallback(function<void()> resultCallback);
 
-    void sendMediaFrame(const std::unique_ptr<IAFPacket>& frame, StreamType type);
+    void sendMediaFrame(const std::unique_ptr<IAFPacket> &frame, StreamType type);
 
 private:
-    bool mNeedProcessFrame = false;
+    std::mutex mStopMutex{};
+
+    std::atomic_bool mNeedProcessFrame{false};
+    string mStopReason{};
     CacheModule mCacheModule;
     CacheConfig mCacheConfig;
     string mSourceUrl;
     string mDescription;
     ICacheDataSource *mDataSource = nullptr;
-    function<void(int,string)> mCacheFailCallback = nullptr;
+    function<void(int, string)> mCacheFailCallback = nullptr;
     function<void()> mCacheSuccessCallback = nullptr;
 
 };
