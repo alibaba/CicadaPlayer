@@ -114,9 +114,19 @@ void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket> &frame, StreamType
             AF_LOGE("cacheModule error : code = %d , msg = %s ", code, msg.c_str());
             mNeedProcessFrame = false;
 
-            if (mCacheFailCallback != nullptr)
-            {
+            if (mCacheFailCallback != nullptr) {
                 mCacheFailCallback(code, msg);
+            }
+        });
+        mCacheModule.setResultCallback([this](bool success) -> void {
+            if (success) {
+                if (mCacheSuccessCallback != nullptr) {
+                    mCacheSuccessCallback();
+                }
+            } else {
+                if (mCacheFailCallback != nullptr) {
+                    mCacheFailCallback(-1, mStopReason);
+                }
             }
         });
         const CacheRet &startRet = mCacheModule.start();
@@ -135,36 +145,18 @@ void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket> &frame, StreamType
     mCacheModule.addFrame(frame, type);
 }
 
-
-
 void CacheManager::stop(const string &reason)
 {
-    mCacheModule.stop();
-    CacheModule::CacheStatus status = mCacheModule.getCacheStatus();
     mNeedProcessFrame = false;
-    mCacheModule.reset();
 
-    if (status == CacheModule::CacheStatus::fail) {
-        if (mCacheFailCallback != nullptr) {
-            mCacheFailCallback(-1, reason);
-        }
-    }
+    std::unique_lock<mutex> lock(mStopMutex);
+    mStopReason = reason;
+    mCacheModule.stop();
 }
 
 void CacheManager::complete()
 {
-    if (mCacheConfig.mEnable) {
-        mCacheModule.streamEnd();
-        CacheModule::CacheStatus cacheStatus = mCacheModule.getCacheStatus();
-
-        if (cacheStatus == CacheModule::success) {
-            if (mCacheSuccessCallback != nullptr) {
-                mCacheSuccessCallback();
-            }
-        }
-
-        AF_LOGD("eventCallback ==== cacheComplete cacheSuccess is %d", cacheStatus);
-    }
+    mCacheModule.streamEnd();
 }
 
 CacheModule::CacheStatus CacheManager::getCacheStatus()

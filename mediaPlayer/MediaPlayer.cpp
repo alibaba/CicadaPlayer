@@ -225,7 +225,13 @@ namespace Cicada {
                 AF_LOGE("Cache fail : code = %d , msg = %s", code, msg.c_str());
                 this->eventCallback(MEDIA_PLAYER_EVENT_CACHE_ERROR, msg.c_str(), this);
             });
-            mCacheManager->setCacheSuccessCallback([this]()->void{
+            mCacheManager->setCacheSuccessCallback([this]() -> void {
+                if (IsLoop()) {
+                    //if cache success and want play loop,
+                    // we set loop false to let onCompletion callback deal loop.
+                    CicadaSetLoop(static_cast<playerHandle *>(mPlayerHandle), false);
+                }
+
                 this->eventCallback(MEDIA_PLAYER_EVENT_CACHE_SUCCESS, nullptr, this);
             });
             ICacheDataSource *cacheDataSource = new PlayerCacheDataSource(mPlayerHandle);
@@ -746,13 +752,6 @@ namespace Cicada {
 #ifdef ENABLE_CACHE_MODULE
             if (player->mCacheManager != nullptr) {
                 player->mCacheManager->complete();
-                CacheModule::CacheStatus cacheStatus = player->mCacheManager->getCacheStatus();
-
-                if (cacheStatus == CacheModule::CacheStatus::success && player->IsLoop()) {
-                    //if cache success and want play loop,
-                    // we set loop false to let onCompletion callback deal loop.
-                    CicadaSetLoop(static_cast<playerHandle *>(player->mPlayerHandle), false);
-                }
             }
 #endif
         }
