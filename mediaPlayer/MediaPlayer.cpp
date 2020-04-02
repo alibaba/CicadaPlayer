@@ -212,24 +212,26 @@ namespace Cicada {
             mCacheManager = new CacheManager();
             mCacheManager->setCacheConfig(mCacheConfig);
             mCacheManager->setSourceUrl(url);
-
             char descriptionLen[MAX_OPT_VALUE_LENGTH] = {0};
             CicadaGetOption(handle, "descriptionLen", descriptionLen);
             int len = atoi(descriptionLen);
-
             char *value = static_cast<char *>(malloc(len + 1));
-            memset(value,0 , len+1);
-
+            memset(value, 0, len + 1);
             CicadaGetOption(handle, "description", value);
             mCacheManager->setDescription(value);
-
             free(value);
-
             mCacheManager->setCacheFailCallback([this](int code, string msg) -> void {
                 AF_LOGE("Cache fail : code = %d , msg = %s", code, msg.c_str());
                 this->eventCallback(MEDIA_PLAYER_EVENT_CACHE_ERROR, msg.c_str(), this);
             });
-            mCacheManager->setCacheSuccessCallback([this]()->void{
+            mCacheManager->setCacheSuccessCallback([this]() -> void {
+                if (IsLoop())
+                {
+                    //if cache success and want play loop,
+                    // we set loop false to let onCompletion callback deal loop.
+                    CicadaSetLoop(static_cast<playerHandle *>(mPlayerHandle), false);
+                }
+
                 this->eventCallback(MEDIA_PLAYER_EVENT_CACHE_SUCCESS, nullptr, this);
             });
             ICacheDataSource *cacheDataSource = new PlayerCacheDataSource(mPlayerHandle);
@@ -744,13 +746,6 @@ namespace Cicada {
         } else if (code == MediaPlayerEventType::MEDIA_PLAYER_EVENT_DEMUXER_EOF) {
             if (player->mCacheManager != nullptr) {
                 player->mCacheManager->complete();
-                CacheModule::CacheStatus cacheStatus = player->mCacheManager->getCacheStatus();
-
-                if (cacheStatus == CacheModule::CacheStatus::success && player->IsLoop()) {
-                    //if cache success and want play loop,
-                    // we set loop false to let onCompletion callback deal loop.
-                    CicadaSetLoop(static_cast<playerHandle *>(player->mPlayerHandle), false);
-                }
             }
         }
 
