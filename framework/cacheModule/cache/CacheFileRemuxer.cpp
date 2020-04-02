@@ -44,13 +44,19 @@ CacheFileRemuxer::~CacheFileRemuxer()
 
 void CacheFileRemuxer::addFrame(const unique_ptr<IAFPacket> &frame, StreamType type)
 {
-    FrameInfo *info = new FrameInfo();
-    info->frame = frame->clone();
-    info->type = type;
-    {
-        std::unique_lock<mutex> lock(mQueueMutex);
-        mFrameInfoQueue.push_back(std::unique_ptr<FrameInfo>(info));
-        mQueueCondition.notify_one();
+    if (frame == nullptr) {
+        mFrameEof = true;
+    } else {
+        mFrameEof = false;
+
+        FrameInfo *info = new FrameInfo();
+        info->frame = frame->clone();
+        info->type = type;
+        {
+            std::unique_lock<mutex> lock(mQueueMutex);
+            mFrameInfoQueue.push_back(std::unique_ptr<FrameInfo>(info));
+            mQueueCondition.notify_one();
+        }
     }
 }
 
@@ -128,14 +134,22 @@ int CacheFileRemuxer::muxThreadRun()
         return -1;
     }
 
+    bool hasError = false;
+
     while (true) {
-        FrameInfo frameInfo;
         {
             std::unique_lock<mutex> lock(mQueueMutex);
 
             if (mFrameInfoQueue.empty()) {
+
+                if (mFrameEof) {
+                    AF_LOGW("muxThreadRun() mFrameEof...");
+                    break;
+                }
+
                 mQueueCondition.wait_for(lock, std::chrono::milliseconds(10),
-                [this]() { return this->mInterrupt || this->mWantStop; });
+                                         [this]() { return this->mInterrupt || this->mWantStop || this->mFrameEof; });
+
             } else {
                 unique_ptr<FrameInfo> &frameInfo = mFrameInfoQueue.front();
                 int ret = mMuxer->muxPacket(move(frameInfo->frame));
@@ -146,25 +160,40 @@ int CacheFileRemuxer::muxThreadRun()
 
                     //no space error .
                     if (ENOSPC == errno) {
+                        hasError = true;
                         sendError(CACHE_ERROR_NO_SPACE);
                         break;
                     }
                 }
             }
         }
-        {
-            if (mInterrupt || mWantStop) {
-                AF_LOGW("muxThreadRun() mInterrupt || mWantStop...");
-                break;
-            }
+
+        if (mInterrupt || mWantStop) {
+            AF_LOGW("muxThreadRun() mInterrupt || mWantStop...");
+            break;
         }
     }
 
     int ret = mMuxer->close();
-
     if (ret < 0) {
         AF_LOGW("muxThreadRun() mMuxer close ret = %d ", ret);
+        hasError = true;
         sendError(CACHE_ERROR_MUXER_CLOSE);
+    }
+
+    if (hasError) {
+        return -1;
+    }
+
+    bool muxSuccess = false;
+    if (mInterrupt || mWantStop) {
+        muxSuccess = false;
+    } else if (mFrameEof) {
+        muxSuccess = true;
+    }
+
+    if (mResultCallback != nullptr) {
+        mResultCallback(muxSuccess);
     }
 
     AF_LOGD("muxThreadRun() end...");
@@ -237,6 +266,11 @@ void CacheFileRemuxer::setErrorCallback(function<void(int, string)> callback)
     mErrorCallback = callback;
 }
 
+void CacheFileRemuxer::setResultCallback(function<void(bool)> callback)
+{
+    mResultCallback = callback;
+}
+
 void CacheFileRemuxer::setStreamMeta(const vector<Stream_meta *> &streamMetas)
 {
     clearStreamMetas();
@@ -270,7 +304,3 @@ void CacheFileRemuxer::sendError(const CacheRet &ret)
     }
 }
 
-bool CacheFileRemuxer::isRemuxSuccess()
-{
-    return mRemuxSuc;
-}
