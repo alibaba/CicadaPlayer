@@ -18,5 +18,34 @@ target_include_directories(
         ../../
         ${COMMON_INC_DIR}
 )
+project(xmlTest LANGUAGES CXX)
 
+add_executable(xmlTest "")
 
+target_sources(xmlTest
+        PRIVATE
+        xmlUnitTest.cpp)
+
+target_include_directories(xmlTest
+        PRIVATE
+        ../../utils
+        ../../
+        ${COMMON_INC_DIR}
+)
+target_link_libraries(xmlTest
+        PRIVATE
+        data_source
+        framework_utils
+        avformat
+        avcodec
+        swresample
+        avutil
+        swscale
+        z
+        curl
+        xml2
+        gtest_main
+        ${FRAMEWORK_LIBS}
+        )
+
+target_link_directories(xmlTest PRIVATE ${COMMON_LIB_DIR})

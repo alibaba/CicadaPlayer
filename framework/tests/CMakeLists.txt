@@ -21,7 +21,11 @@ add_subdirectory(dataSource)
 add_subdirectory(demuxer)
 add_subdirectory(decoder)
 add_subdirectory(communication)
-add_subdirectory(utils)
+#add_subdirectory(utils)
+
+if (APPLE)
+    add_subdirectory(utils)
+endif ()
 
 enable_testing()
 

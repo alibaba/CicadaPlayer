@@ -74,6 +74,12 @@ list(APPEND SOURCE_FILES
         ../base/media/AVAFPacket.h
         )
 
+list(APPEND SOURCE_FILES
+        xml/DOMParser.cpp
+        xml/DOMParser.h
+        xml/Node.cpp
+        xml/Node.h)
+
 if (APPLE)
     list(APPEND SOURCE_FILES
             ../base/media/PBAFFrame.cpp
