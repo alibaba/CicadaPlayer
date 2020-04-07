@@ -49,7 +49,7 @@ enum AFCodecID {
 
     AF_CODEC_ID_AAC,
     AF_CODEC_ID_AC3,
-//    AF_CODEC_ID_EAC3,
+    AF_CODEC_ID_EAC3,
 //    AF_CODEC_ID_DTS,
 //    AF_CODEC_ID_DTSE,
     AF_CODEC_ID_MP3,

@@ -157,8 +157,8 @@ enum AFCodecID AVCodec2CicadaCodec(enum AVCodecID codec)
             return AF_CODEC_ID_AC3;
 
 //
-//        case AV_CODEC_ID_EAC3:
-//            return AF_CODEC_ID_EAC3;
+        case AV_CODEC_ID_EAC3:
+            return AF_CODEC_ID_EAC3;
 
         case AV_CODEC_ID_MP3:
             return AF_CODEC_ID_MP3;
@@ -323,7 +323,7 @@ typedef struct codec_pair_t {
 static codec_pair codec_pair_table[] = {
     {AF_CODEC_ID_AAC,       AV_CODEC_ID_AAC},
     {AF_CODEC_ID_AC3,       AV_CODEC_ID_AC3},
-//    {AF_CODEC_ID_EAC3,      AV_CODEC_ID_EAC3},
+    {AF_CODEC_ID_EAC3,      AV_CODEC_ID_EAC3},
     {AF_CODEC_ID_MP3,       AV_CODEC_ID_MP3},
     {AF_CODEC_ID_MP2,       AV_CODEC_ID_MP2},
     {AF_CODEC_ID_MP1,       AV_CODEC_ID_MP1},
