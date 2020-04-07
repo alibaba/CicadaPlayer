@@ -1,0 +1,138 @@
+From cf609670ac7a925b7a4a7bfaa2951d90d72ba15f Mon Sep 17 00:00:00 2001
+From: pingkai <pingkai010@gmail.com>
+Date: Tue, 7 Apr 2020 09:51:41 +0800
+Subject: [PATCH 8/8] avformat/flvdec: add aliyun extend auio codec id
+
+Signed-off-by: pingkai <pingkai010@gmail.com>
+---
+ libavformat/flv.h    |  6 ++++++
+ libavformat/flvdec.c | 34 ++++++++++++++++++++++++++++------
+ 2 files changed, 34 insertions(+), 6 deletions(-)
+
+diff --git a/libavformat/flv.h b/libavformat/flv.h
+index e776555a96..74b8765b48 100644
+--- a/libavformat/flv.h
++++ b/libavformat/flv.h
+@@ -99,6 +99,12 @@ enum {
+     FLV_CODECID_PCM_MULAW            = 8 << FLV_AUDIO_CODECID_OFFSET,
+     FLV_CODECID_AAC                  = 10<< FLV_AUDIO_CODECID_OFFSET,
+     FLV_CODECID_SPEEX                = 11<< FLV_AUDIO_CODECID_OFFSET,
++    FLV_CODECID_EXTEND               = 12<< FLV_AUDIO_CODECID_OFFSET,
++};
++
++enum {
++    FLV_CODECID_OPUS = 0,
++    FLV_CODECID_EAC3 = 1,
+ };
+ 
+ enum {
+diff --git a/libavformat/flvdec.c b/libavformat/flvdec.c
+index 4835b1e75f..55f16e89ca 100644
+--- a/libavformat/flvdec.c
++++ b/libavformat/flvdec.c
+@@ -189,7 +189,19 @@ static AVStream *create_stream(AVFormatContext *s, int codec_type)
+     return st;
+ }
+ 
+-static int flv_same_audio_codec(AVCodecParameters *apar, int flags)
++static enum AVCodecID flv_get_extend_audio_codec(int flv_extend_codecid){
++
++    switch (flv_extend_codecid >> FLV_AUDIO_CODECID_OFFSET) {
++        case FLV_CODECID_OPUS:
++            return FLV_CODECID_OPUS;
++        case FLV_CODECID_EAC3:
++            return AV_CODEC_ID_EAC3;
++        default:
++            return AV_CODEC_ID_NONE;
++    }
++}
++
++static int flv_same_audio_codec(AVCodecParameters *apar, int flags, int extend_flags)
+ {
+     int bits_per_coded_sample = (flags & FLV_AUDIO_SAMPLESIZE_MASK) ? 16 : 8;
+     int flv_codecid           = flags & FLV_AUDIO_CODECID_MASK;
+@@ -235,13 +247,15 @@ static int flv_same_audio_codec(AVCodecParameters *apar, int flags)
+     case FLV_CODECID_PCM_ALAW:
+         return apar->sample_rate == 8000 &&
+                apar->codec_id    == AV_CODEC_ID_PCM_ALAW;
++    case FLV_CODECID_EXTEND:
++        return apar->codec_id  == flv_get_extend_audio_codec(extend_flags);
+     default:
+         return apar->codec_tag == (flv_codecid >> FLV_AUDIO_CODECID_OFFSET);
+     }
+ }
+ 
+ static void flv_set_audio_codec(AVFormatContext *s, AVStream *astream,
+-                                AVCodecParameters *apar, int flv_codecid)
++                                AVCodecParameters *apar, int flv_codecid,int flv_extend_codecid)
+ {
+     switch (flv_codecid) {
+     // no distinction between S16 and S8 PCM codec flags
+@@ -293,6 +307,9 @@ static void flv_set_audio_codec(AVFormatContext *s, AVStream *astream,
+         apar->sample_rate = 8000;
+         apar->codec_id    = AV_CODEC_ID_PCM_ALAW;
+         break;
++    case FLV_CODECID_EXTEND:
++        apar->codec_id = flv_get_extend_audio_codec(flv_extend_codecid);
++        break;
+     default:
+         avpriv_request_sample(s, "Audio codec (%x)",
+                flv_codecid >> FLV_AUDIO_CODECID_OFFSET);
+@@ -613,7 +630,7 @@ static int amf_parse_object(AVFormatContext *s, AVStream *astream,
+                             return ret;
+                     } else if (!strcmp(key, "audiocodecid") && apar) {
+                         int id = ((int)num_val) << FLV_AUDIO_CODECID_OFFSET;
+-                        flv_set_audio_codec(s, astream, apar, id);
++                        flv_set_audio_codec(s, astream, apar, id, 0);
+                     } else if (!strcmp(key, "audiosamplerate") && apar) {
+                         apar->sample_rate = num_val;
+                     } else if (!strcmp(key, "audiosamplesize") && apar) {
+@@ -1000,6 +1017,7 @@ static int flv_read_packet(AVFormatContext *s, AVPacket *pkt)
+ {
+     FLVContext *flv = s->priv_data;
+     int ret, i, size, flags;
++    int extend_flags = 0;
+     enum FlvTagType type;
+     int stream_type=-1;
+     int64_t next, pos, meta_pos;
+@@ -1052,6 +1070,10 @@ retry:
+         stream_type = FLV_STREAM_TYPE_AUDIO;
+         flags    = avio_r8(s->pb);
+         size--;
++        if((flags & FLV_AUDIO_CODECID_MASK) == FLV_CODECID_EXTEND){
++            extend_flags = avio_r8(s->pb);
++            size--;
++        }
+     } else if (type == FLV_TAG_TYPE_VIDEO) {
+         stream_type = FLV_STREAM_TYPE_VIDEO;
+         flags    = avio_r8(s->pb);
+@@ -1110,7 +1132,7 @@ skip:
+         st = s->streams[i];
+         if (stream_type == FLV_STREAM_TYPE_AUDIO) {
+             if (st->codecpar->codec_type == AVMEDIA_TYPE_AUDIO &&
+-                (s->audio_codec_id || flv_same_audio_codec(st->codecpar, flags)))
++                (s->audio_codec_id || flv_same_audio_codec(st->codecpar, flags, extend_flags)))
+                 break;
+         } else if (stream_type == FLV_STREAM_TYPE_VIDEO) {
+             if (st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO &&
+@@ -1201,7 +1223,7 @@ retry_duration:
+         }
+         if (!st->codecpar->codec_id) {
+             flv_set_audio_codec(s, st, st->codecpar,
+-                                flags & FLV_AUDIO_CODECID_MASK);
++                                flags & FLV_AUDIO_CODECID_MASK, extend_flags);
+             flv->last_sample_rate =
+             sample_rate           = st->codecpar->sample_rate;
+             flv->last_channels    =
+@@ -1214,7 +1236,7 @@ retry_duration:
+             }
+             par->sample_rate = sample_rate;
+             par->bits_per_coded_sample = bits_per_coded_sample;
+-            flv_set_audio_codec(s, st, par, flags & FLV_AUDIO_CODECID_MASK);
++            flv_set_audio_codec(s, st, par, flags & FLV_AUDIO_CODECID_MASK, extend_flags);
+             sample_rate = par->sample_rate;
+             avcodec_parameters_free(&par);
+         }
+-- 
+2.26.0
+
