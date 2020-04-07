@@ -12,7 +12,7 @@ function dav1d_decoder_prebuilt() {
     echo "DAV1D_INSTALL_DIR is $DAV1D_INSTALL_DIR"
 }
 
-ffmpeg_config_add_decoders aac aac_latm h264 hevc mpeg4 mp3 mp3adu mp3float mp3on4float mp3adufloat mp3on4 pcm_s16le ac3_at
+ffmpeg_config_add_decoders aac aac_latm h264 hevc mpeg4 mp3 mp3adu mp3float mp3on4float mp3adufloat mp3on4 pcm_s16le ac3_at eac3_at
 ffmpeg_config_add_demuxers flv aac live_flv webvtt mov mp3 mpegts matroska h264
 ffmpeg_config_add_muxers mp4 adts mpegts
 ffmpeg_config_add_parsers aac h264 hevc aac_latm ac3
