@@ -105,8 +105,8 @@ namespace Cicada {
         int mInputCount{0};
         bool mThrowPacket{false};
         std::mutex mActiveStatusMutex;
-        pix_fmt mVTOutFmt = AF_PIX_FMT_NONE;
-        std::atomic_bool mActive{true};
+        bool mActive{true};
+        AFPixelFormat mVTOutFmt = AF_PIX_FMT_NONE;
         std::unique_ptr<streamMeta> mPInMeta{nullptr};
         std::queue<std::unique_ptr<IAFPacket>> mRecoveryQueue{};
         std::queue<std::unique_ptr<IAFPacket>> mRecoveringQueue{};

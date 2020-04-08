@@ -196,7 +196,7 @@ int YUVProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
     glUseProgram(mProgram);
 
     if (frame != nullptr) {
-        fillDataToYUVTextures(frame->getData(), frame->getLineSize());
+        fillDataToYUVTextures(frame->getData(), frame->getLineSize(), frame->getInfo().format);
 //        AF_LOGD("0918, draw() pts = %lld" , frame->getInfo().pts);
     }else {
 //        AF_LOGD("0918, draw() texture");
@@ -463,13 +463,24 @@ void YUVProgramContext::createYUVTextures() {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 }
 
-void YUVProgramContext::fillDataToYUVTextures(uint8_t **data, int *pLineSize) {
+void YUVProgramContext::fillDataToYUVTextures(uint8_t **data, int *pLineSize, int format) {
+
+    int uvHeight = mFrameHeight;
+    if (format == AF_PIX_FMT_YUV422P || format == AF_PIX_FMT_YUVJ422P) {
+        uvHeight = mFrameHeight;
+    } else if (format == AF_PIX_FMT_YUV420P || format == AF_PIX_FMT_YUVJ420P) {
+        uvHeight = mFrameHeight / 2;
+    }
+
+    int yWidth = pLineSize[0];
+    int uvWidth = yWidth / 2; //uvWidth may not right in some iOS simulators.
+
     //use linesize to fill data with texture. some android phones which below 4.4 are not performed as excepted.
     // crop the extra data when draw.
 //update y
     glBindTexture(GL_TEXTURE_2D, mYUVTextures[0]);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, pLineSize[0] );
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, pLineSize[0], mFrameHeight,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, yWidth, mFrameHeight,
                  0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data[0]);
     GLint yLocation = glGetUniformLocation(mProgram, "y_tex");
     glUniform1i(yLocation, 0);
@@ -478,7 +489,7 @@ void YUVProgramContext::fillDataToYUVTextures(uint8_t **data, int *pLineSize) {
 //update u
     glBindTexture(GL_TEXTURE_2D, mYUVTextures[1]);
     glPixelStorei(GL_UNPACK_ROW_LENGTH,  pLineSize[1]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, pLineSize[1], mFrameHeight / 2,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, uvWidth, uvHeight ,
                  0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data[1]);
     GLint uLocation = glGetUniformLocation(mProgram, "u_tex");
     glUniform1i(uLocation, 1);
@@ -487,7 +498,7 @@ void YUVProgramContext::fillDataToYUVTextures(uint8_t **data, int *pLineSize) {
 //update v
     glBindTexture(GL_TEXTURE_2D, mYUVTextures[2]);
     glPixelStorei(GL_UNPACK_ROW_LENGTH,  pLineSize[2]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, pLineSize[2], mFrameHeight / 2,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, uvWidth, uvHeight ,
                  0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data[2]);
     GLint vLocation = glGetUniformLocation(mProgram, "v_tex");
     glUniform1i(vLocation, 2);
