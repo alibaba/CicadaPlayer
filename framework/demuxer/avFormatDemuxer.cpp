@@ -240,6 +240,8 @@ namespace Cicada {
                 }
 
                 if (err == AVERROR_EOF) {
+                    av_log(NULL, AV_LOG_INFO, "av_read_frame return eof\n");
+
                     if (mCtx->pb && mCtx->pb->error == AVERROR(EAGAIN)) {
                         av_packet_free(&pkt);
                         return mCtx->pb->error;
@@ -327,6 +329,10 @@ namespace Cicada {
         }
 
         err = pkt->size;
+
+        if (err <= 0) {
+            av_log(NULL, AV_LOG_INFO, "pkt->size:%d\n", err);
+        }
 
         if (pkt->pts != AV_NOPTS_VALUE) {
             pkt->pts = av_rescale_q(pkt->pts, mCtx->streams[pkt->stream_index]->time_base, AV_TIME_BASE_Q);
