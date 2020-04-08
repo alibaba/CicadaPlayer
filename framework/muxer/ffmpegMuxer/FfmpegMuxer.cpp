@@ -53,20 +53,22 @@ int FfmpegMuxer::open()
         return ret;
     }
 
-    for (Stream_meta *item : *mStreamMetas) {
-        AVStream *stream = nullptr;
+    if(mStreamMetas != nullptr ) {
+        for (Stream_meta *item : *mStreamMetas) {
+            AVStream *stream = nullptr;
 
-        if (item->type == Stream_type::STREAM_TYPE_VIDEO) {
-            stream = avformat_new_stream(mDestFormatContext, nullptr);
-            MetaToCodec::videoMetaToStream(stream, item);
-            check_codec_tag(stream);
-        } else if (item->type == Stream_type::STREAM_TYPE_AUDIO) {
-            stream = avformat_new_stream(mDestFormatContext, nullptr);
-            MetaToCodec::audioMetaToStream(stream, item);
-            check_codec_tag(stream);
+            if (item->type == Stream_type::STREAM_TYPE_VIDEO) {
+                stream = avformat_new_stream(mDestFormatContext, nullptr);
+                MetaToCodec::videoMetaToStream(stream, item);
+                check_codec_tag(stream);
+            } else if (item->type == Stream_type::STREAM_TYPE_AUDIO) {
+                stream = avformat_new_stream(mDestFormatContext, nullptr);
+                MetaToCodec::audioMetaToStream(stream, item);
+                check_codec_tag(stream);
+            }
+
+            insertStreamInfo(stream, item);
         }
-
-        insertStreamInfo(stream, item);
     }
 
     if (mOpenFunc != nullptr) {
