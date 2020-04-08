@@ -130,7 +130,7 @@ CacheRet CacheModule::start()
 
         string cacheTmpPath = mCachePath.getCachePath() + TMP_SUFFIX;
         mCacheFileRemuxer = new CacheFileRemuxer(cacheTmpPath, mDescription);
-        mCacheFileRemuxer->setStreamMeta(mStreamMetas);
+        mCacheFileRemuxer->setStreamMeta(&mStreamMetas);
         mCacheFileRemuxer->setErrorCallback([this](int code, string msg) -> void {
             if (mErrorCallback != nullptr) {
                 mErrorCallback(code, msg);

@@ -39,7 +39,6 @@ FfmpegMuxer::~FfmpegMuxer()
 
     mSourceMetaMap.clear();
     mStreamInfoMap.clear();
-    clearStreamMetas();
 }
 
 int FfmpegMuxer::open()
@@ -54,7 +53,7 @@ int FfmpegMuxer::open()
         return ret;
     }
 
-    for (Stream_meta *item : mStreamMetas) {
+    for (Stream_meta *item : *mStreamMetas) {
         AVStream *stream = nullptr;
 
         if (item->type == Stream_type::STREAM_TYPE_VIDEO) {
@@ -366,28 +365,9 @@ int FfmpegMuxer::muxerWriteDataType(uint8_t *buf, int size, enum DataType type,
     }
 }
 
-void FfmpegMuxer::setStreamMetas(const vector<Stream_meta *> &streamMetas)
+void FfmpegMuxer::setStreamMetas(const vector<Stream_meta *> *streamMetas)
 {
-    clearStreamMetas();
-
-    if (streamMetas.empty()) {
-        return;
-    }
-
-    for (const auto &item : streamMetas) {
-        mStreamMetas.push_back(item);
-    }
-}
-
-void FfmpegMuxer::clearStreamMetas()
-{
-    if (!mStreamMetas.empty()) {
-        for (auto &item : mStreamMetas) {
-            releaseMeta(item);
-        }
-
-        mStreamMetas.clear();
-    }
+    mStreamMetas = streamMetas;
 }
 
 void FfmpegMuxer::addSourceMetas(map<string, string> sourceMetas)
