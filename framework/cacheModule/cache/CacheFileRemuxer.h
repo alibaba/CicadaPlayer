@@ -90,7 +90,7 @@ private:
     function<void(int, string)> mErrorCallback = nullptr;
     function<void(bool)> mResultCallback = nullptr;
 
-    const vector<Stream_meta*> *mStreamMetas;
+    const vector<Stream_meta*> *mStreamMetas = nullptr;
 
 };
 
