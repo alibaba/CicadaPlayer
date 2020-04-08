@@ -24,6 +24,7 @@ CacheModule::~CacheModule()
 {
     stop();
     clearStreamMetas();
+    delete mCacheFileRemuxer;
 }
 
 void CacheModule::setCacheConfig(const CacheConfig &config)
