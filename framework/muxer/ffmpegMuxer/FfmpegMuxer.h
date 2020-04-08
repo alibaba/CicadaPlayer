@@ -28,7 +28,7 @@ public:
 
     void setCopyPts(bool copyPts) override;
 
-    void setStreamMetas(const vector<Stream_meta*> *streamMetas) override;
+    void setStreamMetas(const std::vector<Stream_meta*> *streamMetas) override;
 
     //must be set before open(). These will be write to header.
     void addSourceMetas(std::map<std::string, std::string> sourceMetas) override;
@@ -118,7 +118,7 @@ protected:
 private:
 
     std::map<std::string, std::string> mSourceMetaMap;
-    const vector<Stream_meta*> *mStreamMetas;
+    const std::vector<Stream_meta*> *mStreamMetas = nullptr;
     std::map<int, StreamInfo> mStreamInfoMap;
 
     uint8_t *mIobuf = nullptr;

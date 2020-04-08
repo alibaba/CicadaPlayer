@@ -36,7 +36,7 @@ public:
      * add streamMetas
      * @param streamMetas
      */
-    virtual void setStreamMetas(const vector<Stream_meta*> *streamMetas) = 0;
+    virtual void setStreamMetas(const std::vector<Stream_meta*> *streamMetas) = 0;
 
     //must be set before open(). These will be write to header.
     virtual void addSourceMetas(std::map<std::string,std::string> sourceMetas) = 0;
