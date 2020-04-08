@@ -1882,6 +1882,9 @@ namespace Cicada {
                 mAudioTime.deltaTime = 0;
                 mLastAudioFrameDuration = -1;
                 setUpAudioRender(mAudioFrameQue.front()->getInfo().audio);
+                if (mBRendingStart) {
+                    mAudioRender->pause(false);
+                }
                 mAudioRender->renderFrame(mAudioFrameQue.front(), 0);
             }
         }
