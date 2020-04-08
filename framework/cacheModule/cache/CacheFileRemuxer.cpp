@@ -269,16 +269,9 @@ void CacheFileRemuxer::setResultCallback(function<void(bool)> callback)
     mResultCallback = callback;
 }
 
-void CacheFileRemuxer::setStreamMeta(const vector<Stream_meta *> &streamMetas)
+void CacheFileRemuxer::setStreamMeta(const vector<Stream_meta *> *streamMetas)
 {
-    mStreamMetas.clear();
-    if (streamMetas.empty()) {
-        return;
-    }
-
-    for (auto &item : streamMetas) {
-        mStreamMetas.push_back(item);
-    }
+    mStreamMetas = streamMetas;
 }
 
 void CacheFileRemuxer::sendError(const CacheRet &ret)
