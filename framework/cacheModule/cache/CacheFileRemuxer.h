@@ -52,8 +52,6 @@ public:
 
     void setStreamMeta(const vector<Stream_meta *> &streamMetas);
 
-    void clearStreamMetas();
-
 private :
 
     void sendError(const CacheRet& ret);
