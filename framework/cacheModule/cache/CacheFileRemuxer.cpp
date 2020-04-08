@@ -39,7 +39,6 @@ CacheFileRemuxer::~CacheFileRemuxer()
     }
 
     mFrameInfoQueue.clear();
-    clearStreamMetas();
 }
 
 void CacheFileRemuxer::addFrame(const unique_ptr<IAFPacket> &frame, StreamType type)
@@ -270,28 +269,9 @@ void CacheFileRemuxer::setResultCallback(function<void(bool)> callback)
     mResultCallback = callback;
 }
 
-void CacheFileRemuxer::setStreamMeta(const vector<Stream_meta *> &streamMetas)
+void CacheFileRemuxer::setStreamMeta(const vector<Stream_meta *> *streamMetas)
 {
-    clearStreamMetas();
-
-    if (streamMetas.empty()) {
-        return;
-    }
-
-    for (auto &item : streamMetas) {
-        mStreamMetas.push_back(item);
-    }
-}
-
-void CacheFileRemuxer::clearStreamMetas()
-{
-    if (!mStreamMetas.empty()) {
-        for (auto &item : mStreamMetas) {
-            releaseMeta(item);
-        }
-
-        mStreamMetas.clear();
-    }
+    mStreamMetas = streamMetas;
 }
 
 void CacheFileRemuxer::sendError(const CacheRet &ret)

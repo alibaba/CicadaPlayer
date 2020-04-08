@@ -39,7 +39,6 @@ FfmpegMuxer::~FfmpegMuxer()
 
     mSourceMetaMap.clear();
     mStreamInfoMap.clear();
-    clearStreamMetas();
 }
 
 int FfmpegMuxer::open()
@@ -54,20 +53,22 @@ int FfmpegMuxer::open()
         return ret;
     }
 
-    for (Stream_meta *item : mStreamMetas) {
-        AVStream *stream = nullptr;
+    if(mStreamMetas != nullptr ) {
+        for (Stream_meta *item : *mStreamMetas) {
+            AVStream *stream = nullptr;
 
-        if (item->type == Stream_type::STREAM_TYPE_VIDEO) {
-            stream = avformat_new_stream(mDestFormatContext, nullptr);
-            MetaToCodec::videoMetaToStream(stream, item);
-            check_codec_tag(stream);
-        } else if (item->type == Stream_type::STREAM_TYPE_AUDIO) {
-            stream = avformat_new_stream(mDestFormatContext, nullptr);
-            MetaToCodec::audioMetaToStream(stream, item);
-            check_codec_tag(stream);
+            if (item->type == Stream_type::STREAM_TYPE_VIDEO) {
+                stream = avformat_new_stream(mDestFormatContext, nullptr);
+                MetaToCodec::videoMetaToStream(stream, item);
+                check_codec_tag(stream);
+            } else if (item->type == Stream_type::STREAM_TYPE_AUDIO) {
+                stream = avformat_new_stream(mDestFormatContext, nullptr);
+                MetaToCodec::audioMetaToStream(stream, item);
+                check_codec_tag(stream);
+            }
+
+            insertStreamInfo(stream, item);
         }
-
-        insertStreamInfo(stream, item);
     }
 
     if (mOpenFunc != nullptr) {
@@ -366,28 +367,9 @@ int FfmpegMuxer::muxerWriteDataType(uint8_t *buf, int size, enum ApsaraDataType 
     }
 }
 
-void FfmpegMuxer::setStreamMetas(const vector<Stream_meta *> &streamMetas)
+void FfmpegMuxer::setStreamMetas(const vector<Stream_meta *> *streamMetas)
 {
-    clearStreamMetas();
-
-    if (streamMetas.empty()) {
-        return;
-    }
-
-    for (auto &item : streamMetas) {
-        mStreamMetas.push_back(item);
-    }
-}
-
-void FfmpegMuxer::clearStreamMetas()
-{
-    if (!mStreamMetas.empty()) {
-        for (auto &item : mStreamMetas) {
-            releaseMeta(item);
-        }
-
-        mStreamMetas.clear();
-    }
+    mStreamMetas = streamMetas;
 }
 
 void FfmpegMuxer::addSourceMetas(map<string, string> sourceMetas)

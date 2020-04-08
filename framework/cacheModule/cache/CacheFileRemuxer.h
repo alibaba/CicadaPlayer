@@ -50,9 +50,7 @@ public:
 
     void setResultCallback(function<void(bool)> callback);
 
-    void setStreamMeta(const vector<Stream_meta *> &streamMetas);
-
-    void clearStreamMetas();
+    void setStreamMeta(const vector<Stream_meta *> *streamMetas);
 
 private :
 
@@ -73,7 +71,6 @@ private :
 private:
     string mDestFilePath;
     string mDescription;
-    function<bool(StreamType, Stream_meta *)> mMetaCallback = nullptr;
     deque<std::unique_ptr<FrameInfo>> mFrameInfoQueue;
     condition_variable mQueueCondition;
 
@@ -93,7 +90,7 @@ private:
     function<void(int, string)> mErrorCallback = nullptr;
     function<void(bool)> mResultCallback = nullptr;
 
-    vector<Stream_meta*> mStreamMetas{};
+    const vector<Stream_meta*> *mStreamMetas = nullptr;
 
 };
 
