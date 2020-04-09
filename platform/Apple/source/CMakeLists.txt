@@ -46,6 +46,8 @@ link_directories(${SRC_LIBRARIES_DIR})
 set(SOURCE_LIST
         CicadaPlayer.mm
         CicadaPlayer.h
+        CicadaPlayerGlobalSettings.h
+        CicadaPlayerGlobalSettings.mm
         CicadaPlayerSDK.h
         CicadaConfig.mm
         CicadaConfig.h
@@ -80,6 +82,7 @@ target_include_directories(CicadaPlayerSDK PUBLIC ${PROJECT_SOURCE_DIR})
 set_source_files_properties(${XIB_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 set(PUBLIC_HEADERS
         CicadaPlayer.h
+        CicadaPlayerGlobalSettings.h
         CicadaConfig.h
         CicadaCacheConfig.h
         CicadaDef.h
