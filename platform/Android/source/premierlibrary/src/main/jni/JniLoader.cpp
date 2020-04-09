@@ -11,6 +11,7 @@
 #include "player/JavaCacheConfig.h"
 #include "player/JavaMediaInfo.h"
 #include "player/JavaTrackInfo.h"
+#include "player/JavaGlobalSettings.h"
 #include "player/NativeBase.h"
 
 using namespace Cicada;
@@ -25,16 +26,23 @@ int initJavaInfo(JNIEnv *env)
     JavaPlayerConfig::init(env);
     AndroidVSync::init(env);
     DecoderSurface::init(env);
+    JavaGlobalSettings::init(env);
     int result = NativeBase::registerMethod(env);
 
     if (result == JNI_FALSE) {
-        return false;
+        return JNI_FALSE;
     }
 
     result = JavaLogger::registerMethod(env);
 
     if (result == JNI_FALSE) {
-        return false;
+        return JNI_FALSE;
+    }
+
+    result = JavaGlobalSettings::registerMethod(env);
+
+    if (result == JNI_FALSE) {
+        return JNI_FALSE;
     }
 
     return JNI_TRUE;
@@ -50,6 +58,7 @@ void unInitJavaInfo(JNIEnv *env)
     AndroidVSync::unInit(env);
     DecoderSurface::unInit(env);
     JavaLogger::unInit(env);
+    JavaGlobalSettings::unInit(env);
 }
 
 extern "C"

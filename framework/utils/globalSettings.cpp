@@ -94,7 +94,12 @@ namespace Cicada {
         std::unique_lock<std::mutex> uMutex(mMutex);
         auto item = mResolve.find(host);
         if (item != mResolve.end()) {
-            (*item).second.erase(ip);
+
+            if(ip.empty()) {
+                (*item).second.clear();
+            } else {
+                (*item).second.erase(ip);
+            }
 
             if ((*item).second.empty()) {
                 mResolve.erase(item);
