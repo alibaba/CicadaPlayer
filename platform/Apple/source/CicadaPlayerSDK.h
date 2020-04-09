@@ -21,4 +21,4 @@
 #import <CicadaPlayerSDK/CicadaSource.h>
 #import <CicadaPlayerSDK/CicadaDef.h>
 #import <CicadaPlayerSDK/CicadaCacheConfig.h>
-
+#import <CicadaPlayerSDK/CicadaPlayerGlobalSettings.h>
