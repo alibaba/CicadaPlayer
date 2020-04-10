@@ -331,6 +331,16 @@ namespace Cicada {
         pushEvent(event);
     }
 
+    void PlayerNotifier::NotifySeeking(bool seekInCache)
+    {
+        if (!mEnable) {
+            return;
+        }
+
+        auto *event = new player_event(seekInCache ? 1 : 0, mListener.Seeking);
+        pushEvent(event);
+    }
+
     void PlayerNotifier::NotifySeekEnd(bool seekInCache)
     {
         if (!mEnable || mListener.SeekEnd == nullptr) {

@@ -102,6 +102,7 @@ namespace Cicada {
         listener.LoadingStart = loadingStartCallback;
         listener.LoadingEnd = loadingEndCallback;
         listener.LoadingProgress = loadingProgressCallback;
+        listener.Seeking = PlayerSeeking;
         listener.SeekEnd = PlayerSeekEnd;
         listener.SubtitleShow = subtitleShowCallback;
         listener.SubtitleHide = subtitleHideCallback;
@@ -883,6 +884,16 @@ namespace Cicada {
         }
     }
 
+    void MediaPlayer::PlayerSeeking(int64_t seekInCache, void *userData)
+    {
+        GET_MEDIA_PLAYER
+
+        if (player->mCacheManager != nullptr && seekInCache == 0) {
+            //not seek in cache
+            player->mCacheManager->stop("cache stopped by seek");
+        }
+    }
+
     void MediaPlayer::PlayerSeekEnd(int64_t seekInCache, void *userData)
     {
         GET_MEDIA_PLAYER
@@ -894,11 +905,6 @@ namespace Cicada {
         //when seek, reset and open abrmanager
         player->mAbrManager->Reset();
         player->mAbrManager->Start();
-
-        if (player->mCacheManager != nullptr && seekInCache == 0) {
-            //not seek in cache
-            player->mCacheManager->stop("cache stopped by seek");
-        }
 
         if (player->mCollector) {
             player->mCollector->ReportSeekEnd();
