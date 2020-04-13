@@ -1153,7 +1153,9 @@ namespace Cicada {
                             && (cur_buffer_duration > mSet.maxBufferDuration - BufferGap)) {
                         break;
                     }
-                } else if (cur_buffer_duration > mSet.maxBufferDuration) {
+                }
+
+                if (cur_buffer_duration > mSet.maxBufferDuration) {
                     mBufferIsFull = true;
                     break;
                 }
