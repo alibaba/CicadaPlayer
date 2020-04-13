@@ -83,6 +83,7 @@ typedef struct playerListener_t {
     playerVoidCallback LoadingEnd;
     playerVoidCallback AutoPlayStart;
 
+    playerType1Callback Seeking;
     playerType1Callback SeekEnd;
     playerType1Callback PositionUpdate;
     playerType1Callback BufferPositionUpdate;

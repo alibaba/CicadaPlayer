@@ -3849,6 +3849,7 @@ namespace Cicada {
         mCurVideoPts = INT64_MIN;
         //flush packet queue
         mSeekInCache = SeekInCache(seekPos);
+        mPNotifier->NotifySeeking(mSeekInCache);
 
         if (mSeekNeedCatch && !HAVE_VIDEO) {
             mSeekNeedCatch = false;
