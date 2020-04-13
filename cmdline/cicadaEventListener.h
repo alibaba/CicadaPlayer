@@ -31,6 +31,8 @@ public:
 
     void onStepSeek(bool forward) override;
 
+    void onPercentageSeek(int percent) override;
+
     void onChangeVolume(bool large) override;
 
     void onSetView(void *view) override;

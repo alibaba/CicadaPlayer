@@ -66,6 +66,9 @@ void NetWorkEventReceiver::poll(bool &exit)
                 break;
 
             default:
+                if (c >= '0' && c <= '9') {
+                    mListener.onPercentageSeek((c - '0') * 10);
+                }
                 break;
         }
     }

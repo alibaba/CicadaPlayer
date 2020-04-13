@@ -22,6 +22,8 @@ public:
 
         virtual void onStepSeek(bool forward) = 0;
 
+        virtual void onPercentageSeek(int percent) = 0;
+
         virtual void onChangeVolume(bool large) = 0;
 
         virtual void onSetView(void *view) = 0;

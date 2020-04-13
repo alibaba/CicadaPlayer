@@ -72,7 +72,10 @@ void SDLEventReceiver::poll(bool &exit) {
                         break;
 
                     default:
-                        AF_LOGW("unknown key %c", event.key.keysym.sym);
+                        if (event.key.keysym.sym >= SDLK_0 && event.key.keysym.sym <= SDLK_9) {
+                            mListener.onPercentageSeek((event.key.keysym.sym - SDLK_0) * 10);
+                        } else
+                            AF_LOGW("unknown key %c", event.key.keysym.sym);
                         break;
                 }
                 break;
