@@ -60,7 +60,11 @@ private:
 
     int init_jni();
 
-    uint64_t getPlayedSimples();
+    uint64_t getDevicePlayedSimples();
+
+    void flush_device_inner() ;
+
+    uint64_t getPlayedPosition();
 
 private:
 
@@ -77,16 +81,23 @@ private:
 
 
 private:
-    int64_t mPlayedPosition = 0;
+    std::atomic<uint64_t> mBasePlayedPosition = 0;
     uint8_t *mPcmBuffer = nullptr;
     int64_t mPcmBufferLen = 0;
 
     int64_t mPlayedBufferLen = 0;
-    int64_t mAudioFlushPosition = 0;
+    std::atomic<int64_t> mAudioFlushPosition = 0;
 
     std::atomic<uint64_t> mSendSimples{0};
     int mSimpleSize{0};
     jobject jbuffer{nullptr};
+
+    enum class FlushRestPosition{
+        unknow , reset, notReset
+    };
+
+    std::atomic<FlushRestPosition> mFlushPositionReset = FlushRestPosition::unknow;
+
 };
 
 

@@ -188,7 +188,8 @@ int AudioTrackRender::start_device()
     return -1;
 }
 
-void AudioTrackRender::flush_device()
+
+void AudioTrackRender::flush_device_inner()
 {
     JniEnv  jniEnv;
     JNIEnv *handle = jniEnv.getEnv();
@@ -211,13 +212,24 @@ void AudioTrackRender::flush_device()
     }
 
     mSendSimples = 0;
-    start_device();
     /* work around some device position didn't set to zero, and MUST get after start_device */
-    mAudioFlushPosition = getPlayedSimples();
+    start_device();
+    if (mFlushPositionReset == FlushRestPosition::unknow) {
+        mFlushPositionReset = (getDevicePlayedSimples() == 0) ? FlushRestPosition::reset
+                                                              : FlushRestPosition::notReset;
+    }
 
     if (state == PLAYSTATE_PAUSED) {
         pause_device();
     }
+}
+
+
+void AudioTrackRender::flush_device()
+{
+    flush_device_inner();
+    mBasePlayedPosition = 0;
+    mAudioFlushPosition = getPlayedPosition();
 }
 
 void AudioTrackRender::device_setVolume(float gain)
@@ -231,12 +243,20 @@ void AudioTrackRender::device_setVolume(float gain)
 
 int64_t AudioTrackRender::device_get_position()
 {
-    uint64_t playedSimples = getPlayedSimples();
+    uint64_t playedSimples = getPlayedPosition();
     return static_cast<int64_t>((playedSimples - mAudioFlushPosition ) / (float(mOutputInfo.sample_rate) / 1000000));
 }
 
-uint64_t AudioTrackRender::getPlayedSimples()
+uint64_t AudioTrackRender::getPlayedPosition() {
+    return getDevicePlayedSimples() + mBasePlayedPosition;
+}
+
+uint64_t AudioTrackRender::getDevicePlayedSimples()
 {
+    if(mFlushPositionReset == FlushRestPosition ::notReset) {
+        return static_cast<uint64_t>(mSendSimples);
+    }
+
     uint64_t simples = 0;
     JniEnv  jniEnv;
     JNIEnv *handle = jniEnv.getEnv();
@@ -264,6 +284,20 @@ uint64_t AudioTrackRender::getPlayedSimples()
 
 int AudioTrackRender::device_write(unique_ptr<IAFFrame> &frame)
 {
+    if(mFlushPositionReset != FlushRestPosition::notReset) {
+        uint64_t playedSamples = getDevicePlayedSimples();
+        if (playedSamples >= 0x7F000000) {
+            uint64_t deviceQueDuration = device_get_que_duration();
+            if (deviceQueDuration > 0) {
+                //will over flow , wait to que buffer be played
+                return -EAGAIN;
+            } else {
+                mBasePlayedPosition += playedSamples;
+                flush_device_inner();
+            }
+        }
+    }
+
     IAFFrame::audioInfo *audioInfo = &(frame->getInfo().audio);
     assert(audioInfo->format == AF_SAMPLE_FMT_S16);
     JniEnv  jniEnv;
@@ -296,10 +330,10 @@ int AudioTrackRender::device_write(unique_ptr<IAFFrame> &frame)
 
 uint64_t AudioTrackRender::device_get_que_duration()
 {
-    if (mSendSimples < getPlayedSimples()) {
+    if (mSendSimples < getDevicePlayedSimples()) {
         return 0;
     }
 
-    return static_cast<uint64_t>((mSendSimples - getPlayedSimples()) /
+    return static_cast<uint64_t>((mSendSimples - getDevicePlayedSimples()) /
                                  (float(mOutputInfo.sample_rate) / 1000000));
 }
