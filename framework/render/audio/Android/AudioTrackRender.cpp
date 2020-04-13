@@ -284,8 +284,8 @@ uint64_t AudioTrackRender::getDevicePlayedSimples()
 
 int AudioTrackRender::device_write(unique_ptr<IAFFrame> &frame)
 {
-    uint64_t playedSamples = getDevicePlayedSimples();
     if(mFlushPositionReset != FlushRestPosition::notReset) {
+        uint64_t playedSamples = getDevicePlayedSimples();
         if (playedSamples >= 0x7F000000) {
             uint64_t deviceQueDuration = device_get_que_duration();
             if (deviceQueDuration > 0) {
