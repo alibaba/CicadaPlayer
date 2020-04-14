@@ -563,7 +563,9 @@ namespace Cicada {
             std::unique_lock<std::mutex> waitLock(mQueLock);
 
             if (bEOS) {
-                mQueCond.wait(waitLock);
+                mQueCond.wait(waitLock, [this]() {
+                    return bPaused || mInterrupted;
+                });
             }
         }
 
@@ -578,7 +580,9 @@ namespace Cicada {
             std::unique_lock<std::mutex> waitLock(mQueLock);
 
             if (mPacketQueue.size() > MAX_QUEUE_SIZE) {
-                mQueCond.wait(waitLock);
+                mQueCond.wait(waitLock, [this]() {
+                    return mPacketQueue.size() <= MAX_QUEUE_SIZE || bPaused || mInterrupted;
+                });
             }
 
             mPacketQueue.push_back(std::move(pkt));
