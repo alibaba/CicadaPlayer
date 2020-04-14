@@ -322,7 +322,8 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
         mConnections->push_back(mPConnection);
 
         if (mConnections->size() > max_connection) {
-            delete mConnections->front();
+            CURLConnection *pConnection_s = mConnections->front();
+            AsyncJob::Instance()->addJob([pConnection_s] { delete pConnection_s; });
             mConnections->erase(mConnections->begin());
         }
 
@@ -359,7 +360,7 @@ int64_t CurlDataSource::TrySeekByNewConnection(int64_t offset)
     }
 
     // try seek faild, use the old connection
-    delete pConnection_s;
+    AsyncJob::Instance()->addJob([pConnection_s] { delete pConnection_s; });
     return ret;
 }
 
