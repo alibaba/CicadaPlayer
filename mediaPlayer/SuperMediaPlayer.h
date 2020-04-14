@@ -492,6 +492,11 @@ namespace Cicada {
         void printTimePosition(int64_t time) const;
 
         void setUpAVPath();
+
+        void startRendering(bool start);
+
+        int64_t mCheckAudioQueEOSTime{INT64_MIN};
+        uint64_t mAudioQueDuration{UINT64_MAX};
     };
 }// namespace Cicada
 #endif // CICADA_PLAYER_SERVICE_H
