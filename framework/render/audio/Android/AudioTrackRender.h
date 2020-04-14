@@ -81,12 +81,12 @@ private:
 
 
 private:
-    std::atomic<uint64_t> mBasePlayedPosition = 0;
+    std::atomic<uint64_t> mBasePlayedPosition{0};
     uint8_t *mPcmBuffer = nullptr;
     int64_t mPcmBufferLen = 0;
 
     int64_t mPlayedBufferLen = 0;
-    std::atomic<int64_t> mAudioFlushPosition = 0;
+    std::atomic<int64_t> mAudioFlushPosition{0};
 
     std::atomic<uint64_t> mSendSimples{0};
     int mSimpleSize{0};
@@ -96,7 +96,7 @@ private:
         unknow , reset, notReset
     };
 
-    std::atomic<FlushRestPosition> mFlushPositionReset = FlushRestPosition::unknow;
+    std::atomic<FlushRestPosition> mFlushPositionReset{FlushRestPosition::unknow};
 
 };
 
