@@ -212,6 +212,7 @@ static int sockopt_callback(void *clientp, curl_socket_t curlfd,
 
     if (purpose == CURLSOCKTYPE_IPCXN) {
         int rcv_buffer = connect->so_rcv_size;
+
         if (rcv_buffer > 0) {
             setsockopt(curlfd, SOL_SOCKET, SO_RCVBUF, (const char *) &rcv_buffer, sizeof(rcv_buffer));
         }
@@ -945,15 +946,24 @@ namespace Cicada {
         if (ret >= 0) {
             std::lock_guard<std::mutex> lock(mMutex);
             // try seek ok, use the new connection
-            curl_disconnect(mCurlhttpContext.pConnection);
-            destroyConnection(mCurlhttpContext.pConnection);
+            CURLConnection *deleteConnection = mCurlhttpContext.pConnection;
             mCurlhttpContext.pConnection = pConnection_s;
+
+            if (deleteConnection) {
+                AsyncJob::Instance()->addJob([deleteConnection] {
+                    curl_disconnect(deleteConnection);
+                    destroyConnection(deleteConnection);
+                });
+            }
+
             return offset;
         }
 
         // try seek faild, use the old connection
-        curl_disconnect(pConnection_s);
-        destroyConnection(pConnection_s);
+        AsyncJob::Instance()->addJob([pConnection_s] {
+            curl_disconnect(pConnection_s);
+            destroyConnection(pConnection_s);
+        });
         return ret;
     }
 
