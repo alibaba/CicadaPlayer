@@ -1964,8 +1964,8 @@ namespace Cicada {
         int64_t videoPts = videoFrame->getInfo().pts;
 
         // work around for huaweiP20 pro hardware decode get pts = INT64_MIN when change resolution.
-        if (videoPts == INT64_MIN && videoPts < mCurVideoPts) {
-            videoPts = mCurVideoPts + 1;
+        if (videoPts == INT64_MIN && videoPts < mPlayedVideoPts) {
+            videoPts = mPlayedVideoPts + 1;
         }
 
         int frameWidth = videoFrame->getInfo().video.width;
