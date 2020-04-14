@@ -446,7 +446,8 @@ namespace Cicada {
         }
 
         //must
-        if (playerConfig.maxDelayTime < playerConfig.highBufferDuration) {
+        if ((0 < playerConfig.maxDelayTime)
+                && (playerConfig.maxDelayTime < playerConfig.highBufferDuration)) {
             playerConfig.highBufferDuration = playerConfig.maxDelayTime;
         }
 
