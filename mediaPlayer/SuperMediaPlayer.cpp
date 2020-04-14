@@ -1677,9 +1677,23 @@ namespace Cicada {
             return;
         }
 
-        if (mAudioRender != nullptr && mAudioRender->getQueDuration() != 0) {
-            AF_TRACE;
-            return;
+        if (mAudioRender != nullptr) {
+            uint64_t audioQueDuration = mAudioRender->getQueDuration();
+
+            if (audioQueDuration != 0) {
+                AF_TRACE;
+//work around: xiaomi 5X 7.1.2 audioTrack getPosition always is 0 when seek to end
+                int64_t now = af_getsteady_ms();
+
+                if (mCheckAudioQueEOSTime == INT64_MIN || mAudioQueDuration != audioQueDuration) {
+                    mCheckAudioQueEOSTime = now;
+                    mAudioQueDuration = audioQueDuration;
+                }
+
+                if ((now - mCheckAudioQueEOSTime) * 1000 <= audioQueDuration) {
+                    return;
+                }
+            }
         }
 
         NotifyPosition(mDuration / 1000);
