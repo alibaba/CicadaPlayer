@@ -22,7 +22,6 @@ extern "C" {
 #include "play_list/HlsParser.h"
 
 using namespace std;
-static const int MAX_QUEUE_SIZE = 60; // about 500ms  video and audio packet
 namespace Cicada {
     static const int INITIAL_BUFFER_SIZE = 32768;
 
