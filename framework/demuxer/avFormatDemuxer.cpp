@@ -22,7 +22,6 @@ extern "C" {
 #include "play_list/HlsParser.h"
 
 using namespace std;
-static const int MAX_QUEUE_SIZE = 60; // about 500ms  video and audio packet
 namespace Cicada {
     static const int INITIAL_BUFFER_SIZE = 32768;
 
@@ -575,7 +574,9 @@ namespace Cicada {
             std::unique_lock<std::mutex> waitLock(mQueLock);
 
             if (bEOS) {
-                mQueCond.wait(waitLock);
+                mQueCond.wait(waitLock, [this]() {
+                    return bPaused || mInterrupted;
+                });
             }
         }
 
@@ -590,7 +591,9 @@ namespace Cicada {
             std::unique_lock<std::mutex> waitLock(mQueLock);
 
             if (mPacketQueue.size() > MAX_QUEUE_SIZE) {
-                mQueCond.wait(waitLock);
+                mQueCond.wait(waitLock, [this]() {
+                    return mPacketQueue.size() <= MAX_QUEUE_SIZE || bPaused || mInterrupted;
+                });
             }
 
             mPacketQueue.push_back(std::move(pkt));
