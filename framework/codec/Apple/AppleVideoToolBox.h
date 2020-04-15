@@ -101,6 +101,7 @@ namespace Cicada{
         CM_NULLABLE VTDecompressionSessionRef mVTDecompressSessionRef{nullptr};
         CM_NULLABLE CMVideoFormatDescriptionRef mVideoFormatDesRef{nullptr};
         CM_NULLABLE CFDictionaryRef mDecoder_spec{nullptr};
+        const static int MAX_POC_ERROR = 3;
         CMVideoCodecType mVideoCodecType{0};
         std::map<int64_t, std::unique_ptr<PBAFFrame>> mReorderFrameMap;
         int mInputCount{0};
@@ -120,6 +121,7 @@ namespace Cicada{
 
         bool mResignActive{false};
         bool mIsDummy = false;
+        int mPocErrorCount{0};
     };
 
 }
