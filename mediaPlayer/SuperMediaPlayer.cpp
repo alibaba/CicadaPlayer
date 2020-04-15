@@ -1399,7 +1399,13 @@ namespace Cicada {
             int64_t lastAudio = mBufferController.GetPacketLastPTS(BUFFER_TYPE_AUDIO);
 
             if ((lastAudio != INT64_MIN) && (mPlayedAudioPts != INT64_MIN)) {
-                int64_t delayTime = lastAudio - mPlayedAudioPts;
+                int64_t playTime = getAudioPlayTimeStamp();
+
+                if (INT64_MIN == playTime) {
+                    playTime = mPlayedAudioPts;
+                }
+
+                int64_t delayTime = lastAudio - playTime;
                 static int64_t lastT = af_gettime_ms();
 
                 if (af_gettime_ms() - lastT > 1000) {
