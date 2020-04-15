@@ -2010,7 +2010,8 @@ namespace Cicada {
         /*
          *  if stc is free, video rectify it
          */
-        if (llabs(videoLateUs) > 1000 * 1000) {
+        if ((llabs(videoLateUs) > 1000 * 1000)
+                || (llabs(videoLateUs) > mSet.maxBufferDuration)) {
             // don't have master, or master not in valid status
             if (!mMasterClock.haveMaster() || !mMasterClock.isMasterValid()) {
                 mMasterClock.setTime(videoPts);
