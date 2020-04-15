@@ -10,6 +10,7 @@
 #include <utils/frame_work_log.h>
 #include <utils/CicadaJSON.h>
 #include <utils/errors/framework_error.h>
+#include <utils/AFUtils.h>
 
 using namespace std;
 using namespace Cicada;
@@ -18,6 +19,7 @@ int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
     log_set_level(AF_LOG_LEVEL_TRACE, 1);
+    ignore_signal(SIGPIPE);
     return RUN_ALL_TESTS();
 }
 

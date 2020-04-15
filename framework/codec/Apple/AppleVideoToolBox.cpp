@@ -156,6 +156,8 @@ namespace Cicada {
             CFRelease(mDecoder_spec);
             mDecoder_spec = nullptr;
         }
+
+        mPocErrorCount = 0;
     };
 
     int AFVTBDecoder::createDecompressionSession(uint8_t *pData, int size, int width, int height)
@@ -572,16 +574,23 @@ namespace Cicada {
         int64_t mapKey = packet->getInfo().pts;
 
         // must parser poc
-        if (mBUsePoc) {
+        if (mBUsePoc && mPocErrorCount < MAX_POC_ERROR) {
             assert(mParser != nullptr);
             mParser->parser(packet->getData(), packet->getSize());
             int poc = mParser->getPOC();
-            assert(poc >= 0);
-//            AF_LOGD("poc is %d\n", poc);
 
-            if (poc == 0) {
-                assert(keyFrame);
-            } else if (poc == 1) {
+            if (poc < 0 || (poc == 0 && !keyFrame)) {
+                AF_LOGI("error poc is %d\n", poc);
+
+                if (++mPocErrorCount >= MAX_POC_ERROR) {
+                    AF_LOGE("too much poc error, disable reorder use poc\n");
+                }
+
+                push_to_recovery_queue(unique_ptr<IAFPacket>(packet));
+                return;
+            }
+
+            if (poc == 1) {
                 mPocDelta = 1;
             }
 
@@ -598,7 +607,7 @@ namespace Cicada {
             return;
         }
 
-        if (mVideoCodecType != kCMVideoCodecType_HEVC && keyFrame) {
+        if (mVideoCodecType != kCMVideoCodecType_HEVC && keyFrame && mPocErrorCount < MAX_POC_ERROR) {
             flushReorderQueue();
 
             if (mVTOutFmt == AF_PIX_FMT_YUV420P) {
@@ -750,6 +759,8 @@ namespace Cicada {
         while (!mReorderedQueue.empty()) {
             mReorderedQueue.pop();
         }
+
+        mPocErrorCount = 0;
     }
 
     void AFVTBDecoder::AppWillResignActive()
