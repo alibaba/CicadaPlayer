@@ -54,9 +54,9 @@ else ()
     target_link_libraries(
             decoderUnitTest PUBLIC
             dl
-            pthread
             ssl
             crypto
+            pthread
     )
 
 endif ()

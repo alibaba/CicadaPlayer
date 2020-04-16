@@ -3,11 +3,6 @@ project(cicadaPlayer)
 
 set(CMAKE_CXX_STANDARD 11)
 
-if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-else ()
-    set(CMAKE_CXX_FLAGS "-fprofile-instr-generate -fcoverage-mapping")
-endif ()
-
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(TARGET_PLATFORM macOSX)
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -15,9 +10,6 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(TARGET_PLATFORM windows)
 endif ()
-
-# Code Coverage Configuration
-option(CODE_COVERAGE "Enable coverage reporting" OFF)
 
 include(../framework/code_coverage.cmake)
 add_subdirectory(../mediaPlayer mediaPlayer.out)
@@ -71,7 +63,6 @@ target_link_libraries(cicadaPlayer PRIVATE
         swresample
         avutil
         curl
-        pthread
         ${FRAMEWORK_LIBS})
 if (ENABLE_SDL)
     target_link_libraries(cicadaPlayer PUBLIC
@@ -107,9 +98,9 @@ else ()
     target_link_libraries(
             cicadaPlayer PUBLIC
             dl
-            pthread
             ssl
             crypto
+            pthread
     )
 endif ()
 target_link_libraries(cicadaPlayer PUBLIC coverage_config)

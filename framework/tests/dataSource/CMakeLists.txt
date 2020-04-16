@@ -56,9 +56,9 @@ else ()
         target_link_libraries(
                 dataSourceTest PUBLIC
                 dl
-                pthread
                 ssl
                 crypto
+                pthread
         )
 
 endif ()
