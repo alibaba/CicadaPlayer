@@ -292,7 +292,7 @@ int CURLConnection::my_trace(CURL *handle, curl_infotype type,
     switch (type) {
         case CURLINFO_TEXT:
 
-        //    AF_LOGD("== Info: %s", data);
+            AF_LOGD("== Info: %s", data);
         default: /* in case a new one is introduced to shock us */
             return 0;
 
@@ -345,7 +345,7 @@ int Cicada::CURLConnection::esayHandle_set_common_opt()
     curl_easy_setopt(mHttp_handle, CURLOPT_HEADERDATA, this);
 //For https ignore CA certificates
     curl_easy_setopt(mHttp_handle, CURLOPT_SSL_VERIFYPEER, FALSE);
-    curl_easy_setopt(mHttp_handle, CURLOPT_SSL_VERIFYHOST, FALSE);
+    //   curl_easy_setopt(mHttp_handle, CURLOPT_SSL_VERIFYHOST, FALSE);
     return 0;
 }
 
