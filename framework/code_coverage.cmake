@@ -14,6 +14,8 @@ if (CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         target_link_libraries(coverage_config INTERFACE --coverage)
     endif ()
     message("CODE_COVERAGE Enabled")
+else()
+    message("CODE_COVERAGE Disabled")
 endif ()
 
 set(HAVE_COVERAGE_CONFIG ON)

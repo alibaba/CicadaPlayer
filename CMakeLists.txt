@@ -1,19 +1,13 @@
 cmake_minimum_required(VERSION 3.15)
 project(CicadaMedia)
+# Code Coverage Configuration
+option(CODE_COVERAGE "Enable coverage reporting" OFF)
+option(USEASAN "Enable Address Sanitizer" OFF)
+option(USETSAN "Enable Thread Sanitizer" OFF)
+option(USEUBSAN "Enable Undefined Behavior Sanitizer" OFF)
 
 set(USEASAN ON)
-#set(USETSAN ON)
-#set(USEUBSAN ON)
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    #    set(USEMSAN ON)
-endif ()
 add_subdirectory(cmdline)
-
-
-if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-else ()
-    set(CMAKE_CXX_FLAGS "-fprofile-instr-generate -fcoverage-mapping")
-endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(TARGET_PLATFORM macOSX)

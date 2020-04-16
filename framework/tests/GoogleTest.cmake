@@ -33,5 +33,3 @@ if (NOT googletest_POPULATED)
         endforeach ()
     endif ()
 endif ()
-
-set(CMAKE_CXX_FLAGS "-fprofile-instr-generate -fcoverage-mapping")

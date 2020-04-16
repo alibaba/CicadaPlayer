@@ -42,7 +42,6 @@ target_link_libraries(mediaPlayerCacheTest PRIVATE
         swresample
         avutil
         curl
-        pthread
         ${FRAMEWORK_LIBS}
         gtest_main)
 
@@ -86,9 +85,9 @@ else ()
     target_link_libraries(
             mediaPlayerCacheTest PUBLIC
             dl
-            pthread
             ssl
             crypto
+            pthread
     )
 endif ()
 
