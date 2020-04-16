@@ -40,6 +40,9 @@ namespace Cicada{
 
         class SourceConfig {
         public:
+            enum IpResolveType { IpResolveWhatEver, IpResolveV4, IpResolveV6 };
+
+        public:
             int low_speed_limit{1};
             int low_speed_time_ms{15000};
 //        int64_t max_time_ms{0};
@@ -50,6 +53,7 @@ namespace Cicada{
             std::string userAgent = "";
             std::vector<std::string> customHeaders;
             Listener *listener = nullptr;
+            IpResolveType resolveType{IpResolveWhatEver};
 
             std::string toString();
         };

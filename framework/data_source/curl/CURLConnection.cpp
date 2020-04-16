@@ -93,6 +93,18 @@ Cicada::CURLConnection::CURLConnection(Cicada::IDataSource::SourceConfig *pConfi
             AF_LOGD("set connect_time to %d(ms)\n", pConfig->connect_time_out_ms);
             curl_easy_setopt(mHttp_handle, CURLOPT_CONNECTTIMEOUT, (long) pConfig->connect_time_out_ms / 1000);
         }
+
+        switch (pConfig->resolveType) {
+            case IDataSource::SourceConfig::IpResolveV4:
+                curl_easy_setopt(mHttp_handle, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+                break;
+            case IDataSource::SourceConfig::IpResolveV6:
+                curl_easy_setopt(mHttp_handle, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V6);
+                break;
+
+            default:
+                break;
+        }
     }
 
     // TODO: move to conncet
