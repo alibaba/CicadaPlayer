@@ -637,10 +637,8 @@ namespace Cicada {
                 return 0;
             }
 
-            if (mError) {
-                int64_t ret = mError;
-                mError = 0;
-                return ret;
+            if (mError < 0) {
+                return mError;
             }
 
             return -EAGAIN;
