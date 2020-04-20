@@ -29,6 +29,7 @@ set_target_properties(${LIB_NAME} PROPERTIES
         MACOSX_FRAMEWORK_BUNDLE_VERSION 1
         MACOSX_FRAMEWORK_SHORT_VERSION_STRING 1.0
         INSTALL_NAME_DIR @rpath
+        XCODE_ATTRIBUTE_LD_DYLIB_INSTALL_NAME "@rpath/${LIB_NAME}.framework/${LIB_NAME}"
         #        MACOSX_FRAMEWORK_INFO_PLIST Info.plist
         #        PUBLIC_HEADER dynamicFramework.h
         # XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
@@ -46,6 +47,7 @@ else ()
             MACOSX_FRAMEWORK_BUNDLE_VERSION 1
             MACOSX_FRAMEWORK_SHORT_VERSION_STRING 1.0
             INSTALL_NAME_DIR @rpath
+            XCODE_ATTRIBUTE_LD_DYLIB_INSTALL_NAME "@rpath/${LIB_NAME}.framework/${LIB_NAME}"
             )
 endif ()
 #if (IOS)
@@ -61,10 +63,3 @@ endif ()
 #    set_xcode_property(${LIB_NAME} BITCODE_GENERATION_MODE bitcode)
 #endif ()
 target_link_libraries(${LIB_NAME} PRIVATE ${LIBRARYS})
-
-add_custom_command(
-        TARGET ${LIB_NAME}
-        POST_BUILD
-        COMMAND install_name_tool -id \"@rpath/${LIB_NAME}.framework/${LIB_NAME}\"
-        $<TARGET_FILE:${LIB_NAME}>
-)
