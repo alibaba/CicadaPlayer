@@ -33,10 +33,14 @@ namespace Cicada {
     int ffmpegDataSource::Open(int flags)
     {
         AVDictionary *format_opts = nullptr;
+        av_dict_set_int(&format_opts, "rw_timeout", mConfig.low_speed_time_ms * 1000, 0);
         int ret = ffurl_open(&mPuc, mUri.c_str(), AVIO_FLAG_READ | AVIO_FLAG_NONBLOCK, &mInterruptCB, &format_opts);
 
         if (ret == AVERROR_PROTOCOL_NOT_FOUND) {
             ret = FRAMEWORK_ERR_PROTOCOL_NOT_SUPPORT;
+        }
+        if (format_opts) {
+            av_dict_free(&format_opts);
         }
 
         return ret;
