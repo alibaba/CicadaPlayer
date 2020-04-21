@@ -16,10 +16,15 @@ void AVAFPacket::copyInfo()
     mInfo.dts = mpkt->dts;
     // TODO: redefine the flags
     mInfo.flags = 0;
-    if (mpkt->flags & AV_PKT_FLAG_KEY)
+    if (mpkt->flags & AV_PKT_FLAG_KEY) {
         mInfo.flags |= AF_PKT_FLAG_KEY;
-    if (mpkt->flags & AV_PKT_FLAG_CORRUPT)
+    }
+    if (mpkt->flags & AV_PKT_FLAG_CORRUPT) {
         mInfo.flags |= AF_PKT_FLAG_CORRUPT;
+    }
+    if (mpkt->flags & AV_PKT_FLAG_DISCARD) {
+        setDiscard(true);
+    }
 
     mInfo.streamIndex = mpkt->stream_index;
     mInfo.timePosition = INT64_MIN;
