@@ -556,6 +556,9 @@ namespace Cicada {
             return 0;
         } else if (theKey == "enableVRC") {
             mSet.bEnableVRC = (atoi(value) != 0);
+        } else if ( theKey == "surfaceChanged") {
+            std::unique_lock<mutex> lock(mRenderCallbackMutex);
+            mRenderCallbackCon.wait(lock);
         }
 
         return 0;
@@ -3074,6 +3077,10 @@ namespace Cicada {
         mVideoRender->setFlip(convertMirrorMode(mSet.mirrorMode));
         mVideoRender->setDisPlay(mSet.mView);
         mVideoRender->setRenderResultCallback([this](int64_t pts, bool rendered) -> void {
+            {
+                std::unique_lock<mutex> lock(mRenderCallbackMutex);
+                mRenderCallbackCon.notify_one();
+            }
             VideoRenderCallback(this, pts, nullptr);
         });
         int renderRet = mVideoRender->init();
