@@ -501,6 +501,9 @@ namespace Cicada {
 
         int64_t mCheckAudioQueEOSTime{INT64_MIN};
         uint64_t mAudioQueDuration{UINT64_MAX};
+
+        std::mutex mRenderCallbackMutex{};
+        std::condition_variable mRenderCallbackCon{};
     };
 }// namespace Cicada
 #endif // CICADA_PLAYER_SERVICE_H
