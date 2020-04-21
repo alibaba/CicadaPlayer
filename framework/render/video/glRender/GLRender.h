@@ -63,6 +63,8 @@ public:
 
     float getRenderFPS() override;
 
+    void surfaceChanged() override;
+
 private:
 
     int VSyncOnInit() override;
@@ -92,6 +94,8 @@ private:
     void calculateFPS(int64_t tick);
 
     IProgramContext *getProgram(int frameFormat , IAFFrame *frame = nullptr);
+
+    int onVsyncInner(int64_t tick);
 
 protected:
 
@@ -137,6 +141,11 @@ private:
     bool mClearScreenOn = false;
 
     std::function<void(int64_t,bool)> mRenderResultCallback = nullptr;
+
+#ifdef __ANDROID__
+    std::mutex mRenderCallbackMutex{};
+    std::condition_variable mRenderCallbackCon{};
+#endif
 
 };
 

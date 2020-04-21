@@ -140,6 +140,18 @@ int GLRender::setScale(IVideoRender::Scale scale)
 
 int GLRender::onVSync(int64_t tick)
 {
+    int ret = onVsyncInner(tick);
+#ifdef __ANDROID__
+    {
+        unique_lock<mutex> lock(mRenderCallbackMutex);
+        mRenderCallbackCon.notify_one();
+    }
+#endif
+    return ret;
+}
+
+int GLRender::onVsyncInner(int64_t tick)
+{
     if (mInitRet == INT32_MIN) {
         VSyncOnInit();
 
@@ -555,4 +567,12 @@ float GLRender::getRenderFPS()
 void GLRender::setRenderResultCallback(function<void(int64_t, bool)> renderResultCallback)
 {
     mRenderResultCallback = renderResultCallback;
+}
+
+void GLRender::surfaceChanged()
+{
+#ifdef __ANDROID__
+    std::unique_lock<mutex> lock(mRenderCallbackMutex);
+    mRenderCallbackCon.wait(lock);
+#endif
 };
