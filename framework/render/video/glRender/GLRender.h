@@ -109,7 +109,7 @@ protected:
 
 private:
 
-    int mInitRet = INT32_MIN;
+    std::atomic_int mInitRet{INT32_MIN};
     std::mutex mInitMutex;
     std::condition_variable mInitCondition;
     std::mutex mFrameMutex;
