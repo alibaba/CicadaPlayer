@@ -128,6 +128,10 @@ public:
 
     }
 
+    virtual void surfaceChanged() {
+
+    }
+
     virtual void enterForeground(){
 
     }
