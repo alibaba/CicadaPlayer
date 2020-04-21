@@ -572,6 +572,11 @@ void GLRender::setRenderResultCallback(function<void(int64_t, bool)> renderResul
 void GLRender::surfaceChanged()
 {
 #ifdef __ANDROID__
+
+    if (mInitRet == INT32_MIN || mInitRet != 0) {
+        return ;
+    }
+
     std::unique_lock<mutex> lock(mRenderCallbackMutex);
     mRenderCallbackCon.wait(lock);
 #endif
