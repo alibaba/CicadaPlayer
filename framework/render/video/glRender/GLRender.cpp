@@ -241,7 +241,7 @@ int GLRender::VSyncOnInit()
     mInitCondition.notify_all();
 
     if (mInitRet != 0) {
-        AF_LOGE("GLContext init failed. ret = %d ", mInitRet);
+        AF_LOGE("GLContext init failed. ret = %d ", mInitRet.load());
         return -EINVAL;
     }
 
