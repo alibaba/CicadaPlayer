@@ -74,18 +74,19 @@ if (USEUBSAN)
     #    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fsanitize=address")
 endif (USEUBSAN)
 
-
-if (XCODE)
-    set(ENABLE_GLRENDER ON)
-else ()
-    set(BUILD_TEST ON)
-    set(ENABLE_SDL ON)
-    set(ENABLE_GLRENDER OFF)
-endif ()
-
 if (TRAVIS)
     set(ENABLE_CHEAT_RENDER ON)
     set(ENABLE_SDL OFF)
 else ()
     set(ENABLE_SDL ON)
 endif ()
+
+if (XCODE)
+    set(ENABLE_GLRENDER ON)
+    set(ENABLE_SDL OFF)
+else ()
+    set(BUILD_TEST ON)
+    set(ENABLE_SDL ON)
+    set(ENABLE_GLRENDER OFF)
+endif ()
+
