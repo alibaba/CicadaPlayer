@@ -41,6 +41,10 @@ namespace Cicada {
         }
 
         mOutputInfo = mInputInfo = *info;
+        /*
+         * the nb_samples may not correct, update the value in renderFrame
+         */
+        mOutputInfo.nb_samples = 0;
         int ret = init_device();
 
         if (ret < 0) {
