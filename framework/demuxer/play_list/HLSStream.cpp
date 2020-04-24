@@ -915,6 +915,10 @@ namespace Cicada {
             return -EAGAIN;
         }
 
+        if (ret == network_errno_http_range) {
+            ret = 0;
+        }
+
         if (ret == 0 || mReopen) {
             if (mReopen) {
                 AF_LOGD("reopen");
