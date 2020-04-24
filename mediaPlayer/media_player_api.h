@@ -74,6 +74,8 @@ void CicadaCaptureScreen(playerHandle *pHandle);
 
 int64_t CicadaGetMasterClockPts(playerHandle *pHandle);
 
+void CicadaSetClockRefer(playerHandle *pHandle,clockRefer cb, void *arg);
+
 /*
 * prepare to play
 */

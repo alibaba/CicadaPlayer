@@ -163,6 +163,11 @@ namespace Cicada {
         GET_PLAYER_HANDLE
         return CicadaGetMasterClockPts(handle);
     }
+    void MediaPlayer::SetClockRefer(clockRefer cb, void *arg)
+    {
+        GET_PLAYER_HANDLE
+        return CicadaSetClockRefer(handle,cb,arg);
+    }
 
     void MediaPlayer::abrChanged(int stream)
     {
