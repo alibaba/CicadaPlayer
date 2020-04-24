@@ -568,6 +568,15 @@ namespace Cicada {
             if (mVideoRender != nullptr) {
                 mVideoRender->surfaceChanged();
             }
+        } else if (theKey == "streamTypes") {
+            uint64_t flags = atoll(value);
+            mSet.bDisableAudio = mSet.bDisableVideo = true;
+            if (flags & VIDEO_FLAG) {
+                mSet.bDisableVideo = false;
+            }
+            if (flags & AUDIO_FLAG) {
+                mSet.bDisableAudio = false;
+            }
         }
 
         return 0;

@@ -43,6 +43,10 @@ typedef enum _StreamType {
     ST_TYPE_SUB,
 } StreamType;
 
+#define VIDEO_FLAG 1 << ST_TYPE_VIDEO
+#define AUDIO_FLAG 1 << ST_TYPE_AUDIO
+#define SUB_FLAG 1 << ST_TYPE_SUB
+
 typedef struct _StreamInfo {
     int streamIndex;
     StreamType type;

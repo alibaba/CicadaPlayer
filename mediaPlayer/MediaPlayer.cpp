@@ -1099,4 +1099,9 @@ namespace Cicada {
         GET_PLAYER_HANDLE;
         CicadaSetOption(handle, "enableVRC", enable ? "1" : "0");
     }
+    void MediaPlayer::SetStreamTypeFlags(uint64_t flags)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaSetOption(handle, "streamTypes", to_string(flags).c_str());
+    }
 }
