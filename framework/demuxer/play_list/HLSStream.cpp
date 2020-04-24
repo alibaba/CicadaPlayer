@@ -416,9 +416,9 @@ namespace Cicada {
             mPDemuxer->getDemuxerHandle()->setBitStreamFormat(this->mMergeVideoHeader, this->mMergerAudioHeader);
         }
 
-        if (mDemuxerMeta) {
-            mPDemuxer->getDemuxerHandle()->setMeta(mDemuxerMeta.get());
-        }
+        //        if (mDemuxerMeta) {
+        //            mPDemuxer->getDemuxerHandle()->setMeta(mDemuxerMeta.get());
+        //        }
 
         ret = mPDemuxer->initOpen();
 
