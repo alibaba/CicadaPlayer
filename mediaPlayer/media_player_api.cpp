@@ -611,6 +611,14 @@ void CicadaSetBitStreamCb(playerHandle *pHandle, readCB read, seekCB seek, void 
     }
 }
 
+void CicadaSetClockRefer(playerHandle *pHandle, clockRefer cb, void *arg)
+{
+    GET_PLAYER;
+    if (player) {
+        return player->setClockRefer(cb,arg);
+    }
+}
+
 void CicadaAddExtSubtitle(playerHandle *pHandle, const char *uri)
 {
     GET_PLAYER;

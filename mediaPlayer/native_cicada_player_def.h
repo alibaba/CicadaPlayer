@@ -154,6 +154,8 @@ typedef int (*readCB)(void *arg, uint8_t *buffer, int size);
 
 typedef int64_t (*seekCB)(void *arg, int64_t offset, int whence);
 
+typedef int64_t(*clockRefer)(void *arg);
+
 class ErrorConverter {
 public:
     virtual int ConvertErrorCode(int code, int &outCode, std::string &outStr) = 0;

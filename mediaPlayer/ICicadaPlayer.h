@@ -226,6 +226,12 @@ namespace Cicada {
             mBSCbArg = arg;
         }
 
+        virtual void setClockRefer(clockRefer cb, void *arg)
+        {
+            mClockRef = cb;
+            mCRArg = arg;
+        }
+
         virtual int getCurrentStreamMeta(Stream_meta *meta, StreamType type) = 0;
 
         virtual void setErrorConverter(ErrorConverter *converter)
@@ -250,6 +256,8 @@ namespace Cicada {
         readCB mBSReadCb = nullptr;
         seekCB mBSSeekCb = nullptr;
         void *mBSCbArg = nullptr;
+        clockRefer mClockRef = nullptr;
+        void* mCRArg = nullptr;
 
         ErrorConverter *mErrorConverter = nullptr;
     };

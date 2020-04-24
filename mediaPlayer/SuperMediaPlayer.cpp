@@ -2105,7 +2105,7 @@ namespace Cicada {
             if (!HAVE_AUDIO) {
                 if (mPlayedVideoPts == INT64_MIN) {
                     mMasterClock.setTime(videoPts);
-                    mMasterClock.setReferenceClock(nullptr, nullptr);
+                    mMasterClock.setReferenceClock(mClockRef, mCRArg);
                 }
             }
         } else {
