@@ -61,6 +61,9 @@ namespace Cicada {
 
         void EnableVideoRenderedCallback(bool enable);
 
+
+        void SetStreamTypeFlags(uint64_t flags);
+
         /*
          * set player listener
          */
