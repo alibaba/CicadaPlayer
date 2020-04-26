@@ -1,60 +1,53 @@
 cmake_minimum_required(VERSION 3.15)
-project(cicadaPlayer)
+project(example)
 
 set(CMAKE_CXX_STANDARD 11)
 
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(TARGET_PLATFORM macOSX)
-elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(TARGET_PLATFORM Linux)
-elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(TARGET_PLATFORM windows)
-endif ()
+include(../../framework/${TARGET_PLATFORM}.cmake)
 
-include(../framework/code_coverage.cmake)
-add_subdirectory(../mediaPlayer mediaPlayer.out)
+include(../../framework/module_config.cmake)
 
-include(../framework/${TARGET_PLATFORM}.cmake)
+add_executable(syncPlayer "")
 
-include(../framework/module_config.cmake)
-
-list(APPEND SRC_FILE
-        cicadaPlayer.cpp
-        NetWorkEventReceiver.cpp
-        cicadaEventListener.cpp
+target_sources(syncPlayer PRIVATE
+        syncPlayer.cpp
+        communication/playerMessage.cpp
+        ../cicadaEventListener.cpp
+        ../NetWorkEventReceiver.cpp
         )
 
 if (ENABLE_SDL)
-    list(APPEND SRC_FILE
-            SDLEventReceiver.cpp
-            SDLEventReceiver.h
+    target_sources(syncPlayer PRIVATE
+            ../SDLEventReceiver.cpp
+            ../SDLEventReceiver.h
             )
 endif ()
 
-add_executable(cicadaPlayer
-        ${SRC_FILE})
-target_include_directories(cicadaPlayer PUBLIC ../mediaPlayer)
-target_link_directories(cicadaPlayer PRIVATE
-        ../external/install/ffmpeg/${CMAKE_SYSTEM_NAME}/x86_64/lib
-        ../external/install/curl/${CMAKE_SYSTEM_NAME}/x86_64/lib
-        ../external/install/openssl/${CMAKE_SYSTEM_NAME}/x86_64/lib
+target_include_directories(syncPlayer PUBLIC
+        ../../mediaPlayer
+        ../)
+target_link_directories(syncPlayer PRIVATE
+        ../../external/install/ffmpeg/${CMAKE_SYSTEM_NAME}/x86_64/lib
+        ../../external/install/curl/${CMAKE_SYSTEM_NAME}/x86_64/lib
+        ../../external/install/openssl/${CMAKE_SYSTEM_NAME}/x86_64/lib
         ${COMMON_LIB_DIR})
 
-target_link_libraries(cicadaPlayer PRIVATE
+target_link_libraries(syncPlayer PRIVATE
         media_player
         demuxer
         data_source
         render
-        videodec)
+        videodec
+        communication)
 if (ENABLE_CACHE_MODULE)
-    target_link_libraries(cicadaPlayer PRIVATE
+    target_link_libraries(syncPlayer PRIVATE
             cacheModule)
 endif ()
 if (ENABLE_MUXER)
-    target_link_libraries(cicadaPlayer PRIVATE
+    target_link_libraries(syncPlayer PRIVATE
             muxer)
 endif ()
-target_link_libraries(cicadaPlayer PRIVATE
+target_link_libraries(syncPlayer PRIVATE
         framework_filter
         framework_utils
         avfilter
@@ -65,47 +58,45 @@ target_link_libraries(cicadaPlayer PRIVATE
         curl
         ${FRAMEWORK_LIBS})
 if (ENABLE_SDL)
-    target_link_libraries(cicadaPlayer PUBLIC
+    target_link_libraries(syncPlayer PUBLIC
             SDL2
             )
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_link_libraries(cicadaPlayer PUBLIC
+    target_link_libraries(syncPlayer PUBLIC
             bcrypt
             )
 else ()
-    target_link_libraries(cicadaPlayer PUBLIC
+    target_link_libraries(syncPlayer PUBLIC
             z
             dl
             )
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_libraries(cicadaPlayer PUBLIC
+    target_link_libraries(syncPlayer PUBLIC
             bz2
             )
 endif ()
 
 if (APPLE)
     target_link_libraries(
-            cicadaPlayer PUBLIC
+            syncPlayer PUBLIC
             iconv
             bz2
             ${FRAMEWORK_LIBS}
     )
 else ()
     target_link_libraries(
-            cicadaPlayer PUBLIC
+            syncPlayer PUBLIC
             dl
             ssl
             crypto
             pthread
     )
 endif ()
-target_link_libraries(cicadaPlayer PUBLIC coverage_config)
-
-add_subdirectory(example)
+target_link_libraries(syncPlayer PUBLIC coverage_config)
 
 if (USEASAN)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope")
