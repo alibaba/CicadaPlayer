@@ -31,24 +31,17 @@ namespace Cicada {
     }
 
     GLSurface *CicadaMGLContext::CreateSurface() {
-        if (nullptr == mView) {
+        std::lock_guard<std::mutex> lock(mViewMutex);
+        if ((nil == mSetView) || !mViewInited) {
             return nullptr;
         }
-//        std::unique_lock<std::mutex> viewLock(mCreateMutex);
         if (nullptr != mCurrentSurface) {
             return mCurrentSurface;
         }
         GLSurface *surface = new GLSurface();
         mCurrentSurface = surface;
-
-        dispatch_sync(dispatch_get_main_queue(), ^{
-            if (nullptr == mView) {
-                return;
-            }
-            mCurrentSurface->nativeWindow = mView;
-            [(__bridge NSOpenGLView *)mView setOpenGLContext:mContext];
-        });
-
+        mCurrentSurface->nativeWindow = mSetView;
+        mCurrentSurface->surface = mSetView;
         return mCurrentSurface;
     }
 
@@ -58,6 +51,7 @@ namespace Cicada {
         }
         delete surface;
         surface = nullptr;
+        mCurrentSurface = nullptr;
     }
 
     std::mutex &CicadaMGLContext::GetMutex(GLSurface *surface) {
@@ -131,13 +125,23 @@ namespace Cicada {
 
 
     bool CicadaMGLContext::SetView(void *view) {
-        if (mView == view) {
+        std::lock_guard<std::mutex> lock(mViewMutex);
+        if (mSetView == view) {
             return false;
-        }else{
-            mView = view;
-            if (mCurrentSurface != nullptr) {
-                mCurrentSurface->surface = mView;
+        } else {
+            mViewInited = false;
+            mSetView = (__bridge NSOpenGLView *)view;
+
+            if ([NSThread isMainThread]) {
+                [mSetView setOpenGLContext:mContext];
+                mViewInited = true;
+            } else {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [mSetView setOpenGLContext:mContext];
+                    mViewInited = true;
+                });
             }
+
             return true;
         }
     }
@@ -155,10 +159,12 @@ namespace Cicada {
         NSRect backingBounds = renderView.subBackingBounds;
         int width = backingBounds.size.width;
         int height = backingBounds.size.height;
-        bool changed = (mWidth != width || mHeight != height);
+//        bool changed = (mWidth != width || mHeight != height);
         mWidth = width;
         mHeight = height;
-        return changed;
+
+        // return false due to don't need recreate surface
+        return false;
     }
 
 } // namespace cicada
