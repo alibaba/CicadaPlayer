@@ -67,3 +67,9 @@ void cicadaEventListener::onSpeedUp(bool up)
         mediaPlayer->SetSpeed(speed);
     }
 }
+void cicadaEventListener::onPrePare()
+{
+    //   mediaPlayer->Prepare();
+}
+void cicadaEventListener::onFullScreen(bool full)
+{}

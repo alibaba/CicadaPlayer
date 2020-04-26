@@ -71,6 +71,10 @@ void SDLEventReceiver::poll(bool &exit) {
                         mListener.onSpeedUp(event.key.keysym.sym == SDLK_F9);
                         break;
 
+                    case SDLK_p:
+                        mListener.onPrePare();
+                        break;
+
                     default:
                         if (event.key.keysym.sym >= SDLK_0 && event.key.keysym.sym <= SDLK_9) {
                             mListener.onPercentageSeek((event.key.keysym.sym - SDLK_0) * 10);
@@ -87,7 +91,10 @@ void SDLEventReceiver::poll(bool &exit) {
                     static bool is_full_screen = false;
                     if (af_gettime_relative() - last_mouse_left_click <= 500000) {
                         is_full_screen = !is_full_screen;
-                        SDL_SetWindowFullscreen(window, is_full_screen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+                        if (window) {
+                            SDL_SetWindowFullscreen(window, is_full_screen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+                        }
+                        mListener.onFullScreen(is_full_screen);
                         last_mouse_left_click = 0;
                     } else {
                         last_mouse_left_click = af_gettime_relative();
