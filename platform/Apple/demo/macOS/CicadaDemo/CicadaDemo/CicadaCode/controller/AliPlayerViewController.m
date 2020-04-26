@@ -92,6 +92,7 @@
     [self preventSystemSleep];
     self.view.window.collectionBehavior = NSWindowCollectionBehaviorFullScreenPrimary;
     self.player = [[CicadaPlayer alloc] init];
+    self.player.autoPlay = YES;
     self.playerView.wantsLayer = YES;
     self.playerView.layer.backgroundColor = [NSColor blackColor].CGColor;
     self.player.playerView = self.playerView;
