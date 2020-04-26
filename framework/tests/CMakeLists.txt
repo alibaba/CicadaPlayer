@@ -20,6 +20,7 @@ add_subdirectory(dataSource)
 #add_subdirectory(render)
 add_subdirectory(demuxer)
 add_subdirectory(decoder)
+add_subdirectory(communication)
 
 enable_testing()
 
