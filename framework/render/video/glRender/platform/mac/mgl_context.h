@@ -9,6 +9,7 @@
 #include <AppKit/AppKit.h>
 #else
 struct NSOpenGLContext;
+struct NSOpenGLView;
 #endif
 
 namespace Cicada
@@ -48,10 +49,12 @@ public:
 
 private:
     NSOpenGLContext*  mContext{nullptr};
-    void*             mView{nullptr};
+    NSOpenGLView*     mSetView{nullptr};
+    bool              mViewInited = false;
     GLSurface*        mCurrentSurface{nullptr};
     int               mWidth{0};
     int               mHeight{0};
+    std::mutex        mViewMutex;
 //    std::mutex        mCreateMutex;
 };
 } // namespace cicada
