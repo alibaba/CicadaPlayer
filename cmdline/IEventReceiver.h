@@ -29,7 +29,9 @@ public:
         virtual void onSetView(void *view) = 0;
 
         virtual void onSpeedUp(bool up) = 0;
+        virtual void onPrePare() = 0;
 
+        virtual void onFullScreen(bool full) = 0;
     };
 
     class IEvent {
