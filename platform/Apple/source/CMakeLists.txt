@@ -111,6 +111,7 @@ set_target_properties(CicadaPlayerSDK PROPERTIES
         MACOSX_FRAMEWORK_BUNDLE_VERSION 1
         MACOSX_FRAMEWORK_SHORT_VERSION_STRING 1.0
         INSTALL_NAME_DIR @rpath
+        XCODE_ATTRIBUTE_LD_DYLIB_INSTALL_NAME "@rpath/CicadaPlayerSDK.framework/CicadaPlayerSDK"
         #        MACOSX_FRAMEWORK_INFO_PLIST Info.plist
         #XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
         XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS[variant=MinSizeRel] YES
@@ -118,13 +119,6 @@ set_target_properties(CicadaPlayerSDK PROPERTIES
         XCODE_ATTRIBUTE_DEFINES_MODULE "YES"
         XCODE_ATTRIBUTE_BITCODE_GENERATION_MODE[variant=MinSizeRel] ${BITCODE_GENERATION_VALUE}
         )
-
-add_custom_command(
-        TARGET CicadaPlayerSDK
-        POST_BUILD
-        COMMAND install_name_tool -id \"@rpath/CicadaPlayerSDK.framework/CicadaPlayerSDK\"
-        $<TARGET_FILE:CicadaPlayerSDK>
-)
 
 set(INSTALL_TARGETS CicadaPlayerSDK)
 #DON_T change the install lib's order
@@ -137,10 +131,6 @@ if (IOS)
     install(TARGETS ${INSTALL_TARGETS}
             FRAMEWORK DESTINATION
             ${PROJECT_BINARY_DIR}/ARM_SIMULATOR)
-
-#    add_custom_command(TARGET CicadaPlayerSDK POST_BUILD
-#    COMMAND cp -R ${TOP_DIR}/prebuild/${PATH_NAME}/Conan/AlivcConan.framework ${PROJECT_BINARY_DIR}/ARM_SIMULATOR
-#    )
 else ()
     set(INSTALL_TARGETS ${INSTALL_TARGETS}
             alivcffmpeg
@@ -150,14 +140,4 @@ else ()
     install(TARGETS ${INSTALL_TARGETS}
             FRAMEWORK DESTINATION
             ${PROJECT_BINARY_DIR})
-    endif()
-
-if (IOS)
-#    add_custom_command(TARGET CicadaPlayerSDK POST_BUILD
-#    COMMAND cp -R ${TOP_DIR}/prebuild/${PATH_NAME}/Conan/AlivcConan.framework ${PROJECT_BINARY_DIR}
-#    )
-else ()
-#    add_custom_command(TARGET CicadaPlayerSDK POST_BUILD
-#    COMMAND sh ../copyFramework.sh
-#    )
-endif ()
+endif()
