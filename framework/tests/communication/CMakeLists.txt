@@ -25,6 +25,17 @@ target_include_directories(communicationTest PRIVATE
         )
 
 target_link_directories(communicationTest PRIVATE ${COMMON_LIB_DIR})
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    target_link_libraries(communicationTest PUBLIC
+            bcrypt
+            )
+else ()
+    target_link_libraries(communicationTest PUBLIC
+            z
+            dl
+            )
+endif ()
 if (APPLE)
     target_link_libraries(
             communicationTest PUBLIC
