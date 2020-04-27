@@ -6,9 +6,9 @@
 #define LOG_TAG "messageServer"
 #include <utils/frame_work_log.h>
 using namespace Cicada;
-messageServer::messageServer()
+messageServer::messageServer(IProtocolServer::Listener *listener)
 {
-    mServer = static_cast<std::unique_ptr<IProtocolServer>>(new TCPProtocolServer());
+    mServer = static_cast<std::unique_ptr<IProtocolServer>>(new TCPProtocolServer(listener));
 }
 messageServer::~messageServer()
 {}
@@ -21,6 +21,13 @@ int messageServer::write(const std::string &msg)
     mServer->write_u32(msg.size());
     mServer->write(reinterpret_cast<const uint8_t *>(msg.c_str()), msg.size());
     mServer->flush();
+    return 0;
+}
+int messageServer::write(const std::string &msg, IProtocolServer::IClient *client)
+{
+    client->write_u32(msg.size());
+    client->write(reinterpret_cast<const uint8_t *>(msg.c_str()), msg.size());
+    client->flush();
     return 0;
 }
 int messageServer::init()

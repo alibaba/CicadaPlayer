@@ -13,7 +13,7 @@ static void testProtocol()
 {
     //    string ip = IProtocolServer::getLocalIp();
     //    AF_LOGD("ip is %s\n", ip.c_str());
-    TCPProtocolServer server;
+    TCPProtocolServer server{nullptr};
     server.init();
     TCPProtocolClient client;
     client.connect(server.getServerUri());
@@ -31,10 +31,21 @@ static void testProtocol()
     AF_LOGD("buffer is %s\n", buffer);
 }
 
+class testListener : public IProtocolServer::Listener {
+
+public:
+    void onAccept(IProtocolServer::IClient **client) override
+    {
+        IProtocolServer::IClient *pClient = *client;
+        messageServer::write("hello", pClient);
+    };
+};
+
 static void testMessage()
 {
-    messageServer server;
-    messageClient client[1]{};
+    testListener listener;
+    messageServer server{&listener};
+    messageClient client[2]{};
 
     server.init();
     string serverUrl = server.getServerUri();

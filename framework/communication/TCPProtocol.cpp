@@ -20,15 +20,13 @@ int InterruptAble::check_interrupt(void *pHandle)
     auto *server = static_cast<InterruptAble *>(pHandle);
     return server->mInterrupted.load();
 }
-TCPProtocolServer::TCPProtocolServer() = default;
+TCPProtocolServer::TCPProtocolServer(IProtocolServer::Listener *listener) : IProtocolServer(listener)
+{}
 TCPProtocolServer::~TCPProtocolServer()
 {
     interrupt(true);
     mAcceptThread = nullptr;
     avio_close(mServer);
-    for (auto item : mClients) {
-        avio_close(item);
-    }
 }
 std::string TCPProtocolServer::getServerUri()
 {
@@ -64,8 +62,14 @@ int TCPProtocolServer::accept_loop()
     ret = avio_accept(mServer, &client);
     if (ret >= 0) {
         AF_LOGD("get a client\n");
-        std::lock_guard<std::mutex> lock(mClientMutex);
-        mClients.push_back(client);
+        auto *pClient = new TCPProtocolClient(client);
+        if (mListener) {
+            mListener->onAccept(reinterpret_cast<IClient **>(&pClient));
+        }
+        if (pClient) {
+            std::lock_guard<std::mutex> lock(mClientMutex);
+            mClients.push_back(static_cast<unique_ptr<TCPProtocolClient>>(pClient));
+        }
     }
     return ret;
 }
@@ -76,16 +80,16 @@ int TCPProtocolServer::write(const uint8_t *buffer, int size)
     if (mClients.empty()) {
         return 0;
     }
-    for (auto item : mClients) {
-        avio_write(item, buffer, size);
+    for (auto &item : mClients) {
+        item->write(buffer, size);
     }
 
     return 0;
 }
 void TCPProtocolServer::flush()
 {
-    for (auto item : mClients) {
-        avio_flush(item);
+    for (auto &item : mClients) {
+        item->flush();
     }
 }
 int TCPProtocolServer::write_u32(uint32_t val)
@@ -95,8 +99,8 @@ int TCPProtocolServer::write_u32(uint32_t val)
     if (mClients.empty()) {
         return 0;
     }
-    for (auto item : mClients) {
-        avio_wl32(item, val);
+    for (auto &item : mClients) {
+        item->write_u32(val);
     }
 
     return 0;
@@ -110,7 +114,7 @@ TCPProtocolClient::~TCPProtocolClient()
 int TCPProtocolClient::connect(const string &server)
 {
     AVDictionary *format_opts = nullptr;
-    av_dict_set_int(&format_opts, "rw_timeout", AV_TIME_BASE/100, 0);
+    av_dict_set_int(&format_opts, "rw_timeout", AV_TIME_BASE / 100, 0);
 
     int ret = avio_open2(&mClient, server.c_str(), AVIO_FLAG_READ, &mInterruptCB, &format_opts);
     if (format_opts) {
