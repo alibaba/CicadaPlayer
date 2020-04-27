@@ -28,6 +28,8 @@ struct cicadaCont {
     bool bMaster;
     messageServer *server;
     af_clock masterClock;
+    PlayerStatus status{};
+    bool loading{};
 #ifdef ENABLE_SDL
     SDL_Window *window;
     SDL_Renderer *rendere;
@@ -46,6 +48,7 @@ static void onStatusChanged(int64_t oldStatus, int64_t newStatus, void *userData
             cont->server->write(playerMessage::pause);
         }
     }
+    cont->status = static_cast<PlayerStatus>(newStatus);
 }
 static void onLoadingStart(void *userData)
 {
@@ -53,6 +56,7 @@ static void onLoadingStart(void *userData)
     if (cont->server) {
         cont->server->write(playerMessage::pause);
     }
+    cont->loading = true;
 }
 static void onLoadingEnd(void *userData)
 {
@@ -60,6 +64,7 @@ static void onLoadingEnd(void *userData)
     if (cont->server) {
         cont->server->write(playerMessage::start);
     }
+    cont->loading = false;
 }
 
 static void onEOS(void *userData)
@@ -140,6 +145,27 @@ static int64_t getMasterClock(void *arg)
 
 static string serverIp = "tcp://localhost:8888";
 
+class syncServerListener : public IProtocolServer::Listener {
+public:
+    explicit syncServerListener(cicadaCont *cicada) : mCicada(cicada)
+    {}
+
+    void onAccept(IProtocolServer::IClient **client) override
+    {
+
+        if (mCicada->status >= PLAYER_PREPARINIT) {
+            Cicada::messageServer::write(playerMessage::prepare, *client);
+        }
+
+        if (mCicada->status == PLAYER_PLAYING && !mCicada->loading) {
+            Cicada::messageServer::write(playerMessage::start, *client);
+        }
+    }
+
+private:
+    cicadaCont *mCicada{};
+};
+
 int main(int argc, const char **argv)
 {
     string url;
@@ -169,10 +195,12 @@ int main(int argc, const char **argv)
     unique_ptr<messageClient> client{};
     unique_ptr<messageServer> server{};
 
+    syncServerListener syncListener(&cicada);
+
     if (bMaster) {
         //   player->SetAutoPlay(true);
         //    player->SetLoop(true);
-        server = static_cast<unique_ptr<messageServer>>(new messageServer(nullptr));
+        server = static_cast<unique_ptr<messageServer>>(new messageServer(&syncListener));
         server->init();
         cicada.server = server.get();
     } else {
@@ -210,7 +238,7 @@ int main(int argc, const char **argv)
             } else {
                 msg = client->readMessage();
                 if (!msg.empty()) {
-                    // AF_LOGE("client msg %s\n", msg.c_str());
+                    //    AF_LOGE("client msg %s\n", msg.c_str());
                     if (msg == playerMessage::start) {
                         cicada.player->Start();
                         cicada.masterClock.start();
