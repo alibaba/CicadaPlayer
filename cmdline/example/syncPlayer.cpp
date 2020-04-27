@@ -172,7 +172,7 @@ int main(int argc, const char **argv)
     if (bMaster) {
         //   player->SetAutoPlay(true);
         //    player->SetLoop(true);
-        server = static_cast<unique_ptr<messageServer>>(new messageServer());
+        server = static_cast<unique_ptr<messageServer>>(new messageServer(nullptr));
         server->init();
         cicada.server = server.get();
     } else {

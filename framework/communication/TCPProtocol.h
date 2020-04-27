@@ -31,7 +31,38 @@ namespace Cicada {
     };
     class TCPProtocolServer : public IProtocolServer, private InterruptAble {
     public:
-        TCPProtocolServer();
+        class TCPProtocolClient : public IClient {
+        public:
+            explicit TCPProtocolClient(AVIOContext *context) : mContext(context)
+            {}
+            ~TCPProtocolClient() override
+            {
+                avio_close(mContext);
+            };
+
+            int write(const uint8_t *buffer, int size) override
+            {
+                avio_write(mContext, buffer, size);
+                return size;
+            }
+
+            int write_u32(uint32_t val) override
+            {
+                avio_wl32(mContext, val);
+                return 0;
+            }
+
+            void flush() override
+            {
+                avio_flush(mContext);
+            }
+
+        private:
+            AVIOContext *mContext;
+        };
+
+    public:
+        TCPProtocolServer(IProtocolServer::Listener *listener);
 
         ~TCPProtocolServer() override;
 
@@ -40,6 +71,7 @@ namespace Cicada {
         int init() override;
 
         int write(const uint8_t *buffer, int size) override;
+
         int write_u32(uint32_t val) override;
 
         void flush() override;
@@ -50,7 +82,7 @@ namespace Cicada {
     private:
         AVIOContext *mServer{nullptr};
         std::mutex mClientMutex{};
-        std::vector<AVIOContext *> mClients{};
+        std::vector<std::unique_ptr<TCPProtocolClient>> mClients{};
         std::unique_ptr<afThread> mAcceptThread{};
     };
 
@@ -60,7 +92,7 @@ namespace Cicada {
         ~TCPProtocolClient() override;
         int connect(const std::string &server) override;
         int read(uint8_t *buffer, int size) override;
-        int read_u32(uint32_t* val) override;
+        int read_u32(uint32_t *val) override;
 
     private:
         AVIOContext *mClient{};

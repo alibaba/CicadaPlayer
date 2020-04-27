@@ -13,7 +13,7 @@
 namespace Cicada {
     class messageServer {
     public:
-        messageServer();
+        explicit messageServer(IProtocolServer::Listener *listener);
         ~messageServer();
 
         int init();
@@ -21,6 +21,8 @@ namespace Cicada {
         std::string getServerUri();
 
         int write(const std::string &msg);
+
+        static int write(const std::string &msg, IProtocolServer::IClient *client);
 
     private:
         std::unique_ptr<IProtocolServer> mServer{};
