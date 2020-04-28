@@ -67,9 +67,7 @@ export CURL_GIT=https://gitee.com/mirrors/curl.git
 
 ## Contact
 
-<img src="https://gw.alicdn.com/tfs/TB1ayl9mpYqK1RjSZLeXXbXppXa-170-62.png" width="28" height="10"  alt="dingding"/>
-
-<img src="doc/CicadaDingDing.jpg" width="304" height="310"  alt="dingding"/>
+[![DingDing](doc/CicadaDingDing.png)](https://h5.dingtalk.com/invite-page/index.html?bizSource=____source____&corpId=ding42c495ce0dcfdb7f35c2f4657eb6378f&inviterUid=B8D63ADF200A8E9DFF4BBDCA828801C7&encodeDeptId=FE36B0936DFD1AC591E7FE61FE0552A6)
 
 ## License
 ```c++
