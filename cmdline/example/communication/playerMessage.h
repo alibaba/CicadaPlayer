@@ -14,6 +14,8 @@ namespace Cicada {
         const static std::string exit;
         const static std::string fullScreen;
         const static std::string clock;
+        const static std::string seek;
+        const static std::string seekAccurate;
     };
 }// namespace Cicada
 

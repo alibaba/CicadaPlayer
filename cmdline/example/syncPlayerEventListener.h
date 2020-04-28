@@ -36,6 +36,31 @@ namespace Cicada {
             }
         }
 
+        void onStepSeek(bool forward) override
+        {
+            int time = 10000;
+
+            if (!forward) {
+                time = -time;
+            }
+            int64_t pos = mediaPlayer->GetCurrentPosition() + time;
+            if (mServer) {
+                mServer->write(playerMessage::seek);
+                mServer->write(to_string(pos));
+            }
+            cicadaEventListener::onStepSeek(forward);
+        }
+
+        void onPercentageSeek(int percent) override
+        {
+            int64_t pos = mediaPlayer->GetDuration() / 100 * percent;
+            if (mServer) {
+                mServer->write(playerMessage::seek);
+                mServer->write(to_string(pos));
+            }
+            cicadaEventListener::onPercentageSeek(percent);
+        }
+
     private:
         messageServer *mServer;
         void *mWindow;

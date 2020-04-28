@@ -10,3 +10,5 @@ const std::string playerMessage::start = "start";
 const std::string playerMessage::exit = "exit";
 const std::string playerMessage::fullScreen = "fullScreen";
 const std::string playerMessage::clock = "clock";
+const std::string playerMessage::seek = "seek";
+const std::string playerMessage::seekAccurate = "seekAccurate";
