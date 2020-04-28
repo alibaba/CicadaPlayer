@@ -93,6 +93,7 @@ namespace Cicada{
         float mVolume{1};
         std::unique_ptr<Cicada::IAudioFilter> mFilter{};
         std::mutex mFrameQueMutex;
+        std::mutex mCreateMutex;
         std::condition_variable mFrameQueCondition;
         std::queue<std::unique_ptr<IAFFrame>> mFrameQue{};
         std::unique_ptr<IAFFrame> mRenderFrame{nullptr};

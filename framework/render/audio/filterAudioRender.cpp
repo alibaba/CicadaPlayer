@@ -49,6 +49,7 @@ namespace Cicada {
         }
 
         if (needFilter) {
+            std::lock_guard<std::mutex> uMutex(mCreateMutex);
             mFilter = std::unique_ptr<IAudioFilter>(
                           filterFactory::createAudioFilter(mInputInfo, mOutputInfo));
             ret = mFilter->init();
@@ -124,6 +125,7 @@ namespace Cicada {
         }
 
         mVolume = volume;
+        std::lock_guard<std::mutex> uMutex(mCreateMutex);
 
         if (volume > 1) {
             float gain = volume * volume * volume;
@@ -158,6 +160,7 @@ namespace Cicada {
     {
         if (mSpeed != speed) {
             mSpeed = speed;
+            std::lock_guard<std::mutex> uMutex(mCreateMutex);
 
             if (mFilter == nullptr) {
                 mFilter = std::unique_ptr<IAudioFilter>(

@@ -455,8 +455,13 @@ namespace Cicada {
     {
         mVolume = gain;
 #if AF_USE_MIX
+        std::unique_lock<std::recursive_mutex> locker(mUnitMutex);
+
         //        AudioUnitSetParameter(mAudioUnit, kAUNBandEQParam_GlobalGain, kAudioUnitScope_Global, 0, mVolume, 0);
-        AudioUnitSetParameter(mMixerUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, mVolume, 0);
+        if (nil != mMixerUnit) {
+            AudioUnitSetParameter(mMixerUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, mVolume, 0);
+        }
+
 #endif
     }
 
