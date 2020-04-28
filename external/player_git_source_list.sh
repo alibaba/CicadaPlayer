@@ -28,7 +28,7 @@ clone_git "$FFMPEG_GIT" "$FFMPEG_BRANCH" ffmpeg
 if [ -z "${OPENSSL_GIT}" ];then
     OPENSSL_GIT="https://github.com/openssl/openssl.git"
 fi
-OPENSSL_BRANCH="OpenSSL_1_1_1f"
+OPENSSL_BRANCH="OpenSSL_1_1_1g"
 clone_git $OPENSSL_GIT $OPENSSL_BRANCH
 
 if [ -z "${CURL_GIT}" ];then
