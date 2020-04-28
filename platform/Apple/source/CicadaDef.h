@@ -166,6 +166,30 @@ typedef enum CicadaOption: NSUInteger {
     CICADA_OPTION_RENDER_FPS = 0,
 } CicadaOption;
 
+typedef enum CicadaPlaybackType: NSUInteger {
+    /**
+     * @brief 播放音视频，默认值
+     */
+    /****
+     * @brief play video & audio, default
+     */
+    CicadaPlaybackTypeALL = 0,
+    /**
+     * @brief 播放视频
+     */
+    /****
+     * @brief play video
+     */
+    CicadaPlaybackTypeVideo = 1,
+    /**
+     * @brief 播放音频
+     */
+    /****
+     * @brief play audio
+     */
+    CicadaPlaybackTypeAudio = 2,
+} CicadaPlaybackType;
+
 /**
  @brief CicadaErrorModel为播放错误信息描述
  */
