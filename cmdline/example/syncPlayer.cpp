@@ -22,17 +22,17 @@ using namespace std;
 
 using IEvent = IEventReceiver::IEvent;
 struct cicadaCont {
-    unique_ptr<MediaPlayer> player;
-    IEventReceiver *receiver;
-    bool error;
-    bool bMaster;
-    messageServer *server;
+    unique_ptr<MediaPlayer> player{};
+    IEventReceiver *receiver{};
+    bool error{};
+    bool bMaster{};
+    messageServer *server{};
     af_clock masterClock;
     PlayerStatus status{};
     bool loading{};
 #ifdef ENABLE_SDL
-    SDL_Window *window;
-    SDL_Renderer *rendere;
+    SDL_Window *window{};
+    SDL_Renderer *rendere{};
 #endif
 };
 
@@ -154,6 +154,8 @@ public:
     {
 
         if (mCicada->status >= PLAYER_PREPARINIT) {
+            Cicada::messageServer::write(playerMessage::seekAccurate, *client);
+            Cicada::messageServer::write(to_string(mCicada->player->GetCurrentPosition()), *client);
             Cicada::messageServer::write(playerMessage::prepare, *client);
         }
 
@@ -166,6 +168,41 @@ private:
     cicadaCont *mCicada{};
 };
 
+static void process_client_msg(cicadaCont &cicada, unique_ptr<messageClient> &client, string &msg, bool &quite)
+{
+    msg = client->readMessage();
+    if (!msg.empty()) {
+        AF_LOGE("client msg %s\n", msg.c_str());
+        if (msg == playerMessage::start) {
+            cicada.player->Start();
+            cicada.masterClock.start();
+        } else if (msg == playerMessage::pause) {
+            cicada.player->Pause();
+            cicada.masterClock.pause();
+        } else if (msg == playerMessage::exit) {
+            quite = true;
+        } else if (msg == playerMessage::prepare) {
+            cicada.player->Prepare();
+        } else if (msg == playerMessage::clock) {
+            int64_t pts = atoll(client->readMessage().c_str());
+            cicada.masterClock.set(pts);
+            if (llabs(pts - cicada.player->GetMasterClockPts()) > 40000) {
+                AF_LOGW("delta pts is %lld\n", pts - cicada.player->GetMasterClockPts());
+            }
+        } else if (msg == playerMessage::fullScreen) {
+#ifdef ENABLE_SDL
+            bool full = atoll(client->readMessage().c_str()) != 0;
+            SDL_SetWindowFullscreen(cicada.window, full ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+#endif
+        } else if (msg == playerMessage::seekAccurate) {
+            int64_t ms = atoll(client->readMessage().c_str());
+            cicada.player->SeekTo(ms, SEEK_MODE_ACCURATE);
+        } else if (msg == playerMessage::seek) {
+            int64_t ms = atoll(client->readMessage().c_str());
+            cicada.player->SeekTo(ms, SEEK_MODE_INACCURATE);
+        }
+    }
+}
 int main(int argc, const char **argv)
 {
     string url;
@@ -236,32 +273,7 @@ int main(int argc, const char **argv)
             if (!connected) {
                 connected = client->connect(serverIp) >= 0;
             } else {
-                msg = client->readMessage();
-                if (!msg.empty()) {
-                    //    AF_LOGE("client msg %s\n", msg.c_str());
-                    if (msg == playerMessage::start) {
-                        cicada.player->Start();
-                        cicada.masterClock.start();
-                    } else if (msg == playerMessage::pause) {
-                        cicada.player->Pause();
-                        cicada.masterClock.pause();
-                    } else if (msg == playerMessage::exit) {
-                        quite = true;
-                    } else if (msg == playerMessage::prepare) {
-                        cicada.player->Prepare();
-                    } else if (msg == playerMessage::clock) {
-                        int64_t pts = atoll(client->readMessage().c_str());
-                        cicada.masterClock.set(pts);
-                        if (llabs(pts - cicada.player->GetMasterClockPts()) > 40000) {
-                            AF_LOGW("delta pts is %lld\n", pts - cicada.player->GetMasterClockPts());
-                        }
-                    } else if (msg == playerMessage::fullScreen) {
-#ifdef ENABLE_SDL
-                        bool full = atoll(client->readMessage().c_str()) != 0;
-                        SDL_SetWindowFullscreen(cicada.window, full ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-#endif
-                    }
-                }
+                process_client_msg(cicada, client, msg,quite);
             }
         } else {
             static int64_t pts = 0;
