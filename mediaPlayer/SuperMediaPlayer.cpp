@@ -153,7 +153,7 @@ namespace Cicada {
 
     void SuperMediaPlayer::Start()
     {
-        if ((PLAYER_INITIALZED == mPlayStatus) || (PLAYER_PREPARING == mPlayStatus)) {
+        if ((PLAYER_INITIALZED == mPlayStatus) || (PLAYER_PREPARING == mPlayStatus) || PLAYER_PREPARINIT == mPlayStatus) {
             waitingForStart = true;
         }
 
