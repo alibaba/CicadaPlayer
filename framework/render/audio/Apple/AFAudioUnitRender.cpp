@@ -431,7 +431,7 @@ namespace Cicada {
 #if !AF_USE_MIX
 
         while (mDeviceWorking) {
-            af_usleep(1);
+            af_msleep(2);
         }
 
 #endif
