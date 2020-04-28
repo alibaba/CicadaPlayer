@@ -84,13 +84,19 @@ int GLRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
     if (frame == nullptr) {
         // do flush
         mVSync->pause();
-        std::unique_lock<std::mutex> locker(mFrameMutex);
+        {
+            std::unique_lock<std::mutex> locker(mFrameMutex);
 
-        while (!mInputQueue.empty()) {
-            dropFrame();
+            while (!mInputQueue.empty()) {
+                dropFrame();
+            }
+        }
+        std::unique_lock<std::mutex> locker(mInitMutex);
+
+        if (!mInBackground) {
+            mVSync->start();
         }
 
-        mVSync->start();
         return 0;
     }
 
@@ -422,8 +428,20 @@ void GLRender::captureScreen()
 int GLRender::setDisPlay(void *view)
 {
     AF_LOGD("-----> setDisPlay view = %p", view);
-    unique_lock<mutex> viewLock(mViewMutex);
-    mDisplayView = view;
+
+    if (mDisplayView != view) {
+        mVSync->pause();
+        {
+            unique_lock<mutex> viewLock(mViewMutex);
+            mDisplayView = view;
+        }
+        std::unique_lock<std::mutex> locker(mInitMutex);
+
+        if (!mInBackground) {
+            mVSync->start();
+        }
+    }
+
     return 0;
 }
 
