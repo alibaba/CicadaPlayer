@@ -145,6 +145,8 @@ namespace Cicada {
             AF_LOGW("volume >1.0");
         }
 
+        std::lock_guard<std::mutex> uMutex(mCreateMutex);
+
         if (mAudioRender != nullptr) {
             mAudioRender->setVolume(mSet.mVolume);
         }
@@ -711,6 +713,8 @@ namespace Cicada {
     {
         // TODO: check the speed range
         if (!CicadaUtils::isEqual(mSet.rate, speed)) {
+            std::lock_guard<std::mutex> uMutex(mCreateMutex);
+
             if (HAVE_AUDIO) {
                 if (mAudioRender != nullptr) {
                     mAudioRender->setSpeed(speed);
