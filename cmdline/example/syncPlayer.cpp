@@ -67,6 +67,15 @@ static void onLoadingEnd(void *userData)
     cont->loading = false;
 }
 
+static void onPositionUpdate(int64_t pos, void *userData)
+{
+    auto *cont = static_cast<cicadaCont *>(userData);
+    if (cont->server) {
+        cont->server->write(playerMessage::clock);
+        cont->server->write(to_string(cont->player->GetMasterClockPts()));
+    }
+}
+
 static void onEOS(void *userData)
 {
     auto *cont = static_cast<cicadaCont *>(userData);
@@ -121,6 +130,7 @@ static MediaPlayer *createPlayer(cicadaCont &cicada, const string &url)
     pListener.StatusChanged = onStatusChanged;
     pListener.LoadingStart = onLoadingStart;
     pListener.LoadingEnd = onLoadingEnd;
+    pListener.PositionUpdate = onPositionUpdate;
     cicada.player->SetListener(pListener);
     cicada.player->SetDefaultBandWidth(1000 * 1000);
     cicada.player->SetDataSource(url.c_str());
@@ -235,7 +245,7 @@ int main(int argc, const char **argv)
     syncServerListener syncListener(&cicada);
 
     if (bMaster) {
-        //   player->SetAutoPlay(true);
+        cicada.player->SetAutoPlay(true);
         //    player->SetLoop(true);
         server = static_cast<unique_ptr<messageServer>>(new messageServer(&syncListener));
         server->init();
@@ -273,16 +283,9 @@ int main(int argc, const char **argv)
             if (!connected) {
                 connected = client->connect(serverIp) >= 0;
             } else {
-                process_client_msg(cicada, client, msg,quite);
+                process_client_msg(cicada, client, msg, quite);
             }
         } else {
-            static int64_t pts = 0;
-            int64_t pts1 = cicada.player->GetMasterClockPts();
-            if (pts1 - pts > 100000) {
-                server->write(playerMessage::clock);
-                server->write(to_string(pts1));
-                pts = pts1;
-            }
             if (!quite) {
                 netWorkEventReceiver.poll(quite);
             }
