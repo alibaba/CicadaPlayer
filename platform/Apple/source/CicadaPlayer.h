@@ -286,6 +286,37 @@ OBJC_EXPORT
 -(void) setDefaultBandWidth:(int)bandWidth;
 
 /**
+ @brief 设置所需的播放内容。
+ @param CicadaPlaybackType 指定播放音频或视频。
+ */
+/****
+ @brief Set the playback track.
+ @param CicadaPlaybackType The specified track to playback.
+ */
+-(void) setPlaybackType:(CicadaPlaybackType)type;
+
+/**
+ @brief 获取当前播放的pts。
+ @return 当前播放的pts。
+ */
+/****
+ @brief Get playing pts.
+ @return Playing pts.
+ */
+-(int64_t) getPlayingPts;
+
+
+/**
+ @brief 设置参考时间钟。
+ @param referClock 参考时间钟。
+ */
+/****
+ @brief Set the refer clock
+ @param referClock The refer clock
+ */
+-(void) SetClockRefer:(int64_t (^)(void))referClock;
+
+/**
  * @brief 获取播放器的参数
  *
  * @param key 参数值

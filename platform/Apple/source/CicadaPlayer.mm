@@ -49,6 +49,8 @@ static void CicadaPlayer_log_print(void *userData, int prio, const char *buf)
     }
 }
 
+typedef int64_t(^CicadaReferClockFun) ();
+
 @interface CicadaPlayer () <CicadaPlayerViewDelegate>
 {
     CicadaPlayerView* mView;
@@ -64,6 +66,7 @@ static void CicadaPlayer_log_print(void *userData, int prio, const char *buf)
 @property(nonatomic,assign) CicadaStatus mCurrentStatus;
 @property(nonatomic, strong) NSString *traceId;
 @property(nonatomic, strong) CicadaThumbnail* thumbnail;
+@property(nonatomic, strong) CicadaReferClockFun referClock;
 @end
 
 @implementation CicadaPlayer
@@ -73,6 +76,7 @@ static void CicadaPlayer_log_print(void *userData, int prio, const char *buf)
 @synthesize currentPosition = _currentPosition;
 @synthesize bufferedPosition = _bufferedPosition;
 @synthesize duration = _duration;
+@synthesize referClock = _referClock;
 
 - (void)resetProperty
 {
@@ -841,6 +845,50 @@ static int logOutput = 1;
     if (self.player && [_delegate respondsToSelector:@selector(onVideoRendered:timeMs:pts:)]) {
         self.player->EnableVideoRenderedCallback(true);
     }
+}
+
+-(void) setPlaybackType:(CicadaPlaybackType)type
+{
+    if (self.player) {
+        uint64_t flags = 0;
+        switch (type) {
+            case CicadaPlaybackTypeVideo:
+                flags = (1 << CICADA_TRACK_VIDEO);
+                break;
+            case CicadaPlaybackTypeAudio:
+                flags = (1 << CICADA_TRACK_AUDIO);
+                break;
+            default:
+                flags = (1 << CICADA_TRACK_VIDEO) | (1 << CICADA_TRACK_AUDIO);
+                break;
+        }
+        self.player->SetStreamTypeFlags(flags);
+    }
+}
+
+-(int64_t) getPlayingPts
+{
+    if (self.player) {
+        self.player->GetMasterClockPts();
+    }
+    return 0;
+}
+
+int64_t CicadaClockRefer(void *arg)
+{
+    CicadaPlayer *player = (__bridge CicadaPlayer *)arg;
+    if (player.referClock) {
+        return player.referClock();
+    }
+    return -1;
+}
+
+-(void) SetClockRefer:(int64_t (^)(void))referClock
+{
+    if (self.player) {
+        self.player->SetClockRefer(CicadaClockRefer, (__bridge void*)self);
+    }
+    self.referClock = referClock;
 }
 
 -(NSString *) getOption:(CicadaOption)key
