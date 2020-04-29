@@ -3,6 +3,8 @@ project(cicadaPlayer)
 
 set(CMAKE_CXX_STANDARD 11)
 
+set(CMDLINE_BUILD ON)
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(TARGET_PLATFORM macOSX)
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

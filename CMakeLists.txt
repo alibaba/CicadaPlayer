@@ -6,7 +6,10 @@ option(USEASAN "Enable Address Sanitizer" OFF)
 option(USETSAN "Enable Thread Sanitizer" OFF)
 option(USEUBSAN "Enable Undefined Behavior Sanitizer" OFF)
 
-set(USEASAN ON)
+if (!XCODE)
+    set(USEASAN ON)
+endif ()
+
 add_subdirectory(cmdline)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

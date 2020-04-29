@@ -26,8 +26,9 @@ This page is an introduction to the compilation for macOS.
     mkdir build
     cd build
     cmake ../
-    make cicadaPlayer
+    make
     ```
+   You can also use Xcode to build cmdline, add -G Xcode to cmake command
 
 4. build mac platform app
 
