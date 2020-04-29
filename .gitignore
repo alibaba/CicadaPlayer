@@ -5,4 +5,5 @@ cmake-build-debug*/
 .DS_Store
 cmdline/build/
 /build
+build_xcode/
 

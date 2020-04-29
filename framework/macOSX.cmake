@@ -81,7 +81,7 @@ else ()
     set(ENABLE_SDL ON)
 endif ()
 
-if (XCODE)
+if (!CMDLINE_BUILD)
     set(ENABLE_GLRENDER ON)
     set(ENABLE_SDL OFF)
 else ()
