@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 project(cicadaPlayer)
 
 set(CMAKE_CXX_STANDARD 11)
-
+option(CMDLINE_BUILD "build command line example" OFF)
 set(CMDLINE_BUILD ON)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
