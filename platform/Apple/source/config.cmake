@@ -38,6 +38,7 @@ set(ALI_SRC_LIBRARIES
         videodec
         muxer
         render
+        communication
         z
         iconv
         resolv

@@ -417,6 +417,11 @@ static int logOutput = 1;
     [self resetProperty];
 }
 
+- (void)setInnerDelegate:(id<CicadaDelegate>) delegate
+{
+    mHelper->setDelegate(delegate);
+}
+
 -(void)destroy
 {
     if (mView) {
@@ -870,7 +875,7 @@ static int logOutput = 1;
 -(int64_t) getPlayingPts
 {
     if (self.player) {
-        self.player->GetMasterClockPts();
+        return self.player->GetMasterClockPts();
     }
     return 0;
 }
