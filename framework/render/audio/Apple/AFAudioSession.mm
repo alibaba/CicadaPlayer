@@ -8,23 +8,28 @@
 
 #import <AudioToolbox/AudioToolbox.h>
 #import <AVFoundation/AVFoundation.h>
-#import <UIKit/UIKit.h>
 #import "AFAudioSession.h"
 #import "utils/frame_work_log.h"
+#import "codec/utils_ios.h"
 
 @implementation AFAudioSession
 
-- (id) init
++(instancetype) sharedInstance
 {
-    return [self init:nil];
+    static AFAudioSession *instance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        instance = [[AFAudioSession alloc] init];
+    });
+    return instance;
 }
 
-- (id) init:(std::function<void(AF_AUDIO_SESSION_STATUS)>)func
+- (instancetype) init
 {
     self = [super init];
 
     if (nil != self) {
-        mFun = func;
+        mFun = nullptr;
 
         AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
 
@@ -115,6 +120,41 @@
     if (NULL != mFun) {
         mFun(AFAudioSessionMediaServicesWereReset);
     }
+}
+
+-(int) activeAudio
+{
+    NSError *err = nil;
+    bool active = IOSNotificationManager::Instance()->GetActiveStatus() != 0;
+    AF_LOGI("setActive when app acitve is :%d", active);
+
+    AVAudioSessionCategoryOptions options = 0;
+    if (self.delegate && [self.delegate respondsToSelector:@selector(setCategory:withOptions:error:)]) {
+        [self.delegate setCategory:AVAudioSessionCategoryPlayback withOptions:options error:&err];
+    } else {
+        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:options error:&err];
+    }
+
+    // Airplay 2 feature
+    if (@available(iOS 11.0, tvOS 11.0, *)) {
+        if (self.delegate && [self.delegate respondsToSelector:@selector(setCategory:mode:routeSharingPolicy:options:error:)]) {
+            [self.delegate setCategory:AVAudioSessionCategoryPlayback mode:AVAudioSessionModeDefault routeSharingPolicy:AVAudioSessionRouteSharingPolicyLongForm options:options error:&err];
+        } else {
+            [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback mode:AVAudioSessionModeDefault routeSharingPolicy:AVAudioSessionRouteSharingPolicyLongForm options:options error:&err];
+        }
+    }
+
+    if (self.delegate && [self.delegate respondsToSelector:@selector(setActive:error:)]) {
+        if (![self.delegate setActive:YES error:&err]) {
+            AF_LOGE("setActive error:%d", err.code);
+        }
+    } else {
+        if (![[AVAudioSession sharedInstance] setActive:YES error:&err]) {
+            AF_LOGE("setActive error:%d", err.code);
+        }
+    }
+
+    return static_cast<int>(err.code);
 }
 
 @end
