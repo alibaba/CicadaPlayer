@@ -14,7 +14,8 @@ typedef enum : NSUInteger {
     inputURL,
     collectionView,
     urlLinks,
-    localURL
+    localURL,
+    MultPlayer
 } ViewType;
 
 @interface RightView : NSView

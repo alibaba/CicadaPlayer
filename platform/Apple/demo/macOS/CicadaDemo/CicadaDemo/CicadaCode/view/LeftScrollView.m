@@ -62,6 +62,10 @@
     [self.rightView loadViewWithViewType:urlLinks];
 }
 
+- (IBAction)MultPlayer:(id)sender {
+    [self.rightView loadViewWithViewType:MultPlayer];
+}
+
 - (void)layout {
     [super layout];
     self.view.frame = CGRectMake(0, 0, self.bounds.size.width, self.bounds.size.height+ 50);

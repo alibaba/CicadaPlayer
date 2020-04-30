@@ -9,6 +9,10 @@
         <customObject id="-2" userLabel="File's Owner" customClass="RightView">
             <connections>
                 <outlet property="localTextField" destination="GiO-b2-XUJ" id="kvn-QR-dto"/>
+                <outlet property="multSourceText1" destination="X4B-J9-Ix4" id="LLJ-Cg-hhB"/>
+                <outlet property="multSourceText2" destination="soE-ps-vQo" id="K8L-Gb-6LS"/>
+                <outlet property="multSourceText3" destination="cHy-Kc-Aun" id="kYC-6s-rHT"/>
+                <outlet property="multSourceText4" destination="TpR-Yu-pO5" id="hXK-42-h2P"/>
                 <outlet property="urlTextField" destination="XWG-4f-Q3d" id="VGm-u1-d1W"/>
             </connections>
         </customObject>
@@ -24,7 +28,7 @@
                         <constraint firstAttribute="height" constant="30" id="SzW-Yc-udP"/>
                         <constraint firstAttribute="width" constant="100" id="fYy-yH-ktF"/>
                     </constraints>
-                    <buttonCell key="cell" type="push" title="进入URL 播放" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Jer-6B-gra">
+                    <buttonCell key="cell" type="push" title="进入播放" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Jer-6B-gra">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" usesAppearanceFont="YES"/>
                     </buttonCell>
@@ -38,8 +42,9 @@
                         <constraint firstAttribute="width" constant="400" id="U4Y-sh-o22"/>
                         <constraint firstAttribute="height" constant="25" id="zW7-g1-iiN"/>
                     </constraints>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" title="http://player.alicdn.com/video/aliyunmedia.mp4" drawsBackground="YES" id="Lyg-0Q-O08">
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="Lyg-0Q-O08">
                         <font key="font" usesAppearanceFont="YES"/>
+                        <string key="title">http://livetest.aliyunlive.com/5dbabcec4df04d20b2707369c1598aaa/7613472a0dd34731b1a1457ed5469b3f.m3u8?auth_key=1593694564-0-0-e6af5fdea33414eb065c290e1979d87d</string>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -51,7 +56,7 @@
                 <constraint firstItem="XWG-4f-Q3d" firstAttribute="top" secondItem="c22-O7-iKe" secondAttribute="top" constant="80" id="lOV-cB-MEh"/>
                 <constraint firstItem="XcW-oe-uuE" firstAttribute="centerX" secondItem="c22-O7-iKe" secondAttribute="centerX" id="tqL-38-VnP"/>
             </constraints>
-            <point key="canvasLocation" x="832" y="-60"/>
+            <point key="canvasLocation" x="327.5" y="-47.5"/>
         </customView>
         <customView identifier="inputSTS" id="a9s-bP-KsS">
             <rect key="frame" x="0.0" y="0.0" width="400" height="400"/>
@@ -227,14 +232,14 @@
                 <constraint firstItem="jKa-dc-vsh" firstAttribute="leading" secondItem="a9s-bP-KsS" secondAttribute="leading" constant="15" id="wqL-2x-Sac"/>
                 <constraint firstItem="otj-DX-eWm" firstAttribute="centerX" secondItem="a9s-bP-KsS" secondAttribute="centerX" multiplier="1.4" id="zmR-h8-P1U"/>
             </constraints>
-            <point key="canvasLocation" x="558" y="292"/>
+            <point key="canvasLocation" x="474" y="286"/>
         </customView>
         <scrollView identifier="urlLinks" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="2Gt-Cg-37s">
             <rect key="frame" x="0.0" y="0.0" width="240" height="135"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <clipView key="contentView" id="AHV-jX-sM9">
                 <rect key="frame" x="1" y="0.0" width="238" height="134"/>
-                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" selectionHighlightStyle="none" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" headerView="UON-J1-L7t" viewBased="YES" id="bfe-eg-6bj">
                         <rect key="frame" x="0.0" y="0.0" width="238" height="111"/>
@@ -295,7 +300,7 @@
                 <rect key="frame" x="0.0" y="0.0" width="238" height="23"/>
                 <autoresizingMask key="autoresizingMask"/>
             </tableHeaderView>
-            <point key="canvasLocation" x="394" y="1976"/>
+            <point key="canvasLocation" x="395" y="658"/>
         </scrollView>
         <customView identifier="localURL" id="8ME-UE-rKR" userLabel="localUrl View">
             <rect key="frame" x="0.0" y="0.0" width="636" height="213"/>
@@ -351,6 +356,87 @@
                 <constraint firstItem="GiO-b2-XUJ" firstAttribute="leading" secondItem="mzy-jd-ejd" secondAttribute="trailing" constant="10" id="wF5-Wm-Kel"/>
             </constraints>
             <point key="canvasLocation" x="1131" y="262.5"/>
+        </customView>
+        <customView identifier="MultSource" id="7dI-qr-dAd" userLabel="MultSource View">
+            <rect key="frame" x="0.0" y="0.0" width="541" height="527"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="X4B-J9-Ix4">
+                    <rect key="frame" x="71" y="426" width="400" height="21"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="400" id="Bit-AH-xM6"/>
+                        <constraint firstAttribute="height" constant="21" id="qQ0-rY-UOt"/>
+                    </constraints>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="6jx-vu-Z9q">
+                        <font key="font" usesAppearanceFont="YES"/>
+                        <string key="title">http://livetest.aliyunlive.com/5dbabcec4df04d20b2707369c1598aaa/extract/video/3a6ae80c68cd4805b6e24ada50708082-video-hd.m3u8?auth_key=1593694564-0-0-1c412da25ad73db7a3ba623e8f8548f1</string>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="soE-ps-vQo">
+                    <rect key="frame" x="71" y="380" width="400" height="21"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="400" id="4gj-h5-H4Q"/>
+                        <constraint firstAttribute="height" constant="21" id="IYE-OR-d9q"/>
+                    </constraints>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="WdC-yQ-pIA">
+                        <font key="font" usesAppearanceFont="YES"/>
+                        <string key="title">http://livetest.aliyunlive.com/5dbabcec4df04d20b2707369c1598aaa/extract/video/1f11aa5090424f21b8a2f50a6e4db449-video-sd.m3u8?auth_key=1593694564-0-0-10c46455d6cae85891690f48cbdbf223</string>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cHy-Kc-Aun">
+                    <rect key="frame" x="71" y="334" width="400" height="21"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="400" id="33w-dJ-vdF"/>
+                        <constraint firstAttribute="height" constant="21" id="FiF-GS-RhI"/>
+                    </constraints>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="iZG-S3-oJA">
+                        <font key="font" usesAppearanceFont="YES"/>
+                        <string key="title">http://livetest.aliyunlive.com/5dbabcec4df04d20b2707369c1598aaa/extract/video/7739b020b46741f7bf37dc571ddfa3d3-video-ld.m3u8?auth_key=1593694564-0-0-74cf141390f43ded03612b59b2a83627</string>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="TpR-Yu-pO5">
+                    <rect key="frame" x="71" y="288" width="400" height="21"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="400" id="m2t-2t-g6e"/>
+                        <constraint firstAttribute="height" constant="21" id="mK3-5W-G3q"/>
+                    </constraints>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="q4v-nE-cjC">
+                        <font key="font" usesAppearanceFont="YES"/>
+                        <string key="title">http://livetest.aliyunlive.com/5dbabcec4df04d20b2707369c1598aaa/extract/video/3a030719679b47a8bc9acc521ca4978b-video-fd.m3u8?auth_key=1593694564-0-0-40bb31b261b300be79f695e0724815ea</string>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="len-X3-LpK">
+                    <rect key="frame" x="204" y="210" width="133" height="32"/>
+                    <buttonCell key="cell" type="push" title="进入多画面播放" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Hsm-Ii-iIW">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="enterMultSourcePlay:" target="-2" id="oco-de-sjZ"/>
+                    </connections>
+                </button>
+            </subviews>
+            <constraints>
+                <constraint firstItem="len-X3-LpK" firstAttribute="centerX" secondItem="7dI-qr-dAd" secondAttribute="centerX" id="3db-Pw-c1l"/>
+                <constraint firstItem="cHy-Kc-Aun" firstAttribute="top" secondItem="soE-ps-vQo" secondAttribute="bottom" constant="25" id="4K7-a6-5dy"/>
+                <constraint firstItem="len-X3-LpK" firstAttribute="top" secondItem="TpR-Yu-pO5" secondAttribute="bottom" constant="50" id="PYm-e0-uhJ"/>
+                <constraint firstItem="soE-ps-vQo" firstAttribute="centerX" secondItem="7dI-qr-dAd" secondAttribute="centerX" id="bzU-0t-GNO"/>
+                <constraint firstItem="TpR-Yu-pO5" firstAttribute="top" secondItem="cHy-Kc-Aun" secondAttribute="bottom" constant="25" id="gX1-9k-t1Q"/>
+                <constraint firstItem="X4B-J9-Ix4" firstAttribute="top" secondItem="7dI-qr-dAd" secondAttribute="top" constant="80" id="p4H-GU-8Ih"/>
+                <constraint firstItem="cHy-Kc-Aun" firstAttribute="centerX" secondItem="7dI-qr-dAd" secondAttribute="centerX" id="sq2-ok-und"/>
+                <constraint firstItem="soE-ps-vQo" firstAttribute="top" secondItem="X4B-J9-Ix4" secondAttribute="bottom" constant="25" id="vX6-RE-JQp"/>
+                <constraint firstItem="TpR-Yu-pO5" firstAttribute="centerX" secondItem="7dI-qr-dAd" secondAttribute="centerX" id="vtC-ZJ-THy"/>
+                <constraint firstItem="X4B-J9-Ix4" firstAttribute="centerX" secondItem="7dI-qr-dAd" secondAttribute="centerX" id="y8H-uK-173"/>
+            </constraints>
+            <point key="canvasLocation" x="-110" y="350"/>
         </customView>
     </objects>
 </document>

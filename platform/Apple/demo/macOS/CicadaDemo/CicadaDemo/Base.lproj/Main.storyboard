@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="15505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="15400" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="15505"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="15400"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -679,7 +679,7 @@
                 <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
                 <customObject id="Ady-hI-5gd" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="75" y="0.0"/>
+            <point key="canvasLocation" x="378" y="-120"/>
         </scene>
         <!--Window Controller-->
         <scene sceneID="R2V-B0-nI4">
@@ -700,7 +700,7 @@
                 </windowController>
                 <customObject id="Oky-zY-oP4" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="75" y="250"/>
+            <point key="canvasLocation" x="75" y="179"/>
         </scene>
         <!--Root View Controller-->
         <scene sceneID="a0S-sD-0oP">
@@ -755,7 +755,7 @@
                 </viewController>
                 <customObject id="ZeP-v0-cew" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-74" y="738"/>
+            <point key="canvasLocation" x="75" y="647"/>
         </scene>
         <!--Window Controller-->
         <scene sceneID="sQI-6f-rar">
@@ -776,7 +776,7 @@
                 </windowController>
                 <customObject id="GxD-d3-PNi" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-22" y="1095"/>
+            <point key="canvasLocation" x="687" y="179"/>
         </scene>
         <!--Window Controller-->
         <scene sceneID="VRi-QA-N79">
@@ -797,7 +797,41 @@
                 </windowController>
                 <customObject id="zuE-Yr-7g9" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-32" y="1576"/>
+            <point key="canvasLocation" x="75" y="1137"/>
+        </scene>
+        <!--Window Controller-->
+        <scene sceneID="gAJ-nl-q7R">
+            <objects>
+                <windowController storyboardIdentifier="MultWindow" id="nmh-7l-jWn" sceneMemberID="viewController">
+                    <window key="window" title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="oyF-OJ-97a">
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+                        <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+                        <rect key="contentRect" x="196" y="240" width="480" height="270"/>
+                        <rect key="screenRect" x="0.0" y="0.0" width="1440" height="877"/>
+                        <connections>
+                            <outlet property="delegate" destination="nmh-7l-jWn" id="EZu-Mt-JS8"/>
+                        </connections>
+                    </window>
+                    <connections>
+                        <segue destination="5jI-qR-KhO" kind="relationship" relationship="window.shadowedContentViewController" id="CF6-ga-0vj"/>
+                    </connections>
+                </windowController>
+                <customObject id="UQZ-bl-pfz" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="75" y="1534"/>
+        </scene>
+        <!--Mutl Play View Controller-->
+        <scene sceneID="cby-4K-duW">
+            <objects>
+                <viewController storyboardIdentifier="MutlPlayViewController" id="5jI-qR-KhO" customClass="MutlPlayViewController" sceneMemberID="viewController">
+                    <view key="view" id="kFs-uY-rOf">
+                        <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </view>
+                </viewController>
+                <customObject id="bEn-36-DNw" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="705" y="1534"/>
         </scene>
         <!--Simple Player View Controller-->
         <scene sceneID="xKh-Ho-tv0">
@@ -846,7 +880,7 @@
                 </viewController>
                 <customObject id="YAZ-Wn-oqL" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="523" y="1474"/>
+            <point key="canvasLocation" x="705" y="1129"/>
         </scene>
         <!--Ali Player View Controller-->
         <scene sceneID="hIz-AP-VOD">
@@ -893,7 +927,7 @@
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-576" y="1087"/>
+            <point key="canvasLocation" x="687" y="662"/>
         </scene>
     </scenes>
 </document>

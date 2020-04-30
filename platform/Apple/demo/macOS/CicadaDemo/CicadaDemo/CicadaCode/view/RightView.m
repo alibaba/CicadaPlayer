@@ -10,6 +10,7 @@
 #import "AliPlayerViewController.h"
 #import "AppDelegate.h"
 #import "CicadaSourceChooserModel.h"
+#import "MutlPlayViewController.h"
 
 @interface RightView()<NSCollectionViewDelegate,NSCollectionViewDataSource,NSTableViewDelegate, NSTableViewDataSource>
 
@@ -23,6 +24,13 @@
 @property (nonatomic, strong) CicadaSourceSamplesModel *model;
 @property (nonatomic, strong) CicadaSourceChooserModel *chooserModel;
 @property (nonatomic, strong) NSView *view;
+@property (nonatomic, assign) ViewType type;
+
+//多画面播放
+@property (weak) IBOutlet NSTextField *multSourceText1;
+@property (weak) IBOutlet NSTextField *multSourceText2;
+@property (weak) IBOutlet NSTextField *multSourceText3;
+@property (weak) IBOutlet NSTextField *multSourceText4;
 
 @end
 
@@ -59,22 +67,29 @@
 }
 
 - (void)loadViewWithViewType:(ViewType)viewType {
-    NSString *ID = @"inputURL";
+    self.type = viewType;
+    NSString *ID = @"";
     switch (viewType) {
-        case inputURL:
+        case inputURL:{
             ID = @"inputURL";
+        }
             break;
-        case localURL:
-            ID = @"localURL";
+        case MultPlayer: {
+            ID = @"MultSource";
+        }
             break;
-
-        case urlLinks:
+        case urlLinks: {
             ID = @"urlLinks";
             self.chooserModel = [[HudTool getSourceSamplesArray]objectAtIndex:0];
             self.tableViewArray = [HudTool getDocumentMP4Array];
+        }
+            break;
+        case localURL: {
+            ID = @"localURL";
+        }
             break;
         default:
-            ID =  @"";
+            break;
     }
     [_view removeFromSuperview];
     _view = nil;
@@ -123,12 +138,16 @@
         return;
     }
     
-    NSWindowController * windowVC = [[NSStoryboard storyboardWithName:@"Main" bundle:nil]instantiateControllerWithIdentifier:@"pushWindow"];
-    windowVC.window.title = @"播放";
+    NSString *identifier = @"pushWindow";
+    NSString *title = @"播放";
+
+    NSWindowController * windowVC = [[NSStoryboard storyboardWithName:@"Main" bundle:nil]instantiateControllerWithIdentifier:identifier];
+    windowVC.window.title = title;
     NSString *urlStr = self.urlTextField.stringValue;
+    
     CicadaUrlSource *source = [[CicadaUrlSource alloc] urlWithString:urlStr];
-    AliPlayerViewController *VC = (AliPlayerViewController *)windowVC.contentViewController;
-    VC.urlSource = source;
+    [windowVC.contentViewController setValue:source forKey:@"urlSource"];
+    
     AppDelegate *appdelegate = (AppDelegate *) [NSApplication sharedApplication].delegate;
     [appdelegate.mainWindow.window close];
     appdelegate.mainWindow = windowVC;
@@ -162,6 +181,31 @@
 
 }
 
+- (IBAction)enterMultSourcePlay:(id)sender {
+    
+    if ((self.multSourceText1.stringValue.length == 0) || (self.multSourceText2.stringValue.length == 0) ||(self.multSourceText3.stringValue.length == 0) ||(self.multSourceText4.stringValue.length == 0)) {
+        [HudTool hudWithText:@"数据不全"];
+        return;
+    }
+    
+    NSWindowController * windowVC = [[NSStoryboard storyboardWithName:@"Main" bundle:nil]instantiateControllerWithIdentifier:@"MultWindow"];
+    windowVC.window.title = @"多画面播放";
+        
+    MutlPlayViewController *VC = (MutlPlayViewController *)windowVC.contentViewController;
+    CicadaUrlSource *source1 = [[CicadaUrlSource alloc] urlWithString:self.multSourceText1.stringValue];
+    CicadaUrlSource *source2 = [[CicadaUrlSource alloc] urlWithString:self.multSourceText2.stringValue];
+    CicadaUrlSource *source3 = [[CicadaUrlSource alloc] urlWithString:self.multSourceText3.stringValue];
+    CicadaUrlSource *source4 = [[CicadaUrlSource alloc] urlWithString:self.multSourceText4.stringValue];
+    VC.urlSourceArray = @[source1,source2,source3,source4];
+    
+    AppDelegate *appdelegate = (AppDelegate *) [NSApplication sharedApplication].delegate;
+    [appdelegate.mainWindow.window close];
+    appdelegate.mainWindow = windowVC;
+    [windowVC.window setContentSize:CGSizeMake(900, 500)];
+    [windowVC.window setContentMinSize:CGSizeMake(900, 500)];
+    [windowVC.window orderFront:nil];
+    
+}
 
 #pragma mark collectionView 代理函数
 
