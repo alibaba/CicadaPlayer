@@ -504,6 +504,8 @@ OBJC_EXPORT
  */
 @property (nonatomic, weak) id<CicadaDelegate> delegate;
 
+- (void)setInnerDelegate:(id<CicadaDelegate>) delegate;
+
 /**
  @brief 设置AudioSession的Delegate
  @param delegate Delegate对象
