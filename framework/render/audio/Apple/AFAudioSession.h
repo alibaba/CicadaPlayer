@@ -7,8 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
-#include "AudioRenderType.h"
-#include <functional>
+#import "AudioRenderType.h"
+#import "CicadaAudioSessionDelegate.h"
+#import <functional>
 
 using namespace Cicada;
 
@@ -17,7 +18,10 @@ using namespace Cicada;
     std::function<void(AF_AUDIO_SESSION_STATUS)> mFun;
 }
 
--(id) init:(std::function<void(AF_AUDIO_SESSION_STATUS)>)func;
+@property (nullable, nonatomic, strong) id <CicadaAudioSessionDelegate> delegate;
+
++(instancetype _Nonnull) sharedInstance;
 -(void) setCallback:(std::function<void(AF_AUDIO_SESSION_STATUS)>)func;
+-(int) activeAudio;
 
 @end
