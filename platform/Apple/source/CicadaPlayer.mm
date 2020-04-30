@@ -18,6 +18,7 @@
 #import "utils/frame_work_log.h"
 #import "thumbnail/CicadaThumbnail.h"
 #import "CicadaOCHelper.h"
+#import "AFAudioSession.h"
 
 using namespace std;
 using namespace Cicada;
@@ -921,6 +922,13 @@ int64_t CicadaClockRefer(void *arg)
     if (nil != functionName && 0 < [functionName length] && nullptr != function) {
         CicadaDynamicLoader::addFunctionToMap([functionName UTF8String], function);
     }
+}
+
++ (void)setAudioSessionDelegate:(id<CicadaAudioSessionDelegate>)delegate
+{
+#if TARGET_OS_IPHONE
+    [AFAudioSession sharedInstance].delegate = delegate;
+#endif
 }
 
 @end

@@ -13,6 +13,7 @@
 #import "CicadaMediaInfo.h"
 #import "CicadaConfig.h"
 #import "CicadaCacheConfig.h"
+#import "CicadaAudioSessionDelegate.h"
 
 OBJC_EXPORT
 @interface CicadaPlayer : NSObject
@@ -502,6 +503,16 @@ OBJC_EXPORT
  @see CicadaDelegate
  */
 @property (nonatomic, weak) id<CicadaDelegate> delegate;
+
+/**
+ @brief 设置AudioSession的Delegate
+ @param delegate Delegate对象
+ */
+/****
+ @brief 设置AudioSession的Delegate
+ @param delegate Delegate对象
+ */
++ (void)setAudioSessionDelegate:(id<CicadaAudioSessionDelegate>)delegate;
 
 /**
  @brief 设置日志打印回调block，异步
