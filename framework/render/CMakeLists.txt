@@ -69,6 +69,7 @@ if (IOS)
             audio/Apple/AFAudioSession.h
             audio/Apple/AFAudioSessionWrapper.mm
             audio/Apple/AFAudioSessionWrapper.h
+            audio/Apple/CicadaAudioSessionDelegate.h
             )
 endif ()
 
