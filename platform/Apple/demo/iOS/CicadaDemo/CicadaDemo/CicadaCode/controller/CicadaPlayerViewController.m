@@ -70,6 +70,11 @@
 */
 @property (nonatomic,assign)BOOL needStop;
 
+/**
+混音播放
+*/
+@property (nonatomic,assign)BOOL enableMix;
+
 @end
 
 @implementation CicadaPlayerViewController
@@ -97,7 +102,8 @@
     [self.settingAndConfigView setIshardwareDecoder:[CicadaTool isHardware]];
     [self.settingAndConfigView setConfigArray:configArray];
     [self.view addSubview:self.settingAndConfigView];
-    
+
+    [CicadaPlayer setAudioSessionDelegate:self];
     self.player = [[CicadaPlayer alloc] init];
     self.player.enableHardwareDecoder = [CicadaTool isHardware];
     self.player.playerView = self.CicadaView.playerView;
@@ -165,6 +171,7 @@
     }
     [self.player stop];
     [self.player destroy];
+    [CicadaPlayer setAudioSessionDelegate:nil];
     [self setScreenCanRotation:NO];
 }
 
@@ -764,13 +771,32 @@ tableview点击外挂字幕回调
     [self.CicadaView setLoadingViewProgress:(int)progress];
 }
 
-@end
+- (BOOL)setActive:(BOOL)active error:(NSError **)outError
+{
+    [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
+    return [[AVAudioSession sharedInstance] setActive:active error:outError];
+}
 
+- (BOOL)setCategory:(NSString *)category withOptions:(AVAudioSessionCategoryOptions)options error:(NSError **)outError
+{
+//    self.enableMix = YES;
+    if (self.enableMix) {
+        options = AVAudioSessionCategoryOptionMixWithOthers | AVAudioSessionCategoryOptionDuckOthers;
+    }
+    return [[AVAudioSession sharedInstance] setCategory:category withOptions:options error:outError];
+}
 
+- (BOOL)setCategory:(AVAudioSessionCategory)category mode:(AVAudioSessionMode)mode routeSharingPolicy:(AVAudioSessionRouteSharingPolicy)policy options:(AVAudioSessionCategoryOptions)options error:(NSError **)outError
+{
+    if (self.enableMix) {
+        return YES;
+    }
 
-
-
-
+    if (@available(iOS 11.0, tvOS 11.0, *)) {
+        return [[AVAudioSession sharedInstance] setCategory:category mode:mode routeSharingPolicy:policy options:options error:outError];
+    }
+    return NO;
+}
 
 - (BOOL)onVideoPixelBuffer:(CVPixelBufferRef)pixelBuffer pts:(int64_t)pts
 {
@@ -784,5 +810,4 @@ tableview点击外挂字幕回调
           lineSize[0], lineSize[1], lineSize[2], width, height);
     return NO;
 }
-
 @end
