@@ -40,7 +40,8 @@ include_directories(
         ./thumbnail
         ${TOP_DIR}/mediaPlayer
         ${TOP_DIR}/framework
-        ${TOP_DIR}/framework/render/video/glRender/platform/ios)
+        ${TOP_DIR}/framework/render/video/glRender/platform/ios
+        ${TOP_DIR}/framework/render/audio/Apple)
 
 link_directories(${SRC_LIBRARIES_DIR})
 
@@ -64,6 +65,7 @@ set(SOURCE_LIST
         CicadaSource.h
         CicadaDelegate.h
         CicadaErrorCode.h
+        ${TOP_DIR}/framework/render/audio/Apple/CicadaAudioSessionDelegate.h
         thumbnail/CicadaThumbnail.h
         thumbnail/CicadaThumbnail.mm
         thumbnail/CicadaThumbnailItem.h
@@ -92,6 +94,7 @@ set(PUBLIC_HEADERS
         CicadaPlayerSDK.h
         CicadaDelegate.h
         CicadaErrorCode.h
+        ${TOP_DIR}/framework/render/audio/Apple/CicadaAudioSessionDelegate.h
         )
 
 if (IOS)
