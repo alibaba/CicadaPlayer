@@ -39,6 +39,7 @@
 		9282EB4C22168F410032F3DF /* RightView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9282EB4B22168F410032F3DF /* RightView.m */; };
 		9282EB4E22168F520032F3DF /* RightView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9282EB4D22168F520032F3DF /* RightView.xib */; };
 		92B040CD222788C800FFA403 /* ConfigSetView.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B040CC222788C800FFA403 /* ConfigSetView.m */; };
+		9E66A3B82451751600EBFDE4 /* MutlPlayViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E66A3B72451751600EBFDE4 /* MutlPlayViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -210,6 +211,8 @@
 		9282EB4D22168F520032F3DF /* RightView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = RightView.xib; sourceTree = "<group>"; };
 		92B040CB222788C800FFA403 /* ConfigSetView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigSetView.h; sourceTree = "<group>"; };
 		92B040CC222788C800FFA403 /* ConfigSetView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConfigSetView.m; sourceTree = "<group>"; };
+		9E66A3B62451751600EBFDE4 /* MutlPlayViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MutlPlayViewController.h; sourceTree = "<group>"; };
+		9E66A3B72451751600EBFDE4 /* MutlPlayViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MutlPlayViewController.m; sourceTree = "<group>"; };
 		B97ADCAB94193F6589D4DA69 /* Pods-AliPlayerDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AliPlayerDemo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AliPlayerDemo/Pods-AliPlayerDemo.debug.xcconfig"; sourceTree = "<group>"; };
 		D622A9A7E2A93156E086DEFA /* Pods-CicadaDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CicadaDemo.release.xcconfig"; path = "Pods/Target Support Files/Pods-CicadaDemo/Pods-CicadaDemo.release.xcconfig"; sourceTree = "<group>"; };
 		E9E63D7913B0D1BB3B3E4672 /* Pods-AliPlayerDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AliPlayerDemo.release.xcconfig"; path = "Pods/Target Support Files/Pods-AliPlayerDemo/Pods-AliPlayerDemo.release.xcconfig"; sourceTree = "<group>"; };
@@ -342,6 +345,8 @@
 				92560B8C21FED4E4001244CA /* AliPlayerViewController.m */,
 				9282EB3F221650010032F3DF /* RootViewController.h */,
 				9282EB40221650010032F3DF /* RootViewController.m */,
+				9E66A3B62451751600EBFDE4 /* MutlPlayViewController.h */,
+				9E66A3B72451751600EBFDE4 /* MutlPlayViewController.m */,
 			);
 			path = controller;
 			sourceTree = "<group>";
@@ -605,6 +610,7 @@
 				1F940555239DFA9F00F07BEE /* CicadaConfig+refresh.m in Sources */,
 				92560B8D21FED4E4001244CA /* AliPlayerViewController.m in Sources */,
 				92560B9321FEE28C001244CA /* AVBottomView.m in Sources */,
+				9E66A3B82451751600EBFDE4 /* MutlPlayViewController.m in Sources */,
 				92560B8A21FEB2AE001244CA /* AVPBaseViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
