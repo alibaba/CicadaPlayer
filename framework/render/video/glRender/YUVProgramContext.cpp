@@ -190,7 +190,7 @@ int YUVProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
     }
 
     glViewport(0, 0, mWindowWidth, mWindowHeight);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(mColor[0], mColor[1], mColor[2], mColor[3]);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(mProgram);
@@ -573,5 +573,16 @@ void YUVProgramContext::updateColorSpace() {
         mUColorSpace[7] = -0.714136f;
         mUColorSpace[8] = 0.0f;
 
+    }
+}
+
+void YUVProgramContext::updateBackgroundColor(unsigned int color) {
+    if(color != mBackgroundColor) {
+        mBackgroundColor = color;
+
+        mColor[0] = ((color >> 16) & 0xff) / 255.0f;//r
+        mColor[1] = ((color >> 8) & 0xff) / 255.0f;//g
+        mColor[2] = ((color) & 0xff) / 255.0f;//b
+        mColor[3] = ((color >> 24) & 0xff) / 255.0f;//a
     }
 }

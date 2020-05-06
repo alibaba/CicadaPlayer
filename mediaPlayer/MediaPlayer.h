@@ -243,6 +243,11 @@ namespace Cicada {
         MirrorMode GetMirrorMode();
 
         /*
+         * set clear color
+         */
+        void SetBackgroundColor(unsigned int color);
+
+        /*
          * set speed of current playing, 0.5-2.0
          */
         void SetSpeed(float speed);

@@ -204,6 +204,11 @@ RotateMode CicadaGetRotateMode(playerHandle *player);
  */
 void CicadaSetMirrorMode(playerHandle *pHandle, MirrorMode mode);
 
+/*
+ * set clear color
+ */
+void CicadaSetBackgroundColor(playerHandle *pHandle, unsigned int color);
+
 /**
  * get rending mirror mode
  */

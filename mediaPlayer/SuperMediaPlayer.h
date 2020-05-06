@@ -111,6 +111,8 @@ namespace Cicada {
 
         void SetMirrorMode(MirrorMode mode) override;
 
+        void SetBackgroundColor(unsigned int color) override;
+
         MirrorMode GetMirrorMode() override;
 
         int GetCurrentStreamIndex(StreamType type) override;
@@ -332,6 +334,8 @@ namespace Cicada {
         void ProcessSetRotationMode() final;
 
         void ProcessSetMirrorMode() final;
+
+        void ProcessSetBackgroundColor() final;
 
         void ProcessSetViewMsg(void *view) final;
 

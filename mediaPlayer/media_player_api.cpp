@@ -401,6 +401,15 @@ void CicadaSetMirrorMode(playerHandle *pHandle, MirrorMode mode)
     }
 }
 
+void CicadaSetBackgroundColor(playerHandle *pHandle, unsigned int color)
+{
+    GET_PLAYER;
+
+    if (player) {
+        player->SetBackgroundColor(color);
+    }
+}
+
 MirrorMode CicadaGetMirrorMode(playerHandle *pHandle)
 {
     GET_PLAYER;

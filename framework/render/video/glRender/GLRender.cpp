@@ -31,6 +31,8 @@ static const int MAX_IN_SIZE = 3;
 
 using namespace Cicada;
 
+#define CORRECT_COLOR(x) (((x) < 0.0f ? 0.0f : (x) > 255.0f ? 255.0f : (x)) / 255.0f)
+
 GLRender::GLRender(float Hz)
 {
     mVSync = VSyncFactory::create(*this, Hz);
@@ -143,6 +145,11 @@ int GLRender::setScale(IVideoRender::Scale scale)
     return 0;
 }
 
+
+void GLRender::setBackgroundColor(unsigned int color)
+{
+    mBackgroundColor = color;
+};
 
 int GLRender::onVSync(int64_t tick)
 {
@@ -354,6 +361,7 @@ bool GLRender::renderActually()
     mProgramContext->updateRotate(finalRotate);
     mProgramContext->updateWindowSize(mWindowWidth, mWindowHeight, displayViewChanged);
     mProgramContext->updateFlip(mFlip);
+    mProgramContext->updateBackgroundColor(mBackgroundColor);
     int ret = mProgramContext->updateFrame(frame);
     //work around for glReadPixels is upside-down.
     {
@@ -396,7 +404,10 @@ bool GLRender::renderActually()
 
     if (mClearScreenOn) {
         glViewport(0, 0, mWindowWidth, mWindowHeight);
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        /* {
+             std::unique_lock<mutex> lock(mClearColorMutex);
+             glClearColor(mClearColor[0], mClearColor[1], mClearColor[2], mClearColor[3]);
+         }*/
         glClear(GL_COLOR_BUFFER_BIT);
         mContext->Present(mGLSurface);
 
@@ -599,4 +610,5 @@ void GLRender::surfaceChanged()
     std::unique_lock<mutex> lock(mRenderCallbackMutex);
     mRenderCallbackCon.wait(lock);
 #endif
-};
+}
+

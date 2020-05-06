@@ -24,6 +24,7 @@ namespace Cicada {
             case MSG_SET_DISPLAY_MODE:
             case MSG_SET_ROTATE_MODE:
             case MSG_SET_MIRROR_MODE:
+            case MSG_SET_BACKGROUND_COLOR:
                 return REPLACE_ALL;
 
             case MSG_START:
@@ -230,6 +231,10 @@ namespace Cicada {
 
             case MSG_SET_MIRROR_MODE:
                 mProcessor.ProcessSetMirrorMode();
+                break;
+
+            case MSG_SET_BACKGROUND_COLOR:
+                mProcessor.ProcessSetBackgroundColor();
                 break;
 
             case MSG_SEEKTO:

@@ -673,6 +673,16 @@ namespace Cicada {
         this->putMsg(MSG_SET_MIRROR_MODE, dummyMsg);
     }
 
+    void SuperMediaPlayer::SetBackgroundColor(unsigned int color)
+    {
+        if (color == mSet.mBackgroundColor ) {
+            return;
+        }
+
+        mSet.mBackgroundColor = color;
+        this->putMsg(MSG_SET_BACKGROUND_COLOR, dummyMsg);
+    }
+
     MirrorMode SuperMediaPlayer::GetMirrorMode()
     {
         return mSet.mirrorMode;
@@ -3081,6 +3091,7 @@ namespace Cicada {
         mVideoRender = videoRenderFactory::create();
         mVideoRender->setScale(convertScaleMode(mSet.scaleMode));
         mVideoRender->setRotate(convertRotateMode(mSet.rotateMode));
+        mVideoRender->setBackgroundColor(mSet.mBackgroundColor);
         mVideoRender->setFlip(convertMirrorMode(mSet.mirrorMode));
         mVideoRender->setDisPlay(mSet.mView);
         mVideoRender->setRenderResultCallback([this](int64_t pts, bool rendered) -> void {
@@ -3814,6 +3825,13 @@ namespace Cicada {
     {
         if (mVideoRender) {
             mVideoRender->setFlip(convertMirrorMode(mSet.mirrorMode));
+        }
+    }
+
+    void SuperMediaPlayer::ProcessSetBackgroundColor()
+    {
+        if (mVideoRender) {
+            mVideoRender->setBackgroundColor(mSet.mBackgroundColor);
         }
     }
 
