@@ -23,6 +23,8 @@ private:
 
     void updateRotate(IVideoRender::Rotate rotate) override ;
 
+    void updateBackgroundColor(unsigned int color) override;
+
     void updateWindowSize(int width, int height, bool windowChanged) override ;
 
     int updateFrame(std::unique_ptr<IAFFrame> &frame) override;
@@ -92,6 +94,8 @@ private:
     GLfloat  mUColorRange[3] = {0.0f};
     int mColorRange = 0;
 
+    unsigned int mBackgroundColor = 0xff000000;
+    float mColor[4] = {0.0f,0.0f,0.0f,1.0f};
 };
 
 

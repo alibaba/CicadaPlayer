@@ -30,6 +30,8 @@ private:
 
     void updateFlip(IVideoRender::Flip flip) override ;
 
+    void updateBackgroundColor(unsigned int color) override;
+
     int updateFrame(std::unique_ptr<IAFFrame> &frame) override;
 
 private:
@@ -78,6 +80,9 @@ private:
     std::mutex mFrameAvailableMutex;
     std::condition_variable mFrameAvailableCon;
     bool mFrameAvailable = false;
+
+    float mColor[4]={0.0f,0.0f,0.0f,1.0f};
+    unsigned int mBackgroundColor = 0xff000000;
 };
 
 

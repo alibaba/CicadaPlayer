@@ -55,6 +55,8 @@ public:
 
     virtual void updateRotate(IVideoRender::Rotate rotate) = 0;
 
+    virtual void updateBackgroundColor(unsigned int color) = 0;
+
     virtual void updateWindowSize(int width, int height, bool windowChanged) = 0;
 
     virtual int updateFrame(std::unique_ptr<IAFFrame> &frame) = 0;

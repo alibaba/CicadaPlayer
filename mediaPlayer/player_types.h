@@ -56,6 +56,7 @@ namespace Cicada {
         int64_t AnalyticsID = -1;
         int mDefaultBandWidth = 0;
         playerOptions mOptions;
+        unsigned int mBackgroundColor = 0xFF000000;
         bool bEnableVRC = false;
         int maxASeekDelta = 21 * 1000 * 1000;//us
 

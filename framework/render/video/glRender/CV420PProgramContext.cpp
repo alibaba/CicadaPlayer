@@ -133,6 +133,17 @@ void CV420PProgramContext::updateRotate(IVideoRender::Rotate rotate) {
     }
 }
 
+void CV420PProgramContext::updateBackgroundColor(unsigned int color) {
+    if(color != mBackgroundColor) {
+        mBackgroundColor = color;
+
+        mColor[0] = ((color >> 16) & 0xff) / 255.0f;//r
+        mColor[1] = ((color >> 8) & 0xff) / 255.0f;//g
+        mColor[2] = ((color) & 0xff) / 255.0f;//b
+        mColor[3] = ((color >> 24) & 0xff) / 255.0f;//a
+    }
+}
+
 void CV420PProgramContext::updateWindowSize(int width, int height, bool windowChanged) {
     if (mWindowWidth == width && mWindowHeight == height && !windowChanged) {
         return;
@@ -198,7 +209,7 @@ int CV420PProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
 
     int64_t t2 = af_getsteady_ms();
     glViewport(0, 0, mWindowWidth, mWindowHeight);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(mColor[0], mColor[1], mColor[2], mColor[3]);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(mCVProgram);
