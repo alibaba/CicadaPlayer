@@ -41,6 +41,8 @@ public:
 
 private:
 
+    void getShaderLocations();
+
     void updateUProjection();
 
     void updateFlipCoords();
@@ -80,6 +82,15 @@ private:
     int mFrameHeight = 0;
 
     GLuint mCVProgram = 0;
+    GLuint mVertShader = 0;
+    GLuint mFragmentShader = 0;
+    GLint mYLocation = 0;
+    GLint mUVLocation = 0;
+    GLint mProjectionLocation = 0;
+    GLint mColorSpaceLocation = 0;
+    GLint mColorRangeLocation = 0;
+    GLuint mPositionLocation = 0;
+    GLuint mTexCoordLocation = 0;
 
     bool mProjectionChanged = false;
     GLfloat mUProjection[4][4];
@@ -102,6 +113,7 @@ private:
 
     unsigned int mBackgroundColor = 0xff000000;
     float mColor[4]={0.0f,0.0f,0.0f,1.0f};
+    bool mBackgroundColorChanged = true;
 
 };
 

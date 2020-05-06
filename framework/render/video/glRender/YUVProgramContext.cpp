@@ -57,15 +57,19 @@ YUVProgramContext::YUVProgramContext() {
 
 YUVProgramContext::~YUVProgramContext() {
     AF_LOGD("~YUVProgramContext");
-    glDeleteTextures(3, mYUVTextures);
+    glDisableVertexAttribArray(mPositionLocation);
+    glDisableVertexAttribArray(mTexCoordLocation);
+    glDetachShader(mProgram, mVertShader);
+    glDetachShader(mProgram, mFragmentShader);
+    glDeleteShader(mVertShader);
+    glDeleteShader(mFragmentShader);
     glDeleteProgram(mProgram);
+    glDeleteTextures(3, mYUVTextures);
 }
 
 int YUVProgramContext::initProgram() {
     AF_LOGD("createProgram ");
     mProgram = glCreateProgram();
-    GLuint mVertShader = 0;
-    GLuint mFragmentShader = 0;
     int mInitRet = compileShader(&mVertShader, YUV_VERTEX_SHADER, GL_VERTEX_SHADER);
 
     if (mInitRet != 0) {
@@ -85,10 +89,6 @@ int YUVProgramContext::initProgram() {
     glLinkProgram(mProgram);
     GLint status;
     glGetProgramiv(mProgram, GL_LINK_STATUS, &status);
-    glDetachShader(mProgram, mVertShader);
-    glDetachShader(mProgram, mFragmentShader);
-    glDeleteShader(mVertShader);
-    glDeleteShader(mFragmentShader);
 
     if (status != GL_TRUE) {
         int length = 0;
@@ -98,6 +98,11 @@ int YUVProgramContext::initProgram() {
         return -1;
     }
 
+    glUseProgram(mProgram);
+    getShaderLocations();
+
+    glEnableVertexAttribArray(mPositionLocation);
+    glEnableVertexAttribArray(mTexCoordLocation);
 
     createYUVTextures();
 
@@ -167,64 +172,45 @@ int YUVProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
 
     if(frame == nullptr && !mProjectionChanged && !mRegionChanged && !mCoordsChanged){
         //frame is null and nothing changed , don`t need redraw. such as paused.
-//        AF_LOGW("0918, nothing changed");
         return -1;
     }
 
     if (mProjectionChanged) {
-//        AF_LOGD("0918, mProjectionChanged");
         updateUProjection();
         mProjectionChanged = false;
     }
 
     if (mRegionChanged) {
-//        AF_LOGD("0918, mRegionChanged");
         updateDrawRegion();
         mRegionChanged = false;
     }
 
     if (mCoordsChanged) {
-//        AF_LOGD("0918, mCoordsChanged");
         updateFlipCoords();
         mCoordsChanged = false;
     }
 
-    glViewport(0, 0, mWindowWidth, mWindowHeight);
-    glClearColor(mColor[0], mColor[1], mColor[2], mColor[3]);
-    glClear(GL_COLOR_BUFFER_BIT);
 
-    glUseProgram(mProgram);
+    glViewport(0, 0, mWindowWidth, mWindowHeight);
+    if(mBackgroundColorChanged) {
+        glClearColor(mColor[0], mColor[1], mColor[2], mColor[3]);
+        mBackgroundColorChanged = false;
+    }
+    glClear(GL_COLOR_BUFFER_BIT);
 
     if (frame != nullptr) {
         fillDataToYUVTextures(frame->getData(), frame->getLineSize(), frame->getInfo().format);
-//        AF_LOGD("0918, draw() pts = %lld" , frame->getInfo().pts);
-    }else {
-//        AF_LOGD("0918, draw() texture");
     }
+
     bindYUVTextures();
 
-    GLint location = glGetUniformLocation(mProgram, "u_projection");
-    glUniformMatrix4fv(location, 1, GL_FALSE, (GLfloat *) mUProjection);
-
-    GLint colorSpace = glGetUniformLocation(mProgram, "uColorSpace");
-    glUniformMatrix3fv(colorSpace, 1, GL_FALSE, (GLfloat *) mUColorSpace);
-
-    GLint colorRange = glGetUniformLocation(mProgram, "uColorRange");
-    glUniform3f(colorRange, mUColorRange[0], mUColorRange[1], mUColorRange[2]);
-
-    auto positionIndex = static_cast<GLuint>(glGetAttribLocation(mProgram, "a_position"));
-    auto texCoordIndex = static_cast<GLuint>(glGetAttribLocation(mProgram, "a_texCoord"));
-
-    glEnableVertexAttribArray(positionIndex);
-    glEnableVertexAttribArray(texCoordIndex);
-
-    glVertexAttribPointer(positionIndex, 2, GL_FLOAT, GL_FALSE, 0, mDrawRegion);
-    glVertexAttribPointer(texCoordIndex, 2, GL_FLOAT, GL_FALSE, 0, mFlipCoords);
+    glUniformMatrix4fv(mProjectionLocation, 1, GL_FALSE, (GLfloat *) mUProjection);
+    glUniformMatrix3fv(mColorSpaceLocation, 1, GL_FALSE, (GLfloat *) mUColorSpace);
+    glUniform3f(mColorRangeLocation, mUColorRange[0], mUColorRange[1], mUColorRange[2]);
+    glVertexAttribPointer(mPositionLocation, 2, GL_FLOAT, GL_FALSE, 0, mDrawRegion);
+    glVertexAttribPointer(mTexCoordLocation, 2, GL_FLOAT, GL_FALSE, 0, mFlipCoords);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    glDisableVertexAttribArray(positionIndex);
-    glDisableVertexAttribArray(texCoordIndex);
 
     return 0;
 }
@@ -482,8 +468,7 @@ void YUVProgramContext::fillDataToYUVTextures(uint8_t **data, int *pLineSize, in
     glPixelStorei(GL_UNPACK_ROW_LENGTH, pLineSize[0] );
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, yWidth, mFrameHeight,
                  0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data[0]);
-    GLint yLocation = glGetUniformLocation(mProgram, "y_tex");
-    glUniform1i(yLocation, 0);
+    glUniform1i(mYTexLocation, 0);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
 //update u
@@ -491,8 +476,7 @@ void YUVProgramContext::fillDataToYUVTextures(uint8_t **data, int *pLineSize, in
     glPixelStorei(GL_UNPACK_ROW_LENGTH,  pLineSize[1]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, uvWidth, uvHeight ,
                  0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data[1]);
-    GLint uLocation = glGetUniformLocation(mProgram, "u_tex");
-    glUniform1i(uLocation, 1);
+    glUniform1i(mUTexLocation, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
 //update v
@@ -500,8 +484,7 @@ void YUVProgramContext::fillDataToYUVTextures(uint8_t **data, int *pLineSize, in
     glPixelStorei(GL_UNPACK_ROW_LENGTH,  pLineSize[2]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, uvWidth, uvHeight ,
                  0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data[2]);
-    GLint vLocation = glGetUniformLocation(mProgram, "v_tex");
-    glUniform1i(vLocation, 2);
+    glUniform1i(mVTexLocation, 2);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
 
@@ -578,6 +561,7 @@ void YUVProgramContext::updateColorSpace() {
 
 void YUVProgramContext::updateBackgroundColor(unsigned int color) {
     if(color != mBackgroundColor) {
+        mBackgroundColorChanged = true;
         mBackgroundColor = color;
 
         mColor[0] = ((color >> 16) & 0xff) / 255.0f;//r
@@ -585,4 +569,15 @@ void YUVProgramContext::updateBackgroundColor(unsigned int color) {
         mColor[2] = ((color) & 0xff) / 255.0f;//b
         mColor[3] = ((color >> 24) & 0xff) / 255.0f;//a
     }
+}
+
+void YUVProgramContext::getShaderLocations() {
+     mProjectionLocation = glGetUniformLocation(mProgram, "u_projection");
+     mColorSpaceLocation = glGetUniformLocation(mProgram, "uColorSpace");
+     mColorRangeLocation = glGetUniformLocation(mProgram, "uColorRange");
+     mPositionLocation = static_cast<GLuint>(glGetAttribLocation(mProgram, "a_position"));
+     mTexCoordLocation = static_cast<GLuint>(glGetAttribLocation(mProgram, "a_texCoord"));
+     mYTexLocation = glGetUniformLocation(mProgram, "y_tex");
+     mUTexLocation = glGetUniformLocation(mProgram, "u_tex");
+     mVTexLocation = glGetUniformLocation(mProgram, "v_tex");
 }
