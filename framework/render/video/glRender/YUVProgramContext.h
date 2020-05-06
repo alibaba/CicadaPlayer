@@ -37,6 +37,8 @@ private:
 
     void bindYUVTextures();
 
+    void getShaderLocations();
+
     void updateUProjection();
 
     void updateDrawRegion();
@@ -73,7 +75,18 @@ private:
     int mYLineSize = 0;
 
     GLuint  mProgram = 0;
-    GLuint  mYUVTextures[3];
+    GLuint mVertShader = 0;
+    GLuint mFragmentShader = 0;
+
+    GLint mProjectionLocation;
+    GLint mColorSpaceLocation;
+    GLint mColorRangeLocation;
+    GLuint mPositionLocation;
+    GLuint mTexCoordLocation;
+    GLuint mYUVTextures[3];
+    GLint mYTexLocation;
+    GLint mUTexLocation;
+    GLint mVTexLocation;
 
     bool mProjectionChanged = false;
     GLfloat mUProjection[4][4];
@@ -96,6 +109,8 @@ private:
 
     unsigned int mBackgroundColor = 0xff000000;
     float mColor[4] = {0.0f,0.0f,0.0f,1.0f};
+    bool mBackgroundColorChanged = true;
+
 };
 
 
