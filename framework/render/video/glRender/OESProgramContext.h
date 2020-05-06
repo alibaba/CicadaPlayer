@@ -36,6 +36,8 @@ private:
 
 private:
 
+    void getShaderLocations();
+
     void updateFlipCoords();
 
     void updateDrawRegion();
@@ -59,6 +61,14 @@ private:
     Cicada::DecoderSurface *mDecoderSurface = nullptr;
 
     GLuint mOESProgram = 0;
+    GLuint mVertShader = 0;
+    GLuint mFragmentShader = 0;
+    GLuint mPositionLocation = 0;
+    GLuint mTexCoordLocation = 0;
+    GLint mMVPMatrixLocation = 0;
+    GLint mSTMatrixLocation = 0;
+    GLint mTextureLocation = 0;
+
 
     GLfloat mOESMVMatrix[16] = {1.0f, 0, 0, 0,
                                 0, 1.0f, 0, 0,
@@ -83,6 +93,8 @@ private:
 
     float mColor[4]={0.0f,0.0f,0.0f,1.0f};
     unsigned int mBackgroundColor = 0xff000000;
+    bool mBackgroundColorChanged = true;
+
 };
 
 

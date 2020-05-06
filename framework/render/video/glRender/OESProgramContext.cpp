@@ -39,6 +39,12 @@ OESProgramContext::OESProgramContext() {
 
 OESProgramContext::~OESProgramContext() {
     AF_LOGD("~OESProgramContext");
+    glDisableVertexAttribArray(mPositionLocation);
+    glDisableVertexAttribArray(mTexCoordLocation);
+    glDetachShader(mOESProgram, mVertShader);
+    glDetachShader(mOESProgram, mFragmentShader);
+    glDeleteShader(mVertShader);
+    glDeleteShader(mFragmentShader);
     glDeleteTextures(1, &mOutTextureId);
     glDeleteProgram(mOESProgram);
     if (mDecoderSurface != nullptr) {
@@ -52,8 +58,6 @@ int OESProgramContext::initProgram() {
     AF_LOGD("createProgram ");
     mOESProgram = glCreateProgram();
 
-    GLuint mVertShader = 0;
-    GLuint mFragmentShader = 0;
     int mInitRet = compileShader(&mVertShader, OES_VERTEX_SHADER, GL_VERTEX_SHADER);
 
     if (mInitRet != 0) {
@@ -74,10 +78,6 @@ int OESProgramContext::initProgram() {
 
     GLint status;
     glGetProgramiv(mOESProgram, GL_LINK_STATUS, &status);
-    glDetachShader(mOESProgram, mVertShader);
-    glDetachShader(mOESProgram, mFragmentShader);
-    glDeleteShader(mVertShader);
-    glDeleteShader(mFragmentShader);
 
     if (status != GL_TRUE) {
         int length = 0;
@@ -86,6 +86,12 @@ int OESProgramContext::initProgram() {
         AF_LOGW("linkProgram  error is %s \n", glchar);
         return -1;
     }
+
+    glUseProgram(mOESProgram);
+    getShaderLocations();
+
+    glEnableVertexAttribArray(mPositionLocation);
+    glEnableVertexAttribArray(mTexCoordLocation);
 
     return 0;
 }
@@ -359,43 +365,27 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
         mCoordsChanged = false;
     }
 
-
-    glUseProgram(mOESProgram);
-
-    auto positionIndex = static_cast<GLuint>(glGetAttribLocation(mOESProgram,
-                                                                 "aPosition"));
-    auto texCoordIndex = static_cast<GLuint>(glGetAttribLocation(mOESProgram,
-                                                                 "aTextureCoord"));
-
-    glEnableVertexAttribArray(positionIndex);
-    glEnableVertexAttribArray(texCoordIndex);
-
-    glVertexAttribPointer(positionIndex, 3, GL_FLOAT, GL_FALSE, 12, mDrawRegion);
-    glVertexAttribPointer(texCoordIndex, 2, GL_FLOAT, GL_FALSE, 8, mOESFlipCoords);
-
-    GLint MVPMatrixLocation = glGetUniformLocation(mOESProgram, "uMVPMatrix");
-    GLint STMatrixLocation = glGetUniformLocation(mOESProgram, "uSTMatrix");
+    glVertexAttribPointer(mPositionLocation, 3, GL_FLOAT, GL_FALSE, 12, mDrawRegion);
+    glVertexAttribPointer(mTexCoordLocation, 2, GL_FLOAT, GL_FALSE, 8, mOESFlipCoords);
 
     mDecoderSurface->UpdateTexImg();
     mDecoderSurface->GetTransformMatrix(mOESSTMatrix);
 
-    glUniformMatrix4fv(MVPMatrixLocation, 1, GL_FALSE, mOESMVMatrix);
-    glUniformMatrix4fv(STMatrixLocation, 1, GL_FALSE, mOESSTMatrix);
-
-    GLint uTextureSamplerLocation = glGetUniformLocation(mOESProgram, "sTexture");
-    glUniform1i(uTextureSamplerLocation, 0);
-
+    glUniformMatrix4fv(mMVPMatrixLocation, 1, GL_FALSE, mOESMVMatrix);
+    glUniformMatrix4fv(mSTMatrixLocation, 1, GL_FALSE, mOESSTMatrix);
+    glUniform1i(mTextureLocation, 0);
 
     glViewport(0, 0, mWindowWidth, mWindowHeight);
-    glClearColor(mColor[0], mColor[1], mColor[2], mColor[3]);
+
+    if(mBackgroundColorChanged) {
+        glClearColor(mColor[0], mColor[1], mColor[2], mColor[3]);
+        mBackgroundColorChanged = true;
+    }
+
     glClear(GL_COLOR_BUFFER_BIT);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_EXTERNAL_OES, mOutTextureId);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-
-//    glDisableVertexAttribArray(positionIndex);
-//    glDisableVertexAttribArray(texCoordIndex);
 
     return 0;
 }
@@ -428,7 +418,8 @@ void OESProgramContext::createSurface() {
 }
 
 void OESProgramContext::updateBackgroundColor(unsigned int color) {
-    if(color != mBackgroundColor) {
+    if (color != mBackgroundColor) {
+        mBackgroundColorChanged = true;
         mBackgroundColor = color;
 
         mColor[0] = ((color >> 16) & 0xff) / 255.0f;//r
@@ -436,4 +427,12 @@ void OESProgramContext::updateBackgroundColor(unsigned int color) {
         mColor[2] = ((color) & 0xff) / 255.0f;//b
         mColor[3] = ((color >> 24) & 0xff) / 255.0f;//a
     }
+}
+
+void OESProgramContext::getShaderLocations() {
+    mPositionLocation = static_cast<GLuint>(glGetAttribLocation(mOESProgram, "aPosition"));
+    mTexCoordLocation = static_cast<GLuint>(glGetAttribLocation(mOESProgram, "aTextureCoord"));
+    mMVPMatrixLocation = glGetUniformLocation(mOESProgram, "uMVPMatrix");
+    mSTMatrixLocation = glGetUniformLocation(mOESProgram, "uSTMatrix");
+    mTextureLocation = glGetUniformLocation(mOESProgram, "sTexture");
 }
