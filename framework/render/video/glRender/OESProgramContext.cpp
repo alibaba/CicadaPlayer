@@ -52,9 +52,9 @@ int OESProgramContext::initProgram() {
     AF_LOGD("createProgram ");
     mOESProgram = glCreateProgram();
 
-    GLuint mVertShader     = 0;
+    GLuint mVertShader = 0;
     GLuint mFragmentShader = 0;
-    int    mInitRet        = compileShader(&mVertShader, OES_VERTEX_SHADER, GL_VERTEX_SHADER);
+    int mInitRet = compileShader(&mVertShader, OES_VERTEX_SHADER, GL_VERTEX_SHADER);
 
     if (mInitRet != 0) {
         AF_LOGE("compileShader mVertShader failed. ret = %d ", mInitRet);
@@ -80,7 +80,7 @@ int OESProgramContext::initProgram() {
     glDeleteShader(mFragmentShader);
 
     if (status != GL_TRUE) {
-        int    length      = 0;
+        int length = 0;
         GLchar glchar[256] = {0};
         glGetProgramInfoLog(mOESProgram, 256, &length, glchar);
         AF_LOGW("linkProgram  error is %s \n", glchar);
@@ -111,7 +111,7 @@ void OESProgramContext::updateWindowSize(int width, int height, bool windowChang
         return;
     }
 
-    mWindowWidth  = width;
+    mWindowWidth = width;
     mWindowHeight = height;
     mRegionChanged = true;
 }
@@ -139,28 +139,28 @@ void OESProgramContext::updateDrawRegion() {
         mDrawRegion[7] = (GLfloat) 1.0f;
         mDrawRegion[8] = (GLfloat) 0.0f;
 
-        mDrawRegion[9]  = (GLfloat) -1.0f;
+        mDrawRegion[9] = (GLfloat) -1.0f;
         mDrawRegion[10] = (GLfloat) 1.0f;
         mDrawRegion[11] = (GLfloat) 0.0f;
 
         return;
     }
 
-    int   windowWidth  = mWindowWidth;
-    int   windowHeight = mWindowHeight;
-    int   off_x        = 0;
-    int   off_y        = 0;
-    int   w            = mWindowWidth;
-    int   h            = mWindowHeight;
-    int   realWidth    = 0;
-    int   realHeight   = 0;
+    int windowWidth = mWindowWidth;
+    int windowHeight = mWindowHeight;
+    int off_x = 0;
+    int off_y = 0;
+    int w = mWindowWidth;
+    int h = mWindowHeight;
+    int realWidth = 0;
+    int realHeight = 0;
 
     if (mRotate == IVideoRender::Rotate::Rotate_90 ||
         mRotate == IVideoRender::Rotate::Rotate_270) {
-        realWidth  = mFrameHeight;
+        realWidth = mFrameHeight;
         realHeight = static_cast<int>(mFrameHeight * mDar);
     } else {
-        realWidth  = static_cast<int>(mFrameHeight * mDar);
+        realWidth = static_cast<int>(mFrameHeight * mDar);
         realHeight = mFrameHeight;
     }
 
@@ -169,18 +169,18 @@ void OESProgramContext::updateDrawRegion() {
 
     if (mScale == IVideoRender::Scale::Scale_AspectFit) {
         if (scale_w >= scale_h) {
-            w     = static_cast<int>(scale_h * realWidth);
+            w = static_cast<int>(scale_h * realWidth);
             off_x = (windowWidth - w);
         } else {
-            h     = static_cast<int>(scale_w * realHeight);
+            h = static_cast<int>(scale_w * realHeight);
             off_y = (windowHeight - h);
         }
     } else if (mScale == IVideoRender::Scale::Scale_AspectFill) {
         if (scale_w < scale_h) {
-            w     = static_cast<int>(scale_h * realWidth);
+            w = static_cast<int>(scale_h * realWidth);
             off_x = (windowWidth - w);
         } else {
-            h     = static_cast<int>(scale_w * realHeight);
+            h = static_cast<int>(scale_w * realHeight);
             off_y = (windowHeight - h);
         }
     }
@@ -201,7 +201,7 @@ void OESProgramContext::updateDrawRegion() {
         mDrawRegion[7] = (GLfloat) 1.0f - offY;
         mDrawRegion[8] = (GLfloat) 0.0f;
 
-        mDrawRegion[9]  = (GLfloat) -1.0f + offX;
+        mDrawRegion[9] = (GLfloat) -1.0f + offX;
         mDrawRegion[10] = (GLfloat) 1.0f - offY;
         mDrawRegion[11] = (GLfloat) 0.0f;
     } else if (mRotate == IVideoRender::Rotate::Rotate_90) {
@@ -218,7 +218,7 @@ void OESProgramContext::updateDrawRegion() {
         mDrawRegion[7] = (GLfloat) -1.0f + offY;
         mDrawRegion[8] = (GLfloat) 0.0f;
 
-        mDrawRegion[9]  = (GLfloat) 1.0f - offX;
+        mDrawRegion[9] = (GLfloat) 1.0f - offX;
         mDrawRegion[10] = (GLfloat) 1.0f - offY;
         mDrawRegion[11] = (GLfloat) 0.0f;
 
@@ -235,7 +235,7 @@ void OESProgramContext::updateDrawRegion() {
         mDrawRegion[7] = (GLfloat) -1.0f + offY;
         mDrawRegion[8] = (GLfloat) 0.0f;
 
-        mDrawRegion[9]  = (GLfloat) 1.0f - offX;
+        mDrawRegion[9] = (GLfloat) 1.0f - offX;
         mDrawRegion[10] = (GLfloat) -1.0f + offY;
         mDrawRegion[11] = (GLfloat) 0.0f;
     } else if (mRotate == IVideoRender::Rotate::Rotate_270) {
@@ -251,7 +251,7 @@ void OESProgramContext::updateDrawRegion() {
         mDrawRegion[7] = (GLfloat) 1.0f - offY;
         mDrawRegion[8] = (GLfloat) 0.0f;
 
-        mDrawRegion[9]  = (GLfloat) -1.0f + offX;
+        mDrawRegion[9] = (GLfloat) -1.0f + offX;
         mDrawRegion[10] = (GLfloat) -1.0f + offY;
         mDrawRegion[11] = (GLfloat) 0.0f;
     }
@@ -276,7 +276,7 @@ void OESProgramContext::updateFlipCoords() {
         mOESFlipCoords[5] = 0.0f;
         mOESFlipCoords[6] = 0.0f;
         mOESFlipCoords[7] = 0.0f;
-    } else if(mFlip == IVideoRender::Flip::Flip_Both){
+    } else if (mFlip == IVideoRender::Flip::Flip_Both) {
         mOESFlipCoords[0] = 0.0f;
         mOESFlipCoords[1] = 1.0f;
         mOESFlipCoords[2] = 1.0f;
@@ -325,7 +325,7 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
         }
     }
 
-    if(frame == nullptr && !mRegionChanged && !mCoordsChanged){
+    if (frame == nullptr && !mRegionChanged && !mCoordsChanged) {
         //frame is null and nothing changed , don`t need redraw. such as paused.
 //        AF_LOGW("0918, nothing changed");
         return -1;
@@ -363,9 +363,9 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
     glUseProgram(mOESProgram);
 
     auto positionIndex = static_cast<GLuint>(glGetAttribLocation(mOESProgram,
-                                                                   "aPosition"));
+                                                                 "aPosition"));
     auto texCoordIndex = static_cast<GLuint>(glGetAttribLocation(mOESProgram,
-                                                                   "aTextureCoord"));
+                                                                 "aTextureCoord"));
 
     glEnableVertexAttribArray(positionIndex);
     glEnableVertexAttribArray(texCoordIndex);
@@ -374,7 +374,7 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
     glVertexAttribPointer(texCoordIndex, 2, GL_FLOAT, GL_FALSE, 8, mOESFlipCoords);
 
     GLint MVPMatrixLocation = glGetUniformLocation(mOESProgram, "uMVPMatrix");
-    GLint STMatrixLocation  = glGetUniformLocation(mOESProgram, "uSTMatrix");
+    GLint STMatrixLocation = glGetUniformLocation(mOESProgram, "uSTMatrix");
 
     mDecoderSurface->UpdateTexImg();
     mDecoderSurface->GetTransformMatrix(mOESSTMatrix);
@@ -387,7 +387,7 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
 
 
     glViewport(0, 0, mWindowWidth, mWindowHeight);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(mColor[0], mColor[1], mColor[2], mColor[3]);
     glClear(GL_COLOR_BUFFER_BIT);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_EXTERNAL_OES, mOutTextureId);
@@ -424,5 +424,16 @@ void OESProgramContext::createSurface() {
     {
         std::unique_lock<std::mutex> lock(mFrameAvailableMutex);
         mFrameAvailable = false;
+    }
+}
+
+void OESProgramContext::updateBackgroundColor(unsigned int color) {
+    if(color != mBackgroundColor) {
+        mBackgroundColor = color;
+
+        mColor[0] = ((color >> 16) & 0xff) / 255.0f;//r
+        mColor[1] = ((color >> 8) & 0xff) / 255.0f;//g
+        mColor[2] = ((color) & 0xff) / 255.0f;//b
+        mColor[3] = ((color >> 24) & 0xff) / 255.0f;//a
     }
 }

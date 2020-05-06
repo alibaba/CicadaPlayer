@@ -83,6 +83,13 @@ public:
      */
     virtual int clearScreen() = 0;
 
+    /*
+     * set background color
+     */
+    virtual void setBackgroundColor(unsigned int color) {
+
+    };
+
     /**
      * set want draw frame.
      * @param frame
