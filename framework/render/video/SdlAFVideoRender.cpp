@@ -87,11 +87,17 @@ int SdlAFVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
 {
     {
         std::unique_lock<std::mutex> lock(mRenderMutex);
+        if (frame == nullptr) {
+            mVSync->pause();
+        }
         if (mLastVideoFrame && mRenderResultCallback) {
             mLastVideoFrame->setDiscard(true);
             mRenderResultCallback(mLastVideoFrame->getInfo().pts, false);
         }
         mLastVideoFrame = std::move(frame);
+        if (frame == nullptr) {
+            mVSync->start();
+        }
     }
 //    int width = frame->getInfo().video.width;
 //    int height = frame->getInfo().video.height;
