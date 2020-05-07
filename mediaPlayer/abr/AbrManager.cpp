@@ -26,27 +26,36 @@ AbrManager::~AbrManager()
 
 void AbrManager::Reset()
 {
-    if(mAlgoStrategy) {
+    if (mAlgoStrategy) {
         mAlgoStrategy->Reset();
     }
 }
 
 void AbrManager::Start()
 {
-    mRunning = true;
+    {
+        std::unique_lock<std::mutex> uMutex(mMutex);
+        mRunning = true;
+    }
     mPMainThread->start();
 }
 
 void AbrManager::Pause()
 {
-    mRunning = false;
+    {
+        std::unique_lock<std::mutex> uMutex(mMutex);
+        mRunning = false;
+    }
     mCondition.notify_one();
     mPMainThread->pause();
 }
 
 void AbrManager::Stop()
 {
-    mRunning = false;
+    {
+        std::unique_lock<std::mutex> uMutex(mMutex);
+        mRunning = false;
+    }
     mCondition.notify_one();
     mPMainThread->stop();
 }
@@ -56,7 +65,7 @@ void AbrManager::EnableAbr(bool bEnabled)
     mEnableAbr = bEnabled;
 }
 
-void AbrManager::SetAbrAlgoStrategy(AbrAlgoStrategy* abrAlgo)
+void AbrManager::SetAbrAlgoStrategy(AbrAlgoStrategy *abrAlgo)
 {
     mAlgoStrategy = abrAlgo;
 }
@@ -64,10 +73,11 @@ void AbrManager::SetAbrAlgoStrategy(AbrAlgoStrategy* abrAlgo)
 int AbrManager::AbrAdjustFun()
 {
     std::unique_lock<std::mutex> uMutex(mMutex);
-    mCondition.wait_for(uMutex, std::chrono::milliseconds(mMsgProcessTime), [this](){ return !mRunning; });
-    
+    mCondition.wait_for(uMutex, std::chrono::milliseconds(mMsgProcessTime), [this]() { return !mRunning; });
+
     if (mAlgoStrategy && mEnableAbr) {
         mAlgoStrategy->ProcessAbrAlgo();
     }
+
     return 0;
 }

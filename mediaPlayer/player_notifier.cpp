@@ -153,7 +153,10 @@ namespace Cicada {
 
     PlayerNotifier::~PlayerNotifier()
     {
-        mRunning = false;
+        {
+            std::unique_lock<std::mutex> uMutex(mMutex);
+            mRunning = false;
+        }
         mCondition.notify_one();
         delete mpThread;
         Clean();

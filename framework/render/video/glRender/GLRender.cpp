@@ -269,6 +269,7 @@ bool GLRender::renderActually()
     if (needCreateOutTexture) {
         IProgramContext *programContext = getProgram(AF_PIX_FMT_CICADA_MEDIA_CODEC);
         programContext->createSurface();
+        std::unique_lock<std::mutex> locker(mCreateOutTextureMutex);
         needCreateOutTexture = false;
         mCreateOutTextureCondition.notify_all();
     }
