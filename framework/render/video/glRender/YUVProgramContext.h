@@ -108,7 +108,6 @@ private:
     int mColorRange = 0;
 
     unsigned int mBackgroundColor = 0xff000000;
-    float mColor[4] = {0.0f,0.0f,0.0f,1.0f};
     bool mBackgroundColorChanged = true;
 
 };
