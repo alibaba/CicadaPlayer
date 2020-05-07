@@ -340,11 +340,6 @@ namespace Cicada {
 
         AF_TRACE;
 
-        if (mVideoRender) {
-            std::unique_ptr<IAFFrame> nullFrame{nullptr};
-            mVideoRender->renderFrame(nullFrame);
-        }
-
         if (mAudioDecoder != nullptr) {
             //because FlushAudioPath call mAudioOutHandle flush, so stop should called first
             if (mAudioRender) {
@@ -3817,7 +3812,6 @@ namespace Cicada {
             mVideoChangedFirstPts = INT64_MIN;
         }
 
-        assert(mDemuxerService != nullptr);
         mDemuxerService->SetOption("FRAME_RENDERED", pts);
 
         if (mSet.bEnableVRC) {
