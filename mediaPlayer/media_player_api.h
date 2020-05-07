@@ -207,7 +207,7 @@ void CicadaSetMirrorMode(playerHandle *pHandle, MirrorMode mode);
 /*
  * set clear color
  */
-void CicadaSetBackgroundColor(playerHandle *pHandle, unsigned int color);
+void CicadaSetVideoBackgroundColor(playerHandle *pHandle, uint32_t color);
 
 /**
  * get rending mirror mode

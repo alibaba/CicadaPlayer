@@ -420,7 +420,7 @@ void OESProgramContext::createSurface() {
     }
 }
 
-void OESProgramContext::updateBackgroundColor(unsigned int color) {
+void OESProgramContext::updateBackgroundColor(uint32_t color) {
     if (color != mBackgroundColor) {
         mBackgroundColorChanged = true;
         mBackgroundColor = color;

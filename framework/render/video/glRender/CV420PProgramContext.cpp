@@ -142,7 +142,7 @@ void CV420PProgramContext::updateRotate(IVideoRender::Rotate rotate) {
     }
 }
 
-void CV420PProgramContext::updateBackgroundColor(unsigned int color) {
+void CV420PProgramContext::updateBackgroundColor(uint32_t color) {
     if(color != mBackgroundColor) {
         mBackgroundColorChanged = true;
         mBackgroundColor = color;

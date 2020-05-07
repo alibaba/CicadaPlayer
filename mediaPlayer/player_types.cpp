@@ -55,7 +55,7 @@ namespace Cicada {
         lowMemSize = 100 * 1024 * 1024; //100M
 #endif
         mDefaultBandWidth = 0;
-        mBackgroundColor = 0xFF000000;
+        mVideoBackgroundColor = 0xFF000000;
         // Don't reset AnalyticsID
         mOptions.reset();
     }

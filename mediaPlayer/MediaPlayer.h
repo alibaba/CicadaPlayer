@@ -245,7 +245,7 @@ namespace Cicada {
         /*
          * set clear color
          */
-        void SetBackgroundColor(unsigned int color);
+        void SetVideoBackgroundColor(uint32_t color);
 
         /*
          * set speed of current playing, 0.5-2.0

@@ -673,14 +673,14 @@ namespace Cicada {
         this->putMsg(MSG_SET_MIRROR_MODE, dummyMsg);
     }
 
-    void SuperMediaPlayer::SetBackgroundColor(unsigned int color)
+    void SuperMediaPlayer::SetVideoBackgroundColor(uint32_t color)
     {
-        if (color == mSet.mBackgroundColor ) {
+        if (color == mSet.mVideoBackgroundColor ) {
             return;
         }
 
-        mSet.mBackgroundColor = color;
-        this->putMsg(MSG_SET_BACKGROUND_COLOR, dummyMsg);
+        mSet.mVideoBackgroundColor = color;
+        this->putMsg(MSG_SET_VIDEO_BACKGROUND_COLOR, dummyMsg);
     }
 
     MirrorMode SuperMediaPlayer::GetMirrorMode()
@@ -3091,7 +3091,7 @@ namespace Cicada {
         mVideoRender = videoRenderFactory::create();
         mVideoRender->setScale(convertScaleMode(mSet.scaleMode));
         mVideoRender->setRotate(convertRotateMode(mSet.rotateMode));
-        mVideoRender->setBackgroundColor(mSet.mBackgroundColor);
+        mVideoRender->setBackgroundColor(mSet.mVideoBackgroundColor);
         mVideoRender->setFlip(convertMirrorMode(mSet.mirrorMode));
         mVideoRender->setDisPlay(mSet.mView);
         mVideoRender->setRenderResultCallback([this](int64_t pts, bool rendered) -> void {
@@ -3828,10 +3828,10 @@ namespace Cicada {
         }
     }
 
-    void SuperMediaPlayer::ProcessSetBackgroundColor()
+    void SuperMediaPlayer::ProcessSetVideoBackgroundColor()
     {
         if (mVideoRender) {
-            mVideoRender->setBackgroundColor(mSet.mBackgroundColor);
+            mVideoRender->setBackgroundColor(mSet.mVideoBackgroundColor);
         }
     }
 

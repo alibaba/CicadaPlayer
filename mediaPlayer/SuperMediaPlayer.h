@@ -111,7 +111,7 @@ namespace Cicada {
 
         void SetMirrorMode(MirrorMode mode) override;
 
-        void SetBackgroundColor(unsigned int color) override;
+        void SetVideoBackgroundColor(uint32_t color) override;
 
         MirrorMode GetMirrorMode() override;
 
@@ -335,7 +335,7 @@ namespace Cicada {
 
         void ProcessSetMirrorMode() final;
 
-        void ProcessSetBackgroundColor() final;
+        void ProcessSetVideoBackgroundColor() final;
 
         void ProcessSetViewMsg(void *view) final;
 

@@ -25,7 +25,7 @@ namespace Cicada {
         MSG_SET_DISPLAY_MODE,
         MSG_SET_ROTATE_MODE,
         MSG_SET_MIRROR_MODE,
-        MSG_SET_BACKGROUND_COLOR,
+        MSG_SET_VIDEO_BACKGROUND_COLOR,
 
         MSG_ADD_EXT_SUBTITLE,
         MSG_SELECT_EXT_SUBTITLE,
@@ -121,7 +121,7 @@ namespace Cicada {
 
         virtual void ProcessSetMirrorMode() = 0;
 
-        virtual void ProcessSetBackgroundColor() = 0;
+        virtual void ProcessSetVideoBackgroundColor() = 0;
 
         virtual void ProcessSetViewMsg(void *view) = 0;
 

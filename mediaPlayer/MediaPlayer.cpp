@@ -589,10 +589,10 @@ namespace Cicada {
         return CicadaGetMirrorMode(handle);
     }
 
-    void MediaPlayer::SetBackgroundColor(unsigned int color)
+    void MediaPlayer::SetVideoBackgroundColor(uint32_t color)
     {
         GET_PLAYER_HANDLE
-        CicadaSetBackgroundColor(handle, color);
+        CicadaSetVideoBackgroundColor(handle, color);
     }
 
     void MediaPlayer::SetSpeed(float speed)

@@ -562,7 +562,7 @@ void YUVProgramContext::updateColorSpace() {
     }
 }
 
-void YUVProgramContext::updateBackgroundColor(unsigned int color) {
+void YUVProgramContext::updateBackgroundColor(uint32_t color) {
     if(color != mBackgroundColor) {
         mBackgroundColorChanged = true;
         mBackgroundColor = color;
