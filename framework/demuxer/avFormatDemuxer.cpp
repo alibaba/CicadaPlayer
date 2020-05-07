@@ -457,8 +457,14 @@ namespace Cicada {
 
         bPaused = true;
 #if AF_HAVE_PTHREAD
+        {
+            std::unique_lock<std::mutex> waitLock(mQueLock);
+            bPaused = true;
+        }
         mQueCond.notify_one();
         mPthread->pause();
+#else
+        bPaused = true;
 #endif
 
         if (mInterruptCb) {
@@ -541,7 +547,10 @@ namespace Cicada {
     void avFormatDemuxer::Stop()
     {
 #if AF_HAVE_PTHREAD
-        bPaused = true;
+        {
+            std::unique_lock<std::mutex> waitLock(mQueLock);
+            bPaused = true;
+        }
         mQueCond.notify_one();
 
         if (mPthread) {
@@ -683,6 +692,7 @@ namespace Cicada {
     void avFormatDemuxer::PreStop()
     {
 #if AF_HAVE_PTHREAD
+        std::unique_lock<std::mutex> waitLock(mQueLock);
         bPaused = true;
         mQueCond.notify_one();
 #endif

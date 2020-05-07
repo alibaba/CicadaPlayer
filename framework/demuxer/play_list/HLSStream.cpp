@@ -1206,7 +1206,11 @@ namespace Cicada {
             seek_internal(num, us);
         }
 
-        mSwitchNeedBreak = true;
+        {
+            std::unique_lock<std::mutex> waitLock(mDataMutex);
+            mSwitchNeedBreak = true;
+        }
+
         mWaitCond.notify_one();
         interrupt_internal(1);
 
@@ -1273,7 +1277,11 @@ namespace Cicada {
 
     int HLSStream::reopenSegment(uint64_t num, OpenType openType)
     {
-        mSwitchNeedBreak = true;
+        {
+            std::unique_lock<std::mutex> waitLock(mDataMutex);
+            mSwitchNeedBreak = true;
+        }
+
         mWaitCond.notify_one();
 
         if (mThreadPtr) {
@@ -1340,7 +1348,10 @@ namespace Cicada {
 
     void HLSStream::interrupt(int inter)
     {
-        mInterrupted = static_cast<bool>(inter);
+        {
+            std::unique_lock<std::mutex> waitLock(mDataMutex);
+            mInterrupted = static_cast<bool>(inter);
+        }
         interrupt_internal(inter);
     }
 

@@ -37,14 +37,19 @@ int ActiveDecoder::open(const Stream_meta *meta, void *voutObsr, uint64_t flags)
 
 void ActiveDecoder::close()
 {
-    mRunning = false;
 #if AF_HAVE_PTHREAD
+    {
+        std::unique_lock<std::mutex> locker(mSleepMutex);
+        mRunning = false;
+    }
     mSleepCondition.notify_one();
 
     if (mDecodeThread) {
         mDecodeThread->pause();
     }
 
+#else
+    mRunning = false;
 #endif
     close_decoder();
 #if AF_HAVE_PTHREAD
@@ -339,7 +344,10 @@ void ActiveDecoder::flush()
 void ActiveDecoder::preClose()
 {
 #if AF_HAVE_PTHREAD
-    mRunning = false;
+    {
+        std::unique_lock<std::mutex> locker(mSleepMutex);
+        mRunning = false;
+    }
     mSleepCondition.notify_one();
 
     if (mDecodeThread) {
