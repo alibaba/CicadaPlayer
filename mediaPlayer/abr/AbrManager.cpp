@@ -35,20 +35,29 @@ void AbrManager::Reset()
 
 void AbrManager::Start()
 {
-    mRunning = true;
+    {
+        std::unique_lock<std::mutex> uMutex(mMutex);
+        mRunning = true;
+    }
     mPMainThread->start();
 }
 
 void AbrManager::Pause()
 {
-    mRunning = false;
+    {
+        std::unique_lock<std::mutex> uMutex(mMutex);
+        mRunning = false;
+    }
     mCondition.notify_one();
     mPMainThread->pause();
 }
 
 void AbrManager::Stop()
 {
-    mRunning = false;
+    {
+        std::unique_lock<std::mutex> uMutex(mMutex);
+        mRunning = false;
+    }
     mCondition.notify_one();
     mPMainThread->stop();
 }
