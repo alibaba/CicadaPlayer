@@ -120,7 +120,7 @@ namespace Cicada {
 
         virtual void SetMirrorMode(MirrorMode mode) = 0;
 
-        virtual void SetBackgroundColor(unsigned int color) = 0;
+        virtual void SetVideoBackgroundColor(uint32_t color) = 0;
 
         virtual MirrorMode GetMirrorMode() = 0;
 

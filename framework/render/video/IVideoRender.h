@@ -86,7 +86,7 @@ public:
     /*
      * set background color
      */
-    virtual void setBackgroundColor(unsigned int color) {
+    virtual void setBackgroundColor(uint32_t color) {
 
     };
 

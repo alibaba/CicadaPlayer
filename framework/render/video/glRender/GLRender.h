@@ -105,7 +105,7 @@ protected:
     std::atomic<Rotate> mRotate{Rotate_None};
     std::atomic<Flip> mFlip{Flip_None};
     std::atomic<Scale> mScale{Scale_AspectFit};
-    std::atomic_uint mBackgroundColor{0xff000000};
+    std::atomic<uint32_t> mBackgroundColor{0xff000000};
 
     int mWindowWidth = 0;
     int mWindowHeight = 0;
