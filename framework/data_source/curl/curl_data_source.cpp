@@ -193,6 +193,10 @@ int CurlDataSource::Open(int flags)
         fillConnectInfo();
     }
 
+    if (nullptr == mConnections) {
+        mConnections = new std::vector<CURLConnection *>();
+    }
+
     return ret;
 }
 
@@ -368,7 +372,6 @@ int64_t CurlDataSource::TrySeekByNewConnection(int64_t offset)
     AsyncJob::Instance()->addJob([pConnection_s] {
         delete pConnection_s;
     });
-
     return ret;
 }
 
