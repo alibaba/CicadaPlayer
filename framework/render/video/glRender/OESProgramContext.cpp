@@ -4,6 +4,7 @@
 #define LOG_TAG "GLRender_OESContext"
 
 #include <utils/timer.h>
+#include <render/video/glRender/base/utils.h>
 #include "OESProgramContext.h"
 
 using namespace cicada;
@@ -378,7 +379,9 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
     glViewport(0, 0, mWindowWidth, mWindowHeight);
 
     if(mBackgroundColorChanged) {
-        glClearColor(mColor[0], mColor[1], mColor[2], mColor[3]);
+        float color[4] = {0.0f,0.0f,0.0f,1.0f};
+        cicada::convertToGLColor(mBackgroundColor , color);
+        glClearColor(color[0], color[1], color[2], color[3]);
         mBackgroundColorChanged = true;
     }
 
@@ -421,11 +424,6 @@ void OESProgramContext::updateBackgroundColor(unsigned int color) {
     if (color != mBackgroundColor) {
         mBackgroundColorChanged = true;
         mBackgroundColor = color;
-
-        mColor[0] = ((color >> 16) & 0xff) / 255.0f;//r
-        mColor[1] = ((color >> 8) & 0xff) / 255.0f;//g
-        mColor[2] = ((color) & 0xff) / 255.0f;//b
-        mColor[3] = ((color >> 24) & 0xff) / 255.0f;//a
     }
 }
 

@@ -10,6 +10,7 @@
 #include <utils/AFMediaType.h>
 #include <cassert>
 #include <cstdlib>
+#include <render/video/glRender/base/utils.h>
 
 using namespace std;
 
@@ -30,8 +31,6 @@ static const int MAX_IN_SIZE = 3;
 #include "YUVProgramContext.h"
 
 using namespace Cicada;
-
-#define CORRECT_COLOR(x) (((x) < 0.0f ? 0.0f : (x) > 255.0f ? 255.0f : (x)) / 255.0f)
 
 GLRender::GLRender(float Hz)
 {
@@ -406,10 +405,7 @@ bool GLRender::renderActually()
         glViewport(0, 0, mWindowWidth, mWindowHeight);
         unsigned int backgroundColor = mBackgroundColor;
         float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-        color[0] = ((backgroundColor >> 16) & 0xff) / 255.0f;//r
-        color[1] = ((backgroundColor >> 8) & 0xff) / 255.0f;//g
-        color[2] = ((backgroundColor) & 0xff) / 255.0f;//b
-        color[3] = ((backgroundColor >> 24) & 0xff) / 255.0f;//a
+        cicada::convertToGLColor(backgroundColor, color);
         glClearColor(color[0], color[1], color[2], color[3]);
         glClear(GL_COLOR_BUFFER_BIT);
         mContext->Present(mGLSurface);
