@@ -31,7 +31,7 @@ public:
 
     void updateRotate(IVideoRender::Rotate rotate) override;
 
-    void updateBackgroundColor(unsigned int color) override;
+    void updateBackgroundColor(uint32_t color) override;
 
     void updateWindowSize(int width, int height, bool windowChanged) override;
 
@@ -111,7 +111,7 @@ private:
     GLfloat  mUColorRange[3] = {0.0f};
     int mColorRange = 0;
 
-    unsigned int mBackgroundColor = 0xff000000;
+    uint32_t mBackgroundColor = 0xff000000;
     bool mBackgroundColorChanged = true;
 
 };

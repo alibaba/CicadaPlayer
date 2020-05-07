@@ -10,7 +10,7 @@ extern "C" {
 
 namespace cicada {
 
-    static inline void convertToGLColor(unsigned int color, float *dst) {
+    static inline void convertToGLColor(uint32_t color, float *dst) {
         if(dst == nullptr){
             return;
         }

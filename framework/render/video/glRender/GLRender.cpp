@@ -145,7 +145,7 @@ int GLRender::setScale(IVideoRender::Scale scale)
 }
 
 
-void GLRender::setBackgroundColor(unsigned int color)
+void GLRender::setBackgroundColor(uint32_t color)
 {
     mBackgroundColor = color;
 };
