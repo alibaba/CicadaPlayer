@@ -193,6 +193,10 @@ int CurlDataSource::Open(int flags)
         fillConnectInfo();
     }
 
+    if (nullptr == mConnections) {
+        mConnections = new std::vector<CURLConnection *>();
+    }
+
     return ret;
 }
 
