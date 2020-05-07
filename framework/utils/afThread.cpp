@@ -64,11 +64,13 @@ int afThread::start()
 {
     std::unique_lock<std::mutex> uMutex(mMutex);
     mTryPaused = false;
-    mThreadStatus = THREAD_STATUS_RUNNING;
 
     if (nullptr == mThreadPtr) {
+        mThreadStatus = THREAD_STATUS_RUNNING;
         mThreadPtr = new std::thread(threadRun, this);
     } else {
+        std::unique_lock<std::mutex> sleepMutex(mSleepMutex);
+        mThreadStatus = THREAD_STATUS_RUNNING;
         mSleepCondition.notify_one();
     }
 
@@ -160,7 +162,10 @@ void afThread::stop()
     AF_TRACE;
     std::unique_lock<std::mutex> uMutex(mMutex);
     mTryPaused = false;
-    mThreadStatus = THREAD_STATUS_STOPPED;
+    {
+        std::unique_lock<std::mutex> sleepMutex(mSleepMutex);
+        mThreadStatus = THREAD_STATUS_STOPPED;
+    }
     mSleepCondition.notify_one();
 
     if (mThreadPtr && mThreadPtr->joinable()) {
@@ -183,7 +188,10 @@ afThread::~afThread()
 {
     std::unique_lock<std::mutex> uMutex(mMutex);
     mTryPaused = false;
-    mThreadStatus = THREAD_STATUS_IDLE;
+    {
+        std::unique_lock<std::mutex> sleepMutex(mSleepMutex);
+        mThreadStatus = THREAD_STATUS_IDLE;
+    }
     mSleepCondition.notify_one();
 
     if (mThreadPtr && mThreadPtr->joinable()) {

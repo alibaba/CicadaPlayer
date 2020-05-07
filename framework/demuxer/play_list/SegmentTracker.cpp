@@ -29,8 +29,11 @@ namespace Cicada {
 
     SegmentTracker::~SegmentTracker()
     {
-        mStopLoading = true;
-        mNeedUpdata = true;
+        {
+            std::unique_lock<std::mutex> locker(mSegMutex);
+            mStopLoading = true;
+            mNeedUpdata = true;
+        }
         mSegCondition.notify_all();
         delete mThread;
         std::unique_lock<std::recursive_mutex> locker(mMutex);
@@ -292,6 +295,7 @@ namespace Cicada {
 
             //   AF_LOGD("mTargetDuration is %lld", (int64_t)mTargetDuration);
             if (time - mLastLoadTime > (mTargetDuration / 2)) {
+                std::unique_lock<std::mutex> locker(mSegMutex);
                 mNeedUpdata = true;
                 mSegCondition.notify_all();
                 mLastLoadTime = time;
@@ -313,10 +317,12 @@ namespace Cicada {
     {
         // TODO: stop when eos
         while (!mStopLoading) {
-            std::unique_lock<std::mutex> locker(mSegMutex);
-            mSegCondition.wait(locker, [this]() {
-                return mNeedUpdata;
-            });
+            {
+                std::unique_lock<std::mutex> locker(mSegMutex);
+                mSegCondition.wait(locker, [this]() {
+                    return mNeedUpdata;
+                });
+            }
 
             if (!mStopLoading) {
                 mPlayListStatus = loadPlayList();
