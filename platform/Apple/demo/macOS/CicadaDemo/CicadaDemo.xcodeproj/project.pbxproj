@@ -43,12 +43,33 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		1F760BA623A384BC0026AFFE /* PBXContainerItemProxy */ = {
+		1F2FD325246517040092EDFF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = 93A779ECE52C45F6B08B227C;
-			remoteInfo = AliMuxer;
+			remoteGlobalIDString = A6E1B4AB205147F681D380DC;
+			remoteInfo = communication;
+		};
+		1F2FD327246517040092EDFF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4D899771A52945328D571CAA;
+			remoteInfo = media_player;
+		};
+		1F2FD329246517040092EDFF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 82C58CAA9D90462FA3AFCB2B;
+			remoteInfo = muxer;
+		};
+		1F2FD32B246517080092EDFF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 91A0E9604A2247A2853F86C1;
+			remoteInfo = install;
 		};
 		1F760BA823A384BC0026AFFE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -63,13 +84,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = F1137BCA8A074173B694BB23;
 			remoteInfo = alivcffmpeg;
-		};
-		1F760BAC23A384BC0026AFFE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 2DD0B175C16B44D493BB1885;
-			remoteInfo = apsara_player;
 		};
 		1F760BAE23A384BC0026AFFE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -133,13 +147,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = 74253BED679A4FB78DC0DEB2;
 			remoteInfo = videodec;
-		};
-		1F760BC023A3852B0026AFFE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1F760B9323A384BC0026AFFE /* CicadaPlayerSDK.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = ED5CF35F3892472381614F84;
-			remoteInfo = install;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -237,16 +244,17 @@
 		1F760B9423A384BC0026AFFE /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1F760BA723A384BC0026AFFE /* libAliMuxer.a */,
 				1F760BA923A384BC0026AFFE /* CicadaPlayerSDK.framework/CicadaPlayerSDK */,
 				1F760BAB23A384BC0026AFFE /* alivcffmpeg.framework/alivcffmpeg */,
-				1F760BAD23A384BC0026AFFE /* libapsara_player.a */,
 				1F760BAF23A384BC0026AFFE /* libbitStreamDecoder.a */,
 				1F760BB123A384BC0026AFFE /* libcacheModule.a */,
+				1F2FD326246517040092EDFF /* libcommunication.a */,
 				1F760BB323A384BC0026AFFE /* libdata_source.a */,
 				1F760BB523A384BC0026AFFE /* libdemuxer.a */,
 				1F760BB723A384BC0026AFFE /* libframework_filter.a */,
 				1F760BB923A384BC0026AFFE /* libframework_utils.a */,
+				1F2FD328246517040092EDFF /* libmedia_player.a */,
+				1F2FD32A246517040092EDFF /* libmuxer.a */,
 				1F760BBB23A384BC0026AFFE /* libplugin.a */,
 				1F760BBD23A384BC0026AFFE /* librender.a */,
 				1F760BBF23A384BC0026AFFE /* libvideodec.a */,
@@ -407,7 +415,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				1F760BC123A3852B0026AFFE /* PBXTargetDependency */,
+				1F2FD32C246517080092EDFF /* PBXTargetDependency */,
 			);
 			name = CicadaDemo;
 			productName = AliPlayerDemo;
@@ -453,11 +461,25 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		1F760BA723A384BC0026AFFE /* libAliMuxer.a */ = {
+		1F2FD326246517040092EDFF /* libcommunication.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
-			path = libAliMuxer.a;
-			remoteRef = 1F760BA623A384BC0026AFFE /* PBXContainerItemProxy */;
+			path = libcommunication.a;
+			remoteRef = 1F2FD325246517040092EDFF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1F2FD328246517040092EDFF /* libmedia_player.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libmedia_player.a;
+			remoteRef = 1F2FD327246517040092EDFF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1F2FD32A246517040092EDFF /* libmuxer.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libmuxer.a;
+			remoteRef = 1F2FD329246517040092EDFF /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		1F760BA923A384BC0026AFFE /* CicadaPlayerSDK.framework/CicadaPlayerSDK */ = {
@@ -474,13 +496,6 @@
 			name = alivcffmpeg.framework/alivcffmpeg;
 			path = alivcffmpeg.framework;
 			remoteRef = 1F760BAA23A384BC0026AFFE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		1F760BAD23A384BC0026AFFE /* libapsara_player.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libapsara_player.a;
-			remoteRef = 1F760BAC23A384BC0026AFFE /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		1F760BAF23A384BC0026AFFE /* libbitStreamDecoder.a */ = {
@@ -618,10 +633,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		1F760BC123A3852B0026AFFE /* PBXTargetDependency */ = {
+		1F2FD32C246517080092EDFF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = install;
-			targetProxy = 1F760BC023A3852B0026AFFE /* PBXContainerItemProxy */;
+			targetProxy = 1F2FD32B246517080092EDFF /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

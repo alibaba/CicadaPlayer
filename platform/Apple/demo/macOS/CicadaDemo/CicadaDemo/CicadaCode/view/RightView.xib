@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="16096" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="15400" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="16096"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="15400"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -239,7 +239,7 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <clipView key="contentView" id="AHV-jX-sM9">
                 <rect key="frame" x="1" y="0.0" width="238" height="134"/>
-                <autoresizingMask key="autoresizingMask"/>
+                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
                     <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" selectionHighlightStyle="none" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" headerView="UON-J1-L7t" viewBased="YES" id="bfe-eg-6bj">
                         <rect key="frame" x="0.0" y="0.0" width="238" height="111"/>
@@ -250,6 +250,7 @@
                         <tableColumns>
                             <tableColumn width="235" minWidth="40" maxWidth="1000" id="eKO-fH-vkO">
                                 <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
+                                    <font key="font" metaFont="smallSystem"/>
                                     <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                 </tableHeaderCell>
@@ -288,11 +289,11 @@
                     </tableView>
                 </subviews>
             </clipView>
-            <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="BAM-Z8-WpQ">
+            <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="BAM-Z8-WpQ">
                 <rect key="frame" x="1" y="118" width="238" height="16"/>
                 <autoresizingMask key="autoresizingMask"/>
             </scroller>
-            <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="xa6-q2-NHh">
+            <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="xa6-q2-NHh">
                 <rect key="frame" x="224" y="17" width="15" height="102"/>
                 <autoresizingMask key="autoresizingMask"/>
             </scroller>
@@ -361,7 +362,7 @@
             <rect key="frame" x="0.0" y="0.0" width="541" height="527"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="X4B-J9-Ix4">
+                <textField verticalHuggingPriority="750" tag="1" translatesAutoresizingMaskIntoConstraints="NO" id="X4B-J9-Ix4">
                     <rect key="frame" x="71" y="426" width="400" height="21"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="400" id="Bit-AH-xM6"/>
@@ -369,12 +370,11 @@
                     </constraints>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="6jx-vu-Z9q">
                         <font key="font" usesAppearanceFont="YES"/>
-                        <string key="title">http://livetest.aliyunlive.com/5dbabcec4df04d20b2707369c1598aaa/extract/video/3a6ae80c68cd4805b6e24ada50708082-video-hd.m3u8?auth_key=1593694564-0-0-1c412da25ad73db7a3ba623e8f8548f1</string>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="soE-ps-vQo">
+                <textField verticalHuggingPriority="750" tag="2" translatesAutoresizingMaskIntoConstraints="NO" id="soE-ps-vQo">
                     <rect key="frame" x="71" y="380" width="400" height="21"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="400" id="4gj-h5-H4Q"/>
@@ -382,12 +382,11 @@
                     </constraints>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="WdC-yQ-pIA">
                         <font key="font" usesAppearanceFont="YES"/>
-                        <string key="title">http://livetest.aliyunlive.com/5dbabcec4df04d20b2707369c1598aaa/extract/video/1f11aa5090424f21b8a2f50a6e4db449-video-sd.m3u8?auth_key=1593694564-0-0-10c46455d6cae85891690f48cbdbf223</string>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cHy-Kc-Aun">
+                <textField verticalHuggingPriority="750" tag="3" translatesAutoresizingMaskIntoConstraints="NO" id="cHy-Kc-Aun">
                     <rect key="frame" x="71" y="334" width="400" height="21"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="400" id="33w-dJ-vdF"/>
@@ -395,12 +394,11 @@
                     </constraints>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="iZG-S3-oJA">
                         <font key="font" usesAppearanceFont="YES"/>
-                        <string key="title">http://livetest.aliyunlive.com/5dbabcec4df04d20b2707369c1598aaa/extract/video/7739b020b46741f7bf37dc571ddfa3d3-video-ld.m3u8?auth_key=1593694564-0-0-74cf141390f43ded03612b59b2a83627</string>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="TpR-Yu-pO5">
+                <textField verticalHuggingPriority="750" tag="4" translatesAutoresizingMaskIntoConstraints="NO" id="TpR-Yu-pO5">
                     <rect key="frame" x="71" y="288" width="400" height="21"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="400" id="m2t-2t-g6e"/>
@@ -408,7 +406,6 @@
                     </constraints>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="q4v-nE-cjC">
                         <font key="font" usesAppearanceFont="YES"/>
-                        <string key="title">http://livetest.aliyunlive.com/5dbabcec4df04d20b2707369c1598aaa/extract/video/3a030719679b47a8bc9acc521ca4978b-video-fd.m3u8?auth_key=1593694564-0-0-40bb31b261b300be79f695e0724815ea</string>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -417,7 +414,7 @@
                     <rect key="frame" x="204" y="210" width="133" height="32"/>
                     <buttonCell key="cell" type="push" title="进入多画面播放" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Hsm-Ii-iIW">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="system"/>
+                        <font key="font" size="13" name=".PingFangSC-Regular"/>
                     </buttonCell>
                     <connections>
                         <action selector="enterMultSourcePlay:" target="-2" id="oco-de-sjZ"/>

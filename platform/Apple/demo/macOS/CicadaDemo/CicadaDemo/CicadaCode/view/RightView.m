@@ -107,6 +107,16 @@
     }
   
     [self addSubview:_view];
+    if (viewType == MultPlayer) {
+        for (int i = 1; i<5; i++) {
+            NSTextField *textField = [_view viewWithTag:i];
+            NSString *key = [NSString stringWithFormat:@"multSourceText%d",i];
+            NSString *value = [[NSUserDefaults standardUserDefaults] valueForKey:key];
+            if (value) {
+                textField.stringValue = value;
+            }
+        }
+    }
 }
 
 - (IBAction)chooseFile:(id)sender {
@@ -192,11 +202,20 @@
     windowVC.window.title = @"多画面播放";
         
     MutlPlayViewController *VC = (MutlPlayViewController *)windowVC.contentViewController;
-    CicadaUrlSource *source1 = [[CicadaUrlSource alloc] urlWithString:self.multSourceText1.stringValue];
-    CicadaUrlSource *source2 = [[CicadaUrlSource alloc] urlWithString:self.multSourceText2.stringValue];
-    CicadaUrlSource *source3 = [[CicadaUrlSource alloc] urlWithString:self.multSourceText3.stringValue];
-    CicadaUrlSource *source4 = [[CicadaUrlSource alloc] urlWithString:self.multSourceText4.stringValue];
+    NSTextField *textField1 = [_view viewWithTag:1];
+    NSTextField *textField2 = [_view viewWithTag:2];
+    NSTextField *textField3 = [_view viewWithTag:3];
+    NSTextField *textField4 = [_view viewWithTag:4];
+    CicadaUrlSource *source1 = [[CicadaUrlSource alloc] urlWithString:textField1.stringValue];
+    CicadaUrlSource *source2 = [[CicadaUrlSource alloc] urlWithString:textField2.stringValue];
+    CicadaUrlSource *source3 = [[CicadaUrlSource alloc] urlWithString:textField3.stringValue];
+    CicadaUrlSource *source4 = [[CicadaUrlSource alloc] urlWithString:textField4.stringValue];
     VC.urlSourceArray = @[source1,source2,source3,source4];
+    
+    [[NSUserDefaults standardUserDefaults]setObject:self.multSourceText1.stringValue forKey:@"multSourceText1"];
+    [[NSUserDefaults standardUserDefaults]setObject:self.multSourceText2.stringValue forKey:@"multSourceText2"];
+    [[NSUserDefaults standardUserDefaults]setObject:self.multSourceText3.stringValue forKey:@"multSourceText3"];
+    [[NSUserDefaults standardUserDefaults]setObject:self.multSourceText4.stringValue forKey:@"multSourceText4"];
     
     AppDelegate *appdelegate = (AppDelegate *) [NSApplication sharedApplication].delegate;
     [appdelegate.mainWindow.window close];
