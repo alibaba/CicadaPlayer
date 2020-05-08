@@ -90,6 +90,8 @@
             }
 
             [player setUrlSource:self.urlSourceArray[i]];
+            player.autoPlay = YES;
+            player.loop = YES;
             player.delegate = self;
             player.playerView = self.playViewArray[i];
             [player prepare];
