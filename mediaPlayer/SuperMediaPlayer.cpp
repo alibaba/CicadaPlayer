@@ -328,7 +328,6 @@ namespace Cicada {
         Interrupt(true);
         mPlayerCondition.notify_one();
         mApsaraThread.pause();
-        mMessageControl.clear();
         mPlayStatus = PLAYER_STOPPED;
         //        ChangePlayerStatus(PLAYER_STOPPED);
         mBufferController.ClearPacket(BUFFER_TYPE_AV);
@@ -369,6 +368,8 @@ namespace Cicada {
                 mAudioDecoder = nullptr;
             }
         }
+        // clear the message queue after flash video render
+        mMessageControl.clear();
         AF_TRACE;
 
         if (mDemuxerService) {
