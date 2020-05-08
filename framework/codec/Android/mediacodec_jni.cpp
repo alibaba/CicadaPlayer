@@ -441,7 +441,7 @@ end:
         int i_ret = MC_ERROR;
         AndroidJniHandle<jobject> jinput_buffers;
         AndroidJniHandle<jobject> joutput_buffers;
-        jobject jbuffer_info;
+        AndroidJniHandle<jobject> jbuffer_info;
         JniEnv  jniEnv;
         JNIEnv *handle = jniEnv.getEnv();
 
