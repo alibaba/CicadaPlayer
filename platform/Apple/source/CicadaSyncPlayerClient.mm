@@ -101,6 +101,7 @@ static string serverIp = "tcp://localhost:8888";
         self.mTimer = nil;
     }
     [super destroy];
+    delete self.client;
 }
 
 @end

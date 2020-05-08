@@ -130,6 +130,7 @@ private:
 -(void)destroy
 {
     [super destroy];
+    delete self.server;
 }
 
 @end
