@@ -2,17 +2,17 @@
 #include <memory>
 #include <utils/timer.h>
 
+#ifdef ENABLE_SDL
+#define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_main.h>
+#endif
 using namespace Cicada;
 using namespace std;
 
 #include "SDLEventReceiver.h"
 #include "cicadaEventListener.h"
 #include "NetWorkEventReceiver.h"
-
-#ifdef ENABLE_SDL
-    #include <SDL2/SDL_main.h>
-    #define SDL_MAIN_HANDLED
-#endif
 
 #include <media_player_error_def.h>
 
@@ -77,7 +77,7 @@ static void onError(int64_t errorCode, const void *errorMsg, void *userData)
     }
 }
 
-int main(int argc, const char **argv)
+int main(int argc, char *argv[])
 {
     string url;
 

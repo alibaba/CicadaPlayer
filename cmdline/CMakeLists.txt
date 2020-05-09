@@ -99,15 +99,16 @@ if (APPLE)
 else ()
     target_link_libraries(
             cicadaPlayer PUBLIC
-            dl
             ssl
             crypto
             pthread
     )
 endif ()
 target_link_libraries(cicadaPlayer PUBLIC coverage_config)
-
-add_subdirectory(example)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+else ()
+    add_subdirectory(example)
+endif ()
 
 if (USEASAN)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope")
