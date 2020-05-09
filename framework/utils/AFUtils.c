@@ -35,9 +35,11 @@ static void handle_pipe(int sig)
 
 void ignore_signal(int sig)
 {
+#ifndef _WIN32
     struct sigaction sa;
     sa.sa_handler = handle_pipe;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
     sigaction(sig, &sa, NULL);
+#endif
 }
