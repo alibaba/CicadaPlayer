@@ -2,7 +2,7 @@
 
 1. Environment setup
     ```bash
-    sudo apt install git make autoconf libtool
+    sudo apt install git make autoconf libtool yasm
     sudo apt install g++-mingw-w64-x86-64 gcc-mingw-w64-i686
     ```
 
