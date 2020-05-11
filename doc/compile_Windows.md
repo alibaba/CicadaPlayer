@@ -1,15 +1,25 @@
-# coross compile windows on Ubuntu 18.04 use mingw
+# coross compile windows on Ubuntu 18.04 use mingw-w64 or macOS
 
-1. Environment setup
-    ```bash
-    sudo apt install git make autoconf libtool yasm
-    sudo apt install g++-mingw-w64-x86-64 gcc-mingw-w64-i686
-    ```
 
-2. update cmake
+# 1. Environment setup
+
+## Ubuntu 18.04
+
+```bash
+sudo apt install git make autoconf libtool yasm
+sudo apt install g++-mingw-w64-x86-64 gcc-mingw-w64-i686
+```
+
+## macOS
+
+```bash
+brew install mingw-w64
+```
+
+# 2. update cmake for Ubuntu
 https://github.com/Kitware/CMake/releases/download/v3.16.0/cmake-3.16.0-Linux-x86_64.sh
 
-3. selcet posix mingw
+# 3. select posix mingw for Ubuntu
     ```bash
     sudo update-alternatives --config x86_64-w64-mingw32-g++ # Set the default mingw32 g++ compiler option to posix.
     sudo update-alternatives --config i686-w64-mingw32-g++   
@@ -18,6 +28,7 @@ https://github.com/Kitware/CMake/releases/download/v3.16.0/cmake-3.16.0-Linux-x8
     ```
 
 4. download sdl
+
    https://www.libsdl.org/release/SDL2-devel-2.0.10-mingw.tar.gz
 
    edit framework/windows.cmake
@@ -40,7 +51,6 @@ https://github.com/Kitware/CMake/releases/download/v3.16.0/cmake-3.16.0-Linux-x8
     cmake -DCMAKE_TOOLCHAIN_FILE=../cmdline/toolchain.windows.cmake ../
     make cicadaPlayer
     ```
-
 6. copy to windows
 
     copy the files under to a same dir to windows pc
