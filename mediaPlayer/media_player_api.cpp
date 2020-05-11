@@ -49,6 +49,14 @@ int CicadaSetListener(playerHandle *pHandle, const playerListener &Listener)
     return 0;
 }
 
+void CicadaSetOnRenderCallBack(playerHandle *pHandle, onRenderFrame cb, void *userData)
+{
+    GET_PLAYER;
+    if (player) {
+        player->SetOnRenderCallBack(cb, userData);
+    }
+}
+
 void CicadaSetComponentCb(playerHandle *pHandle, player_component_type type, void *factory)
 {
     GET_PLAYER;

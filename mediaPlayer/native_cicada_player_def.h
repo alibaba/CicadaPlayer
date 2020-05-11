@@ -156,6 +156,8 @@ typedef int64_t (*seekCB)(void *arg, int64_t offset, int whence);
 
 typedef int64_t(*clockRefer)(void *arg);
 
+typedef bool (*onRenderFrame)(void *userData, IAFFrame *frame);
+
 class ErrorConverter {
 public:
     virtual int ConvertErrorCode(int code, int &outCode, std::string &outStr) = 0;
