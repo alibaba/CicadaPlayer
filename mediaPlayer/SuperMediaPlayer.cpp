@@ -1907,10 +1907,14 @@ namespace Cicada {
             return ret;
         }
 
-        AVAFFrame *avafFrame = dynamic_cast<AVAFFrame *> (mAudioFrameQue.front().get());
+        auto *avafFrame = dynamic_cast<AVAFFrame *>(mAudioFrameQue.front().get());
 
         if (avafFrame) {
             duration = getPCMFrameDuration(avafFrame->ToAVFrame());
+        }
+
+        if (mFrameCb) {
+            mFrameCb(mFrameCbUserData, avafFrame);
         }
 
         render_ret = mAudioRender->renderFrame(mAudioFrameQue.front(), 0);
@@ -2092,6 +2096,10 @@ namespace Cicada {
             else if (INT64_MIN == mPlayedVideoPts || (videoPts - mPlayedVideoPts) > 60 * 1000) {
                 render = true;
             }
+        }
+
+        if (mFrameCb) {
+            mFrameCb(mFrameCbUserData, videoFrame.get());
         }
 
         if (render) {
@@ -4089,5 +4097,10 @@ namespace Cicada {
         if (mVideoDecoder) {
             mVideoDecoder->holdOn(hold);
         }
+    }
+    void SuperMediaPlayer::SetOnRenderCallBack(onRenderFrame cb, void *userData)
+    {
+        mFrameCb = cb;
+        mFrameCbUserData = userData;
     }
 }//namespace Cicada

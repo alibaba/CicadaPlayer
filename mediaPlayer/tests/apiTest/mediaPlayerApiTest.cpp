@@ -2,14 +2,18 @@
 // Created by pingkai on 2020/1/13.
 //
 
+#include "tests/mediaPlayerTest.h"
+#include "tests/player_command.h"
 #include "gtest/gtest.h"
 #include <memory>
-#include "tests/mediaPlayerTest.h"
-#include <utils/timer.h>
-#include "tests/player_command.h"
-#include <vector>
-#include <utils/mediaFrame.h>
 #include <utils/AFUtils.h>
+#include <utils/mediaFrame.h>
+#include <utils/timer.h>
+#include <vector>
+
+#ifdef __APPLE__
+    #include <base/media/PBAFFrame.h>
+#endif
 
 using namespace std;
 
@@ -236,3 +240,40 @@ TEST(config, set)
                 nullptr, nullptr);
 }
 
+bool OnRenderFrame(void *userData, IAFFrame *frame)
+{
+    if (frame->getType() == IAFFrame::FrameTypeVideo) {
+        switch (frame->getInfo().format) {
+            case AF_PIX_FMT_APPLE_PIXEL_BUFFER: {
+                AF_LOGD("get a apple pixel buffer");
+#ifdef __APPLE__
+                auto *ppBFrame = dynamic_cast<PBAFFrame *>(frame);
+                ppBFrame->getPixelBuffer();
+#endif
+                break;
+            }
+
+            case AF_PIX_FMT_YUV420P:
+                AF_LOGD("get a yuv 420p");
+                frame->getData();
+                frame->getLineSize();
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    return false;
+}
+
+static int setRenderCbOnCallback(Cicada::MediaPlayer *player, void *arg)
+{
+    player->SetOnRenderFrameCallback(OnRenderFrame, nullptr);
+    return 0;
+}
+
+TEST(api, renderCb)
+{
+    test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", setRenderCbOnCallback, simple_loop, nullptr, nullptr);
+}

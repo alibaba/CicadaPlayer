@@ -45,6 +45,7 @@ namespace Cicada {
 
     typedef void(*CicadaLogCallback)(void *userData, int prio, const char *buf);
 
+
     class MediaPlayer {
     public:
         MediaPlayer();
@@ -58,6 +59,10 @@ namespace Cicada {
         }
 
     public:
+
+        void EnableVideoRenderedCallback(bool enable);
+
+        void SetOnRenderFrameCallback(onRenderFrame cb, void *userData);
 
         void EnableVideoRenderedCallback(bool enable);
 
