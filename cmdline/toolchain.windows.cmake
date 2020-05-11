@@ -1,8 +1,8 @@
 set(CMAKE_SYSTEM_NAME Windows)
 
 if ("${CMAKE_HOST_SYSTEM}" MATCHES "Darwin")
-    set(CMAKE_CXX_COMPILER /opt/local/bin/x86_64-w64-mingw32-g++)
-    set(CMAKE_C_COMPILER /opt/local/bin/x86_64-w64-mingw32-gcc)
+    set(CMAKE_CXX_COMPILER /usr/local/bin/x86_64-w64-mingw32-g++)
+    set(CMAKE_C_COMPILER /usr/local/bin/x86_64-w64-mingw32-gcc)
 else ()
     set(CMAKE_CXX_COMPILER /usr/bin/x86_64-w64-mingw32-g++)
     set(CMAKE_C_COMPILER /usr/bin/x86_64-w64-mingw32-gcc)
