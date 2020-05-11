@@ -76,6 +76,8 @@ namespace Cicada {
 
         int SetListener(const playerListener &Listener) override;
 
+        void SetOnRenderCallBack(onRenderFrame cb, void *userData) override;
+
         // TODO: use setParameters and setOpt to set
         void SetRefer(const char *refer) override;
 
@@ -502,6 +504,8 @@ namespace Cicada {
         int64_t mCheckAudioQueEOSTime{INT64_MIN};
         uint64_t mAudioQueDuration{UINT64_MAX};
 
+        onRenderFrame mFrameCb{nullptr};
+        void *mFrameCbUserData{nullptr};
     };
 }// namespace Cicada
 #endif // CICADA_PLAYER_SERVICE_H

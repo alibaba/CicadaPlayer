@@ -1104,6 +1104,12 @@ namespace Cicada {
         GET_PLAYER_HANDLE;
         CicadaSetOption(handle, "enableVRC", enable ? "1" : "0");
     }
+
+    void MediaPlayer::SetOnRenderFrameCallback(onRenderFrame cb, void *userData)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaSetOnRenderCallBack(handle, cb, userData);
+    }
     void MediaPlayer::SetStreamTypeFlags(uint64_t flags)
     {
         GET_PLAYER_HANDLE;

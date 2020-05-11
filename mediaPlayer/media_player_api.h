@@ -25,6 +25,9 @@ void CicadaReleasePlayer(playerHandle **player);
  */
 int CicadaSetListener(playerHandle *pHandle, const playerListener &Listener);
 
+
+void CicadaSetOnRenderCallBack(playerHandle *pHandle, onRenderFrame cb, void *userData);
+
 /*
  * set external component callback
  */

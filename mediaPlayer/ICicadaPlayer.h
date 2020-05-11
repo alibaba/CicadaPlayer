@@ -27,6 +27,9 @@ namespace Cicada {
         */
         virtual int SetListener(const playerListener &Listener) = 0;
 
+
+        virtual void SetOnRenderCallBack(onRenderFrame cb, void *userData) = 0;
+
         /*
          *设置显示窗口
          */
