@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "CicadaDelegate.h"
+#import "CicadaRenderDelegate.h"
 #import "CicadaSource.h"
 #import "CicadaDef.h"
 #import "CicadaMediaInfo.h"
@@ -437,6 +438,23 @@ OBJC_EXPORT
  @see CicadaDelegate
  */
 @property (nonatomic, weak) id<CicadaDelegate> delegate;
+
+/**
+ * 设置渲染回调。
+ */
+@property(nonatomic, weak) id <CicadaRenderDelegate> renderDelegate;
+
+- (void)setInnerDelegate:(id<CicadaDelegate>) delegate;
+
+/**
+ @brief 设置AudioSession的Delegate
+ @param delegate Delegate对象
+ */
+/****
+ @brief 设置AudioSession的Delegate
+ @param delegate Delegate对象
+ */
++ (void)setAudioSessionDelegate:(id<CicadaAudioSessionDelegate>)delegate;
 
 /**
  @brief 设置日志打印回调block，异步

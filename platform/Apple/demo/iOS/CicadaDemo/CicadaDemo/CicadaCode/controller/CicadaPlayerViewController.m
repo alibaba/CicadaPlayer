@@ -18,7 +18,7 @@
 #import "CicadaErrorModel+string.h"
 #import "AFNetworking.h"
 
-@interface CicadaPlayerViewController ()<CicadaDemoViewDelegate,CicadaSettingAndConfigViewDelegate,CicadaDelegate>
+@interface CicadaPlayerViewController ()<CicadaDemoViewDelegate,CicadaSettingAndConfigViewDelegate,CicadaDelegate,CicadaAudioSessionDelegate, CicadaRenderDelegate>
 
 /**
  播放视图
@@ -102,6 +102,8 @@
     self.player.enableHardwareDecoder = [CicadaTool isHardware];
     self.player.playerView = self.CicadaView.playerView;
     self.player.delegate = self;
+    //enable to test render delegate
+//    self.player.renderDelegate = self;
     self.player.scalingMode = CICADA_SCALINGMODE_SCALEASPECTFIT;
     [self.settingAndConfigView setVolume:self.player.volume/2];
     [self setConfig];
@@ -770,3 +772,17 @@ tableview点击外挂字幕回调
 
 
 
+- (BOOL)onVideoPixelBuffer:(CVPixelBufferRef)pixelBuffer pts:(int64_t)pts
+{
+    NSLog(@"receive HW frame:%p pts:%lld", pixelBuffer, pts);
+    return NO;
+}
+
+- (BOOL)onVideoRawBuffer:(uint8_t **)buffer lineSize:(int32_t *)lineSize pts:(int64_t)pts width:(int32_t)width height:(int32_t)height
+{
+    NSLog(@"receive SW frame:%p pts:%lld line0:%d line1:%d line2:%d width:%d, height:%d", buffer, pts,
+          lineSize[0], lineSize[1], lineSize[2], width, height);
+    return NO;
+}
+
+@end
