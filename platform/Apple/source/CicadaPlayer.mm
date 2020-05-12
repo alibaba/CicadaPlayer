@@ -19,6 +19,7 @@
 #import "thumbnail/CicadaThumbnail.h"
 #import "CicadaOCHelper.h"
 #import "AFAudioSession.h"
+#import "CicadaRenderCBWrapper.h"
 
 using namespace std;
 using namespace Cicada;
@@ -415,6 +416,14 @@ static int logOutput = 1;
         }
     }
     [self resetProperty];
+}
+
+- (void) setRenderDelegate:(id<CicadaRenderDelegate>)theDelegate
+{
+    _renderDelegate = theDelegate;
+    if (self.player) {
+        self.player->SetOnRenderFrameCallback(CicadaRenderCBWrapper::OnRenderFrame, (__bridge void*)theDelegate);
+    }
 }
 
 - (void)setInnerDelegate:(id<CicadaDelegate>) delegate

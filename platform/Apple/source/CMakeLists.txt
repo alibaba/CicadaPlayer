@@ -71,6 +71,9 @@ set(SOURCE_LIST
         CicadaSource.h
         CicadaDelegate.h
         CicadaErrorCode.h
+        CicadaRenderDelegate.h
+        CicadaRenderCBWrapper.h
+        CicadaRenderCBWrapper.mm
         ${TOP_DIR}/framework/render/audio/Apple/CicadaAudioSessionDelegate.h
         thumbnail/CicadaThumbnail.h
         thumbnail/CicadaThumbnail.mm
@@ -102,6 +105,7 @@ set(PUBLIC_HEADERS
         CicadaPlayerSDK.h
         CicadaDelegate.h
         CicadaErrorCode.h
+        CicadaRenderDelegate.h
         ${TOP_DIR}/framework/render/audio/Apple/CicadaAudioSessionDelegate.h
         )
 
