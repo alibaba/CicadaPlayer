@@ -29,6 +29,7 @@ function build_ffmpeg(){
     local ffmpeg_build_dir="build/ffmpeg/$1/$2"
     ffmpeg_config_add_extra_cflags "${CPU_FLAGS}"
     ffmpeg_config_add_extra_ldflags "${CPU_LDFLAGS}"
+    ffmpeg_config_add_extra_cflags "${HARDENED_CFLAG}"
 
     if [ -n "${FDK_AAC_INSTALL_DIR}" ]; then
         ffmpeg_config_add_user "--enable-libfdk-aac"

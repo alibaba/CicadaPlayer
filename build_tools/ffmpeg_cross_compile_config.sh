@@ -17,6 +17,7 @@ function ffmpeg_cross_compile_set_Android(){
     ffmpeg_cross_compile_config_add "--arch=${CPU_ARCH}"
     ffmpeg_cross_compile_config_add "--cross-prefix="${CROSS_COMPILE}-""
     ffmpeg_cross_compile_config_add "--disable-linux-perf"
+    ffmpeg_cross_compile_config_add "--toolchain=hardened"
     if [ "${NEON_SUPPORT}" == "TRUE" ]
     then
          ffmpeg_cross_compile_config_add "--enable-neon"

@@ -97,7 +97,7 @@ function build_openssl_111(){
     cd ${build_dir}
     if [ "${BUILD}" != "False" ];then
 
-        ${OPEN_SSL_SOURCE_DIR}/Configure ${config_platform} ${config_opt} ${cross_compile_opt}  --prefix=${install_dir}  --openssldir=${install_dir}
+        ${OPEN_SSL_SOURCE_DIR}/Configure ${config_platform} ${config_opt} ${cross_compile_opt} ${HARDENED_CFLAG} --prefix=${install_dir}  --openssldir=${install_dir}
 
         make -j8 V=1 || exit 1
         make  install_sw ||exit 1
