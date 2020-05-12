@@ -19,6 +19,8 @@ function build_curl(){
 
     local ssl_opt=
 
+    export CFLAGS="${HARDENED_CFLAG}"
+
     if [ "$1" == "Android" ]
     then
         cross_compile_set_platform_Android  $2
@@ -31,7 +33,7 @@ function build_curl(){
         else
             SYSROOT=${IPHONEOS_SDK}
         fi
-        export CFLAGS="-arch $2 -fembed-bitcode --sysroot=$SYSROOT -isysroot $SYSROOT -miphoneos-version-min=$DEPLOYMENT_TARGET"
+        export CFLAGS="${CFLAGS} -arch $2 -fembed-bitcode --sysroot=$SYSROOT -isysroot $SYSROOT -miphoneos-version-min=$DEPLOYMENT_TARGET"
         export LDFLAGS="-arch $2 --sysroot=$SYSROOT"
         export CC=clang
         if [[ "${SSL_USE_NATIVE}" == "TRUE" ]];then
@@ -58,6 +60,7 @@ function build_curl(){
                 --disable-symbol-hiding \
                 --enable-proxy \
                 --disable-debug \
+                --enable-optimize \
                 --disable-ftp \
                 --disable-gopher \
                 --disable-file \
@@ -101,4 +104,5 @@ function build_curl(){
         cd -
     fi
     CURL_INSTALL_DIR=${install_dir}
+    export CFLAGS=""
 }

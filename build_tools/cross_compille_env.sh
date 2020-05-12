@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+source globeConfig.sh
 source AndroidConfig.sh
 source iOSConfig.sh
 source MinGWConfig.sh
