@@ -24,3 +24,5 @@
 #import <CicadaPlayerSDK/CicadaPlayerGlobalSettings.h>
 #import <CicadaPlayerSDK/CicadaSyncPlayerClient.h>
 #import <CicadaPlayerSDK/CicadaSyncPlayerServer.h>
+#import <CicadaPlayerSDK/CicadaAudioSessionDelegate.h>
+#import <CicadaPlayerSDK/CicadaRenderDelegate.h>
