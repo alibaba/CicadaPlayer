@@ -901,6 +901,10 @@ namespace Cicada {
     void SuperMediaPlayer::reLoad()
     {
         mSourceListener.enableRetry();
+        std::lock_guard<std::mutex> uMutex(mCreateMutex);
+        if (mDemuxerService) {
+            mDemuxerService->getDemuxerHandle()->Reload();
+        }
     }
 
     IVideoRender::Scale SuperMediaPlayer::convertScaleMode(ScaleMode mode)

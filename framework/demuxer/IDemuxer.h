@@ -70,8 +70,13 @@ namespace Cicada {
 
         virtual void Stop() = 0;
 
-        virtual void PreStop()
-        {};
+        /**
+         * for some udp demuxer to reconnect to server when network changed
+         */
+        virtual void Reload()
+        {}
+
+        virtual void PreStop(){};
 
         virtual void flush() = 0;
 
