@@ -3341,6 +3341,10 @@ namespace Cicada {
 
         if (!noFile) {
             mDemuxerService->SetDataCallBack(mBSReadCb, mBSCbArg, mBSSeekCb, mBSCbArg, nullptr);
+        } else {
+            IDataSource::SourceConfig config;
+            mDataSource->Get_config(config);
+            mDemuxerService->getDemuxerHandle()->setDataSourceConfig(config);
         }
 
         //prepare之前seek
