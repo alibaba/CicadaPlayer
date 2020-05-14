@@ -3341,11 +3341,8 @@ namespace Cicada {
 
         if (!noFile) {
             mDemuxerService->SetDataCallBack(mBSReadCb, mBSCbArg, mBSSeekCb, mBSCbArg, nullptr);
-        } else {
-            IDataSource::SourceConfig config;
-            mDataSource->Get_config(config);
-            mDemuxerService->getDemuxerHandle()->setDataSourceConfig(config);
         }
+
 
         //prepare之前seek
         if (mSeekPos > 0) {
@@ -3365,6 +3362,11 @@ namespace Cicada {
 #else
             mDemuxerService->getDemuxerHandle()->setBitStreamFormat(true, true);
 #endif
+            if (noFile) {
+                IDataSource::SourceConfig config;
+                mDataSource->Get_config(config);
+                mDemuxerService->getDemuxerHandle()->setDataSourceConfig(config);
+            }
         }
 
         //step2: Demuxer init and getstream index
