@@ -30,4 +30,6 @@ function MinGW_init_env(){
     TARGET_OS=mingw32
 
     NEON_SUPPORT="FALSE"
+    HARDENED_CFLAG=""
+    echo "mingw not support hardened flags"
 }
