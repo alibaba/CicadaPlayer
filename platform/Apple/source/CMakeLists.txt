@@ -17,10 +17,13 @@ include(config.cmake)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(ENV{DEPLOYMENT_TARGET} "8.0")
-
-set(IPHONEOS_DEPLOYMENT_TARGET $ENV{DEPLOYMENT_TARGET})
-set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET $ENV{DEPLOYMENT_TARGET})
+if (IOS)
+    set(IPHONEOS_DEPLOYMENT_TARGET "8.0")
+    set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET ${IPHONEOS_DEPLOYMENT_TARGET})
+else ()
+    set(MACOSX_DEPLOYMENT_TARGET "10.11")
+    set(CMAKE_XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET ${MACOSX_DEPLOYMENT_TARGET})
+endif ()
 set(CMAKE_XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fobjc-arc")
@@ -147,6 +150,10 @@ if (IOS)
     install(TARGETS ${INSTALL_TARGETS}
             FRAMEWORK DESTINATION
             ${PROJECT_BINARY_DIR}/ARM_SIMULATOR)
+
+    #    add_custom_command(TARGET CicadaPlayerSDK POST_BUILD
+    #    COMMAND cp -R ${TOP_DIR}/prebuild/${PATH_NAME}/Conan/AlivcConan.framework ${PROJECT_BINARY_DIR}/ARM_SIMULATOR
+    #    )
 else ()
     set(INSTALL_TARGETS ${INSTALL_TARGETS}
             alivcffmpeg
@@ -156,4 +163,14 @@ else ()
     install(TARGETS ${INSTALL_TARGETS}
             FRAMEWORK DESTINATION
             ${PROJECT_BINARY_DIR})
-endif()
+endif ()
+
+if (IOS)
+    #    add_custom_command(TARGET CicadaPlayerSDK POST_BUILD
+    #    COMMAND cp -R ${TOP_DIR}/prebuild/${PATH_NAME}/Conan/AlivcConan.framework ${PROJECT_BINARY_DIR}
+    #    )
+else ()
+    #    add_custom_command(TARGET CicadaPlayerSDK POST_BUILD
+    #    COMMAND sh ../copyFramework.sh
+    #    )
+endif ()
