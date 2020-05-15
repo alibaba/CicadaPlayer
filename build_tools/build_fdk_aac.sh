@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source cross_compille_env.sh
+source cross_compile_env.sh
 function build_fdk_aac(){
     if [ ! -f ${FDK_AAC_SOURCE_DIR}/configure ]
     then

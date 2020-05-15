@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-source cross_compille_env.sh
+source cross_compile_env.sh
+source native_compile_env.sh
 
 function ffmpeg_cross_compile_config_reset(){
     FFMPEG_CROSS_COMPILE_CONFIG="--enable-cross-compile \
@@ -54,4 +55,7 @@ function ffmpeg_cross_compile_set_win32(){
          ffmpeg_cross_compile_config_add "--enable-neon"
          ffmpeg_cross_compile_config_add "--enable-thumb"
     fi
+}
+function ffmpeg_native_compile_set_macOS(){
+    native_compile_set_platform_macOS
 }

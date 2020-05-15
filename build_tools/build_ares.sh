@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source cross_compille_env.sh
+source cross_compile_env.sh
 
 function build_ares(){
     if [ ! -f ${ARES_SOURCE_DIR}/configure ]

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-source cross_compille_env.sh
+source cross_compile_env.sh
+source native_compile_env.sh
 source utils.sh
 function build_openssl_111(){
 
@@ -83,6 +84,8 @@ function build_openssl_111(){
             config_platform="darwin-i386-cc"
         fi
         config_opt="${config_opt} no-shared"
+        native_compile_set_platform_macOS
+        export CFLAGS="${CFLAGS} $CPU_FLAGS"
     elif [ "$1" == "Linux" ];then
         config_platform="linux-x86_64";
     else

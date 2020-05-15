@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source cross_compille_env.sh
+source cross_compile_env.sh
 build_librtmp(){
     local config=
     local shared=no

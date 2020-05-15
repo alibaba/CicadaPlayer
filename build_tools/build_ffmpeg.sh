@@ -24,6 +24,8 @@ function build_ffmpeg(){
             ffmpeg_config_add_user "--disable-securetransport"
         fi
         ffmpeg_config_add_extra_cflags "-fno-stack-check"
+
+        ffmpeg_native_compile_set_macOS
     elif [[ "$1" == "Linux" ]];then
         local native_build=yes
     else
