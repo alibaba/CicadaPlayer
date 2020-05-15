@@ -1,5 +1,8 @@
 
 
+set(MACOSX_DEPLOYMENT_TARGET 10.11)
+
+set(CMAKE_XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET ${MACOSX_DEPLOYMENT_TARGET})
 set(MAC_INSTALL_DIR ${CMAKE_CURRENT_LIST_DIR}/../external/install)
 
 set(COMMON_LIB_DIR ${COMMON_LIB_DIR}
@@ -54,6 +57,10 @@ set(TARGET_LIBRARY_TYPE STATIC)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=return-type")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=return-type")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}")
+
 if (USEASAN)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope")
