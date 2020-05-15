@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source cross_compille_env.sh
+source cross_compile_env.sh
 source utils.sh
 function build_openssl(){
 ##opensll not support config in other dir?

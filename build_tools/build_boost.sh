@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-source cross_compille_env.sh
+source cross_compile_env.sh
+source native_compile_env.sh
 function build_boost() {
     if [ "$1" == "Android" ];then
         cross_compile_set_platform_Android  $2

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-source cross_compille_env.sh
+source cross_compile_env.sh
+source native_compile_env.sh
 
 function build_curl(){
     if [ ! -f ${CURL_SOURCE_DIR}/configure ]
@@ -47,6 +48,8 @@ function build_curl(){
             ssl_opt="--with-darwinssl"
         fi
         print_warning "native build for $1"
+        native_compile_set_platform_macOS
+        export CFLAGS="${CFLAGS} $CPU_FLAGS"
     elif [[ "$1" == "Linux" ]];then
         LIBSDEPEND="LIBS=-lresolv"
         print_warning "native build for $1"

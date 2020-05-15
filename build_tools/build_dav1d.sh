@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source cross_compille_env.sh
+source cross_compile_env.sh
 
 function create_dav1d_config() {
 rm -f $user_config
