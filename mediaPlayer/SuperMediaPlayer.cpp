@@ -904,6 +904,7 @@ namespace Cicada {
     {
         mSourceListener.enableRetry();
         std::lock_guard<std::mutex> uMutex(mCreateMutex);
+
         if (mDemuxerService) {
             mDemuxerService->getDemuxerHandle()->Reload();
         }
@@ -1414,13 +1415,7 @@ namespace Cicada {
             int64_t lastAudio = mBufferController.GetPacketLastPTS(BUFFER_TYPE_AUDIO);
 
             if ((lastAudio != INT64_MIN) && (mPlayedAudioPts != INT64_MIN)) {
-                int64_t playTime = getAudioPlayTimeStamp();
-
-                if (INT64_MIN == playTime) {
-                    playTime = mPlayedAudioPts;
-                }
-
-                int64_t delayTime = lastAudio - playTime;
+                int64_t delayTime = lastAudio - mPlayedAudioPts;
                 static int64_t lastT = af_gettime_ms();
 
                 if (af_gettime_ms() - lastT > 1000) {
@@ -3343,7 +3338,6 @@ namespace Cicada {
             mDemuxerService->SetDataCallBack(mBSReadCb, mBSCbArg, mBSSeekCb, mBSCbArg, nullptr);
         }
 
-
         //prepare之前seek
         if (mSeekPos > 0) {
             mDemuxerService->Seek(mSeekPos, 0, -1);
@@ -3362,6 +3356,7 @@ namespace Cicada {
 #else
             mDemuxerService->getDemuxerHandle()->setBitStreamFormat(true, true);
 #endif
+
             if (noFile) {
                 IDataSource::SourceConfig config;
                 mDataSource->Get_config(config);
