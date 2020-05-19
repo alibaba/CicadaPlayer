@@ -41,6 +41,7 @@ target_link_libraries(mediaPlayerCacheTest PRIVATE
         avcodec
         swresample
         avutil
+        xml2
         curl
         ${FRAMEWORK_LIBS}
         gtest_main)

@@ -38,6 +38,7 @@ target_link_libraries(renderTest PRIVATE
         swresample
         avutil
         swscale
+        xml2
         z
         curl
         ssl
