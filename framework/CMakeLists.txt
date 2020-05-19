@@ -64,8 +64,10 @@ endif ()
 
 if (NOT EMSCRIPTEN)
     add_subdirectory(data_source)
+else()
+    add_subdirectory(WebAssemblyPlayer)
 endif ()
-add_subdirectory(WebAssemblyPlayer)
+
 
 set(CMAKE_CXX_STANDARD 11)
 
