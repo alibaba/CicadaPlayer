@@ -38,6 +38,15 @@ function build_ffmpeg(){
     ffmpeg_config_add_extra_ldflags "${CPU_LDFLAGS}"
     ffmpeg_config_add_extra_cflags "${HARDENED_CFLAG}"
 
+    if [[ -n "${LIBXML2_INSTALL_DIR}" ]]; then
+        ffmpeg_config_add_user "--enable-libxml2"
+        ffmpeg_config_add_extra_cflags "-I${LIBXML2_INSTALL_DIR}/include/libxml2"
+        ffmpeg_config_add_extra_ldflags "-L${LIBXML2_INSTALL_DIR}/lib"
+        if [[ "$1" == "win32" ]];then
+            ffmpeg_config_add_extra_cflags "-DIN_LIBXML"
+        fi
+
+    fi
     if [[ -n "${FDK_AAC_INSTALL_DIR}" ]]; then
         ffmpeg_config_add_user "--enable-libfdk-aac"
         ffmpeg_config_add_extra_cflags "-I${FDK_AAC_INSTALL_DIR}/include"

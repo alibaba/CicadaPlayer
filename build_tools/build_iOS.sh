@@ -49,6 +49,7 @@ function create_cmake_config(){
    echo "cmake_minimum_required(VERSION 3.6)" >> $CONFIG_FILE
    echo "set(LIB_NAME ${LIB_NAME})" >> $CONFIG_FILE
    echo "find_library(SECURITY Security)" >> $CONFIG_FILE
+   echo "find_library(LIBXML2 Xml2)" >> $CONFIG_FILE
    echo "find_library(AUDIO_TOOL_BOX AudioToolbox)" >> $CONFIG_FILE
 #   echo "find_library(VIDEO_TOOL_BOX VideoToolbox)" >> $CONFIG_FILE
 #   echo "find_library(COREMEDIA CoreMedia)" >> $CONFIG_FILE
@@ -57,6 +58,9 @@ function create_cmake_config(){
    echo -n "set(SRC_LIBRARIES ${SRC_LIBRARIES}" >> $CONFIG_FILE
    if [[ "${SSL_USE_NATIVE}" == "TRUE" ]];then
        echo -n ' ${SECURITY}' >> $CONFIG_FILE
+   fi
+   if [[ "${XML_USE_NATIVE}" == "TRUE" ]];then
+       echo -n ' ${LIBXML2}' >> $CONFIG_FILE
    fi
    echo -n ' ${AUDIO_TOOL_BOX}' >> $CONFIG_FILE
 #   echo -n ' ${VIDEO_TOOL_BOX}' >> $CONFIG_FILE

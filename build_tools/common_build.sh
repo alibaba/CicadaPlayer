@@ -11,6 +11,7 @@ source build_ffmpeg.sh
 source build_librtmp.sh
 source build_ares.sh
 source build_boost.sh
+source build_libxml2.sh
 
 function apply_ffmpeg_config(){
     ffmpeg_config_reset
@@ -31,7 +32,17 @@ function build_static_lib(){
     export TARGET_ARCH=$2
     cd ${CWD}
 
-    if [[ -d "$BOOST_SOURCE_DIR" ]];then
+    local build_xml="true"
+    if [[ "$1" == "iOS" ]] || [[ "$1" == "Darwin" ]];then
+        if [[ "${XML_USE_NATIVE}" == "TRUE" ]];then
+            build_xml="false"
+        fi
+    fi
+    if [[ -d "${LIBXML2_SOURCE_DIR}" ]] && [[ "${build_xml}" == "true" ]];then
+        build_libxml2  $1 ${arch}
+    fi
+
+    if [ -d "$BOOST_SOURCE_DIR" ];then
         build_boost $1 ${arch}
     else
         print_warning "boost source not found"
@@ -212,6 +223,10 @@ function link_shared_lib_Android(){
 
     if [[ -d "${X264_INSTALL_DIR}" ]];then
         ldflags="$ldflags -lx264 -L${X264_INSTALL_DIR}/lib/"
+    fi
+
+    if [[ -d "${LIBXML2_INSTALL_DIR}" ]];then
+        ldflags="$ldflags -lxml2 -L${LIBXML2_INSTALL_DIR}/lib/"
     fi
 
     cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
