@@ -64,6 +64,7 @@ target_link_libraries(cicadaPlayer PRIVATE
         avcodec
         swresample
         avutil
+        xml2
         curl
         ${FRAMEWORK_LIBS})
 if (ENABLE_SDL)

@@ -18,6 +18,7 @@ target_link_libraries(communicationTest PRIVATE
         avformat
         avcodec
         avutil
+        xml2
         )
 target_include_directories(communicationTest PRIVATE
         ../../

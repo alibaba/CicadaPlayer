@@ -37,6 +37,12 @@ fi
 CURL_BRANCH="curl-7_63_0"
 clone_git $CURL_GIT "$CURL_BRANCH"
 
+if [[ -z "${LIBXML2_GIT}" ]];then
+    LIBXML2_GIT="https://github.com/GNOME/libxml2.git"
+fi
+LIBXML2_BRANCH="v2.9.9"
+clone_git ${LIBXML2_GIT} "$LIBXML2_BRANCH"
+
 if [[ -z "${DAV1D_EXTERNAL_DIR}" ]];then
     if [[ -n "${DAV1D_SOURCE_DIR}" ]];then
         echo "check out dav1d"

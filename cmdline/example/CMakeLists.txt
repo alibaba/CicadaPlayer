@@ -55,6 +55,7 @@ target_link_libraries(syncPlayer PRIVATE
         avcodec
         swresample
         avutil
+        xml2
         curl
         ${FRAMEWORK_LIBS})
 if (ENABLE_SDL)

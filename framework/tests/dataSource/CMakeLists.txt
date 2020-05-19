@@ -39,6 +39,7 @@ target_link_libraries(dataSourceTest PRIVATE
         swresample
         avutil
         swscale
+        xml2
         z
         curl
         gtest_main)
