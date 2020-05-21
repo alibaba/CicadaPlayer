@@ -59,6 +59,7 @@ function build_libxml2(){
             --without-python \
             --without-debug \
             --without-zlib  \
+            --without-iconv \
             --prefix=${install_dir} \
             CFLAGS="${CPU_FLAGS}"   \
             CPPFLAGS="${CPU_FLAGS}" \
@@ -72,6 +73,7 @@ function build_libxml2(){
             --without-python \
             --without-debug \
             --without-zlib  \
+            --without-iconv \
             --prefix=${install_dir} \
             CC="${CC}"              \
             CXX="$CC"               \

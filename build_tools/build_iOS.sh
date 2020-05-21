@@ -84,6 +84,10 @@ function build_shared_framework(){
 
     local support_libs="fdk-aac x264 curl openssl librtmp cares dav1d"
 
+    if [[ "${XML_USE_NATIVE}" == "FALSE" ]];then
+        support_libs="${support_libs} libxml2"
+    fi
+
     SRC_LIBRARIES_DIR="$CWD/install/ffmpeg/iOS/fat/lib"
 
     for support_lib in ${support_libs}
