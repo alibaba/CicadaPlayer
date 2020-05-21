@@ -1,0 +1,28 @@
+From d507902305faca12e2fbd07f9440471951c4edb6 Mon Sep 17 00:00:00 2001
+From: pingkai <pingkai010@gmail.com>
+Date: Thu, 21 May 2020 14:16:07 +0800
+Subject: [PATCH] disable check libtool
+
+not works on macOS
+
+Signed-off-by: pingkai <pingkai010@gmail.com>
+---
+ autogen.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/autogen.sh b/autogen.sh
+index d03a40c8..7446cfa1 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -21,7 +21,7 @@ DIE=0
+ 	echo "You must have libtool installed to compile libxml."
+ 	echo "Download the appropriate package for your distribution,"
+ 	echo "or see http://www.gnu.org/software/libtool"
+-	DIE=1
++#	DIE=1
+ }
+ 
+ (automake --version) < /dev/null > /dev/null 2>&1 || {
+-- 
+2.26.0
+
