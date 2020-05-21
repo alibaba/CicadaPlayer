@@ -64,6 +64,11 @@ function load_source() {
     if [[ ${FFMPEG_NEED_PATCH} == "TRUE" ]];then
         patch_ffmpeg
     fi
+
+    if [[ -d ${LIBXML2_SOURCE_DIR} ]];then
+        cd ${LIBXML2_SOURCE_DIR}
+        git_am_patch ../../contribute/libxml2/0001-disable-check-libtool.patch
+    fi
     return 0;
 }
 

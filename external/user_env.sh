@@ -15,5 +15,8 @@ LIBXML2_SOURCE_DIR=$TOP_DIR/external/libxml2
 export LIB_NAME=alivcffmpeg
 OPENSSL_VERSION_111="True"
 SSL_USE_NATIVE="TRUE"
-XML_USE_NATIVE="TRUE"
+#set XML_USE_NATIVE to FALSE when xcode version little than 11.4
+if [[ -z ${XML_USE_NATIVE} ]];then
+    XML_USE_NATIVE="TRUE"
+fi
 
