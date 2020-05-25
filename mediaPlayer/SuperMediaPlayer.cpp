@@ -2763,12 +2763,18 @@ namespace Cicada {
                     duration_c = (int64_t) mBufferController.GetPacketSize(BUFFER_TYPE_VIDEO) * 40 * 1000;
                 }
             }
+            if (mDemuxerService && mDemuxerService->getDemuxerHandle()) {
+                duration_c += mDemuxerService->getDemuxerHandle()->getBufferDuration(mCurrentVideoIndex);
+            }
         }
 
         if (HAVE_AUDIO) {
             int64_t &duration_c = durations[i++];
             duration_c = mBufferController.GetPacketDuration(BUFFER_TYPE_AUDIO);
 //            AF_LOGD("audioDuration is %lld\n",audioDuration);
+            if (mDemuxerService && mDemuxerService->getDemuxerHandle()) {
+                duration_c += mDemuxerService->getDemuxerHandle()->getBufferDuration(mCurrentAudioIndex);
+            }
         }
 
         /*
@@ -2778,6 +2784,9 @@ namespace Cicada {
         if (HAVE_SUBTITLE && !mSubtitleEOS && mSubtitleChangedFirstPts == INT64_MIN) {
             int64_t &duration_c = durations[i++];
             duration_c = mBufferController.GetPacketDuration(BUFFER_TYPE_SUBTITLE);
+            if (mDemuxerService && mDemuxerService->getDemuxerHandle()) {
+                duration_c += mDemuxerService->getDemuxerHandle()->getBufferDuration(mCurrentSubtitleIndex);
+            }
         }
 
         int num = i;
