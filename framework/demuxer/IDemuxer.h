@@ -155,6 +155,11 @@ namespace Cicada {
         virtual void setDemuxerCb(std::function<void(std::string, std::string)> func)
         { mDemuxerCbfunc = func; }
 
+        virtual int64_t getBufferDuration(int index)
+        {
+            return 0;
+        }
+
     protected:
         demuxer_callback_read mReadCb{nullptr};
         demuxer_callback_seek mSeekCb{nullptr};
