@@ -5,7 +5,6 @@ source native_compile_env.sh
 function ffmpeg_cross_compile_config_reset(){
     FFMPEG_CROSS_COMPILE_CONFIG="--enable-cross-compile \
         --enable-small \
-        --optflags=-O2 \
         --disable-runtime-cpudetect"
 }
 
