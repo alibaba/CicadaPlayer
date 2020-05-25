@@ -2769,11 +2769,19 @@ namespace Cicada {
                     videoDuration = (int64_t) mBufferController.GetPacketSize(BUFFER_TYPE_VIDEO) * 40 * 1000;
                 }
             }
+
+            if (mDemuxerService && mDemuxerService->getDemuxerHandle()) {
+                videoDuration += mDemuxerService->getDemuxerHandle()->getBufferDuration(mCurrentVideoIndex);
+            }
         }
 
         if (HAVE_AUDIO) {
             audioDuration = mBufferController.GetPacketDuration(BUFFER_TYPE_AUDIO);
+
 //            AF_LOGD("audioDuration is %lld\n",audioDuration);
+            if (mDemuxerService && mDemuxerService->getDemuxerHandle()) {
+                audioDuration += mDemuxerService->getDemuxerHandle()->getBufferDuration(mCurrentAudioIndex);
+            }
         }
 
         //AF_LOGI("videoDuration is %lld  audioDuration is %lld\n",videoDuration, audioDuration);
