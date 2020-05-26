@@ -351,6 +351,9 @@ namespace Cicada {
         }
 
         if (packet->getInfo().pts != INT64_MIN) {
+            if (mCtx->start_time == INT64_MIN) {
+                mCtx->start_time = packet->getInfo().pts;
+            }
             packet->getInfo().timePosition = packet->getInfo().pts - mCtx->start_time;
         }
 
@@ -477,6 +480,9 @@ namespace Cicada {
 
         mPacketQueue.clear();
         mError = 0;
+        if (mCtx->start_time == INT64_MIN) {
+            mCtx->start_time = 0;
+        }
         static const int jitter = 2;
         int64_t timestamp = mCtx->start_time + us;
         int64_t timestamp_seek;
