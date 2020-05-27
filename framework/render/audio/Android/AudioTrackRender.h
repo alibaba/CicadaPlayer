@@ -6,10 +6,12 @@
 #define SOURCE_AUDIOTRACKRENDER_H
 
 
-#include <render/audio/filterAudioRender.h>
-#include <jni.h>
 #include "../audioRenderPrototype.h"
 #include <atomic>
+#include <base/media/spsc_queue.h>
+#include <jni.h>
+#include <render/audio/filterAudioRender.h>
+#include <utils/afThread.h>
 
 class AudioTrackRender :
         public Cicada::filterAudioRender,
@@ -37,7 +39,7 @@ private:
     uint64_t device_get_que_duration() override;
 
 private:
-    AudioTrackRender(int dummy)
+    AudioTrackRender(int dummy) : mFrameQueue(1)
     {
         addPrototype(this);
     }
@@ -52,6 +54,8 @@ private:
         return new AudioTrackRender();
     }
 
+    int device_write_internal(IAFFrame *frame);
+
     static AudioTrackRender se;
 
 private:
@@ -65,6 +69,8 @@ private:
     void flush_device_inner() ;
 
     uint64_t getPlayedPosition();
+
+    int write_loop();
 
 private:
 
@@ -97,7 +103,10 @@ private:
     };
 
     std::atomic<FlushRestPosition> mFlushPositionReset{FlushRestPosition::unknow};
-
+    Cicada::SpscQueue<IAFFrame *> mFrameQueue;
+    afThread *mWriteThread{nullptr};
+    std::atomic_bool mRunning{false};
+    int mMaxQueSize{2};
 };
 
 
