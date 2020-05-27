@@ -15,10 +15,8 @@ namespace Cicada{
     public:
         typedef IAFFrame::audioInfo format;
 
-        IAudioFilter(const format &srcFormat, const format &dstFormat) :
-                mSrcFormat(srcFormat), mDstFormat(dstFormat)
-        {
-        };
+        IAudioFilter(const format &srcFormat, const format &dstFormat, bool active)
+            : mSrcFormat(srcFormat), mDstFormat(dstFormat), mActive(active){};
         virtual ~IAudioFilter() = default;
 
 //        virtual bool beSupported(const char* capacity) = 0;
@@ -40,6 +38,8 @@ namespace Cicada{
 
         format mSrcFormat;
         format mDstFormat;
+
+        bool mActive;
     };
 }
 

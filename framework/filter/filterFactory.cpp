@@ -7,7 +7,8 @@
 
 using namespace Cicada;
 
-IAudioFilter *filterFactory::createAudioFilter(const IAudioFilter::format &srcFormat, const IAudioFilter::format &dstFormat)
+IAudioFilter *filterFactory::createAudioFilter(const IAudioFilter::format &srcFormat, const IAudioFilter::format &dstFormat,
+                                               bool active = false)
 {
-    return new ffmpegAudioFilter(srcFormat, dstFormat);
+    return new ffmpegAudioFilter(srcFormat, dstFormat, active);
 }

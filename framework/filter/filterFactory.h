@@ -7,13 +7,12 @@
 
 #include "IAudioFilter.h"
 
-class filterFactory {
+namespace Cicada {
+    class filterFactory {
 
-public:
-    static Cicada::IAudioFilter *
-    createAudioFilter(const Cicada::IAudioFilter::format &srcFormat, const Cicada::IAudioFilter::format &dstFormat);
-
-};
-
+    public:
+        static IAudioFilter *createAudioFilter(const IAudioFilter::format &srcFormat, const IAudioFilter::format &dstFormat, bool active);
+    };
+}// namespace Cicada
 
 #endif //CICADA_PLAYER_FILTERFACTORY_H

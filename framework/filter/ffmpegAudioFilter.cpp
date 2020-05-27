@@ -22,6 +22,7 @@ extern "C"
 }
 
 #define MAX_INPUT_BUFFER_COUNT 2
+#define MAX_OUTPUT_BUFFER_COUNT 2
 //#define DUMP_PCM
 #ifdef DUMP_PCM
     static int fd;
@@ -33,10 +34,9 @@ extern "C"
 
 namespace Cicada {
 
-    ffmpegAudioFilter::ffmpegAudioFilter(const format &srcFormat, const format &dstFormat) : IAudioFilter(srcFormat, dstFormat)
+    ffmpegAudioFilter::ffmpegAudioFilter(const format &srcFormat, const format &dstFormat, bool active)
+        : IAudioFilter(srcFormat, dstFormat, active)
     {
-        mRate = 1.0;
-        mPThread = nullptr;
         avfilter_register_all();
 #ifdef DUMP_PCM
         fd = open("out.pcm", O_CREAT | O_RDWR, 0666);
@@ -46,7 +46,6 @@ namespace Cicada {
     ffmpegAudioFilter::~ffmpegAudioFilter()
     {
         delete mPThread;
-        mPThread = nullptr;
         avfilter_graph_free(&m_pFilterGraph);
         flush();
     }
@@ -223,7 +222,7 @@ namespace Cicada {
         mLastInputPts = INT64_MIN;
         mLastInPutDuration = 0;
 
-        if (mPThread == nullptr) {
+        if (mActive && mPThread == nullptr) {
             mPThread = NEW_AF_THREAD(FilterLoop);
             mPThread->start();
         }
@@ -233,10 +232,10 @@ namespace Cicada {
 
     int ffmpegAudioFilter::push(std::unique_ptr<IAFFrame> &frame, uint64_t timeOut)
     {
-//        AF_LOGD("mInPut size is %d\n",mInPut.read_available());
-//        AF_LOGD("mOutPut size is %d\n",mOutPut.read_available());
-        if (mInPut.read_available() >= MAX_INPUT_BUFFER_COUNT
-                || mOutPut.read_available() > MAX_INPUT_BUFFER_COUNT) {
+        if (mInPut.read_available() >= MAX_INPUT_BUFFER_COUNT || mOutPut.read_available() > MAX_OUTPUT_BUFFER_COUNT) {
+            if (!mActive) {
+                FilterLoop();
+            }
             return -EAGAIN;
         }
 
@@ -259,130 +258,127 @@ namespace Cicada {
                              (float) (frame->getInfo().audio.sample_rate / 1000));
         mPts.push(pts);
         mInPut.push(frame.release());
+        if (!mActive) {
+            FilterLoop();
+        }
         return 0;
     }
 
     int ffmpegAudioFilter::FilterLoop()
     {
         int ret;
-        IAFFrame *frame = nullptr;
+        IAFFrame *frame;
 
-        if (!mInPut.empty()) {
+        while (!mInPut.empty() && mOutPut.read_available() < MAX_OUTPUT_BUFFER_COUNT) {
             frame = mInPut.front();
             mInPut.pop();
-        } else {
-            af_usleep(10000);
-            return 0;
-        }
+            IAFFrame::audioInfo info = frame->getInfo().audio;
 
-        if (frame == nullptr) {
-            return 0;
-        }
-
-        IAFFrame::audioInfo info = frame->getInfo().audio;
-
-        if (info.sample_rate != mSrcFormat.sample_rate
-                || info.format != mSrcFormat.format
-                || info.channels != mSrcFormat.channels) {
-            /* reset the filer will drop the data in filter cache, so it is not expected
+            if (info.sample_rate != mSrcFormat.sample_rate || info.format != mSrcFormat.format || info.channels != mSrcFormat.channels) {
+                /* reset the filer will drop the data in filter cache, so it is not expected
              */
-            assert(0);
-            mSrcFormat = info;
+                assert(0);
+                mSrcFormat = info;
 
-            if (m_pFilterGraph) {
-                avfilter_graph_free(&m_pFilterGraph);
-            }
-        }
-
-        {
-            std::lock_guard<std::mutex> uMutex(mMutexRate);
-
-            if (m_pFilterGraph == nullptr) {
-                ret = init();
-
-                if (ret < 0) {
-                    AF_LOGE("init error\n");
-                    return ret;
+                if (m_pFilterGraph) {
+                    avfilter_graph_free(&m_pFilterGraph);
                 }
             }
-        }
 
-        int64_t pts = dynamic_cast<AVAFFrame *>(frame)->getInfo().pts;
+            {
+                std::lock_guard<std::mutex> uMutex(mMutexRate);
 
-        if (mFirstPts == INT64_MIN) {
-            mFirstPts = pts;
-        }
+                if (m_pFilterGraph == nullptr) {
+                    ret = init();
 
-        ret = av_buffersrc_add_frame(mAbuffer_ctx, getAVFrame(frame));
-
-        if (ret < 0) {
-            AF_LOGE("Error submitting the frame to the filtergraph: %s", getErrorString(ret));
-            delete frame;
-            return ret;
-        }
-
-        /* Get all the filtered output that is available. */
-        while (true) {
-            AVFrame *avFrame = nullptr;
-
-            if (frame == nullptr) {
-                avFrame = av_frame_alloc();
-                frame = new AVAFFrame(&avFrame);
+                    if (ret < 0) {
+                        AF_LOGE("init error\n");
+                        return ret;
+                    }
+                }
             }
 
-            avFrame = getAVFrame(frame);
-            avFrame->pts = pts;
-            ret = av_buffersink_get_frame(mAbuffersink_ctx, avFrame);
+            int64_t pts = dynamic_cast<AVAFFrame *>(frame)->getInfo().pts;
 
-            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-                delete frame;
-                break;
+            if (mFirstPts == INT64_MIN) {
+                mFirstPts = pts;
             }
+
+            ret = av_buffersrc_add_frame(mAbuffer_ctx, getAVFrame(frame));
 
             if (ret < 0) {
+                AF_LOGE("Error submitting the frame to the filtergraph: %s", getErrorString(ret));
                 delete frame;
                 return ret;
             }
 
-            AVRational tb = av_buffersink_get_time_base(mAbuffersink_ctx);
+            /* Get all the filtered output that is available. */
+            while (true) {
+                AVFrame *avFrame = nullptr;
 
-            if (avFrame->pts != AV_NOPTS_VALUE) {
-                avFrame->pts = av_rescale_q(avFrame->pts, tb, av_get_time_base_q());
-            }
-
-            if (mReferInputPTS) {
-                if (!mPts.empty()) {
-                    pts = mPts.front();
-                    mPts.pop();
+                if (frame == nullptr) {
+                    avFrame = av_frame_alloc();
+                    frame = new AVAFFrame(&avFrame);
                 }
 
+                avFrame = getAVFrame(frame);
                 avFrame->pts = pts;
-            } else if (avFrame->pts != AV_NOPTS_VALUE) {
-                avFrame->pts *= mRate;
+                ret = av_buffersink_get_frame(mAbuffersink_ctx, avFrame);
 
-                if (mFirstPts != INT64_MIN) {
-                    avFrame->pts += mFirstPts;
+                if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+                    delete frame;
+                    break;
                 }
 
-                avFrame->pts += mDeltaPts;
-            }
+                if (ret < 0) {
+                    delete frame;
+                    return ret;
+                }
 
-            auto *tmp = dynamic_cast<AVAFFrame *> (frame);
+                AVRational tb = av_buffersink_get_time_base(mAbuffersink_ctx);
 
-            if (tmp) {
-                tmp->updateInfo();
-            }
+                if (avFrame->pts != AV_NOPTS_VALUE) {
+                    avFrame->pts = av_rescale_q(avFrame->pts, tb, av_get_time_base_q());
+                }
+
+                if (mReferInputPTS) {
+                    if (!mPts.empty()) {
+                        pts = mPts.front();
+                        mPts.pop();
+                    }
+
+                    avFrame->pts = pts;
+                } else if (avFrame->pts != AV_NOPTS_VALUE) {
+                    avFrame->pts *= mRate;
+
+                    if (mFirstPts != INT64_MIN) {
+                        avFrame->pts += mFirstPts;
+                    }
+
+                    avFrame->pts += mDeltaPts;
+                }
+
+                auto *tmp = dynamic_cast<AVAFFrame *>(frame);
+
+                if (tmp) {
+                    tmp->updateInfo();
+                }
 
 #ifdef DUMP_PCM
-            // int planar = av_sample_fmt_is_planar((enum AVSampleFormat) filt_frame->format);
-            // int channels = av_get_channel_layout_nb_channels(filt_frame->channel_layout);
-            // int planes = planar ? channels : 1;
-            // int bps = av_get_bytes_per_sample((enum AVSampleFormat) filt_frame->format);
-            // int plane_size = bps * filt_frame->nb_samples * (planar ? 1 : channels);
-            // write(fd, filt_frame->extended_data[0], plane_size);
+                // int planar = av_sample_fmt_is_planar((enum AVSampleFormat) filt_frame->format);
+                // int channels = av_get_channel_layout_nb_channels(filt_frame->channel_layout);
+                // int planes = planar ? channels : 1;
+                // int bps = av_get_bytes_per_sample((enum AVSampleFormat) filt_frame->format);
+                // int plane_size = bps * filt_frame->nb_samples * (planar ? 1 : channels);
+                // write(fd, filt_frame->extended_data[0], plane_size);
 #endif
-            mOutPut.push(frame);
-            frame = nullptr;
+                mOutPut.push(frame);
+                frame = nullptr;
+            }
+        }
+
+        if (mActive) {
+            af_msleep(10);
         }
 
         return 0;
