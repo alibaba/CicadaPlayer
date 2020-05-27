@@ -177,7 +177,7 @@ namespace Cicada {
         }
 
         if (mFiler == nullptr) {
-            mFiler = std::unique_ptr<ffmpegAudioFilter>(new ffmpegAudioFilter(mInfo, mInfo));
+            mFiler = std::unique_ptr<ffmpegAudioFilter>(new ffmpegAudioFilter(mInfo, mInfo, true));
             mFiler->init();
         }
 
