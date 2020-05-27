@@ -9,7 +9,11 @@
 #include <utility>
 #include <cerrno>
 #include <utils/CicadaUtils.h>
+#if defined(WIN32)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 #include <utils/CicadaJSON.h>
 
 using std::string;

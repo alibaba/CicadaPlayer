@@ -4,13 +4,16 @@
 
 #include "IProtocol.h"
 #include <cstring>
+#ifndef WIN32
 #include <ifaddrs.h>
 #include <netdb.h>
 #include <sys/socket.h>
+#endif
 using namespace Cicada;
 
 std::string IProtocolServer::getLocalIp()
 {
+#ifndef WIN32
     struct ifaddrs *ifaddr, *ifa;
     int family, s;
     char host[NI_MAXHOST];
@@ -35,5 +38,6 @@ std::string IProtocolServer::getLocalIp()
             return host;
         }
     }
+#endif
     return "";
 }

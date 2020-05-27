@@ -78,7 +78,7 @@ typedef struct log_ctrl_t {
 
 static log_ctrl logCtrl = {0,};
 
-static pthread_mutex_t gLogMutex;
+static pthread_mutex_t gLogMutex = PTHREAD_MUTEX_INITIALIZER;
 
 static const char *mtlVer = NULL;
 

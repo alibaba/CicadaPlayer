@@ -3,6 +3,7 @@
 //
 #define LOG_TAG "HLSStream"
 
+#include <algorithm>
 #include <utils/errors/framework_error.h>
 #include <utils/timer.h>
 #include <demuxer/play_list/segment_decrypt/AES_128Decrypter.h>

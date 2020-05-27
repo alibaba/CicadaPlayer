@@ -4,6 +4,7 @@
 //
 #define LOG_TAG "AES_128Decrypter"
 
+#include <algorithm>
 #include <string>
 #include <cstring>
 #include "AES_128Decrypter.h"

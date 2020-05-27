@@ -3,6 +3,7 @@
 //
 #define LOG_TAG "demuxer_service"
 
+#include <algorithm>
 #include <utils/frame_work_log.h>
 #include <cassert>
 #include <utils/errors/framework_error.h>

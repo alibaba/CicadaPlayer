@@ -5,6 +5,7 @@
 #define LOG_TAG "HLSSampleAesDecrypter"
 
 #include "HLSSampleAesDecrypter.h"
+#include <algorithm>
 #include <string>
 #include <cstdio>
 #include <cstdlib>

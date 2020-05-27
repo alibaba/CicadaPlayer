@@ -8,8 +8,11 @@
 #ifndef Cicada_H
 #define Cicada_H
 
-#if defined _WIN32 || defined __CYGWIN__
-#define attribute_deprecated __attribute__((deprecated))
+#if defined(_MSC_VER)
+  #define attribute_deprecated __declspec(deprecated)
+  #define CICADA_CPLUS_EXTERN __declspec(dllexport)
+#elif defined _WIN32 || defined __CYGWIN__
+  #define attribute_deprecated __attribute__((deprecated))
   #ifdef __GNUC__
     #define CICADA_CPLUS_EXTERN __attribute__ ((dllexport))
   #else
