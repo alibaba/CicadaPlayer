@@ -104,6 +104,9 @@ namespace Cicada {
         std::condition_variable mFrameQueCondition;
         std::queue<std::unique_ptr<IAFFrame>> mFrameQue{};
         std::unique_ptr<IAFFrame> mRenderFrame{nullptr};
+        bool mUseActiveFilter{false};
+        std::atomic_int mMaxQueSize{2};
+
     protected:
         std::unique_ptr<afThread> mRenderThread = nullptr;
     };
