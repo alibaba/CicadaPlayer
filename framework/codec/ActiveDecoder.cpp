@@ -7,11 +7,11 @@
 #include "utils/timer.h"
 
 //TODO: can set
-#define  MAX_INPUT_SIZE 16
+#define MAX_INPUT_SIZE 16
 
 using namespace std;
 
-ActiveDecoder::ActiveDecoder()
+ActiveDecoder::ActiveDecoder() : mInputQueue(MAX_INPUT_SIZE), mOutputQueue(MAX_INPUT_SIZE)
 {
     mFlags = 0;
 }
@@ -55,10 +55,12 @@ void ActiveDecoder::close()
 #if AF_HAVE_PTHREAD
 
     while (!mInputQueue.empty()) {
+        delete mInputQueue.front();
         mInputQueue.pop();
     }
 
     while (!mOutputQueue.empty()) {
+        delete mOutputQueue.front();
         mOutputQueue.pop();
     }
 
@@ -71,30 +73,35 @@ int ActiveDecoder::decode_func()
         af_usleep(10000);
         return 0;
     }
-
     int needWait = 0;
     int ret;
     int64_t pts = INT64_MIN;
-
-    if (!mPacket) {
-        std::unique_lock<std::mutex> uMutex(mMutex);
-
-        if (!mInputQueue.empty()) {
-            mPacket = move(mInputQueue.front());
-            mInputQueue.pop();
+    while (!mInputQueue.empty() && mOutputQueue.size() < maxOutQueueSize && mRunning) {
+        needWait = 0;
+        ret = extract_decoder();
+        if (ret == 0) {
+            needWait++;
+        } else if (ret < 0) {
+            AF_LOGW("extract_decoder error %d\n", ret);
+            enqueueError(ret, pts);
         }
-    }
 
-    if (mPacket) {
-        pts = mPacket->getInfo().pts;
-        ret = enqueue_decoder(mPacket);
+        IAFPacket *pPacket = mInputQueue.front();
+        if (!pPacket) {
+            AF_LOGW("get a null packet");
+            mInputQueue.pop();
+            continue;
+        }
+
+        pts = pPacket->getInfo().pts;
+        std::unique_ptr<IAFPacket> packet = std::unique_ptr<IAFPacket>(pPacket);
+        ret = enqueue_decoder(packet);
 
         if (ret == -EAGAIN) {
             needWait++;
+            packet.release();
         } else {
-            //  assert(mPacket == nullptr);
-            mPacket = nullptr;
-
+            mInputQueue.pop();
             if (ret == STATUS_EOS) {
                 bDecoderEOS = true;
             } else if (ret < 0) {
@@ -102,7 +109,13 @@ int ActiveDecoder::decode_func()
                 enqueueError(ret, pts);
             }
         }
-    } else if (bInputEOS) {
+        if (needWait > 1) {
+            std::unique_lock<std::mutex> locker(mSleepMutex);
+            mSleepCondition.wait_for(locker, std::chrono::milliseconds(5 * needWait), [this]() { return !mRunning; });
+        }
+    }
+
+    if (bInputEOS && mInputQueue.empty()) {
         // TODO: flush once only
         if (!bSendEOS2Decoder) {
             unique_ptr<IAFPacket> pPacket{};
@@ -116,24 +129,13 @@ int ActiveDecoder::decode_func()
                 bDecoderEOS = true;
             }
         }
-    } else {
-        needWait++;
+        extract_decoder();
     }
 
-    ret = extract_decoder();
-
-    if (ret == 0) {
-        needWait++;
-    } else if (ret < 0) {
-        AF_LOGW("extract_decoder error %d\n", ret);
-        enqueueError(ret, pts);
-    }
-
-    if (needWait > 0) {
+    if (needWait == 0) {
         std::unique_lock<std::mutex> locker(mSleepMutex);
         mSleepCondition.wait_for(locker, std::chrono::milliseconds(5 * needWait), [this]() { return !mRunning; });
     }
-
     return 0;
 }
 
@@ -147,18 +149,18 @@ bool ActiveDecoder::needDrop(IAFPacket *packet)
         return true;
     }
 
-    if (bNeedKeyFrame) { // need a key frame, when first start or after seek
-        if ((packet->getInfo().flags & AF_PKT_FLAG_KEY) == 0) { // drop the frame that not a key frame
+    if (bNeedKeyFrame) {                                       // need a key frame, when first start or after seek
+        if ((packet->getInfo().flags & AF_PKT_FLAG_KEY) == 0) {// drop the frame that not a key frame
             // TODO: return error?
             AF_LOGW("wait a key frame\n");
             return true;
-        } else {  // get the key frame
+        } else {// get the key frame
             bNeedKeyFrame = false;
             keyPts = packet->getInfo().pts;
             return false;
         }
     } else if (packet->getInfo().flags) {
-        keyPts = INT64_MIN; // get the next key frame, stop to check
+        keyPts = INT64_MIN;// get the next key frame, stop to check
     }
 
     // TODO: make sure HEVC not need drop also
@@ -166,7 +168,7 @@ bool ActiveDecoder::needDrop(IAFPacket *packet)
         return false;
     }
 
-    if (packet->getInfo().pts < keyPts) { // after get the key frame, check the wrong frame use pts
+    if (packet->getInfo().pts < keyPts) {// after get the key frame, check the wrong frame use pts
         AF_LOGW("key pts is %lld,pts is %lld\n", keyPts, packet->getInfo().pts);
         AF_LOGW("drop a error frame\n");
         return true;
@@ -229,12 +231,14 @@ int ActiveDecoder::thread_send_packet(unique_ptr<IAFPacket> &packet)
         return 0;
     }
 
-    if ((mInputQueue.size() >= MAX_INPUT_SIZE)
-            || (mOutputQueue.size() >= maxOutQueueSize)) {
+
+    //   AF_LOGD("mInputQueue.size() is %d\n",mInputQueue.size());
+
+    if ((mInputQueue.size() >= MAX_INPUT_SIZE) || (mOutputQueue.size() >= maxOutQueueSize)) {
         // TODO: wait for timeOut us
         status |= STATUS_RETRY_IN;
     } else {
-        mInputQueue.push(move(packet));
+        mInputQueue.push(packet.release());
         mSleepCondition.notify_one();
     }
 
@@ -284,10 +288,9 @@ int ActiveDecoder::thread_getFrame(unique_ptr<IAFFrame> &frame)
 {
     frame = nullptr;
     // TODO: wait for timeOut us
-    unique_lock<mutex> uMutex(mMutex);
-
+    //  AF_LOGD("mOutputQueue.size() is %d\n",mOutputQueue.size());
     if (!mOutputQueue.empty()) {
-        frame = move(mOutputQueue.front());
+        frame = unique_ptr<IAFFrame>(mOutputQueue.front());
         mOutputQueue.pop();
         return 0;
     } else if (bDecoderEOS) {
@@ -309,13 +312,16 @@ void ActiveDecoder::flush()
 {
 #if AF_HAVE_PTHREAD
     bool running = mDecodeThread->getStatus() == afThread::THREAD_STATUS_RUNNING;
+    mRunning = false;
     mDecodeThread->pause();
 
     while (!mInputQueue.empty()) {
+        delete mInputQueue.front();
         mInputQueue.pop();
     }
 
     while (!mOutputQueue.empty()) {
+        delete mOutputQueue.front();
         mOutputQueue.pop();
     }
 
@@ -323,7 +329,6 @@ void ActiveDecoder::flush()
         mHoldingQueue.pop();
     }
 
-    mPacket = nullptr;
 #endif
     clean_error();
     flush_decoder();
@@ -362,38 +367,31 @@ void ActiveDecoder::preClose()
 int ActiveDecoder::extract_decoder()
 {
     int count = 0;
-    int size;
-    {
-        std::unique_lock<std::mutex> uMutex(mMutex);
-        size = mOutputQueue.size();
-    }
+    int ret;
 
-    if (size < maxOutQueueSize) {
-        int ret = 0;
+    while (mOutputQueue.size() < maxOutQueueSize && mRunning) {
+        unique_ptr<IAFFrame> pFrame{};
+        ret = dequeue_decoder(pFrame);
 
-        do {
-            unique_ptr<IAFFrame> pFrame{};
-            ret = dequeue_decoder(pFrame);
-
-            if (ret < 0 || ret == STATUS_EOS) {
-                if (ret == STATUS_EOS) {
-                    AF_LOGD("decoder out put eof\n");
-                    bDecoderEOS = true;
-                } else if (ret != -EAGAIN) {
-                    AF_LOGE("decoder error %d\n", ret);
-                }
-
-                ret = 0;
-                return ret;
+        if (ret < 0 || ret == STATUS_EOS) {
+            if (ret == STATUS_EOS) {
+                AF_LOGD("decoder out put eof\n");
+                bDecoderEOS = true;
+            } else if (ret != -EAGAIN) {
+                AF_LOGE("decoder error %d\n", ret);
             }
 
-            if (pFrame) {
-                std::unique_lock<std::mutex> uMutex(mMutex);
-                mOutputQueue.push(move(pFrame));
-                count++;
-            }
-        } while (ret >= 0 && mRunning);
+            ret = 0;
+            return ret;
+        }
+
+        if (pFrame) {
+            std::unique_lock<std::mutex> uMutex(mMutex);
+            mOutputQueue.push(pFrame.release());
+            count++;
+        }
     }
+
 
     return count;
 }
@@ -409,11 +407,12 @@ int ActiveDecoder::holdOn(bool hold)
     if (hold) {
         while (!mInputQueue.empty()) {
             mInputQueue.front()->setDiscard(true);
-            mHoldingQueue.push(move(mInputQueue.front()));
+            mHoldingQueue.push(std::unique_ptr<IAFPacket>(mInputQueue.front()));
             mInputQueue.pop();
         }
 
         while (!mOutputQueue.empty()) {
+            delete mOutputQueue.front();
             mOutputQueue.pop();
         }
     } else {
@@ -427,7 +426,7 @@ int ActiveDecoder::holdOn(bool hold)
                 pts = mHoldingQueue.front()->getInfo().pts;
             }
 
-            mInputQueue.push(move(mHoldingQueue.front()));
+            mInputQueue.push(mHoldingQueue.front().release());
             mHoldingQueue.pop();
         }
 
@@ -445,4 +444,3 @@ int ActiveDecoder::getRecoverQueueSize()
 }
 
 #endif
-
