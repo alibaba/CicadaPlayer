@@ -3,6 +3,7 @@
 //
 #define LOG_TAG "CURLConnection"
 
+#include <algorithm>
 #include <utils/frame_work_log.h>
 #include <cerrno>
 #include <utils/errors/framework_error.h>

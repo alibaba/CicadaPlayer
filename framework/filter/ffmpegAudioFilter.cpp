@@ -347,7 +347,7 @@ namespace Cicada {
             AVRational tb = av_buffersink_get_time_base(mAbuffersink_ctx);
 
             if (avFrame->pts != AV_NOPTS_VALUE) {
-                avFrame->pts = av_rescale_q(avFrame->pts, tb, AV_TIME_BASE_Q);
+                avFrame->pts = av_rescale_q(avFrame->pts, tb, av_get_time_base_q());
             }
 
             if (mReferInputPTS) {

@@ -256,9 +256,9 @@ namespace Cicada {
         }
 
         err = pkt->size;
-        pkt->pts = av_rescale_q(pkt->pts, mCtx->streams[pkt->stream_index]->time_base, AV_TIME_BASE_Q);
-        pkt->dts = av_rescale_q(pkt->dts, mCtx->streams[pkt->stream_index]->time_base, AV_TIME_BASE_Q);
-        pkt->duration = av_rescale_q(pkt->duration, mCtx->streams[pkt->stream_index]->time_base, AV_TIME_BASE_Q);
+        pkt->pts = av_rescale_q(pkt->pts, mCtx->streams[pkt->stream_index]->time_base, av_get_time_base_q());
+        pkt->dts = av_rescale_q(pkt->dts, mCtx->streams[pkt->stream_index]->time_base, av_get_time_base_q());
+        pkt->duration = av_rescale_q(pkt->duration, mCtx->streams[pkt->stream_index]->time_base, av_get_time_base_q());
         int64_t pts = pkt->pts;
 
         if (!mPacketMap[pts]) {

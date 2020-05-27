@@ -36,11 +36,16 @@ endif ()
 add_executable(cicadaPlayer
         ${SRC_FILE})
 target_include_directories(cicadaPlayer PUBLIC ../mediaPlayer)
+if (MSVC)
+target_link_directories(cicadaPlayer PRIVATE
+        ${COMMON_LIB_DIR})
+else ()
 target_link_directories(cicadaPlayer PRIVATE
         ../external/install/ffmpeg/${CMAKE_SYSTEM_NAME}/x86_64/lib
         ../external/install/curl/${CMAKE_SYSTEM_NAME}/x86_64/lib
         ../external/install/openssl/${CMAKE_SYSTEM_NAME}/x86_64/lib
         ${COMMON_LIB_DIR})
+endif ()
 
 target_link_libraries(cicadaPlayer PRIVATE
         media_player
@@ -64,10 +69,13 @@ target_link_libraries(cicadaPlayer PRIVATE
         avcodec
         swresample
         avutil
-        xml2
-        curl
         ${FRAMEWORK_LIBS})
-if (ENABLE_SDL)
+if (NOT MSVC)
+	target_link_libraries(cicadaPlayer PRIVATE
+        curl
+        xml2)
+endif()
+if (ENABLE_SDL AND NOT MSVC)
     target_link_libraries(cicadaPlayer PUBLIC
             SDL2
             )
@@ -97,6 +105,7 @@ if (APPLE)
             bz2
             ${FRAMEWORK_LIBS}
     )
+elseif (MSVC)
 else ()
     target_link_libraries(
             cicadaPlayer PUBLIC
@@ -110,6 +119,13 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else ()
     add_subdirectory(example)
 endif ()
+
+if(MSVC AND NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
+endif()
+
 
 if (USEASAN)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope")

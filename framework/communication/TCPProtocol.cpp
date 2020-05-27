@@ -10,6 +10,12 @@ extern "C" {
 #include <utils/frame_work_log.h>
 using namespace Cicada;
 using namespace std;
+
+#undef av_err2str
+char av_error[AV_ERROR_MAX_STRING_SIZE] = {0};
+#define av_err2str(errnum) \
+    av_make_error_string(av_error, AV_ERROR_MAX_STRING_SIZE, errnum)
+
 InterruptAble::InterruptAble()
 {
     mInterruptCB.callback = check_interrupt;

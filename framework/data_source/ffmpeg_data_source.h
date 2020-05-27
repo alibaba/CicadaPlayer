@@ -10,7 +10,11 @@ extern "C" {
 
 #include "IDataSource.h"
 #include "dataSourcePrototype.h"
+#if defined(WIN32)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 
 namespace Cicada {
     class ffmpegDataSource : public IDataSource, private dataSourcePrototype {

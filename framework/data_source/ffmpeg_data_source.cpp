@@ -5,6 +5,7 @@
 
 #define LOG_TAG "ffmpegDataSource"
 
+#include <algorithm>
 #include <utils/frame_work_log.h>
 #include <utils/errors/framework_error.h>
 #include <utils/ffmpeg_utils.h>
