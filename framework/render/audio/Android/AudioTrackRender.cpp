@@ -4,24 +4,28 @@
 #define LOG_TAG "AudioTrackRender"
 #include "AudioTrackRender.h"
 
-#include <cerrno>
 #include <cassert>
-#include <utils/ffmpeg_utils.h>
+#include <cerrno>
+#include <utils/Android/AndroidJniHandle.h>
 #include <utils/Android/JniEnv.h>
 #include <utils/Android/JniException.h>
-#include <utils/Android/AndroidJniHandle.h>
+#include <utils/ffmpeg_utils.h>
+#include <utils/timer.h>
 
 
 const int PLAYSTATE_PAUSED = 2;  // matches SL_PLAYSTATE_PAUSED
 /** indicates AudioTrack state is playing */
 const int PLAYSTATE_PLAYING = 3;  // matches SL_PLAYSTATE_PLAYING
 
+#define MAX_FRAME_QUEUE_SIZE 16
+#define MIN_FRAME_QUEUE_SIZE 2
+
 
 using namespace Cicada;
 
 AudioTrackRender AudioTrackRender::se(0);
 
-AudioTrackRender::AudioTrackRender()
+AudioTrackRender::AudioTrackRender() : mFrameQueue(MAX_FRAME_QUEUE_SIZE)
 {
 }
 
@@ -29,6 +33,15 @@ AudioTrackRender::~AudioTrackRender()
 {
     JniEnv  jniEnv;
     JNIEnv *handle = jniEnv.getEnv();
+
+    mRunning = false;
+
+    delete mWriteThread;
+
+    while (!mFrameQueue.empty()) {
+        delete mFrameQueue.front();
+        mFrameQueue.pop();
+    }
 
     if (handle) {
         if (audio_track && method_stop) {
@@ -65,6 +78,8 @@ int AudioTrackRender::init_device()
     }
 
     mSimpleSize = mOutputInfo.nb_samples;
+
+    mWriteThread = NEW_AF_THREAD(write_loop);
     return 0;
 }
 
@@ -153,6 +168,8 @@ int AudioTrackRender::init_jni()
 
 int AudioTrackRender::pause_device()
 {
+    mRunning = false;
+    mWriteThread->pause();
     if (audio_track && method_pause) {
         JniEnv  jniEnv;
         JNIEnv *handle = jniEnv.getEnv();
@@ -181,11 +198,11 @@ int AudioTrackRender::start_device()
             AF_LOGE("AudioTrack start exception. maybe IllegalStateException.");
             return -1;
         }
-
-        return 0;
     }
+    mRunning = true;
+    mWriteThread->start();
 
-    return -1;
+    return 0;
 }
 
 
@@ -212,6 +229,13 @@ void AudioTrackRender::flush_device_inner()
     }
 
     mSendSimples = 0;
+
+    while (!mFrameQueue.empty()) {
+        delete mFrameQueue.front();
+        mFrameQueue.pop();
+    }
+    mMaxQueSize = 2;
+
     /* work around some device position didn't set to zero, and MUST get after start_device */
     start_device();
     if (mFlushPositionReset == FlushRestPosition::unknow) {
@@ -284,6 +308,42 @@ uint64_t AudioTrackRender::getDevicePlayedSimples()
 
 int AudioTrackRender::device_write(unique_ptr<IAFFrame> &frame)
 {
+    //    AF_LOGD("xxxxxx mFrameQueue.size() is %d\n", mFrameQueue.size());
+    if (mFrameQueue.size() >= mMaxQueSize) {
+        //    mMaxQueSize = std::max(MIN_FRAME_QUEUE_SIZE,mMaxQueSize -1);
+        return -EAGAIN;
+    }
+    if (frame == nullptr) {
+        return 0;
+    }
+    mFrameQueue.push(frame.release());
+    return 0;
+}
+int AudioTrackRender::write_loop()
+{
+    if (mFrameQueue.empty()) {
+        af_msleep(5);
+        mMaxQueSize = std::min(mMaxQueSize + 1, MAX_FRAME_QUEUE_SIZE);
+        return 0;
+    }
+    while (!mFrameQueue.empty() && mRunning) {
+        int ret = device_write_internal(mFrameQueue.front());
+        if (ret == -EAGAIN) {
+            af_msleep(5);
+            //            break;
+        } else {
+            if (mFrameQueue.size() >= mMaxQueSize) {
+                // TODO: How to decrease mMaxQueSize size, if use nonblock write, we can do this
+                //     mMaxQueSize = std::max(MIN_FRAME_QUEUE_SIZE,mMaxQueSize -1);
+            }
+            mFrameQueue.pop();
+        }
+    }
+    return 0;
+}
+int AudioTrackRender::device_write_internal(IAFFrame *frame)
+{
+
     if(mFlushPositionReset != FlushRestPosition::notReset) {
         uint64_t playedSamples = getDevicePlayedSimples();
         if (playedSamples >= 0x7F000000) {
@@ -323,8 +383,6 @@ int AudioTrackRender::device_write(unique_ptr<IAFFrame> &frame)
         handle->CallIntMethod(audio_track, method_write, jbuffer, 0, len);
         mSendSimples += mSimpleSize;
     }
-
-    frame = nullptr;
     return 0;
 }
 
@@ -333,7 +391,10 @@ uint64_t AudioTrackRender::device_get_que_duration()
     if (mSendSimples < getDevicePlayedSimples()) {
         return 0;
     }
+    uint64_t duration = 0;
+    if (!mFrameQueue.empty()) {
+        duration += static_cast<uint64_t>(mFrameQueue.front()->getInfo().duration * mFrameQueue.size());
+    }
 
-    return static_cast<uint64_t>((mSendSimples - getDevicePlayedSimples()) /
-                                 (float(mOutputInfo.sample_rate) / 1000000));
+    return static_cast<uint64_t>(duration + (mSendSimples - getDevicePlayedSimples()) / (float(mOutputInfo.sample_rate) / 1000000));
 }
