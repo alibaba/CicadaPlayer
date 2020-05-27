@@ -16,7 +16,7 @@ extern "C" {
 namespace Cicada {
     class ffmpegAudioFilter : public IAudioFilter {
     public:
-        ffmpegAudioFilter(const format &srcFormat, const format &dstFormat);
+        ffmpegAudioFilter(const format &srcFormat, const format &dstFormat, bool active);
 
         ~ffmpegAudioFilter() override;
 
@@ -42,11 +42,11 @@ namespace Cicada {
         AVFilterContext *createFilter(const char *name, const char *opt);
 
     private:
-        typedef boost::lockfree::spsc_queue<IAFFrame *, boost::lockfree::capacity<10>> spsc_queue;
+        typedef boost::lockfree::spsc_queue<IAFFrame *, boost::lockfree::capacity<20>> spsc_queue;
         std::atomic<double> mRate{1.0};
         double mVolume = 1.0;
         AVFilterGraph *m_pFilterGraph{};
-        afThread *mPThread{};
+        afThread *mPThread{nullptr};
 
         AVFilterContext *mAbuffer_ctx{};
         AVFilterContext *mAbuffersink_ctx{};
