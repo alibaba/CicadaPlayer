@@ -335,6 +335,8 @@ void ActiveDecoder::flush()
     bInputEOS = false;
     bDecoderEOS = false;
     bSendEOS2Decoder = false;
+    mRunning = true;
+    bNeedKeyFrame = true;
 #if AF_HAVE_PTHREAD
 
     if (running) {
@@ -342,8 +344,6 @@ void ActiveDecoder::flush()
     }
 
 #endif
-    mRunning = true;
-    bNeedKeyFrame = true;
 }
 
 void ActiveDecoder::preClose()
@@ -405,6 +405,10 @@ int ActiveDecoder::holdOn(bool hold)
     unique_lock<mutex> uMutex(mMutex);
 
     if (hold) {
+#if AF_HAVE_PTHREAD
+        mRunning = false;
+        mDecodeThread->pause();
+#endif
         while (!mInputQueue.empty()) {
             mInputQueue.front()->setDiscard(true);
             mHoldingQueue.push(std::unique_ptr<IAFPacket>(mInputQueue.front()));
@@ -434,6 +438,10 @@ int ActiveDecoder::holdOn(bool hold)
     }
 
     bHolding = hold;
+#if AF_HAVE_PTHREAD
+    mRunning = true;
+#endif
+    mDecodeThread->start();
     return 0;
 }
 
