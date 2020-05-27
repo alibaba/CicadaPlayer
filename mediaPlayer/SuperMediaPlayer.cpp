@@ -1654,31 +1654,33 @@ namespace Cicada {
         }
 
         //get audio packet to decode
-        if (HAVE_AUDIO && !audioDecoderEOS && mAudioDecoder) {
-            for (int i = 0; i < 2; ++i) {
-                unsigned long frameCount = mAudioFrameQue.size();
+        if (HAVE_AUDIO && mAudioDecoder) {
 
-                if (frameCount < 4) {
-                    if (mAudioPacket == nullptr) {
-                        mAudioPacket = mBufferController.getPacket(BUFFER_TYPE_AUDIO);
-                    }
+            while (mAudioFrameQue.size() < 2 && !audioDecoderEOS) {
 
-                    if (mAudioPacket) {
-                        int64_t timePosition = mAudioPacket->getInfo().timePosition;
-                        DecodeAudio(mAudioPacket);
-
-                        if (mAudioPacket == nullptr && timePosition >= 0) {
-                            mCurrentPos = timePosition;
-                            //printTimePosition(mCurrentPos);
-                        }
-                    } else if (mEof) {
-                        unique_ptr<IAFPacket> packet{};
-                        DecodeAudio(packet);
-                    }
-                } else {
-                    break;
+                if (mAudioPacket == nullptr) {
+                    mAudioPacket = mBufferController.getPacket(BUFFER_TYPE_AUDIO);
                 }
+
+                if (mAudioPacket) {
+                    int64_t timePosition = mAudioPacket->getInfo().timePosition;
+                    int ret = DecodeAudio(mAudioPacket);
+
+                    if (mAudioPacket == nullptr && timePosition >= 0) {
+                        mCurrentPos = timePosition;
+                        //printTimePosition(mCurrentPos);
+                    }
+                    if (ret == -EAGAIN) {
+                        break;
+                    }
+                } else if (mEof) {
+                    unique_ptr<IAFPacket> packet{};
+                    DecodeAudio(packet);
+                } else
+                    break;
             }
+
+//            AF_LOGD("mAudioFrameQue.size is %d\n", mAudioFrameQue.size());
         }
     }
 
@@ -1849,7 +1851,10 @@ namespace Cicada {
         bool videoRendered = false;
 
         if ((mCurrentAudioIndex >= 0) && !mSeekNeedCatch) {
-            int ret = RenderAudio();
+            int ret;
+            do {
+                ret = RenderAudio();
+            } while (ret == RENDER_FULL);
 
             if (RENDER_NONE != ret) {
                 audioRendered = true;
@@ -1900,7 +1905,6 @@ namespace Cicada {
             if (audioDecoderEOS && mAudioRender->getQueDuration() == 0) {
                 mMasterClock.setReferenceClock(nullptr, nullptr);
             }
-
             return ret;
         }
 
@@ -2289,6 +2293,10 @@ namespace Cicada {
 
             if (ret & STATUS_CREATE_FAIL) {
                 haveError = true;
+            }
+
+            if (ret &= STATUS_RETRY_IN) {
+                ret = -EAGAIN;
             }
 
             if (haveError) {
