@@ -137,6 +137,8 @@ public class CicadaPlayerActivity extends BaseActivity implements View.OnClickLi
     private int mLastTrackIndex;
 
     private int mRetryCount = 1;
+
+    private boolean mEnablePlayBack = false;
     /**
      * url播放
      * @param context  context
@@ -488,7 +490,7 @@ public class CicadaPlayerActivity extends BaseActivity implements View.OnClickLi
     protected void onStop() {
         super.onStop();
 
-        if (mCicadaVodPlayerView != null) {
+        if (mCicadaVodPlayerView != null && !mEnablePlayBack) {
             mCicadaVodPlayerView.onStop();
         }
     }
@@ -704,6 +706,14 @@ public class CicadaPlayerActivity extends BaseActivity implements View.OnClickLi
         if(mCicadaVodPlayerView != null){
             mCicadaVodPlayerView.setMute(isMute);
         }
+    }
+
+    /**
+     * 是否允许后台播放
+     */
+    public void enablePlayBack(boolean isChecked)
+    {
+        this.mEnablePlayBack = isChecked;
     }
 
     /**

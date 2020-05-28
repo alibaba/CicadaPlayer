@@ -69,6 +69,7 @@
     <string name="retry_button">重试</string>
     <string name="mute_label">静音</string>
     <string name="auto_play">自动播放</string>
+    <string name="play_back">后台播放</string>
     <string name="accurate_seek">精准seek</string>
     <string name="player_loop">循环</string>
     <string name="hardware_decoder">硬解码</string>
