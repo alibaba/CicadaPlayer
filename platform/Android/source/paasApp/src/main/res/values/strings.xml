@@ -69,6 +69,7 @@
     <string name="retry_button">Retry</string>
     <string name="mute_label">Mute</string>
     <string name="auto_play">Auto Play</string>
+    <string name="play_back">Enable PlayBack</string>
     <string name="accurate_seek">Accurate Seek</string>
     <string name="player_loop">Loop</string>
     <string name="hardware_decoder">Hardware Decoder</string>

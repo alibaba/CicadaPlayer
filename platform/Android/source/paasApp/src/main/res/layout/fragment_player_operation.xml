@@ -355,16 +355,34 @@
         </LinearLayout>
         <!--倍速播放 end-->
 
-        <TextView
-            android:id="@+id/tv_show_mediainfo"
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="right"
             android:layout_marginTop="30dp"
-            android:layout_marginRight="20dp"
-            android:layout_marginBottom="20dp"
-            android:text="@string/cicada_media_info"
-            android:textColor="@color/colorPrimary" />
+            android:layout_marginBottom="20dp">
+
+            <CheckBox
+                android:id="@+id/enable_playback"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:drawableTop="@drawable/switch_bkg"
+                android:gravity="center"
+                android:layout_marginLeft="10dp"
+                android:layout_centerVertical="true"
+                android:text="@string/play_back" />
+
+            <TextView
+                android:id="@+id/tv_show_mediainfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="20dp"
+                android:layout_centerVertical="true"
+                android:text="@string/cicada_media_info"
+                android:textColor="@color/colorPrimary" />
+
+        </RelativeLayout>
 
     </LinearLayout>
 

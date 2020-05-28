@@ -81,6 +81,10 @@ public class PlayerOperationFragment extends BaseFragment {
      * 是否开启精准seek
      */
     private CheckBox mAccurateSeekCheckBox;
+    /**
+     * 是否允许后台播放
+     */
+    private CheckBox mEnablePlaybackCheckBox;
 
 
     @Override
@@ -108,6 +112,7 @@ public class PlayerOperationFragment extends BaseFragment {
         initShowMedaiInfo();
         initBlackList();
         initAccurateSeek();
+        initPlayBack();
     }
 
     private void initView() {
@@ -126,6 +131,7 @@ public class PlayerOperationFragment extends BaseFragment {
         mRotationModeRadioGroup = view.findViewById(R.id.rotationMode);
 
         showMediaInfoTextView = view.findViewById(R.id.tv_show_mediainfo);
+        mEnablePlaybackCheckBox = view.findViewById(R.id.enable_playback);
     }
 
     /**
@@ -398,6 +404,18 @@ public class PlayerOperationFragment extends BaseFragment {
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
                 if (mCicadaPlayerActivity != null) {
                     mCicadaPlayerActivity.setSeekMode(isChecked);
+                }
+            }
+        });
+    }
+
+    private void initPlayBack()
+    {
+        mEnablePlaybackCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked)
+            {
+                if (mCicadaPlayerActivity != null) {
+                    mCicadaPlayerActivity.enablePlayBack(isChecked);
                 }
             }
         });
