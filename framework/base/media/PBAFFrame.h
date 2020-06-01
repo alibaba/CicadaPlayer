@@ -18,7 +18,7 @@ public:
 
         mInfo.pts = pts;
         mInfo.duration = duration;
-        mInfo.format = AF_PIX_FMT_APPLE_PIXEL_BUFFER;
+        mInfo.video.format = AF_PIX_FMT_APPLE_PIXEL_BUFFER;
         mInfo.video.width = (int) CVPixelBufferGetWidth(mPBuffer);
         mInfo.video.height = (int) CVPixelBufferGetHeight(mPBuffer);
 

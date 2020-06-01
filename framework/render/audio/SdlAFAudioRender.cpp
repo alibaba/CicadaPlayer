@@ -53,7 +53,7 @@ namespace Cicada {
             int nb_samples = frame->getInfo().audio.nb_samples;
             int channels = frame->getInfo().audio.channels;
             int sample_rate = frame->getInfo().audio.sample_rate;
-            int format = frame->getInfo().format;
+            int format = frame->getInfo().audio.format;
             mSpec.freq = sample_rate;
 
             if (format == AF_SAMPLE_FMT_S16 || format == AF_SAMPLE_FMT_S16P) {

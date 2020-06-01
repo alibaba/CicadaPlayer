@@ -243,7 +243,7 @@ TEST(config, set)
 bool OnRenderFrame(void *userData, IAFFrame *frame)
 {
     if (frame->getType() == IAFFrame::FrameTypeVideo) {
-        switch (frame->getInfo().format) {
+        switch (frame->getInfo().video.format) {
             case AF_PIX_FMT_APPLE_PIXEL_BUFFER: {
                 AF_LOGD("get a apple pixel buffer");
 #ifdef __APPLE__
