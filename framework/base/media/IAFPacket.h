@@ -106,6 +106,7 @@ public:
         int height;
         int rotate;
         double dar;
+        int format;
 
         AFRational sample_aspect_ratio;
         size_t crop_top;
@@ -143,7 +144,6 @@ public:
         int64_t pkt_dts;
         int64_t duration;
         bool key;
-        int format;
         union {
             videoInfo video;
             audioInfo audio;

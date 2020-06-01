@@ -132,13 +132,13 @@ void AVAFFrame::copyInfo()
         mInfo.video.crop_top = mAvFrame->crop_top;
         mInfo.video.colorSpace = AVColorSpace2AF(mAvFrame->colorspace);
         mInfo.video.colorRange = AVColorRange2AF(mAvFrame->color_range);
-        mInfo.format = AVPixFmt2Cicada((enum AVPixelFormat) mAvFrame->format);
+        mInfo.video.format = AVPixFmt2Cicada((enum AVPixelFormat) mAvFrame->format);
     } else if (mType == FrameTypeAudio) {
         mInfo.audio.channels = mAvFrame->channels;
         mInfo.audio.nb_samples = mAvFrame->nb_samples;
         mInfo.audio.channel_layout = mAvFrame->channel_layout;
         mInfo.audio.sample_rate = mAvFrame->sample_rate;
-        mInfo.audio.format = mInfo.format = (enum AFSampleFormat) mAvFrame->format;
+        mInfo.audio.format = (enum AFSampleFormat) mAvFrame->format;
     }
 }
 
