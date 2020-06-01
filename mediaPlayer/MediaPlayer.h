@@ -63,9 +63,6 @@ namespace Cicada {
         void EnableVideoRenderedCallback(bool enable);
 
         void SetOnRenderFrameCallback(onRenderFrame cb, void *userData);
-
-        void EnableVideoRenderedCallback(bool enable);
-
         /*
          * set player listener
          */
