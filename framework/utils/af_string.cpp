@@ -212,3 +212,61 @@ bool AfString::isLocalURL(const std::string &url)
 #endif
     return false;
 }
+
+/* binary search in memory */
+int AfString::indexOf(const char *hay, int haysize, const char *needle, int needlesize)
+{
+    int haypos, needlepos;
+    haysize -= needlesize;
+
+    for (haypos = 0; haypos <= haysize; haypos++) {
+        for (needlepos = 0; needlepos < needlesize; needlepos++) {
+            if (hay[haypos + needlepos] != needle[needlepos]) {
+                // Next character in haystack.
+                break;
+            }
+        }
+
+        if (needlepos == needlesize) {
+            return haypos;
+        }
+    }
+
+    return -1;
+}
+
+std::map<std::string, std::string> AfString::keyValueToMap(const std::string &source, const std::string &splitStr)
+{
+    std::map<std::string, std::string> result{};
+    std::vector<std::string> subStr = AfString::s_split(source, splitStr);
+
+    for (auto &str : subStr) {
+        int equalPos = str.find('=');
+
+        if (equalPos != std::string::npos) {
+            const std::string &key = str.substr(0, equalPos);
+            const std::string &value = str.substr(equalPos + 1);
+            result.insert(std::make_pair(key, value));
+        }
+    }
+
+    return result;
+}
+
+std::vector<uint8_t> AfString::hexSequence(const std::string &value)
+{
+    std::vector<uint8_t> ret;
+
+    if (value.length() > 2 && (value.substr(0, 2) == "0X" || value.substr(0, 2) == "0x")) {
+        for (size_t i = 2; i <= (value.length() - 2); i += 2) {
+            unsigned val;
+            std::stringstream ss(value.substr(i, 2));
+            ss.imbue(std::locale("C"));
+            ss >> std::hex >> val;
+            ret.push_back(val);
+        }
+    }
+
+    return ret;
+}
+

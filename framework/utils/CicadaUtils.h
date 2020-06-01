@@ -25,6 +25,10 @@ public:
 
     static std::string base64dec(const std::string &str);
 
+    static std::string base64enc(const char* in, int len);
+
+    static int base64dec(const std::string &str , char** dst);
+
 };
 
 #endif /* CicadaUtils_hpp */
