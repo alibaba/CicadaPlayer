@@ -8,7 +8,7 @@ AFMediaCodecFrame::AFMediaCodecFrame(IAFFrame::FrameType type, int index, AFMedi
     : mType(type), mIndex(index), mRelease(std::move(f_release))
 {
     if (type == FrameTypeVideo) {
-        mInfo.format = AF_PIX_FMT_CICADA_MEDIA_CODEC;
+        mInfo.video.format = AF_PIX_FMT_CICADA_MEDIA_CODEC;
     } else {
         mInfo.audio.format = AF_PIX_FMT_CICADA_MEDIA_CODEC;
     }

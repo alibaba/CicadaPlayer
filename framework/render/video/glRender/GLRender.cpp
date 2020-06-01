@@ -328,7 +328,7 @@ bool GLRender::renderActually()
     }
 
     if (frame != nullptr) {
-        mProgramFormat = frame->getInfo().format;
+        mProgramFormat = frame->getInfo().video.format;
         mProgramContext = getProgram(mProgramFormat, frame.get());
     }
 

@@ -202,7 +202,7 @@ int YUVProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     if (frame != nullptr) {
-        fillDataToYUVTextures(frame->getData(), frame->getLineSize(), frame->getInfo().format);
+        fillDataToYUVTextures(frame->getData(), frame->getLineSize(), frame->getInfo().video.format);
     }
 
     bindYUVTextures();
