@@ -112,6 +112,7 @@ int main(int argc, char *argv[])
     player->SetDataSource(url.c_str());
     player->SetAutoPlay(true);
     player->SetLoop(true);
+    player->SetIPResolveType(IpResolveWhatEver);
     player->Prepare();
     player->SelectTrack(-1);
     bool quite = false;

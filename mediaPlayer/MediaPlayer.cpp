@@ -1121,4 +1121,10 @@ namespace Cicada {
         GET_PLAYER_HANDLE;
         CicadaSetOption(handle, "streamTypes", to_string(flags).c_str());
     }
+
+    void MediaPlayer::SetIPResolveType(IpResolveType type)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaSetOption(handle, "IPResolveType", to_string(type).c_str());
+    }
 }

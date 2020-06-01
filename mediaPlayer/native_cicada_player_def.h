@@ -43,6 +43,8 @@ typedef enum _StreamType {
     ST_TYPE_SUB,
 } StreamType;
 
+typedef enum _IpResolveType { IpResolveWhatEver, IpResolveV4, IpResolveV6 } IpResolveType;
+
 #define VIDEO_FLAG 1 << ST_TYPE_VIDEO
 #define AUDIO_FLAG 1 << ST_TYPE_AUDIO
 #define SUB_FLAG 1 << ST_TYPE_SUB
