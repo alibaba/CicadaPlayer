@@ -33,6 +33,7 @@ namespace Cicada {
         std::string userAgent{""};
         int timeout_ms{15000};
         int RTMaxDelayTime{0};
+        IpResolveType mIpType{IpResolveWhatEver};
         bool bLooping{false};
         bool bDisableAudio{false};
         bool bDisableVideo{false};

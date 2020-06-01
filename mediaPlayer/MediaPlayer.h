@@ -63,6 +63,13 @@ namespace Cicada {
         void EnableVideoRenderedCallback(bool enable);
 
         void SetOnRenderFrameCallback(onRenderFrame cb, void *userData);
+
+
+        void SetStreamTypeFlags(uint64_t flags);
+
+
+        void SetIPResolveType(IpResolveType type);
+
         /*
          * set player listener
          */
