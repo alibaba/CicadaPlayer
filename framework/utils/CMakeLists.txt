@@ -53,6 +53,8 @@ set(SOURCE_FILES
         Md5Utils.h
         ../base/options.cpp
         ../base/options.h
+        UrlUtils.cpp
+        UrlUtils.h
         )
 
 list(APPEND SOURCE_FILES
@@ -107,8 +109,8 @@ if (ANDROID)
             Android/CallIntMethod.h
             Android/GetObjectField.cpp
             Android/GetObjectField.h
-            Android/Convertor.cpp
-            Android/Convertor.h
+            Android/JniUtils.cpp
+            Android/JniUtils.h
             )
 elseif (IOS)
     set(SOURCE_FILES ${SOURCE_FILES}

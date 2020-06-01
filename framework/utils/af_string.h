@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <map>
 #include "CicadaType.h"
 
 class CICADA_CPLUS_EXTERN AfString {
@@ -56,6 +57,12 @@ public:
     static inline bool endWith(const std::string &str, const std::string &tail) {
         return str.compare(str.size() - tail.size(), tail.size(), tail) == 0;
     }
+
+    static int indexOf(const char *hay, int haysize, const char *needle, int needlesize);
+
+    static std::map<std::string,std::string> keyValueToMap(const std::string& source, const std::string& splitStr);
+
+    static std::vector<uint8_t> hexSequence(const std::string& source);
 };
 
 #endif //SOURCE_AF_STRING_H

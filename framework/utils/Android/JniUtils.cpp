@@ -4,12 +4,14 @@
 
 #include <cstring>
 #include <malloc.h>
-#include "Convertor.h"
+#include "JniUtils.h"
 #include "JniException.h"
 #include "FindClass.h"
 #include "NewStringUTF.h"
+#include "CallObjectMethod.h"
+#include "GetStringUTFChars.h"
 
-char *Convertor::jByteArrayToChars(JNIEnv *env, jbyteArray bytearray)
+char *JniUtils::jByteArrayToChars(JNIEnv *env, jbyteArray bytearray)
 {
     jbyte *bytes = env->GetByteArrayElements(bytearray, 0);
     int chars_len = env->GetArrayLength(bytearray);
@@ -20,7 +22,7 @@ char *Convertor::jByteArrayToChars(JNIEnv *env, jbyteArray bytearray)
     return chars;
 }
 
-char *Convertor::jByteArrayToChars_New(JNIEnv *env, jbyteArray bytearray)
+char *JniUtils::jByteArrayToChars_New(JNIEnv *env, jbyteArray bytearray)
 {
     jbyte *bytes = env->GetByteArrayElements(bytearray, 0);
     int chars_len = env->GetArrayLength(bytearray);
@@ -32,7 +34,7 @@ char *Convertor::jByteArrayToChars_New(JNIEnv *env, jbyteArray bytearray)
 }
 
 
-jobject Convertor::cmap2Jmap(JNIEnv *env, std::map<std::string, std::string> cmap)
+jobject JniUtils::cmap2Jmap(JNIEnv *env, std::map<std::string, std::string> cmap)
 {
     FindClass jmapclass(env, "java/util/HashMap");
     jmethodID initMethod = env->GetMethodID(jmapclass.getClass(), "<init>", "()V");
@@ -50,4 +52,14 @@ jobject Convertor::cmap2Jmap(JNIEnv *env, std::map<std::string, std::string> cma
     }
 
     return jmap;
+}
+
+
+std::string JniUtils::callStringMethod(JNIEnv *env, jobject jObj, jmethodID method)
+{
+    CallObjectMethod tmpGetObject(env, jObj, method);
+    auto objec = (jstring) tmpGetObject.getValue();
+    GetStringUTFChars tmpObj(env, objec);
+    char *ch_Obj = tmpObj.getChars();
+    return ch_Obj == nullptr ? "" : std::string(ch_Obj);
 }
