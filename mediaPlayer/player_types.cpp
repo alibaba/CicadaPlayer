@@ -61,6 +61,7 @@ namespace Cicada {
         mOptions.reset();
         maxASeekDelta = 21 * 1000 * 1000;
         maxVideoRecoverSize = 300;
+        mFastStart = true;
     }
 }
 

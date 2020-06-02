@@ -62,6 +62,7 @@ namespace Cicada {
         int maxASeekDelta = 21 * 1000 * 1000;//us
 
         int maxVideoRecoverSize;
+        bool mFastStart{true};
     };
 }
 
