@@ -1040,6 +1040,15 @@ import java.lang.ref.WeakReference;
         }
     }
 
+    @Override
+    public void setVideoBackgroundColor(int color) {
+        mCorePlayer.setVideoBackgroundColor(color);
+    }
+
+    @Override
+    public void setIPResolveType(IPResolveType type) {
+        mCorePlayer.setIPResolveType(type);
+    }
 }
 
 

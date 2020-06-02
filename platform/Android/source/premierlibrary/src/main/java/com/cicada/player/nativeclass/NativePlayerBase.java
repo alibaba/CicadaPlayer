@@ -427,6 +427,10 @@ public class NativePlayerBase {
         nSelectExtSubtitle(index,select);
     }
 
+    public void setIPResolveType(CicadaPlayer.IPResolveType type) {
+        nSetIPResolveType(type.ordinal());
+    }
+
     public synchronized void setDefaultBandWidth(int bandWidth) {
         nSetDefaultBandWidth(bandWidth);
     }
@@ -543,6 +547,7 @@ public class NativePlayerBase {
 
     protected static native void nSetBlackType(int type);
 
+    protected native void nSetIPResolveType(int type);
 
     //////==========--------------==================------------------================//
 

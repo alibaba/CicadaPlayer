@@ -1338,4 +1338,41 @@ public interface CicadaPlayer {
     }
 
     abstract public void setOnVideoRenderedListener(OnVideoRenderedListener l);
+
+
+    /**
+     * 设置视频的背景色
+     *
+     * @param color  ARGB
+     *
+     */
+    /****
+     * Set video background color
+     * @param color  ARGB
+     */
+    abstract public void setVideoBackgroundColor(int color);
+
+    /**
+     * IP 解析类型
+     */
+    public static enum IPResolveType {
+        /**
+         * 任意类型
+         */
+        IpResolveWhatEver,
+        /**
+         * 只使用ipV4
+         */
+        IpResolveV4,
+        /**
+         * 只使用ipV6
+         */
+        IpResolveV6
+    }
+
+    /**
+     * 设置网络ip解析类型
+     * @param type 见 {@link IPResolveType}
+     */
+    abstract public void setIPResolveType(IPResolveType type);
 }
