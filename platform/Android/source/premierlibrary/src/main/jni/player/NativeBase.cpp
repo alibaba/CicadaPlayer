@@ -790,6 +790,16 @@ void NativeBase::java_SetIPResolveType(JNIEnv *env, jobject instance, jint type)
     }
 }
 
+void NativeBase::java_SetFastStart(JNIEnv *env, jobject instance, jboolean open)
+{
+    AF_TRACE;
+    MediaPlayer *player = getPlayer(env, instance);
+
+    if (player != nullptr) {
+        player->SetFastStart((bool) open);
+    }
+}
+
 jstring NativeBase::java_GetCacheFilePathByURL(JNIEnv *env, jobject instance, jstring URL)
 {
     AF_TRACE;
@@ -977,6 +987,7 @@ static JNINativeMethod nativePlayer_method_table[] = {
     {"nGetSdkVersion",          "()Ljava/lang/String;",                    (void *) NativeBase::java_GetSdkVersion},
     {"nSetBlackType",           "(I)V",                                    (void *) NativeBase::java_SetBlackType},
     {"nSetIPResolveType",       "(I)V",                                    (void *) NativeBase::java_SetIPResolveType},
+    {"nSetFastStart",           "(Z)V",                                    (void *) NativeBase::java_SetFastStart},
     {"nGetCacheFilePath",       "(Ljava/lang/String;)Ljava/lang/String;",  (void *) NativeBase::java_GetCacheFilePathByURL},
     {"nSetDefaultBandWidth",    "(I)V",                                                                        (void *) NativeBase::java_SetDefaultBandWidth},
 

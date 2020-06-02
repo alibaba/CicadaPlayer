@@ -1386,4 +1386,7 @@ public interface CicadaPlayer {
      * @param type 见 {@link IPResolveType}
      */
     abstract public void setIPResolveType(IPResolveType type);
+
+
+    abstract public void setFastStart(boolean open);
 }
