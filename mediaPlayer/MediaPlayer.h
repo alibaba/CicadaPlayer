@@ -69,6 +69,8 @@ namespace Cicada {
 
         void SetIPResolveType(IpResolveType type);
 
+        void SetFastStart(bool mode);
+
         /*
          * set player listener
          */

@@ -42,6 +42,12 @@ static void onEOS(void *userData)
         cont->receiver->push(std::unique_ptr<IEvent>(new IEvent(IEvent::TYPE_EXIT)));
     }
 }
+static void onPrepared(void *userData)
+{
+    auto *cont = static_cast<cicadaCont *>(userData);
+    //   af_msleep(10000);
+    cont->player->Start();
+}
 
 static void onEvent(int64_t errorCode, const void *errorMsg, void *userData)
 {
@@ -98,6 +104,7 @@ int main(int argc, char *argv[])
     pListener.Completion = onEOS;
     pListener.EventCallback = onEvent;
     pListener.ErrorCallback = onError;
+    pListener.Prepared = onPrepared;
     cicadaEventListener eListener(player.get());
 #ifdef ENABLE_SDL
     SDLEventReceiver receiver(eListener);
@@ -113,6 +120,7 @@ int main(int argc, char *argv[])
     player->SetAutoPlay(true);
     player->SetLoop(true);
     player->SetIPResolveType(IpResolveWhatEver);
+    player->SetFastStart(true);
     player->Prepare();
     player->SelectTrack(-1);
     bool quite = false;

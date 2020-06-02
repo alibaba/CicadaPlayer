@@ -581,6 +581,8 @@ namespace Cicada {
         } else if (theKey == "IPResolveType") {
             uint64_t type = atoll(value);
             mSet.mIpType = static_cast<IpResolveType>(type);
+        } else if (theKey == "fastStart") {
+            mSet.mFastStart = atol(value) != 0;
         }
 
         return 0;
@@ -1339,7 +1341,9 @@ namespace Cicada {
         }
 
         if (mPlayStatus == PLAYER_PREPARING) {
-            if ((cur_buffer_duration >= HighBufferDur && (!HAVE_VIDEO || videoDecoderFull || APP_BACKGROUND == mAppStatus)) || (mEof)) {
+            if ((cur_buffer_duration >= HighBufferDur &&
+                 (!HAVE_VIDEO || videoDecoderFull || APP_BACKGROUND == mAppStatus || !mSet.mFastStart)) ||
+                (mEof)) {
                 //open stream failed
                 if (mEof && getPlayerBufferDuration(true) <= 0) {
                     ChangePlayerStatus(PLAYER_ERROR);
@@ -2376,6 +2380,11 @@ namespace Cicada {
     void SuperMediaPlayer::setUpAVPath()
     {
         if (!mInited) {
+            return;
+        }
+
+        if (!mSet.mFastStart && mPlayStatus < PLAYER_PLAYING) {
+            AF_LOGI("not fast start mode\n");
             return;
         }
 
