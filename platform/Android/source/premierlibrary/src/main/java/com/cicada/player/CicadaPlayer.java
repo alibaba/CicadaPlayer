@@ -1350,4 +1350,16 @@ public interface CicadaPlayer {
     }
 
     abstract public void setOnVideoRenderedListener(OnVideoRenderedListener l);
+
+    /**
+     * 设置视频的背景色
+     *
+     * @param color  ARGB
+     *
+     */
+    /****
+     * Set video background color
+     * @param color  ARGB
+     */
+    abstract public void setVideoBackgroundColor(int color);
 }
