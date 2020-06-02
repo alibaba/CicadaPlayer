@@ -65,7 +65,8 @@ namespace Cicada{
         static mediaCodecDecoder se;
 
     private:
-        IAFFrame::videoInfo mVideoInfo{};
+        int mVideoWidth{0};
+        int mVideoHeight{0};
         mediaCodec *mDecoder{nullptr};
 
         std::recursive_mutex mFuncEntryMutex;

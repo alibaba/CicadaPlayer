@@ -227,16 +227,16 @@ namespace Cicada {
         } else if (index == MC_INFO_OUTPUT_FORMAT_CHANGED) {
             mc_out out{};
             mDecoder->get_out(index, &out, false);
-            mVideoInfo.height = out.conf.video.height;
+            mVideoHeight = out.conf.video.height;
 
             if (out.conf.video.crop_bottom != MC_ERROR && out.conf.video.crop_top != MC_ERROR) {
-                mVideoInfo.height = out.conf.video.crop_bottom + 1 - out.conf.video.crop_top;
+                mVideoHeight = out.conf.video.crop_bottom + 1 - out.conf.video.crop_top;
             }
 
-            mVideoInfo.width = out.conf.video.width;
+            mVideoWidth = out.conf.video.width;
 
             if (out.conf.video.crop_right != MC_ERROR && out.conf.video.crop_left != MC_ERROR) {
-                mVideoInfo.width = out.conf.video.crop_right + 1 - out.conf.video.crop_left;
+                mVideoWidth = out.conf.video.crop_right + 1 - out.conf.video.crop_left;
             }
 
             return -EAGAIN;
@@ -256,7 +256,9 @@ namespace Cicada {
                 mDecoder->release_out(index, render);
             }));
             // AF_LOGD("mediacodec out pts %" PRId64, out.buf.pts);
-            pFrame->getInfo().video = mVideoInfo;
+            pFrame->getInfo().video.width = mVideoWidth;
+            pFrame->getInfo().video.height = mVideoHeight;
+
             pFrame->getInfo().pts = out.buf.pts != -1 ? out.buf.pts : INT64_MIN;
 
             if (out.b_eos) {
