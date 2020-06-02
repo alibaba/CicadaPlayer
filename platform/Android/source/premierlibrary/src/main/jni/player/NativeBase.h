@@ -141,6 +141,8 @@ public:
 
     static void java_SetIPResolveType(JNIEnv *env, jobject jobj, jint type);
 
+    static void java_SetFastStart(JNIEnv *env, jobject instance, jboolean open);
+
     static jstring java_GetCacheFilePathByURL(JNIEnv *env, jobject instance, jstring URL);
 
     static void java_SetDefaultBandWidth(JNIEnv *env , jobject instance , jint defaultBandWidth);
