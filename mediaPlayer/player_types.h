@@ -61,6 +61,8 @@ namespace Cicada {
 
 
         bool bEnableVRC = false;
+        int maxVideoRecoverSize;
+        bool mFastStart{true};
     };
 }
 

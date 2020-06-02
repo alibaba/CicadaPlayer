@@ -1107,4 +1107,10 @@ namespace Cicada {
         GET_PLAYER_HANDLE;
         CicadaSetOption(handle, "IPResolveType", to_string(type).c_str());
     }
+    void MediaPlayer::SetFastStart(bool mode)
+    {
+        GET_PLAYER_HANDLE;
+        int value = mode;
+        CicadaSetOption(handle, "fastStart", to_string(value).c_str());
+    }
 }
