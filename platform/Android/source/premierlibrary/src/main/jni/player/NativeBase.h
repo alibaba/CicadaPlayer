@@ -95,6 +95,8 @@ public:
 
     static void java_SetLoop(JNIEnv *env, jobject instance, jboolean on);
 
+    static void java_SetVideoBackgroundColor(JNIEnv *env, jobject instance, jint color);
+
     static jboolean java_IsLoop(JNIEnv *env, jobject instance);
 
     static jint java_GetVideoWidth(JNIEnv *env, jobject instance);

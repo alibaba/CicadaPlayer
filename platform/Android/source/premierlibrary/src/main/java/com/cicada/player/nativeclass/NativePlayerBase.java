@@ -335,6 +335,9 @@ public class NativePlayerBase {
         }
     }
 
+    public void setVideoBackgroundColor(int color) {
+        nSetVideoBackgroundColor(color);
+    }
 
     public void setRotateMode(CicadaPlayer.RotateMode rotateMode) {
         int rotateValue = rotateMode.getValue();
@@ -500,6 +503,8 @@ public class NativePlayerBase {
     protected native void nSetCacheConfig(Object cacheConfig);
 
     protected native void nReload();
+
+    protected native void nSetVideoBackgroundColor(int color);
 
     protected native void nSetScaleMode(int mode);
 

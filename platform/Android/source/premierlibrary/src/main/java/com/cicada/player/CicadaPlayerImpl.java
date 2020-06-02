@@ -1042,7 +1042,7 @@ import java.lang.ref.WeakReference;
 
     @Override
     public void setVideoBackgroundColor(int color) {
-      //  mCorePlayer.setVideoBackgroundColor(color);
+        mCorePlayer.setVideoBackgroundColor(color);
     }
 
     @Override
