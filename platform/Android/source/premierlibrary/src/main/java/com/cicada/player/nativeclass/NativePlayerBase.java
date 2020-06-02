@@ -431,6 +431,10 @@ public class NativePlayerBase {
         nSetIPResolveType(type.ordinal());
     }
 
+    public void setFastStart(boolean open) {
+        nSetFastStart(open);
+    }
+
     public synchronized void setDefaultBandWidth(int bandWidth) {
         nSetDefaultBandWidth(bandWidth);
     }
@@ -548,6 +552,8 @@ public class NativePlayerBase {
     protected static native void nSetBlackType(int type);
 
     protected native void nSetIPResolveType(int type);
+
+    protected native void nSetFastStart(boolean open);
 
     //////==========--------------==================------------------================//
 
