@@ -813,6 +813,17 @@ void NativeBase::java_SetDefaultBandWidth(JNIEnv *env, jobject instance, jint de
     }
 }
 
+void NativeBase::java_SetVideoBackgroundColor(JNIEnv *env, jobject instance, jint color)
+{
+    MediaPlayer *player = getPlayer(env, instance);
+
+    if (player == nullptr) {
+        return ;
+    }
+
+    return player->SetVideoBackgroundColor((uint32_t) color);
+}
+
 //callback...
 
 void NativeBase::init(JNIEnv *env)
@@ -920,9 +931,10 @@ static JNINativeMethod nativePlayer_method_table[] = {
     {"nSetVolume",              "(F)V",                                    (void *) NativeBase::java_SetVolume},
     {"nGetVolume",              "()F",                                     (void *) NativeBase::java_GetVolume},
     {"nSeekTo",                 "(JI)V",                                   (void *) NativeBase::java_SeekTo},
-    {"nSetMaxAccurateSeekDelta", "(I)V",                                    (void *) NativeBase::java_SetMaxAccurateSeekDelta},
+    {"nSetMaxAccurateSeekDelta", "(I)V",                                   (void *) NativeBase::java_SetMaxAccurateSeekDelta},
     {"nStop",                   "()V",                                     (void *) NativeBase::java_Stop},
     {"nRelease",                "()V",                                     (void *) NativeBase::java_Release},
+    {"nSetVideoBackgroundColor","(I)V",                                    (void *) NativeBase::java_SetVideoBackgroundColor},
     {"nGetDuration",            "()J",                                     (void *) NativeBase::java_GetDuration},
     {"nGetCurrentStreamInfo",   "(I)Ljava/lang/Object;",                   (void *) NativeBase::java_GetCurrentStreamInfo},
     {"nGetCurrentPosition",     "()J",                                     (void *) NativeBase::java_GetCurrentPosition},
