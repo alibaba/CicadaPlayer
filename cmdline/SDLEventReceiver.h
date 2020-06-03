@@ -21,7 +21,6 @@ private:
 #ifdef ENABLE_SDL
     SDL_Event event{};
     SDL_Window *window = nullptr;
-    SDL_Renderer *mVideoRender = nullptr;
 #endif
 };
 

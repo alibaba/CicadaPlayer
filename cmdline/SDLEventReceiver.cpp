@@ -5,6 +5,7 @@
 #include <utils/frame_work_log.h>
 #include <utils/timer.h>
 #include "SDLEventReceiver.h"
+#include "SDL_syswm.h"
 
 SDLEventReceiver::SDLEventReceiver(IEventReceiver::Listener &listener) : IEventReceiver(listener) {
 }
@@ -16,25 +17,38 @@ void SDLEventReceiver::poll(bool &exit) {
 
     if (UserEvent) {
         switch (UserEvent->getType()) {
-            case IEvent::TYPE_SET_VIEW:
-                if (window == nullptr) {
-                    SDL_Init(SDL_INIT_VIDEO);
-                    Uint32 flags = 0;
-                    flags |=SDL_WINDOW_ALLOW_HIGHDPI;
-                    flags |= SDL_WINDOW_RESIZABLE;
-                    SDL_CreateWindowAndRenderer(1280, 720,flags, &window, &mVideoRender);
-                }
-                mListener.onSetView(window);
-                break;
+        case IEvent::TYPE_SET_VIEW: {
+          if (window == nullptr) {
+              if (SDL_WasInit(SDL_INIT_VIDEO) != SDL_INIT_VIDEO) {
+                  SDL_Init(SDL_INIT_VIDEO);
+              }
+            Uint32 flags = 0;
+            flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+            flags |= SDL_WINDOW_RESIZABLE;
+            window = SDL_CreateWindow("playerDemo", 0, 0, 1280, 720, flags);
+          }
+          SDL_SysWMinfo wminfo;
+          SDL_VERSION(&wminfo.version)
+          SDL_GetWindowWMInfo(window, &wminfo);
+          void* window_id = nullptr;
+        #if defined(SDL_VIDEO_DRIVER_WINDOWS)
+          window_id = wminfo.info.win.window;
+        #elif defined(SDL_VIDEO_DRIVER_X11)
+          window_id = wminfo.info.x11.window;
+        #elif defined(SDL_VIDEO_DRIVER_COCOA)
+          window_id = wminfo.info.cocoa.window;
+        #endif
+          mListener.onSetView(window_id);
+          break;
+        }
+        case IEvent::TYPE_EXIT:
+          mListener.onExit();
+          exit = true;
+          return;
 
-            case IEvent::TYPE_EXIT:
-                mListener.onExit();
-                exit = true;
-                return;
-
-            default:
-                AF_LOGW("unknown type event %d", UserEvent->getType());
-                break;
+        default:
+          AF_LOGW("unknown type event %d", UserEvent->getType());
+          break;
         }
     }
 
@@ -107,11 +121,6 @@ void SDLEventReceiver::poll(bool &exit) {
                 break;
         }
         if (exit){
-            if (mVideoRender != nullptr) {
-                SDL_DestroyRenderer(mVideoRender);
-                mVideoRender = nullptr;
-            }
-
             if (window != nullptr) {
                 SDL_DestroyWindow(window);
                 window = nullptr;
