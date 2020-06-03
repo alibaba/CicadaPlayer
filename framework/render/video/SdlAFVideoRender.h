@@ -80,6 +80,7 @@ private:
     SDL_Window *mVideoWindow = nullptr;
     SDL_Texture *mVideoTexture = nullptr;
     SDL_Renderer *mVideoRender = nullptr;
+    void* mCurrentView = nullptr;
 
     std::unique_ptr<IAFFrame> mLastVideoFrame{};
     std::unique_ptr<IAFFrame> mBackFrame{};

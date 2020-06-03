@@ -32,7 +32,7 @@ namespace Cicada {
         int startBufferDuration;
         /* true is to clear image show when stop */
         bool bClearShowWhenStop;
-        /* enable tunnel rander*/
+        /* enable tunnel render*/
         bool bEnableTunnelRender;
         std::vector<std::string> customHeaders;
 

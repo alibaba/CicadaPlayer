@@ -27,7 +27,10 @@ SdlAFVideoRender::~SdlAFVideoRender()
 
 int SdlAFVideoRender::init()
 {
-    int initRet = SDL_Init(SDL_INIT_VIDEO);
+    int initRet = 0;
+    if (SDL_WasInit(SDL_INIT_VIDEO) != SDL_INIT_VIDEO) {
+        initRet = SDL_Init(SDL_INIT_VIDEO);
+    }
 
     if (initRet < 0) {
         AF_LOGE("SdlAFVideoRender could not initialize! Error: %s\n", SDL_GetError());
@@ -400,10 +403,29 @@ SDL_Rect SdlAFVideoRender::getSnapRect()
 
 int SdlAFVideoRender::setDisPlay(void *view)
 {
-    mVideoWindow = static_cast<SDL_Window *>(view);
+    if (mCurrentView == view) {
+        return 0;
+    }
+    if (mVideoWindow != nullptr) {
+        SDL_DestroyWindow(mVideoWindow);
+        mVideoWindow = nullptr;
+    }
+    if (mVideoRender != nullptr) {
+        SDL_DestroyRenderer(mVideoRender);
+        mVideoRender = nullptr;
+    }
+    mCurrentView = view;
+    if (mCurrentView == nullptr) {
+        return 0;
+    }
+    if (SDL_WasInit(SDL_INIT_VIDEO) != SDL_INIT_VIDEO) {
+        SDL_Init(SDL_INIT_VIDEO);
+    }
+    mVideoWindow = SDL_CreateWindowFrom(view);
+    SDL_ShowWindow(mVideoWindow);
 
     if (mVideoWindow) {
-        mVideoRender = SDL_GetRenderer(mVideoWindow);
+        mVideoRender = SDL_CreateRenderer(mVideoWindow, -1, SDL_RENDERER_SOFTWARE);
     }
 
     return 0;

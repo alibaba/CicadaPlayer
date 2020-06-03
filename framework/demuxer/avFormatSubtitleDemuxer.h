@@ -84,7 +84,7 @@ namespace Cicada {
         AVIOContext *mPInPutPb = nullptr;
         bool mInterrupted{false};
         map mPacketMap;
-        map::iterator mCurrent;
+        map::iterator mCurrent = mPacketMap.end();
         int64_t mCurrentPts = INT64_MIN;
         int64_t mSeekPTS = INT64_MIN;
     };
