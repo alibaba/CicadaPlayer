@@ -85,7 +85,19 @@ static void onError(int64_t errorCode, const void *errorMsg, void *userData)
     }
 }
 
-int main(int argc, const char **argv)
+static bool CicadaOnRenderFrame(void *userData, IAFFrame *frame)
+{
+    if (frame == nullptr) { return false; }
+
+    if (frame->getType() != IAFFrame::FrameTypeVideo) {
+        return false;
+    }
+
+    //    AF_LOGD("render a video frame %lld\n", frame->getInfo().pts);
+    return false;
+}
+
+int main(int argc, char *argv[])
 {
     string url;
 
@@ -123,6 +135,7 @@ int main(int argc, const char **argv)
     player->SetFastStart(true);
     player->Prepare();
     player->SelectTrack(-1);
+    player->SetOnRenderFrameCallback(CicadaOnRenderFrame, nullptr);
     bool quite = false;
 
     while (!quite && !cicada.error) {

@@ -2116,10 +2116,6 @@ namespace Cicada {
             }
         }
 
-        if (mFrameCb) {
-            mFrameCb(mFrameCbUserData, videoFrame.get());
-        }
-
         if (render) {
             SendVideoFrameToRender(move(videoFrame));
 
@@ -2138,8 +2134,13 @@ namespace Cicada {
             }
         } else {
             AF_LOGW("drop frame,master played time is %lld,video pts is %lld\n", masterPlayedTime, videoPts);
-            VideoRenderCallback(this, videoPts, nullptr);
             videoFrame->setDiscard(true);
+
+            if (mFrameCb) {
+                mFrameCb(mFrameCbUserData, videoFrame.get());
+            }
+
+            VideoRenderCallback(this, videoPts, nullptr);
         }
 
         mPlayedVideoPts = videoPts;
@@ -2231,15 +2232,15 @@ namespace Cicada {
 
     void SuperMediaPlayer::SendVideoFrameToRender(unique_ptr<IAFFrame> frame, bool valid)
     {
-//#ifdef WIN32
-//
-//        if (mVideoDecodeType == AlivcVideoCodecHardware) {
-//            m_dxva2Render.RenderFrame(frame->getFrame()->GetData());
-//            //delete pFrame;
-//            return;
-//        }
-//
-//#endif
+        if (mFrameCb) {
+            bool rendered = mFrameCb(mFrameCbUserData, frame.get());
+
+            if (rendered) {
+                VideoRenderCallback(this, frame->getInfo().pts, nullptr);
+                return;
+            }
+        }
+
         if (mVideoRender) {
             int ret = mVideoRender->renderFrame(frame);
 
@@ -2396,7 +2397,7 @@ namespace Cicada {
             }
         }
 
-        if (mCurrentVideoIndex >= 0 && mVideoDecoder == nullptr) {
+        if (mCurrentVideoIndex >= 0) {
             int ret = SetUpVideoPath();
 
             if (ret < 0) {
@@ -2984,7 +2985,7 @@ namespace Cicada {
 
     int SuperMediaPlayer::SetUpVideoPath()
     {
-        if (mVideoDecoder) {
+        if (mVideoDecoder && mVideoRender) {
             return 0;
         }
 
@@ -3002,7 +3003,7 @@ namespace Cicada {
             mPNotifier->NotifyVideoSizeChanged(mVideoWidth, mVideoHeight);
         }
 
-        if (mSet.mView == nullptr) {
+        if (mSet.mView == nullptr && mFrameCb == nullptr) {
             return 0;
         }
 
@@ -3012,8 +3013,49 @@ namespace Cicada {
         }
 
         int ret = 0;
+
+        if (meta->interlaced == InterlacedType_UNKNOWN) {
+            meta->interlaced = mVideoInterlaced;
+        }
+
+        if (!mSet.bEnableTunnelRender && mSet.mView != nullptr && mVideoRender == nullptr) {
+            if (mAppStatus == APP_BACKGROUND) {
+                AF_LOGW("create video render in background");
+            }
+
+            AF_LOGD("SetUpVideoRender start");
+            CreateVideoRender();
+
+            if (mVideoRender) {
+                IVideoRender::Rotate finalRotate = IVideoRender::Rotate::Rotate_None;
+
+                if (meta->rotate == 0) {
+                    finalRotate = IVideoRender::Rotate::Rotate_None;
+                } else if (meta->rotate == 90) {
+                    finalRotate = IVideoRender::Rotate::Rotate_90;
+                } else if (meta->rotate == 180) {
+                    finalRotate = IVideoRender::Rotate::Rotate_180;
+                } else if (meta->rotate == 270) {
+                    finalRotate = IVideoRender::Rotate::Rotate_270;
+                }
+
+                mVideoRender->setVideoRotate(finalRotate);
+            }
+        }
+
+        //re set view in case for not set view before
+        if (mSet.mView) {
+            if (mVideoRender) {
+                mVideoRender->setDisPlay(mSet.mView);
+            }
+        }
+
+        if (mVideoDecoder != nullptr) {
+            return 0;
+        }
+
+        AF_LOGD("SetUpVideoDecoder start");
         bool bHW = false;
-        AF_LOGD("SetUpVideoPath start");
 
         if (mSet.bEnableHwVideoDecode) {
             switch (meta->codec) {
@@ -3026,41 +3068,6 @@ namespace Cicada {
                 default:
                     bHW = true;
                     break;
-            }
-
-            if (mAppStatus == APP_BACKGROUND) {
-                AF_LOGW("create video render in background");
-            }
-        }
-
-        if (meta->interlaced == InterlacedType_UNKNOWN) {
-            meta->interlaced = mVideoInterlaced;
-        }
-
-        if (!mSet.bEnableTunnelRender) {
-            CreateVideoRender();
-        }
-
-        if (mVideoRender) {
-            IVideoRender::Rotate finalRotate = IVideoRender::Rotate::Rotate_None;
-
-            if (meta->rotate == 0) {
-                finalRotate = IVideoRender::Rotate::Rotate_None;
-            } else if (meta->rotate == 90) {
-                finalRotate = IVideoRender::Rotate::Rotate_90;
-            } else if (meta->rotate == 180) {
-                finalRotate = IVideoRender::Rotate::Rotate_180;
-            } else if (meta->rotate == 270) {
-                finalRotate = IVideoRender::Rotate::Rotate_270;
-            }
-
-            mVideoRender->setVideoRotate(finalRotate);
-        }
-
-        //re set view in case for not set view before
-        if (mSet.mView) {
-            if (mVideoRender) {
-                mVideoRender->setDisPlay(mSet.mView);
             }
         }
 
@@ -3090,19 +3097,6 @@ namespace Cicada {
                 mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_SW_VIDEO_DECODER, "Switch to software video decoder");
             }
         }
-
-//
-//#ifdef WIN32
-//
-//        if (mVideoDecodeType == AlivcVideoCodecHardware) {
-//            if (meta.width >= 7680 && meta.height >= 4320) {
-//                mVideoDecoder->enable_skip_frame(true, 60.0);
-//            }
-//
-//            m_dxva2Render.InitRender(mSet.mView, mVideoDecoder->get_video_device(), meta.width, meta.height);
-//        }
-//
-//#endif
 
         if (meta->duration > mDuration) {
             mDuration = meta->duration;
