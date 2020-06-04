@@ -481,6 +481,7 @@ namespace Cicada {
 
         bool dropLateVideoFrames = false;
         bool waitingForStart = false;
+        bool mSecretPlayBack{false};
     private:
 
         bool mAutoPlay = false;
@@ -498,8 +499,6 @@ namespace Cicada {
         void printTimePosition(int64_t time) const;
 
         void setUpAVPath();
-
-        void startRendering(bool start);
 
         int64_t mCheckAudioQueEOSTime{INT64_MIN};
         uint64_t mAudioQueDuration{UINT64_MAX};

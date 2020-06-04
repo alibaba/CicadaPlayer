@@ -1931,7 +1931,7 @@ namespace Cicada {
             duration = getPCMFrameDuration(avafFrame->ToAVFrame());
         }
 
-        if (mFrameCb) {
+        if (mFrameCb && !mSecretPlayBack) {
             mFrameCb(mFrameCbUserData, avafFrame);
         }
 
@@ -2136,7 +2136,7 @@ namespace Cicada {
             AF_LOGW("drop frame,master played time is %lld,video pts is %lld\n", masterPlayedTime, videoPts);
             videoFrame->setDiscard(true);
 
-            if (mFrameCb) {
+            if (mFrameCb && !mSecretPlayBack) {
                 mFrameCb(mFrameCbUserData, videoFrame.get());
             }
 
@@ -2232,7 +2232,7 @@ namespace Cicada {
 
     void SuperMediaPlayer::SendVideoFrameToRender(unique_ptr<IAFFrame> frame, bool valid)
     {
-        if (mFrameCb) {
+        if (mFrameCb && !mSecretPlayBack) {
             bool rendered = mFrameCb(mFrameCbUserData, frame.get());
 
             if (rendered) {
@@ -2434,6 +2434,12 @@ namespace Cicada {
             return ret;
         }
 
+        // FIXME: transfer to frame
+        if (pMedia_Frame->isProtected() && !mSecretPlayBack) {
+            AF_LOGI("SecretPlayBack\n");
+            mSecretPlayBack = true;
+        }
+
         pFrame = pMedia_Frame.get();
         mUtil.notifyRead(MediaPlayerUtil::readEvent_Got);
 
@@ -2493,6 +2499,7 @@ namespace Cicada {
 
         if (pFrame->getInfo().streamIndex == mCurrentVideoIndex ||
                 pFrame->getInfo().streamIndex == mWillChangedVideoStreamIndex) {
+            // FIXME: return non slice nal only when protected packet
             if (mMediaFrameCb) {
                 // TODO: change to std::unique_ptr<IAFPacket>
                 mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame, ST_TYPE_VIDEO);
@@ -2587,7 +2594,7 @@ namespace Cicada {
                 }
             }
 
-            if (mMediaFrameCb) {
+            if (mMediaFrameCb && !pMedia_Frame->isProtected()) {
                 // TODO: change to std::unique_ptr<IAFPacket>
                 mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame, ST_TYPE_AUDIO);
             }
@@ -2595,7 +2602,7 @@ namespace Cicada {
             mBufferController.AddPacket(move(pMedia_Frame), BUFFER_TYPE_AUDIO);
         } else if (pFrame->getInfo().streamIndex == mCurrentSubtitleIndex ||
                    pFrame->getInfo().streamIndex == mWillChangedSubtitleStreamIndex) {
-            if (mMediaFrameCb) {
+            if (mMediaFrameCb && !pMedia_Frame->isProtected()) {
                 // TODO: change to std::unique_ptr<IAFPacket>
                 mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame, ST_TYPE_SUB);
             }
@@ -3252,6 +3259,8 @@ namespace Cicada {
         if (mVideoRender) {
             mVideoRender->setSpeed(1);
         }
+
+        mSecretPlayBack = false;
     }
 
     int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)
