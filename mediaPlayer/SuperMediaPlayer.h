@@ -485,6 +485,8 @@ namespace Cicada {
         bool dropLateVideoFrames = false;
         bool waitingForStart = false;
         bool mBRendingStart {false};
+        bool mSecretPlayBack{false};
+
     private:
 
         bool mAutoPlay = false;
