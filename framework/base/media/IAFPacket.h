@@ -75,6 +75,11 @@ public:
         return mbDiscard;
     }
 
+    virtual bool isProtected()
+    {
+        return false;
+    }
+
     packetInfo &getInfo();
 
     void setExtraData(const uint8_t *extra_data, int extra_data_size)
