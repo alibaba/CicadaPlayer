@@ -345,7 +345,7 @@ namespace Cicada {
             pkt->duration = av_rescale_q(pkt->duration, mCtx->streams[pkt->stream_index]->time_base, AV_TIME_BASE_Q);
         }
 
-        packet = unique_ptr<IAFPacket>(new AVAFPacket(&pkt));
+        packet = unique_ptr<IAFPacket>(new AVAFPacket(&pkt, mSecretDemxuer));
 
         if (needUpdateExtraData) {
             packet->setExtraData(new_extradata, new_extradata_size);

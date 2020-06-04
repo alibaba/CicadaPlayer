@@ -14,17 +14,22 @@ extern "C" {
 
 class AVAFPacket : public IAFPacket {
 public:
-    attribute_deprecated explicit AVAFPacket(AVPacket &pkt);
+    attribute_deprecated explicit AVAFPacket(AVPacket &pkt, bool isProtected = false);
 
-    explicit AVAFPacket(AVPacket *pkt);
+    explicit AVAFPacket(AVPacket *pkt, bool isProtected = false);
 
-    explicit AVAFPacket(AVPacket **pkt);
+    explicit AVAFPacket(AVPacket **pkt, bool isProtected = false);
 
     ~AVAFPacket() override;
 
     void setDiscard(bool discard) override;
 
     uint8_t *getData() override;
+
+    bool isProtected() override
+    {
+        return mIsProtected;
+    }
 
     std::unique_ptr<IAFPacket> clone() override;
 
@@ -36,6 +41,7 @@ public:
 
 private:
     AVPacket *mpkt{nullptr};
+    bool mIsProtected;
 
     void copyInfo();
 };

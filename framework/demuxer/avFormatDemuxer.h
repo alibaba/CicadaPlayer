@@ -120,6 +120,7 @@ namespace Cicada {
         std::string mProbeString{};
         AVFormatContext *mCtx = nullptr;
         int MAX_QUEUE_SIZE = 60; // about 500ms  video and audio packet
+        bool mSecretDemxuer{false};
 
     private:
         std::atomic_bool mInterrupted{false};

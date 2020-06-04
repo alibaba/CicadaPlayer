@@ -26,7 +26,7 @@ void AVAFPacket::copyInfo()
     mInfo.pos = mpkt->pos;
 }
 
-AVAFPacket::AVAFPacket(AVPacket &pkt)
+AVAFPacket::AVAFPacket(AVPacket &pkt, bool isProtected) : mIsProtected(isProtected)
 {
     mpkt = av_packet_alloc();
     av_init_packet(mpkt);
@@ -34,7 +34,7 @@ AVAFPacket::AVAFPacket(AVPacket &pkt)
     copyInfo();
 }
 
-AVAFPacket::AVAFPacket(AVPacket *pkt)
+AVAFPacket::AVAFPacket(AVPacket *pkt, bool isProtected) : mIsProtected(isProtected)
 {
     mpkt = av_packet_alloc();
     av_init_packet(mpkt);
@@ -42,7 +42,7 @@ AVAFPacket::AVAFPacket(AVPacket *pkt)
     copyInfo();
 }
 
-AVAFPacket::AVAFPacket(AVPacket **pkt)
+AVAFPacket::AVAFPacket(AVPacket **pkt, bool isProtected) : mIsProtected(isProtected)
 {
     mpkt = *pkt;
     *pkt = nullptr;
@@ -61,7 +61,7 @@ uint8_t *AVAFPacket::getData()
 
 unique_ptr<IAFPacket> AVAFPacket::clone()
 {
-    return unique_ptr<IAFPacket>(new AVAFPacket(mpkt));
+    return unique_ptr<IAFPacket>(new AVAFPacket(mpkt, mIsProtected));
 }
 
 int64_t AVAFPacket::getSize()
