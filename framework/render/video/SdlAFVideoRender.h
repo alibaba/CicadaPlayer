@@ -99,7 +99,7 @@ private:
     std::mutex mRenderMutex;
     std::unique_ptr<IVSync> mVSync{nullptr};
     std::function<void(int64_t, bool)> mRenderResultCallback = nullptr;
-
+    bool mInitByMe{false};
 };
 
 

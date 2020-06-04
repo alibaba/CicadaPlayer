@@ -20,8 +20,9 @@ SdlAFVideoRender::~SdlAFVideoRender()
     if (mVideoTexture != nullptr) {
         SDL_DestroyTexture(mVideoTexture);
     }
-
-    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+    if (mInitByMe) {
+        SDL_QuitSubSystem(SDL_INIT_VIDEO);
+    }
 }
 
 
@@ -30,10 +31,12 @@ int SdlAFVideoRender::init()
     int initRet = 0;
     if (SDL_WasInit(SDL_INIT_VIDEO) != SDL_INIT_VIDEO) {
         initRet = SDL_Init(SDL_INIT_VIDEO);
+        mInitByMe = true;
     }
 
     if (initRet < 0) {
         AF_LOGE("SdlAFVideoRender could not initialize! Error: %s\n", SDL_GetError());
+        mInitByMe = false;
         return initRet;
     }
 
@@ -49,7 +52,7 @@ int SdlAFVideoRender::init()
 
     int renderWidth = 0;
     int renderHeight = 0;
-    SDL_GetWindowSize(mVideoWindow, &mWindowWidth, &mWindowHeight);
+    SDL_GL_GetDrawableSize(mVideoWindow, &mWindowWidth, &mWindowHeight);
     SDL_GetRendererOutputSize(mVideoRender, &renderWidth, &renderHeight);
     float DISPLAY_WIDTH_RATIO = renderWidth * 1.0f / mWindowWidth;
     float DISPLAY_HEIGHT_RATIO = renderHeight * 1.0f / mWindowHeight;
@@ -222,8 +225,7 @@ int SdlAFVideoRender::setScale(Scale scale)
 SDL_Rect SdlAFVideoRender::getDestRet()
 {
     SDL_Rect dstRect{};
-    SDL_GetWindowSize(mVideoWindow, &mWindowWidth, &mWindowHeight);
-
+    SDL_GL_GetDrawableSize(mVideoWindow, &mWindowWidth, &mWindowHeight);
     if (mWindowWidth == 0 || mWindowHeight == 0 ||
             mVideoWidth == 0 || mVideoHeight == 0) {
         dstRect.x = 0;
@@ -420,12 +422,13 @@ int SdlAFVideoRender::setDisPlay(void *view)
     }
     if (SDL_WasInit(SDL_INIT_VIDEO) != SDL_INIT_VIDEO) {
         SDL_Init(SDL_INIT_VIDEO);
+        mInitByMe = true;
     }
     mVideoWindow = SDL_CreateWindowFrom(view);
     SDL_ShowWindow(mVideoWindow);
 
     if (mVideoWindow) {
-        mVideoRender = SDL_CreateRenderer(mVideoWindow, -1, SDL_RENDERER_SOFTWARE);
+        mVideoRender = SDL_CreateRenderer(mVideoWindow, -1, 0);
     }
 
     return 0;
