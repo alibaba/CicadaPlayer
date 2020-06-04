@@ -2,10 +2,10 @@
 // Created by moqi on 2019/12/11.
 //
 
+#include "SDLEventReceiver.h"
+#include <SDL2/SDL_syswm.h>
 #include <utils/frame_work_log.h>
 #include <utils/timer.h>
-#include "SDLEventReceiver.h"
-#include "SDL_syswm.h"
 
 SDLEventReceiver::SDLEventReceiver(IEventReceiver::Listener &listener) : IEventReceiver(listener) {
 }
