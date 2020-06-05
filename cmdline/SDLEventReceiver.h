@@ -8,6 +8,14 @@
 #include <SDL2/SDL.h>
 #endif
 #include "IEventReceiver.h"
+#define USE_NATIVE_WINDOW 0
+
+enum CicadaSDLViewType { CicadaSDLViewType_SDL_WINDOW, CicadaSDLViewType_NATIVE_WINDOW };
+
+typedef struct CicadaSDLView_t {
+    void *view;
+    CicadaSDLViewType type;
+} CicadaSDLView;
 
 class SDLEventReceiver : public IEventReceiver {
 
@@ -20,7 +28,7 @@ public:
 private:
 #ifdef ENABLE_SDL
     SDL_Event event{};
-    SDL_Window *window = nullptr;
+    CicadaSDLView mView{};
 #endif
 };
 

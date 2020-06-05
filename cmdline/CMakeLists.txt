@@ -30,7 +30,8 @@ if (ENABLE_SDL)
     list(APPEND SRC_FILE
             SDLEventReceiver.cpp
             SDLEventReceiver.h
-            )
+            nativeWindow/CocoaWindow.m
+            nativeWindow/X11Window.c)
 endif ()
 
 add_executable(cicadaPlayer
@@ -119,6 +120,10 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else ()
     add_subdirectory(example)
 endif ()
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    target_link_libraries(cicadaPlayer PUBLIC X11)
+endif()
 
 if(MSVC AND NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")

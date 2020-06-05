@@ -3,6 +3,7 @@
 //
 
 #include "SDLEventReceiver.h"
+#include "nativeWindow/nativeWindow.h"
 #include <SDL2/SDL_syswm.h>
 #include <utils/frame_work_log.h>
 #include <utils/timer.h>
@@ -18,28 +19,30 @@ void SDLEventReceiver::poll(bool &exit) {
     if (UserEvent) {
         switch (UserEvent->getType()) {
         case IEvent::TYPE_SET_VIEW: {
-          if (window == nullptr) {
-              if (SDL_WasInit(SDL_INIT_VIDEO) != SDL_INIT_VIDEO) {
-                  SDL_Init(SDL_INIT_VIDEO);
-              }
-            Uint32 flags = 0;
-            flags |= SDL_WINDOW_ALLOW_HIGHDPI;
-            flags |= SDL_WINDOW_RESIZABLE;
-            window = SDL_CreateWindow("playerDemo", 0, 0, 1280, 720, flags);
-          }
-          SDL_SysWMinfo wminfo;
-          SDL_VERSION(&wminfo.version)
-          SDL_GetWindowWMInfo(window, &wminfo);
-          void* window_id = nullptr;
-        #if defined(SDL_VIDEO_DRIVER_WINDOWS)
-          window_id = wminfo.info.win.window;
-        #elif defined(SDL_VIDEO_DRIVER_X11)
-          window_id = wminfo.info.x11.window;
-        #elif defined(SDL_VIDEO_DRIVER_COCOA)
-          window_id = wminfo.info.cocoa.window;
-        #endif
-          mListener.onSetView(window_id);
-          break;
+            if (SDL_WasInit(SDL_INIT_VIDEO) != SDL_INIT_VIDEO) {
+                SDL_Init(SDL_INIT_VIDEO);
+            }
+            if (mView.view == nullptr) {
+#if USE_NATIVE_WINDOW
+                if (getNativeFactor() != nullptr) {
+                    mView.view = (getNativeFactor()->CreateNativeWindow(1280, 720));
+                    if (mView.view) {
+                        mView.type = CicadaSDLViewType_NATIVE_WINDOW;
+                    }
+                }
+
+#endif
+                if (mView.view == nullptr) {
+                    Uint32 flags = 0;
+                    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+                    flags |= SDL_WINDOW_RESIZABLE;
+                    SDL_Renderer *renderer;
+                    SDL_CreateWindowAndRenderer(1280, 720, flags, reinterpret_cast<SDL_Window **>(&mView.view), &renderer);
+                    mView.type = CicadaSDLViewType_SDL_WINDOW;
+                }
+            }
+            mListener.onSetView(&mView);
+            break;
         }
         case IEvent::TYPE_EXIT:
           mListener.onExit();
@@ -100,13 +103,13 @@ void SDLEventReceiver::poll(bool &exit) {
             }
 
             case SDL_MOUSEBUTTONDOWN: {
-                if (event.button.button == SDL_BUTTON_LEFT) {
+                if (event.button.button == SDL_BUTTON_LEFT && mView.type == CicadaSDLViewType_SDL_WINDOW) {
                     static int64_t last_mouse_left_click = 0;
                     static bool is_full_screen = false;
                     if (af_gettime_relative() - last_mouse_left_click <= 500000) {
                         is_full_screen = !is_full_screen;
-                        if (window) {
-                            SDL_SetWindowFullscreen(window, is_full_screen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+                        if (mView.view) {
+                            SDL_SetWindowFullscreen((SDL_Window *) mView.view, is_full_screen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
                         }
                         mListener.onFullScreen(is_full_screen);
                         last_mouse_left_click = 0;
@@ -121,9 +124,12 @@ void SDLEventReceiver::poll(bool &exit) {
                 break;
         }
         if (exit){
-            if (window != nullptr) {
-                SDL_DestroyWindow(window);
-                window = nullptr;
+            if (mView.view != nullptr) {
+                if (mView.type == CicadaSDLViewType_NATIVE_WINDOW) {
+                    getNativeFactor()->DestroyNativeWindow(mView.view);
+                } else
+                    SDL_DestroyWindow((SDL_Window *) mView.view);
+                mView.view = nullptr;
             }
         }
     }
