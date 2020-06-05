@@ -171,7 +171,7 @@ int YUVProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
         }
     }
 
-    if(frame == nullptr && !mProjectionChanged && !mRegionChanged && !mCoordsChanged){
+    if(frame == nullptr && !mProjectionChanged && !mRegionChanged && !mCoordsChanged && !mBackgroundColorChanged){
         //frame is null and nothing changed , don`t need redraw. such as paused.
         return -1;
     }
