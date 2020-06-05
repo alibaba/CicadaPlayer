@@ -87,6 +87,7 @@ private:
     SDL_Window *mVideoWindow = nullptr;
     SDL_Texture *mVideoTexture = nullptr;
     SDL_Renderer *mVideoRender = nullptr;
+    bool mRenderNeedRelease{false};
     void* mCurrentView = nullptr;
 
     std::unique_ptr<IAFFrame> mLastVideoFrame{};
@@ -106,7 +107,6 @@ private:
     std::mutex mRenderMutex;
     std::unique_ptr<IVSync> mVSync{nullptr};
     std::function<void(int64_t, bool)> mRenderResultCallback = nullptr;
-    bool mInitByMe{false};
 };
 
 

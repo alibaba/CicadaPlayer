@@ -12,6 +12,7 @@ SdlAFVideoRender::SdlAFVideoRender()
 {
     mVSync = VSyncFactory::create(*this, 60);
 //   mHz = 0;
+    SDL_InitSubSystem(SDL_INIT_VIDEO);
     mVSync->start();
 };
 
@@ -20,23 +21,19 @@ SdlAFVideoRender::~SdlAFVideoRender()
     if (mVideoTexture != nullptr) {
         SDL_DestroyTexture(mVideoTexture);
     }
-    if (mInitByMe) {
-        SDL_QuitSubSystem(SDL_INIT_VIDEO);
+    if (mRenderNeedRelease) {
+        SDL_DestroyRenderer(mVideoRender);
     }
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
 
 int SdlAFVideoRender::init()
 {
     int initRet = 0;
-    if (SDL_WasInit(SDL_INIT_VIDEO) != SDL_INIT_VIDEO) {
-        initRet = SDL_Init(SDL_INIT_VIDEO);
-        mInitByMe = true;
-    }
 
     if (initRet < 0) {
         AF_LOGE("SdlAFVideoRender could not initialize! Error: %s\n", SDL_GetError());
-        mInitByMe = false;
         return initRet;
     }
 
@@ -413,29 +410,27 @@ int SdlAFVideoRender::setDisPlay(void *view)
     if (mCurrentView == nullptr) {
         return 0;
     }
-    if (mVideoWindow != nullptr) {
-        SDL_DestroyWindow(mVideoWindow);
-        mVideoWindow = nullptr;
+    if (mVideoTexture != nullptr) {
+        SDL_DestroyTexture(mVideoTexture);
     }
-    if (mVideoRender != nullptr) {
+    if (mRenderNeedRelease) {
         SDL_DestroyRenderer(mVideoRender);
-        mVideoRender = nullptr;
-    }
-    if (SDL_WasInit(SDL_INIT_VIDEO) != SDL_INIT_VIDEO) {
-        SDL_Init(SDL_INIT_VIDEO);
-        mInitByMe = true;
+        mRenderNeedRelease = false;
     }
     if (display->type == CicadaSDLViewType_NATIVE_WINDOW) {
         mVideoWindow = SDL_CreateWindowFrom(display->view);
         SDL_ShowWindow(mVideoWindow);
-    } else
+    } else {
         mVideoWindow = static_cast<SDL_Window *>(display->view);
+    }
 
     if (mVideoWindow) {
         mVideoRender = SDL_GetRenderer(mVideoWindow);
         if (mVideoRender == nullptr) {
             mVideoRender = SDL_CreateRenderer(mVideoWindow, -1, 0);
-        }
+            mRenderNeedRelease = true;
+        } else
+            mRenderNeedRelease = false;
     }
 
     return 0;
