@@ -268,41 +268,41 @@ void YUVProgramContext::updateDrawRegion() {
         return;
     }
 
-    int windowWidth = mWindowWidth;
-    int windowHeight = mWindowHeight;
-    int off_x = 0;
-    int off_y = 0;
-    int w = mWindowWidth;
-    int h = mWindowHeight;
-    int realWidth = 0;
-    int realHeight = 0;
+    float windowWidth = mWindowWidth;
+    float windowHeight = mWindowHeight;
+    float off_x = 0;
+    float off_y = 0;
+    float w = mWindowWidth;
+    float h = mWindowHeight;
+    float realWidth = 0;
+    float realHeight = 0;
 
     if (mRotate == IVideoRender::Rotate::Rotate_90 ||
         mRotate == IVideoRender::Rotate::Rotate_270) {
         realWidth = mFrameHeight;
-        realHeight = static_cast<int>(mFrameHeight * mDar);
+        realHeight = static_cast<float>(mFrameHeight * mDar);
     } else {
-        realWidth = static_cast<int>(mFrameHeight * mDar);
+        realWidth = static_cast<float>(mFrameHeight * mDar);
         realHeight = mFrameHeight;
     }
 
-    float scale_w = windowWidth * 1.0f / realWidth;
-    float scale_h = windowHeight * 1.0f / realHeight;
+    float scale_w = windowWidth / realWidth;
+    float scale_h = windowHeight  / realHeight;
 
     if (mScale == IVideoRender::Scale::Scale_AspectFit) {
         if (scale_w >= scale_h) {
-            w = static_cast<int>(scale_h * realWidth);
+            w = scale_h * realWidth;
             off_x = (windowWidth - w) / 2;
         } else {
-            h = static_cast<int>(scale_w * realHeight);
+            h = scale_w * realHeight;
             off_y = (windowHeight - h) / 2;
         }
     } else if (mScale == IVideoRender::Scale::Scale_AspectFill) {
         if (scale_w < scale_h) {
-            w = static_cast<int>(scale_h * realWidth);
+            w = scale_h * realWidth;
             off_x = (windowWidth - w) / 2;
         } else {
-            h = static_cast<int>(scale_w * realHeight);
+            h = scale_w * realHeight;
             off_y = (windowHeight - h) / 2;
         }
     }
