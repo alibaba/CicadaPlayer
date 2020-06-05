@@ -6,6 +6,10 @@
 #include "utils/errors/framework_error.h"
 #include "utils/timer.h"
 #include <cinttypes>
+extern "C" {
+#include <libavcodec/avcodec.h>
+};
+#include <base/media/AVAFPacket.h>
 
 #include "video_tool_box_utils.h"
 
