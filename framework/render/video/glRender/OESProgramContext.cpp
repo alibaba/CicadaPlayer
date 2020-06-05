@@ -332,7 +332,7 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
         }
     }
 
-    if (frame == nullptr && !mRegionChanged && !mCoordsChanged) {
+    if (frame == nullptr && !mRegionChanged && !mCoordsChanged && !mBackgroundColorChanged) {
         //frame is null and nothing changed , don`t need redraw. such as paused.
 //        AF_LOGW("0918, nothing changed");
         return -1;
