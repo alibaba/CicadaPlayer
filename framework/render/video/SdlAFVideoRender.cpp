@@ -405,7 +405,12 @@ SDL_Rect SdlAFVideoRender::getSnapRect()
 
 int SdlAFVideoRender::setDisPlay(void *view)
 {
-    if (mCurrentView == view) {
+    auto *display = static_cast<CicadaSDLView *>(view);
+    if (mCurrentView == display->view) {
+        return 0;
+    }
+    mCurrentView = display->view;
+    if (mCurrentView == nullptr) {
         return 0;
     }
     if (mVideoWindow != nullptr) {
@@ -416,19 +421,21 @@ int SdlAFVideoRender::setDisPlay(void *view)
         SDL_DestroyRenderer(mVideoRender);
         mVideoRender = nullptr;
     }
-    mCurrentView = view;
-    if (mCurrentView == nullptr) {
-        return 0;
-    }
     if (SDL_WasInit(SDL_INIT_VIDEO) != SDL_INIT_VIDEO) {
         SDL_Init(SDL_INIT_VIDEO);
         mInitByMe = true;
     }
-    mVideoWindow = SDL_CreateWindowFrom(view);
-    SDL_ShowWindow(mVideoWindow);
+    if (display->type == CicadaSDLViewType_NATIVE_WINDOW) {
+        mVideoWindow = SDL_CreateWindowFrom(display->view);
+        SDL_ShowWindow(mVideoWindow);
+    } else
+        mVideoWindow = static_cast<SDL_Window *>(display->view);
 
     if (mVideoWindow) {
-        mVideoRender = SDL_CreateRenderer(mVideoWindow, -1, 0);
+        mVideoRender = SDL_GetRenderer(mVideoWindow);
+        if (mVideoRender == nullptr) {
+            mVideoRender = SDL_CreateRenderer(mVideoWindow, -1, 0);
+        }
     }
 
     return 0;

@@ -9,6 +9,13 @@
 #include <mutex>
 #include <render/video/AFActiveVideoRender.h>
 
+enum CicadaSDLViewType { CicadaSDLViewType_SDL_WINDOW, CicadaSDLViewType_NATIVE_WINDOW };
+
+typedef struct CicadaSDLView_t {
+    void *view;
+    CicadaSDLViewType type;
+} CicadaSDLView;
+
 class SdlAFVideoRender : public IVideoRender, private IVSync::Listener {
 public:
     SdlAFVideoRender();
