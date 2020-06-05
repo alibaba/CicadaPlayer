@@ -2,10 +2,45 @@
 // Created by moqi on 2019-08-28.
 //
 #include "PBAFFrame.h"
+#include "AVAFPacket.h"
 
 extern "C" {
 #include <libavutil/frame.h>
 #include <libavutil/imgutils.h>
+}
+
+PBAFFrame::PBAFFrame(CVPixelBufferRef pixelBuffer, int64_t pts, int64_t duration) : mPBuffer(CVPixelBufferRetain(pixelBuffer))
+{
+
+    mInfo.pts = pts;
+    mInfo.duration = duration;
+    mInfo.video.format = AF_PIX_FMT_APPLE_PIXEL_BUFFER;
+    mInfo.video.width = (int) CVPixelBufferGetWidth(mPBuffer);
+    mInfo.video.height = (int) CVPixelBufferGetHeight(mPBuffer);
+
+    OSType pixel_format = CVPixelBufferGetPixelFormatType(pixelBuffer);
+    if (pixel_format == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
+        mInfo.video.colorRange = COLOR_RANGE_FULL;
+    } else if (pixel_format == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange) {
+        mInfo.video.colorRange = COLOR_RANGE_LIMITIED;
+    } else {
+        mInfo.video.colorRange = COLOR_RANGE_UNSPECIFIED;
+    }
+
+    CFTypeRef colorAttachments = CVBufferGetAttachment((CVPixelBufferRef) pixelBuffer, kCVImageBufferYCbCrMatrixKey, NULL);
+    if (colorAttachments != nullptr) {
+        if (CFStringCompare((CFStringRef) colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_601_4, 0) == kCFCompareEqualTo) {
+            mInfo.video.colorSpace = COLOR_SPACE_BT601;
+        } else if (CFStringCompare((CFStringRef) colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_709_2, 0) == kCFCompareEqualTo) {
+            mInfo.video.colorSpace = COLOR_SPACE_BT709;
+        } else if (CFStringCompare((CFStringRef) colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_2020, 0) == kCFCompareEqualTo) {
+            mInfo.video.colorSpace = COLOR_SPACE_BT2020;
+        } else {
+            mInfo.video.colorSpace = COLOR_SPACE_UNSPECIFIED;
+        }
+    } else {
+        mInfo.video.colorSpace = COLOR_SPACE_UNSPECIFIED;
+    }
 }
 
 PBAFFrame::operator AVAFFrame *()

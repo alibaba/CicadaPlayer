@@ -11,6 +11,9 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 };
 
+#ifdef __APPLE__
+class PBAFFrame;
+#endif
 
 class AVAFPacket : public IAFPacket {
 public:
@@ -66,6 +69,10 @@ public:
     AVFrame *ToAVFrame();
 
     explicit operator AVFrame *() const;
+
+#ifdef __APPLE__
+    explicit operator PBAFFrame *();
+#endif
 
     void updateInfo();
 

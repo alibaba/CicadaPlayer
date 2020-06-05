@@ -6,6 +6,10 @@
 #include "base/media/IAFPacket.h"
 #include "AVAFPacket.h"
 #include "utils/ffmpeg_utils.h"
+#ifdef __APPLE__
+#include "PBAFFrame.h"
+#include "avFrame2pixelBuffer.h"
+#endif
 
 using namespace std;
 
@@ -197,4 +201,13 @@ void AVAFFrame::updateInfo()
 {
     copyInfo();
 }
-
+#ifdef __APPLE__
+AVAFFrame::operator PBAFFrame *()
+{
+    CVPixelBufferRef pixelBuffer = avFrame2pixelBuffer(mAvFrame);
+    if (pixelBuffer) {
+        return new PBAFFrame(pixelBuffer, mInfo.pts, mInfo.duration);
+    }
+    return nullptr;
+}
+#endif
