@@ -23,11 +23,12 @@ namespace Cicada {
 #if TARGET_OS_IPHONE
         RegisterIOSNotificationObserver(this, (int) (IOSResignActive | IOSBecomeActive));
         mActive = IOSNotificationManager::Instance()->GetActiveStatus() != 0;
+        //FIX ME: uv22 not supported by render, set to 420v or support in render
 #if TARGET_OS_SIMULATOR
         mVTOutFmt = AF_PIX_FMT_YUV420P;
 #endif
 #elif TARGET_OS_OSX
-        mVTOutFmt = AF_PIX_FMT_YUV420P;
+        //       mVTOutFmt = AF_PIX_FMT_YUV420P;
 #endif
     }
 
