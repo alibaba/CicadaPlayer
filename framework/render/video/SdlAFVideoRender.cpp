@@ -4,8 +4,12 @@
 
 #define  LOG_TAG "SdlAFVideoRender"
 
-#include <render/video/vsync/VSyncFactory.h>
 #include "SdlAFVideoRender.h"
+#include <base/media/AVAFPacket.h>
+#include <render/video/vsync/VSyncFactory.h>
+#ifdef __APPLE__
+#include <base/media/PBAFFrame.h>
+#endif
 
 
 SdlAFVideoRender::SdlAFVideoRender()
@@ -89,13 +93,16 @@ int SdlAFVideoRender::clearScreen()
 int SdlAFVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
 {
     {
-        std::unique_lock<std::mutex> lock(mRenderMutex);
+
         if (frame == nullptr) {
             mVSync->pause();
         }
-        if (mLastVideoFrame && mRenderResultCallback) {
-            mLastVideoFrame->setDiscard(true);
-            mRenderResultCallback(mLastVideoFrame->getInfo().pts, false);
+        {
+            std::unique_lock<std::mutex> lock(mRenderMutex);
+            if (mLastVideoFrame && mRenderResultCallback) {
+                mLastVideoFrame->setDiscard(true);
+                mRenderResultCallback(mLastVideoFrame->getInfo().pts, false);
+            }
         }
         mLastVideoFrame = std::move(frame);
         if (frame == nullptr) {
@@ -146,13 +153,21 @@ int SdlAFVideoRender::onVSync(int64_t tick)
     std::unique_ptr<IAFFrame> frame;
     {
         std::unique_lock<std::mutex> lock(mRenderMutex);
-
         if (mLastVideoFrame == nullptr) {
             return 0;
         }
 
         frame = move(mLastVideoFrame);
     }
+#ifdef __APPLE__
+    auto *pBFrame = dynamic_cast<PBAFFrame *>(frame.get());
+    if (pBFrame) {
+        auto *avafFrame = static_cast<AVAFFrame *>(*pBFrame);
+        if (avafFrame) {
+            frame = std::unique_ptr<IAFFrame>(avafFrame);
+        }
+    }
+#endif
     IAFFrame::videoInfo &videoInfo = frame->getInfo().video;
     recreateTextureIfNeed(videoInfo.width, videoInfo.height);
     SDL_Rect srcRect{};
