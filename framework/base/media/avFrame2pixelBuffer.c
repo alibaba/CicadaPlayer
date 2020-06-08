@@ -3,6 +3,7 @@
 //
 
 #include "avFrame2pixelBuffer.h"
+#include <utils/frame_work_log.h>
 static int copy_avframe_to_pixel_buffer(const AVFrame *frame, CVPixelBufferRef cv_img, const size_t *plane_strides,
                                         const size_t *plane_rows)
 {
@@ -18,7 +19,7 @@ static int copy_avframe_to_pixel_buffer(const AVFrame *frame, CVPixelBufferRef c
 
     status = CVPixelBufferLockBaseAddress(cv_img, 0);
     if (status) {
-        av_log(NULL, AV_LOG_ERROR, "Error: Could not lock base address of CVPixelBuffer: %d.\n", status);
+        AF_LOGE("Error: Could not lock base address of CVPixelBuffer: %d.\n", status);
     }
 
     if (CVPixelBufferIsPlanar(cv_img)) {
@@ -74,7 +75,7 @@ static int copy_avframe_to_pixel_buffer(const AVFrame *frame, CVPixelBufferRef c
 
     status = CVPixelBufferUnlockBaseAddress(cv_img, 0);
     if (status) {
-        av_log(NULL, AV_LOG_ERROR, "Error: Could not unlock CVPixelBuffer base address: %d.\n", status);
+        AF_LOGE("Error: Could not unlock CVPixelBuffer base address: %d.\n", status);
         return AVERROR_EXTERNAL;
     }
 
@@ -113,15 +114,7 @@ static int get_cv_pixel_info(const AVFrame *frame, int *color, int *plane_count,
 
     status = get_cv_pixel_format(av_format, av_color_range, color, &range_guessed);
     if (status) {
-        //        av_log(avctx,
-        //               AV_LOG_ERROR,
-        //               "Could not get pixel format for color format '%s' range '%s'.\n",
-        //               av_get_pix_fmt_name(av_format),
-        //               av_color_range > AVCOL_RANGE_UNSPECIFIED &&
-        //               av_color_range < AVCOL_RANGE_NB ?
-        //               av_color_range_name(av_color_range) :
-        //               "Unknown");
-
+        AF_LOGE("Could not get pixel format for color format");
         return AVERROR(EINVAL);
     }
 
@@ -203,7 +196,7 @@ static AVFrame *yuv420p2nv12(AVFrame *frame)
         return NULL;
     }
     if (frame->linesize[0] == frame->width) {
-        memcpy(outFrame->data[0], frame->data[0], outFrame->linesize[0]);
+        memcpy(outFrame->data[0], frame->data[0], outFrame->width * frame->height);
     } else {
         for (y = 0; y < outFrame->height; ++y) {
             for (x = 0; x < outFrame->width; ++x) {
@@ -237,14 +230,7 @@ CVPixelBufferRef avFrame2pixelBuffer(AVFrame *frame)
     memset(strides, 0, sizeof(strides));
     status = get_cv_pixel_info(frame, &color, &plane_count, widths, heights, strides, &contiguous_buf_size);
     if (status) {
-        //        av_log(
-        //                avctx,
-        //                AV_LOG_ERROR,
-        //                "Error: Cannot convert format %d color_range %d: %d\n",
-        //                frame->format,
-        //                frame->color_range,
-        //                status
-        //        );
+        AF_LOGE("Error: Cannot convert format %d color_range %d: %d\n", frame->format, frame->color_range, status);
 
         return NULL;
     }
@@ -255,19 +241,47 @@ CVPixelBufferRef avFrame2pixelBuffer(AVFrame *frame)
         pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
     } else
         pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange;
-    pixelFormat = kCVPixelFormatType_420YpCbCr8Planar;
-    status = CVPixelBufferCreate(kCFAllocatorDefault, frame->width, frame->height, pixelFormat, NULL, &pixelBuffer);
 
+    CFMutableDictionaryRef buffer_attributes;
+    CFMutableDictionaryRef io_surface_properties;
+    CFNumberRef cv_pix_fmt;
+    CFNumberRef w;
+    CFNumberRef h;
+    w = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &frame->width);
+    h = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &frame->height);
+
+    cv_pix_fmt = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &pixelFormat);
+
+    buffer_attributes = CFDictionaryCreateMutable(kCFAllocatorDefault, 4, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+    io_surface_properties =
+            CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+
+    CFDictionarySetValue(buffer_attributes, kCVPixelBufferPixelFormatTypeKey, cv_pix_fmt);
+    CFDictionarySetValue(buffer_attributes, kCVPixelBufferIOSurfacePropertiesKey, io_surface_properties);
+    CFDictionarySetValue(buffer_attributes, kCVPixelBufferWidthKey, w);
+    CFDictionarySetValue(buffer_attributes, kCVPixelBufferHeightKey, h);
+#if TARGET_OS_IPHONE
+    CFDictionarySetValue(buffer_attributes, kCVPixelBufferOpenGLESCompatibilityKey, kCFBooleanTrue);
+#else
+    CFDictionarySetValue(buffer_attributes, kCVPixelBufferIOSurfaceOpenGLTextureCompatibilityKey, kCFBooleanTrue);
+#endif
+
+
+    status = CVPixelBufferCreate(kCFAllocatorDefault, frame->width, frame->height, pixelFormat, buffer_attributes, &pixelBuffer);
+    CFRelease(io_surface_properties);
+    CFRelease(buffer_attributes);
+    CFRelease(w);
+    CFRelease(h);
 
     if (status) {
-        av_log(NULL, AV_LOG_ERROR, "Could not create pixel buffer from pool: %d.\n", status);
+        AF_LOGE("Could not create pixel buffer from pool: %d.\n", status);
         return NULL;
     }
 
-    //  AVFrame * nv12Frame = yuv420p2nv12(frame);
+    AVFrame *nv12Frame = yuv420p2nv12(frame);
 
-    status = copy_avframe_to_pixel_buffer(frame, pixelBuffer, strides, heights);
-    //   av_frame_free(&nv12Frame);
+    status = copy_avframe_to_pixel_buffer(nv12Frame, pixelBuffer, strides, heights);
+    av_frame_free(&nv12Frame);
     if (status) {
         CFRelease(pixelBuffer);
         pixelBuffer = NULL;
