@@ -180,10 +180,9 @@ namespace Cicada {
         }
 
         OSType pix_fmt = 0;
-
-        if (mVTOutFmt == AF_PIX_FMT_YUV420P) {
-            pix_fmt = kCVPixelFormatType_420YpCbCr8Planar;
-        }
+#if TARGET_OS_OSX
+        pix_fmt = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
+#endif
 
         CFDictionaryRef buf_attr = videotoolbox_buffer_attributes_create(width, height, pix_fmt);
         VTDecompressionOutputCallbackRecord outputCallbackRecord;
