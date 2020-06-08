@@ -206,7 +206,9 @@ AVAFFrame::operator PBAFFrame *()
 {
     CVPixelBufferRef pixelBuffer = avFrame2pixelBuffer(mAvFrame);
     if (pixelBuffer) {
-        return new PBAFFrame(pixelBuffer, mInfo.pts, mInfo.duration);
+        auto* frame = new PBAFFrame(pixelBuffer, mInfo.pts, mInfo.duration);
+        CVPixelBufferRelease(pixelBuffer);
+        return frame;
     }
     return nullptr;
 }
