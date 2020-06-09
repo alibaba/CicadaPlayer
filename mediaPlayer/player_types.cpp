@@ -62,6 +62,7 @@ namespace Cicada {
         maxASeekDelta = 21 * 1000 * 1000;
         maxVideoRecoverSize = 300;
         mFastStart = true;
+        pixelBufferOutputFormat = 0;
     }
 }
 

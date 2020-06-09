@@ -18,6 +18,7 @@ namespace Cicada {
         startBufferDuration = 500;
         bClearShowWhenStop = false;
         bEnableTunnelRender = false;
+        pixelBufferOutputFormat = 0;
     }
 
     std::string MediaPlayerConfig::toString() const
