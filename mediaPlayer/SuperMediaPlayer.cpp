@@ -26,8 +26,9 @@
 
 #ifdef __APPLE__
 
-    #include <TargetConditionals.h>
-    #include <render/audio/Apple/AFAudioSessionWrapper.h>
+#include <TargetConditionals.h>
+#include <codec/Apple/AppleVideoToolBox.cpp>
+#include <render/audio/Apple/AFAudioSessionWrapper.h>
 
 #endif
 
@@ -583,6 +584,8 @@ namespace Cicada {
             mSet.mIpType = static_cast<IpResolveType>(type);
         } else if (theKey == "fastStart") {
             mSet.mFastStart = atol(value) != 0;
+        } else if (theKey == "pixelBufferOutputFormat") {
+            mSet.pixelBufferOutputFormat = atol(value);
         }
 
         return 0;
@@ -3198,6 +3201,17 @@ namespace Cicada {
         if (mVideoDecoder == nullptr) {
             return gen_framework_errno(error_class_codec, codec_error_video_not_support);
         }
+#ifdef __APPLE__
+        if (mFrameCb && mSet.pixelBufferOutputFormat) {
+            auto *vtbDecoder = dynamic_cast<AFVTBDecoder *>(mVideoDecoder.get());
+            if (vtbDecoder) {
+                int ret1 = vtbDecoder->setPixelBufferFormat(mSet.pixelBufferOutputFormat);
+                if (ret1 < 0) {
+                    AF_LOGW("setPixelBufferFormat error\n");
+                }
+            }
+        }
+#endif
 
         void *view = nullptr;
 
