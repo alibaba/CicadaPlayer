@@ -79,14 +79,16 @@ PBAFFrame::operator AVAFFrame *()
     int linesize[4] = {0};
     int planes, ret, i;
     OSType pixel_format = CVPixelBufferGetPixelFormatType(mPBuffer);
-
-    AVFrame *pFrame = av_frame_alloc();
+    int format;
     if (pixel_format == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange || pixel_format == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
-        pFrame->format = AV_PIX_FMT_NV12;
+        format = AV_PIX_FMT_NV12;
     } else if (pixel_format == kCVPixelFormatType_420YpCbCr8Planar) {
-        pFrame->format = AV_PIX_FMT_YUV420P;
-    } else
+        format = AV_PIX_FMT_YUV420P;
+    } else {
         return nullptr;
+    }
+    AVFrame *pFrame = av_frame_alloc();
+    pFrame->format = format;
     pFrame->width = (int) CVPixelBufferGetWidth(mPBuffer);
     pFrame->height = (int) CVPixelBufferGetHeight(mPBuffer);
     ret = av_frame_get_buffer(pFrame, 32);
