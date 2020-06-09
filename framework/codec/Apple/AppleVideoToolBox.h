@@ -27,6 +27,8 @@ namespace Cicada{
         {
         }
 
+        int setPixelBufferFormat(OSType format);
+
     private:
         int init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags) override;
 
@@ -122,6 +124,7 @@ namespace Cicada{
         bool mResignActive{false};
         bool mIsDummy = false;
         int mPocErrorCount{0};
+        OSType outPutFormat{kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange};
     };
 
 }

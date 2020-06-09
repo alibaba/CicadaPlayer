@@ -30,6 +30,7 @@ namespace Cicada {
 #elif TARGET_OS_OSX
         //       mVTOutFmt = AF_PIX_FMT_YUV420P;
 #endif
+        mName = "VideoToolBox";
     }
 
     AFVTBDecoder::~AFVTBDecoder()
@@ -180,12 +181,7 @@ namespace Cicada {
             return -EINVAL;
         }
 
-        OSType pix_fmt = 0;
-#if TARGET_OS_OSX
-        pix_fmt = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
-#endif
-
-        CFDictionaryRef buf_attr = videotoolbox_buffer_attributes_create(width, height, pix_fmt);
+        CFDictionaryRef buf_attr = videotoolbox_buffer_attributes_create(width, height, outPutFormat);
         VTDecompressionOutputCallbackRecord outputCallbackRecord;
         outputCallbackRecord.decompressionOutputCallback = Cicada::AFVTBDecoder::decompressionOutputCallback;
         outputCallbackRecord.decompressionOutputRefCon = this;
@@ -810,6 +806,20 @@ namespace Cicada {
     {
         std::lock_guard<std::mutex> lock(mActiveStatusMutex);
         return mRecoveryQueue.size();
+    }
+    int AFVTBDecoder::setPixelBufferFormat(OSType format)
+    {
+        switch (format) {
+            case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
+            case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
+            case kCVPixelFormatType_420YpCbCr8Planar:
+            case kCVPixelFormatType_32BGRA:
+                outPutFormat = format;
+                return 0;
+            default:
+                AF_LOGE("not support pixel format %u\n", format);
+                return -1;
+        }
     }
 
 } // namespace
