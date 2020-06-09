@@ -35,6 +35,11 @@ namespace Cicada {
         /* enable tunnel rander*/
         bool bEnableTunnelRender;
         std::vector<std::string> customHeaders;
+        /* set the video format for renderFrame callback
+         * vtb decoder only, equal to OSType, not be supported by other decoder
+         * support 420v 420f y420 BGRA
+         * */
+        uint32_t pixelBufferOutputFormat;
 
     public:
         std::string toString() const;

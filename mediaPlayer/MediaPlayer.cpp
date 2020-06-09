@@ -475,6 +475,9 @@ namespace Cicada {
         CicadaSetOption(handle, "http_proxy", playerConfig.httpProxy.c_str());
         CicadaSetOption(handle, "ClearShowWhenStop", playerConfig.bClearShowWhenStop ? "1" : "0");
         CicadaSetOption(handle, "enableVideoTunnelRender", playerConfig.bEnableTunnelRender ? "1" : "0");
+        if (playerConfig.pixelBufferOutputFormat != 0) {
+            CicadaSetOption(handle, "pixelBufferOutputFormat", to_string(playerConfig.pixelBufferOutputFormat).c_str());
+        }
         CicadaRemoveAllCustomHttpHeader(handle);
 
         //add custom http header

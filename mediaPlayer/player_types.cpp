@@ -61,6 +61,7 @@ namespace Cicada {
         mOptions.reset();
         maxVideoRecoverSize = 300;
         mFastStart = true;
+        pixelBufferOutputFormat = 0;
     }
 }
 
