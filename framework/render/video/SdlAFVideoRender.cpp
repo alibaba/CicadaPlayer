@@ -165,6 +165,8 @@ int SdlAFVideoRender::onVSync(int64_t tick)
         auto *avafFrame = static_cast<AVAFFrame *>(*pBFrame);
         if (avafFrame) {
             frame = std::unique_ptr<IAFFrame>(avafFrame);
+        } else {
+            return 0;
         }
     }
 #endif
