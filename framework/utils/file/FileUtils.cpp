@@ -6,6 +6,7 @@
 #ifdef _WIN32
     #include <io.h>
     #include <process.h>
+    #include <direct.h>
 #else
     #include <unistd.h>
 #endif
@@ -160,11 +161,7 @@ namespace Cicada {
         // make this one if parent has been made
 #ifdef _WIN32
         // http://msdn.microsoft.com/en-us/library/2fkk4dzw.aspx
-        //int rc = mkdir(pathname);
-        int rc = -1;
-//        BOOL rc = CreateDirectory("pathname", NULL);
-//        return rc ? FILE_TRUE : -1;
-        return -1;
+        int rc = _mkdir(pathname);
 #else
         //S_IRWXU|S_IRWXG|S_IRWXO = 511
         int rc = mkdir(pathname, 511);
