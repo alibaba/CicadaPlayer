@@ -174,7 +174,13 @@ namespace Cicada {
             return -EINVAL;
         }
 
-        CFDictionaryRef buf_attr = videotoolbox_buffer_attributes_create(width, height, outPutFormat);
+        OSType pix_fmt = outPutFormat;
+
+        if (mVTOutFmt == AF_PIX_FMT_YUV420P) {
+            pix_fmt = kCVPixelFormatType_420YpCbCr8Planar;
+        }
+
+        CFDictionaryRef buf_attr = videotoolbox_buffer_attributes_create(width, height, pix_fmt);
         VTDecompressionOutputCallbackRecord outputCallbackRecord;
         outputCallbackRecord.decompressionOutputCallback = Cicada::AFVTBDecoder::decompressionOutputCallback;
         outputCallbackRecord.decompressionOutputRefCon = this;
