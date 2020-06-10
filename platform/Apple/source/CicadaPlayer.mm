@@ -10,15 +10,15 @@
 
 #import <list>
 
-#import "MediaPlayer.h"
+#import "CicadaOCHelper.h"
 #import "CicadaPlayer.h"
 #import "CicadaPlayerView.h"
+#import "CicadaRenderCBWrapper.h"
+#import "MediaPlayer.h"
+#import "thumbnail/CicadaThumbnail.h"
 #import "utils/CicadaDynamicLoader.h"
 #import "utils/frame_work_log.h"
-#import "thumbnail/CicadaThumbnail.h"
-#import "CicadaOCHelper.h"
-#import "AFAudioSession.h"
-#import "CicadaRenderCBWrapper.h"
+#import <render/audio/Apple/AFAudioSession.h>
 
 using namespace std;
 using namespace Cicada;
@@ -162,7 +162,8 @@ static int logOutput = 1;
         alivcConfig.highBufferDuration = config.highBufferDuration;
         alivcConfig.startBufferDuration = config.startBufferDuration;
         alivcConfig.networkRetryCount = config.networkRetryCount;
-        
+        //   alivcConfig.pixelBufferOutputFormat = 'BGRA';
+
         if (nil != config.httpProxy) {
             alivcConfig.httpProxy = [config.httpProxy UTF8String];
         }
@@ -419,11 +420,6 @@ static int logOutput = 1;
     if (self.player) {
         self.player->SetOnRenderFrameCallback(CicadaRenderCBWrapper::OnRenderFrame, (__bridge void*)theDelegate);
     }
-}
-
-- (void)setInnerDelegate:(id<CicadaDelegate>) delegate
-{
-    mHelper->setDelegate(delegate);
 }
 
 -(void)destroy
@@ -846,6 +842,13 @@ static int logOutput = 1;
     if (nil != functionName && 0 < [functionName length] && nullptr != function) {
         CicadaDynamicLoader::addFunctionToMap([functionName UTF8String], function);
     }
+}
+
++ (void)setAudioSessionDelegate:(id<CicadaAudioSessionDelegate>)delegate
+{
+#if TARGET_OS_IPHONE
+    [AFAudioSession sharedInstance].delegate = delegate;
+#endif
 }
 
 @end

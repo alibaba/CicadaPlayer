@@ -6,14 +6,15 @@
 //  Copyright © 2018 com.alibaba.AliyunPlayer. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
+#import "CicadaAudioSessionDelegate.h"
+#import "CicadaCacheConfig.h"
+#import "CicadaConfig.h"
+#import "CicadaDef.h"
 #import "CicadaDelegate.h"
+#import "CicadaMediaInfo.h"
 #import "CicadaRenderDelegate.h"
 #import "CicadaSource.h"
-#import "CicadaDef.h"
-#import "CicadaMediaInfo.h"
-#import "CicadaConfig.h"
-#import "CicadaCacheConfig.h"
+#import <Foundation/Foundation.h>
 
 OBJC_EXPORT
 @interface CicadaPlayer : NSObject
@@ -444,7 +445,6 @@ OBJC_EXPORT
  */
 @property(nonatomic, weak) id <CicadaRenderDelegate> renderDelegate;
 
-- (void)setInnerDelegate:(id<CicadaDelegate>) delegate;
 
 /**
  @brief 设置AudioSession的Delegate

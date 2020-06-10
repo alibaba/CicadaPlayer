@@ -109,7 +109,7 @@
     self.player.playerView = self.CicadaView.playerView;
     self.player.delegate = self;
     //enable to test render delegate
-//    self.player.renderDelegate = self;
+    self.player.renderDelegate = self;
     self.player.scalingMode = CICADA_SCALINGMODE_SCALEASPECTFIT;
     [self.settingAndConfigView setVolume:self.player.volume/2];
     [self setConfig];
@@ -800,7 +800,7 @@ tableview点击外挂字幕回调
 
 - (BOOL)onVideoPixelBuffer:(CVPixelBufferRef)pixelBuffer pts:(int64_t)pts
 {
-    NSLog(@"receive HW frame:%p pts:%lld", pixelBuffer, pts);
+    NSLog(@"receive HW frame:%p pts:%lld foramt %d", pixelBuffer, pts, CVPixelBufferGetPixelFormatType(pixelBuffer));
     return NO;
 }
 
