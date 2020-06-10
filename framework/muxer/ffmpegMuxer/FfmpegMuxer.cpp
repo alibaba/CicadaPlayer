@@ -241,11 +241,13 @@ int FfmpegMuxer::close()
 
     if (mDestFormatContext->metadata) {
         av_dict_free(&mDestFormatContext->metadata);
+        mDestFormatContext->metadata = nullptr;
     }
 
     avio_flush(mDestFormatContext->pb);
     av_opt_free(mDestFormatContext->pb);
     av_free(mDestFormatContext->pb);
+    mDestFormatContext->pb = nullptr;
     avformat_free_context(mDestFormatContext);
     mDestFormatContext = nullptr;
 

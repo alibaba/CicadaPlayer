@@ -25,6 +25,9 @@ FileCntl::~FileCntl()
 
 void FileCntl::openFile()
 {
+#ifdef WIN32
+    _set_fmode(_O_BINARY);
+#endif // WIN32
     mFd = open(mFilePath.c_str(), O_RDWR | O_CREAT, 0666);
 }
 
@@ -41,8 +44,10 @@ int FileCntl::writeFile(uint8_t *buf, int size)
 
 void FileCntl::closeFile()
 {
-    close(mFd);
-    mFd = -1;
+    if (mFd >= 0) {
+        close(mFd);
+        mFd = -1;
+    }
 }
 
 

@@ -135,6 +135,12 @@ void c_make_absolute_url(char *buf, int size, const char *base, const char *rel)
         af_strlcpy(buf, rel, size);
         return;
     }
+#ifdef WIN32
+    if (strnlen_s(rel, 3) >= 3 && isalpha(rel[0]) && rel[1] == ':' && rel[2] == '/') {
+        af_strlcpy(buf, rel, size);
+        return;
+    }
+#endif
 
     if (base != buf) {
         af_strlcpy(buf, base, size);
