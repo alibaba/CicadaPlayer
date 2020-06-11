@@ -206,12 +206,15 @@ MediaPlayerConfig JavaPlayerConfig::convertTo(JNIEnv *env, jobject playerConfig)
             for (int i = 0; i < len; i++) {
                 jstring           header     = static_cast<jstring>(env->GetObjectArrayElement(
                                                    headersArray, i));
-                GetStringUTFChars tmpHeader(env, header);
-                char              *ch_header = tmpHeader.getChars();
+                {
+                    GetStringUTFChars tmpHeader(env, header);
+                    char              *ch_header = tmpHeader.getChars();
 
-                if (ch_header != nullptr) {
-                    config.customHeaders.push_back(std::string(ch_header));
+                    if (ch_header != nullptr) {
+                        config.customHeaders.push_back(std::string(ch_header));
+                    }
                 }
+                env->DeleteLocalRef(header);
             }
         }
     }
