@@ -31,6 +31,11 @@ public:
         return mIsProtected;
     }
 
+    void setProtected() override
+    {
+        mIsProtected = true;
+    }
+
     std::unique_ptr<IAFPacket> clone() override;
 
     int64_t getSize() override;
