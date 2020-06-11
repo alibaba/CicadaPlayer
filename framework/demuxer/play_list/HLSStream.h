@@ -213,6 +213,7 @@ namespace Cicada {
 
         std::unique_ptr<DemuxerMetaInfo> mDemuxerMeta = nullptr;
         int OpenedStreamIndex = 0;
+        bool mProtectedBuffer{false};
     };
 }
 

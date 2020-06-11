@@ -807,6 +807,7 @@ namespace Cicada {
     int HLSStream::updateDecrypter()
     {
         int ret = 0;
+        mProtectedBuffer = mCurSeg->encryption.method != SegmentEncryption::NONE;
 
         if (mCurSeg->encryption.method == SegmentEncryption::AES_128 ||
                 mCurSeg->encryption.method == SegmentEncryption::AES_PRIVATE) {
@@ -973,6 +974,10 @@ namespace Cicada {
 
         if (packet != nullptr) {
             //  AF_LOGD("read a frame \n");
+
+            if (mProtectedBuffer) {
+                packet->setProtected();
+            }
             if (mPTracker->getStreamType() != STREAM_TYPE_MIXED) {
                 packet->getInfo().streamIndex = 0;
             }
