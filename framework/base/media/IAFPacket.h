@@ -79,6 +79,7 @@ public:
     {
         return false;
     }
+    virtual void setProtected() = 0;
 
     packetInfo &getInfo();
 

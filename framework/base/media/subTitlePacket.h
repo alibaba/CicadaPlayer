@@ -20,6 +20,9 @@ public:
 
     int64_t getSize() override;
 
+    void setProtected() override
+    {}
+
 private:
     uint8_t *mpBuffer{};
     int64_t mSize;
