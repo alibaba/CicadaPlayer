@@ -608,6 +608,7 @@ namespace Cicada {
     int HLSStream::updateDecrypter()
     {
         int ret = 0;
+        mProtectedBuffer = mCurSeg->encryption.method != SegmentEncryption::NONE;
 
         if (mCurSeg->encryption.method == SegmentEncryption::AES_128 ||
                 mCurSeg->encryption.method == SegmentEncryption::AES_PRIVATE) {
@@ -777,6 +778,10 @@ namespace Cicada {
 
         if (packet != nullptr) {
             //  AF_LOGD("read a frame \n");
+            if (mProtectedBuffer) {
+                packet->setProtected();
+            }
+
             if (mCurSeg) {
                 // mark the seg start time to first seg frame
                 AF_LOGD("stream (%d) mark startTime %llu\n", mPTracker->getStreamType(),

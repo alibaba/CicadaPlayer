@@ -166,6 +166,7 @@ namespace Cicada {
         };
 
         std::map<int, segmentTimeInfo> mStreamStartTimeMap;
+        bool mProtectedBuffer{false};
     };
 }
 
