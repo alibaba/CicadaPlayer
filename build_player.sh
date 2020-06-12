@@ -25,6 +25,20 @@ function check_cmake(){
         fi
     fi
 }
+function check_automake(){
+    if [[ ! `which automake` ]]
+    then
+        echo 'automake not found'
+        if [[ ! `which brew` ]]
+        then
+            echo 'Homebrew not found. Trying to install...'
+            ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" \
+            || exit 1
+        fi
+        echo 'Trying to install automake...'
+        brew install automake || exit 1
+    fi
+}
 
 function check_yasm(){
     if [ ! `which yasm` ]
@@ -254,6 +268,7 @@ function build_mac(){
     fi
     check_cmake
     check_yasm
+    check_automake
 
     if [ $? -ne 0 ]; then
         return 1

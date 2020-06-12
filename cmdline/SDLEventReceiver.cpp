@@ -3,7 +3,9 @@
 //
 
 #include "SDLEventReceiver.h"
+#if USE_NATIVE_WINDOW
 #include "nativeWindow/nativeWindow.h"
+#endif
 #include <SDL2/SDL_syswm.h>
 #include <utils/frame_work_log.h>
 #include <utils/timer.h>
@@ -125,9 +127,11 @@ void SDLEventReceiver::poll(bool &exit) {
         }
         if (exit){
             if (mView.view != nullptr) {
+#if USE_NATIVE_WINDOW
                 if (mView.type == CicadaSDLViewType_NATIVE_WINDOW) {
                     getNativeFactor()->DestroyNativeWindow(mView.view);
                 } else
+#endif
                     SDL_DestroyWindow((SDL_Window *) mView.view);
                 mView.view = nullptr;
             }
