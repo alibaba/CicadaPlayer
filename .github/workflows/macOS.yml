@@ -1,0 +1,44 @@
+name: macOS CI
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: build exteranl
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+          . setup.env
+          . build_player.sh
+          build_mac
+
+      - name: build tests
+        run: |
+          brew install sdl2
+          cd $GITHUB_WORKSPACE
+          mkdir build
+          cd build
+          cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
+          cmake --build . --config Debug -j8
+      - name: unit test
+        run: |
+          cd build/mediaPlayer/tests/
+          ctest -j8 --output-on-failure
+          cd ../../framework/tests/
+          ctest -j8 --output-on-failure
+#          cd external/
+#          ./build_external.sh macOS
+#      - name: build macOS demo
+#        run: |
+#          cd platform/Apple/demo/macOS/
+#          ./Genxcodeproj.sh
+#          cd CicadaDemo
+#          xcodebuild -workspace CicadaDemo.xcworkspace -scheme CicadaDemo ONLY_ACTIVE_ARCH=NO -configuration Release
