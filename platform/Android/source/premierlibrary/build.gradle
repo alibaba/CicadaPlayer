@@ -19,19 +19,14 @@ android {
         versionCode 1
         versionName "1.0"
 
-
         externalNativeBuild {
-
             cmake {
-
-                arguments '-DANDROID_PLATFORM=android-14',
-                        '-DANDROID_TOOLCHAIN=clang',
+                arguments '-DANDROID_TOOLCHAIN=clang',
                         "-DFFMPEG_INSTALL_DIR_ANDROID=$rootPath/../../../external/install/ffmpeg/Android/",
                         "-DEXTERN_INSTALL_DIR_ANDROID=$rootPath/../../../external/install/"
                 arguments '-DANDROID_STL=c++_static'
 
                 arguments "-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON"
-
             }
         }
     }
