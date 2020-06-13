@@ -33,6 +33,9 @@ jobs:
           java-version: 1.8
       - name: Build debug APK
         run: |
+          export ANDROID_NDK=/home/runner/android-env/android-ndk-r14b
+          export ANDROID_NDK_ROOT=/home/runner/android-env/android-ndk-r14b
+          echo "y" | sudo apt-get install ninja-build
           cd $GITHUB_WORKSPACE/platform/Android/source
           export ANDROID_FULL_PACKAGE='true'
           bash ./gradlew assembleDebug --stacktrace
