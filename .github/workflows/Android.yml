@@ -40,3 +40,9 @@ jobs:
           export ANDROID_FULL_PACKAGE='true'
           bash ./gradlew assembleDebug --stacktrace
 
+      - name: Upload apk
+        uses: actions/upload-artifact@v2
+        with:
+          name: CicadaPlayerDemo_debug.apk
+          path: platform/Android/source/paasApp/build/outputs/apk/debug/CicadaPlayerDemo_debug.apk
+
