@@ -13,6 +13,13 @@ using namespace Cicada;
 #include <SDL2/SDL.h>
 #include <utils/timer.h>
 
+enum CicadaSDLViewType { CicadaSDLViewType_SDL_WINDOW, CicadaSDLViewType_NATIVE_WINDOW };
+
+typedef struct CicadaSDLView_t {
+    void *view;
+    CicadaSDLViewType type;
+} CicadaSDLView;
+
 static SDL_Window *getView()
 {
     SDL_Window *window = nullptr;
@@ -53,8 +60,11 @@ void test_simple(const string &url, OnCallback create, OnCallback loop, void *ar
         create(player.get(), arg);
     }
 #ifdef ENABLE_SDL
-    SDL_Window *window = getView();
-    player->SetView(window);
+    CicadaSDLView view;
+
+    view.view = getView();
+    view.type = CicadaSDLViewType_SDL_WINDOW;
+    player->SetView(&view);
 #else
     int i;
     player->SetView(&i);
@@ -73,7 +83,7 @@ void test_simple(const string &url, OnCallback create, OnCallback loop, void *ar
     } else
         af_msleep(10000);
 #ifdef ENABLE_SDL
-    releaseView(window);
+    releaseView((SDL_Window *) view.view);
 #endif
 }
 
