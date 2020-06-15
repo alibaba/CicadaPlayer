@@ -3,16 +3,31 @@
 BUILD_TOOLS_DIR=$(cd $(dirname ${BASH_SOURCE[0]}); pwd)
 PATH=$PATH:${BUILD_TOOLS_DIR}
 
+
+function check_brew() {
+    if [[ ! `which brew` ]]
+    then
+        echo 'Homebrew not found. Trying to install...'
+        ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" \
+        || exit 1
+    fi
+}
+
+function check_tool() {
+    if [[ -z "$1" ]];then
+        echo "error no tool to check"
+    else
+        if [[ ! `which $1` ]]
+        then
+            brew install $1 || exit 1
+        fi
+    fi
+}
+
 function check_cmake(){
-    if [ ! `which cmake` ]
+    if [[ ! `which cmake` ]]
     then
         echo 'cmake not found'
-        if [ ! `which brew` ]
-        then
-            echo 'Homebrew not found. Trying to install...'
-            ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" \
-            || exit 1
-        fi
         echo 'Trying to install cmake...'
         brew install cmake || exit 1
     else
@@ -25,51 +40,6 @@ function check_cmake(){
         fi
     fi
 }
-function check_automake(){
-    if [[ ! `which automake` ]]
-    then
-        echo 'automake not found'
-        if [[ ! `which brew` ]]
-        then
-            echo 'Homebrew not found. Trying to install...'
-            ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" \
-            || exit 1
-        fi
-        echo 'Trying to install automake...'
-        brew install automake || exit 1
-    fi
-}
-
-function check_yasm(){
-    if [ ! `which yasm` ]
-    then
-        echo 'yasm not found'
-        if [ ! `which brew` ]
-        then
-            echo 'Homebrew not found. Trying to install...'
-            ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" \
-            || exit 1
-        fi
-        echo 'Trying to install yasm...'
-        brew install yasm
-    fi
-    echo `yasm --version`
-
-    if [ ! `which nasm` ]
-    then
-        echo 'nasm not found'
-        if [ ! `which brew` ]
-        then
-            echo 'Homebrew not found. Trying to install...'
-            ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" \
-            || exit 1
-        fi
-        echo 'Trying to install nasm...'
-        brew install nasm
-    fi
-}
-
-
 
 #function Android_build_Asan(){
 #    if [ -n "$MTL" ];then
@@ -263,21 +233,27 @@ function packet_mac(){
 }
 
 function build_mac(){
-    if [ -n "$MTL" ];then
+    if [[ -n "$MTL" ]];then
         export HOMEBREW_NO_AUTO_UPDATE=true
     fi
-    check_cmake
-    check_yasm
-    check_automake
+    check_brew
 
-    if [ $? -ne 0 ]; then
+    if [[ -n "$MTL" ]];then
+        check_cmake
+    else
+       check_tool "cmake"
+    fi
+    check_tool "yasm"
+    check_tool "automake"
+
+    if [[ $? -ne 0 ]]; then
         return 1
     fi
 
     cd ${TOP_DIR}/external
     ./build_external.sh macOS
 
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
         echo "build_external break"
         return  1
     fi
@@ -286,7 +262,7 @@ function build_mac(){
     cd ${DEMO_SOURCE_DIR_MAC}
     ./Genxcodeproj.sh
 
-    if [ -n "$MTL" ];then
+    if [[ -n "$MTL" ]];then
         packet_mac
     fi
 
