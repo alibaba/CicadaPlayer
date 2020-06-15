@@ -31,7 +31,8 @@ if (ENABLE_SDL)
             SDLEventReceiver.cpp
             SDLEventReceiver.h
             nativeWindow/CocoaWindow.m
-            nativeWindow/X11Window.c)
+            nativeWindow/X11Window.c
+            nativeWindow/WindowsWindow.c)
 endif ()
 
 add_executable(cicadaPlayer

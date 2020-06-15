@@ -4,7 +4,9 @@
 
 #include "SDLEventReceiver.h"
 #if USE_NATIVE_WINDOW
+extern "C" {
 #include "nativeWindow/nativeWindow.h"
+}
 #endif
 #include <SDL2/SDL_syswm.h>
 #include <utils/frame_work_log.h>
