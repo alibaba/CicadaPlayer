@@ -2,8 +2,10 @@
 // Created by kongjian.kongjian on 2020/06/15.
 //
 #include "nativeWindow.h"
-#include <winuser.h>
+
 #ifdef TEST_NATIVE_WINDOWS
+
+#include <winuser.h>
 
 static void *CreateWindowWindows(int w, int h);
 static void DestroyWindowWindows(void *window);
