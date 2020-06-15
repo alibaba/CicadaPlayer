@@ -171,36 +171,44 @@ function build_iOS_new(){
     DEMO_SOURCE_DIR_IOS=${TOP_DIR}/platform/Apple/demo/iOS
     cd ${DEMO_SOURCE_DIR_IOS}
     ./genxcodeproj.sh
-    if [ -n "$MTL" ];then
+    if [[ -n "$MTL" ]];then
       packet_iOS
     fi
 }
 
 function build_iOS(){
 
-#    if [ -n "$MTL" ];then
-#        export HOMEBREW_NO_AUTO_UPDATE=true
-#    fi
-    check_cmake
-    check_yasm
+    if [[ -n "$MTL" ]];then
+        export HOMEBREW_NO_AUTO_UPDATE=true
+    fi
+    check_brew
 
-    if [ $? -ne 0 ]; then
+    if [[ -n "$MTL" ]];then
+        check_cmake
+    else
+       check_tool "cmake"
+    fi
+    check_tool "yasm"
+    check_tool "automake"
+
+    if [[ $? -ne 0 ]]; then
         return 1
     fi
 
     cd ${TOP_DIR}/external
     ./build_external.sh iOS
 
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
         echo "build_external break"
         return 1
     fi
 
     build_iOS_new
-
-    if [ ! -f "${TOP_DIR}/output/CicadaPlayerSDK/SDK/ARM_SIMULATOR/CicadaPlayerSDK.framework/CicadaPlayerSDK" ]; then
-        echo "CicadaPlayerSDK.framework build failed"
-        return  1
+    if [[ -n "$MTL" ]];then
+        if [[ ! -f "${TOP_DIR}/output/CicadaPlayerSDK/SDK/ARM_SIMULATOR/CicadaPlayerSDK.framework/CicadaPlayerSDK" ]]; then
+            echo "CicadaPlayerSDK.framework build failed"
+            return  1
+        fi
     fi
 }
 
