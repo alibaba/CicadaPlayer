@@ -12,13 +12,22 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-      - name: build exteranl
+      - name: build external
         run: |
           git config --global user.email "you@example.com"
           git config --global user.name "Your Name"
           . setup.env
           . build_player.sh
           build_mac
+
+      - name: build SDK and demo
+        run: |
+          cd platform/Apple/demo/macOS
+          ./Genxcodeproj.sh
+          cd CicadaDemo
+          xcodebuild -workspace CicadaDemo.xcworkspace -scheme install ONLY_ACTIVE_ARCH=NO -configuration Release
+          xcodebuild -workspace CicadaDemo.xcworkspace -scheme CicadaDemo ONLY_ACTIVE_ARCH=NO -configuration Release
+
 
       - name: build tests
         run: |
