@@ -62,7 +62,7 @@ afThread::afThread(std::function<int()> func, const char *name)
 
 int afThread::start()
 {
-    std::unique_lock<std::mutex> uMutex(mMutex);
+    std::lock_guard<std::mutex> guard(mMutex);
     mTryPaused = false;
 
     if (nullptr == mThreadPtr) {
@@ -146,7 +146,7 @@ void afThread::prePause()
 
 void afThread::pause()
 {
-    std::unique_lock<std::mutex> uMutex(mMutex);
+    std::lock_guard<std::mutex> guard(mMutex);
 
     if (THREAD_STATUS_RUNNING == mThreadStatus) {
         std::unique_lock<std::mutex> sleepMutex(mSleepMutex);
@@ -160,7 +160,7 @@ void afThread::pause()
 void afThread::stop()
 {
     AF_TRACE;
-    std::unique_lock<std::mutex> uMutex(mMutex);
+    std::lock_guard<std::mutex> guard(mMutex);
     mTryPaused = false;
     {
         std::unique_lock<std::mutex> sleepMutex(mSleepMutex);
@@ -186,7 +186,7 @@ void afThread::stop()
 
 afThread::~afThread()
 {
-    std::unique_lock<std::mutex> uMutex(mMutex);
+    std::lock_guard<std::mutex> guard(mMutex);
     mTryPaused = false;
     {
         std::unique_lock<std::mutex> sleepMutex(mSleepMutex);
