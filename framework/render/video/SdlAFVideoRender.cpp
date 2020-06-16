@@ -11,6 +11,7 @@
 #include <base/media/PBAFFrame.h>
 #endif
 
+static int SDLCALL SdlWindowSizeEventWatch(void *userdata, SDL_Event *event);
 
 SdlAFVideoRender::SdlAFVideoRender()
 {
@@ -26,6 +27,7 @@ SdlAFVideoRender::~SdlAFVideoRender()
         SDL_DestroyTexture(mVideoTexture);
     }
     if (mRenderNeedRelease) {
+        SDL_DelEventWatch(SdlWindowSizeEventWatch, this);
         SDL_DestroyRenderer(mVideoRender);
     }
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
@@ -150,6 +152,18 @@ void SdlAFVideoRender::recreateTextureIfNeed(int videoWidth, int videoHeight)
 
 int SdlAFVideoRender::onVSync(int64_t tick)
 {
+    int ret = onVSyncInner(tick);
+#ifdef __WINDOWS__
+    {
+        std::unique_lock<std::mutex> lock(mWindowSizeChangeMutex);
+        mWindowSizeChangeCon.notify_one();
+    }
+#endif
+    return ret;
+}
+
+int SdlAFVideoRender::onVSyncInner(int64_t tick)
+{
     std::unique_ptr<IAFFrame> frame;
     {
         std::unique_lock<std::mutex> lock(mRenderMutex);
@@ -186,18 +200,15 @@ int SdlAFVideoRender::onVSync(int64_t tick)
         int *lineSize = frame->getLineSize();
 
         if (mVideoRender != nullptr && mVideoTexture != nullptr) {
-            SDL_UpdateYUVTexture(mVideoTexture, &srcRect,
-                                 data[0], lineSize[0],
-                                 data[1], lineSize[1],
-                                 data[2], lineSize[2]);
+            SDL_UpdateYUVTexture(mVideoTexture, &srcRect, data[0], lineSize[0], data[1], lineSize[1], data[2], lineSize[2]);
             SDL_RenderClear(mVideoRender);
-            SDL_RenderCopyEx(mVideoRender,//SDL_Renderer*          renderer,
+            SDL_RenderCopyEx(mVideoRender, //SDL_Renderer*          renderer,
                              mVideoTexture,//SDL_Texture*           texture,
-                             &srcRect,//const SDL_Rect*        srcrect,
-                             &dstRect,//const SDL_Rect*        dstrect,
-                             angle, //const double           angle,
-                             nullptr,//const SDL_Point*       center,
-                             flip//const SDL_RendererFlip flip
+                             &srcRect,     //const SDL_Rect*        srcrect,
+                             &dstRect,     //const SDL_Rect*        dstrect,
+                             angle,        //const double           angle,
+                             nullptr,      //const SDL_Point*       center,
+                             flip          //const SDL_RendererFlip flip
             );
             SDL_RenderPresent(mVideoRender);
         }
@@ -205,8 +216,7 @@ int SdlAFVideoRender::onVSync(int64_t tick)
     {
         std::unique_lock<std::mutex> lock(mRenderMutex);
 
-        if (mRenderResultCallback)
-            mRenderResultCallback(frame->getInfo().pts, true);
+        if (mRenderResultCallback) mRenderResultCallback(frame->getInfo().pts, true);
         mBackFrame = move(frame);
     }
     return 0;
@@ -416,7 +426,6 @@ SDL_Rect SdlAFVideoRender::getSnapRect()
     return finalRect;
 }
 
-
 int SdlAFVideoRender::setDisPlay(void *view)
 {
     auto *display = static_cast<CicadaSDLView *>(view);
@@ -431,6 +440,7 @@ int SdlAFVideoRender::setDisPlay(void *view)
         SDL_DestroyTexture(mVideoTexture);
     }
     if (mRenderNeedRelease) {
+        SDL_DelEventWatch(SdlWindowSizeEventWatch, this);
         SDL_DestroyRenderer(mVideoRender);
         mRenderNeedRelease = false;
     }
@@ -444,11 +454,44 @@ int SdlAFVideoRender::setDisPlay(void *view)
     if (mVideoWindow) {
         mVideoRender = SDL_GetRenderer(mVideoWindow);
         if (mVideoRender == nullptr) {
-            mVideoRender = SDL_CreateRenderer(mVideoWindow, -1, 0);
+            SDL_AddEventWatch(SdlWindowSizeEventWatch, this);
+            Uint32 renderFlags = 0;
+#ifdef __WINDOWS__
+            SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d11");
+            renderFlags = SDL_RENDERER_SOFTWARE;
+#endif
+            mVideoRender = SDL_CreateRenderer(mVideoWindow, -1, renderFlags);
             mRenderNeedRelease = true;
         } else
             mRenderNeedRelease = false;
     }
 
     return 0;
+}
+
+int SDLCALL SdlWindowSizeEventWatch(void *userdata, SDL_Event *event)
+{
+    if (event->type == SDL_WINDOWEVENT) {
+        if (event->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+            SdlAFVideoRender *pSelf = (SdlAFVideoRender *) userdata;
+            if (pSelf) {
+                SDL_Window *window = SDL_GetWindowFromID(event->window.windowID);
+                pSelf->onWindowSizeChange(window);
+            }
+        }
+    }
+    return 0;
+}
+
+void SdlAFVideoRender::onWindowSizeChange(SDL_Window *window)
+{
+    if (mVideoWindow == window) {
+#ifdef __WINDOWS__
+        if (!mInited) {
+            return;
+        }
+        std::unique_lock<std::mutex> lock(mWindowSizeChangeMutex);
+        mWindowSizeChangeCon.wait(lock);
+#endif
+    }
 }
