@@ -59,6 +59,8 @@ public:
         mRenderResultCallback = renderedCallback;
     }
 
+    void onWindowSizeChange(SDL_Window *window);
+
 private:
     int VSyncOnInit() override
     {
@@ -71,6 +73,8 @@ private:
     }
 
     int onVSync(int64_t tick) override;
+
+    int onVSyncInner(int64_t tick);
 
     SDL_Rect getDestRet();
 
@@ -107,6 +111,11 @@ private:
     std::mutex mRenderMutex;
     std::unique_ptr<IVSync> mVSync{nullptr};
     std::function<void(int64_t, bool)> mRenderResultCallback = nullptr;
+
+#ifdef __WINDOWS__
+    std::mutex mWindowSizeChangeMutex{};
+    std::condition_variable mWindowSizeChangeCon{};
+#endif
 };
 
 
