@@ -1242,7 +1242,9 @@ namespace Cicada {
         mIsEOS = false;
         mIsDataEOS = false;
         mError = 0;
-        mDemuxerMeta->bContinue = false;
+        if (mDemuxerMeta) {
+            mDemuxerMeta->bContinue = false;
+        }
 
         if (mThreadPtr) {
             mThreadPtr->start();
