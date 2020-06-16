@@ -134,7 +134,7 @@ int ActiveDecoder::decode_func()
 
     if (needWait == 0) {
         std::unique_lock<std::mutex> locker(mSleepMutex);
-        mSleepCondition.wait_for(locker, std::chrono::milliseconds(5 * needWait), [this]() { return !mRunning; });
+        mSleepCondition.wait_for(locker, std::chrono::milliseconds(5), [this]() { return !mRunning; });
     }
     return 0;
 }
