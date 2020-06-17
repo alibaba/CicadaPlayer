@@ -100,7 +100,7 @@ function build_Android(){
     # sh gradlew build --refresh-dependencies --stacktrace -DALIYUN_APP_VERSION=$SAASPLAYERSDK_VERSION $JAVA_HOME_OPT
     #   #run twice for copy aar
     export ANDROID_FULL_PACKAGE='true'
-    sh gradlew build --refresh-dependencies --stacktrace $JAVA_HOME_OPT
+    sh gradlew assembleRelease --refresh-dependencies --stacktrace $JAVA_HOME_OPT
 
     cd ${TOP_DIR}/platform/Android
     ./package.sh
