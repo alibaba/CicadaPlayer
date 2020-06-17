@@ -6,6 +6,10 @@
 [![codecov](https://codecov.io/gh/alibaba/CicadaPlayer/branch/develop/graph/badge.svg)](https://codecov.io/gh/alibaba/CicadaPlayer/branch/develop)
 [![LICENSE](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
 
+![iOS CI](https://github.com/alibaba/CicadaPlayer/workflows/iOS%20CI/badge.svg?branch=develop)
+![macOS CI](https://github.com/alibaba/CicadaPlayer/workflows/macOS%20CI/badge.svg?branch=develop)
+![Android CI](https://github.com/alibaba/CicadaPlayer/workflows/Android%20CI/badge.svg?branch=develop)
+
 <h1 align="center">
   Keep the world free of difficult videos to play!
 </h1>
