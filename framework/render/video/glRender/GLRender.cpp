@@ -263,7 +263,11 @@ int GLRender::VSyncOnInit()
 void GLRender::VSyncOnDestroy()
 {
     mPrograms.clear();
-    assert(mContext != nullptr);
+
+    if(mContext == nullptr) {
+        return;
+    }
+
     mContext->DestroyView();
     mContext->DestroySurface(mGLSurface);
     mGLSurface = nullptr;
@@ -274,6 +278,10 @@ void GLRender::VSyncOnDestroy()
 
 bool GLRender::renderActually()
 {
+    if(mContext == nullptr) {
+        return false;
+    }
+
     if (mInBackground) {
 //        AF_LOGD("renderActurally  .. InBackground ..");
         return false;
@@ -293,7 +301,7 @@ bool GLRender::renderActually()
     }
 
 #endif
-    assert(mContext != nullptr);
+
     bool displayViewChanged  = false;
     {
         unique_lock<mutex> viewLock(mViewMutex);
