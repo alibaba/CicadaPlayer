@@ -160,6 +160,11 @@ namespace Cicada {
             return 0;
         }
 
+        virtual bool isLowLatency()
+        {
+            return false;
+        }
+
     protected:
         demuxer_callback_read mReadCb{nullptr};
         demuxer_callback_seek mSeekCb{nullptr};
