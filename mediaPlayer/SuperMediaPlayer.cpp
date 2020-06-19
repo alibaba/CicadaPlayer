@@ -3203,6 +3203,10 @@ namespace Cicada {
             }
         }
 
+        if (!mSet.bLowLatency) {
+            mSet.bLowLatency = mDemuxerService->getDemuxerHandle()->isLowLatency();
+        }
+
         if (mSet.bLowLatency) {
             // artp disable b frame to reduce delay at present
             decFlag |= DECFLAG_OUTPUT_FRAME_ASAP;
