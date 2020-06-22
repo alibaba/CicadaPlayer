@@ -31,7 +31,7 @@ void MetaToCodec::videoMetaToStream(AVStream *st, Stream_meta *meta)
     }
 
     if (meta->extradata_size > 0) {
-        st->codecpar->extradata = static_cast<uint8_t *>(malloc(
+        st->codecpar->extradata = static_cast<uint8_t *>(av_malloc(
                                       meta->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE));
         memcpy(st->codecpar->extradata, meta->extradata, meta->extradata_size);
         st->codecpar->extradata_size = meta->extradata_size;
@@ -72,7 +72,7 @@ void MetaToCodec::audioMetaToStream(AVStream *st, Stream_meta *meta)
 //            ff_stream_add_bitstream_filter(st, "aac_adtstoasc", NULL);
 //        }
     if (meta->extradata_size > 0) {
-        st->codecpar->extradata = static_cast<uint8_t *>(malloc(
+        st->codecpar->extradata = static_cast<uint8_t *>(av_malloc(
                                       meta->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE));
         memcpy(st->codecpar->extradata, meta->extradata, meta->extradata_size);
         st->codecpar->extradata_size = meta->extradata_size;
