@@ -32,11 +32,6 @@ FfmpegMuxer::FfmpegMuxer(string destFilePath, string destFormat)
 
 FfmpegMuxer::~FfmpegMuxer()
 {
-    if (mIobuf != nullptr) {
-        free(mIobuf);
-        mIobuf = nullptr;
-    }
-
     mSourceMetaMap.clear();
     mStreamInfoMap.clear();
 }
@@ -75,7 +70,7 @@ int FfmpegMuxer::open()
         mOpenFunc();
     }
 
-    mIobuf = (uint8_t *) malloc(IO_BUFFER_SIZE);
+    mIobuf = (uint8_t *) av_malloc(IO_BUFFER_SIZE);
     mDestFormatContext->pb = avio_alloc_context(mIobuf, IO_BUFFER_SIZE,
                              AVIO_FLAG_WRITE, this,
                              nullptr, io_write, io_seek);
@@ -241,15 +236,14 @@ int FfmpegMuxer::close()
 
     if (mDestFormatContext->metadata) {
         av_dict_free(&mDestFormatContext->metadata);
-        mDestFormatContext->metadata = nullptr;
     }
 
     avio_flush(mDestFormatContext->pb);
-    av_opt_free(mDestFormatContext->pb);
-    av_free(mDestFormatContext->pb);
-    mDestFormatContext->pb = nullptr;
+    avio_context_free(&mDestFormatContext->pb);
     avformat_free_context(mDestFormatContext);
     mDestFormatContext = nullptr;
+    av_free(mIobuf);
+    mIobuf = nullptr;
 
     if (mCloseFunc != nullptr) {
         mCloseFunc();
