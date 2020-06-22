@@ -194,11 +194,7 @@ namespace Cicada {
             }
 
             closedir(dir);
-#ifdef _WIN32
- //           RemoveDirectory(targetPath);
-#else
             rmdir(targetPath);
-#endif
         } else if (isFileExist(targetPath) == FILE_TRUE) {
             unlink(targetPath);
         }
