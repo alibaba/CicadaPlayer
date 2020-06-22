@@ -12,6 +12,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include "af_string.h"
 
 using namespace std;
 
@@ -46,6 +47,15 @@ namespace Cicada{
         const type_resolve &getResolve()
         {
             return mResolve;
+        }
+
+        void setIpResolveType(int value) {
+            setProperty("IpResolveType", AfString::to_string(value));
+        }
+
+        int getIpResolveType() {
+            const string& value = getProperty("IpResolveType");
+            return value.empty() ? 0 /*IpResolveWhatEver*/ : atoi(value.c_str());
         }
 
     private:

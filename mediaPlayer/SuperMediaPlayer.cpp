@@ -579,9 +579,6 @@ namespace Cicada {
             if (flags & AUDIO_FLAG) {
                 mSet.bDisableAudio = false;
             }
-        } else if (theKey == "IPResolveType") {
-            uint64_t type = atoll(value);
-            mSet.mIpType = static_cast<IpResolveType>(type);
         } else if (theKey == "fastStart") {
             mSet.mFastStart = atol(value) != 0;
         } else if (theKey == "pixelBufferOutputFormat") {
@@ -3603,18 +3600,6 @@ namespace Cicada {
         IDataSource::SourceConfig config{};
         config.low_speed_time_ms = mSet.timeout_ms;
         config.low_speed_limit = 1;
-
-        switch (mSet.mIpType) {
-            case IpResolveWhatEver:
-                config.resolveType = IDataSource::SourceConfig::IpResolveWhatEver;
-                break;
-            case IpResolveV4:
-                config.resolveType = IDataSource::SourceConfig::IpResolveV4;
-                break;
-            case IpResolveV6:
-                config.resolveType = IDataSource::SourceConfig::IpResolveV6;
-                break;
-        }
         //   config.max_time_ms = mSet.timeout;
         config.connect_time_out_ms = mSet.timeout_ms;
         config.http_proxy = mSet.http_proxy;

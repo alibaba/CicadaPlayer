@@ -66,9 +66,6 @@ namespace Cicada {
 
         void SetStreamTypeFlags(uint64_t flags);
 
-
-        void SetIPResolveType(IpResolveType type);
-
         void SetFastStart(bool mode);
 
         /*

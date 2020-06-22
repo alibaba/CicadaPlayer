@@ -30,7 +30,6 @@ namespace Cicada {
         url = "";
         refer = "";
         timeout_ms = 15000;
-        mIpType = IpResolveWhatEver;
         RTMaxDelayTime = 0;
         bLooping = false;
         bDisableAudio = false;

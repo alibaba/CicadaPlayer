@@ -139,8 +139,6 @@ public:
 
     static void java_SetBlackType(JNIEnv *env, jclass jclazz, jint type);
 
-    static void java_SetIPResolveType(JNIEnv *env, jobject jobj, jint type);
-
     static void java_SetFastStart(JNIEnv *env, jobject instance, jboolean open);
 
     static jstring java_GetCacheFilePathByURL(JNIEnv *env, jobject instance, jstring URL);

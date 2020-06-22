@@ -10,6 +10,7 @@
 #include <utils/CicadaType.h>
 #include <vector>
 #include <atomic>
+#include <utils/globalSettings.h>
 
 namespace Cicada {
 
@@ -56,6 +57,12 @@ namespace Cicada {
             std::vector<std::string> customHeaders;
             Listener *listener = nullptr;
             IpResolveType resolveType{IpResolveWhatEver};
+
+        public:
+            SourceConfig() {
+                int ipResolveType = Cicada::globalSettings::getSetting()->getIpResolveType();
+                resolveType = static_cast<IpResolveType>(ipResolveType);
+            }
 
             std::string toString();
         };

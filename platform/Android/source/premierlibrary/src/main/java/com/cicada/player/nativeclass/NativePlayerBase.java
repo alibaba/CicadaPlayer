@@ -436,10 +436,6 @@ public class NativePlayerBase {
         nSelectExtSubtitle(index,select);
     }
 
-    public void setIPResolveType(CicadaPlayer.IPResolveType type) {
-        nSetIPResolveType(type.ordinal());
-    }
-
     public void setFastStart(boolean open) {
         nSetFastStart(open);
     }
@@ -563,8 +559,6 @@ public class NativePlayerBase {
     protected static native String nGetSdkVersion();
 
     protected static native void nSetBlackType(int type);
-
-    protected native void nSetIPResolveType(int type);
 
     protected native void nSetFastStart(boolean open);
 

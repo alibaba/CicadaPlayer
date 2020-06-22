@@ -1051,11 +1051,6 @@ import java.lang.ref.WeakReference;
     }
 
     @Override
-    public void setIPResolveType(IPResolveType type) {
-        mCorePlayer.setIPResolveType(type);
-    }
-
-    @Override
     public void setFastStart(boolean open) {
         mCorePlayer.setFastStart(open);
     }
