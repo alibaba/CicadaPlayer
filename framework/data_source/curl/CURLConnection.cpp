@@ -304,7 +304,7 @@ int CURLConnection::my_trace(CURL *handle, curl_infotype type,
     switch (type) {
         case CURLINFO_TEXT:
 
-        //    AF_LOGD("== Info: %s", data);
+            AF_LOGD("== Info: %s", data);
         default: /* in case a new one is introduced to shock us */
             return 0;
 
