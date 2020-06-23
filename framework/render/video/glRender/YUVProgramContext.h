@@ -17,6 +17,8 @@ public:
 private:
     int initProgram() override ;
 
+    void useProgram() override ;
+
     void updateScale(IVideoRender::Scale scale) override ;
 
     void updateFlip(IVideoRender::Flip flip) override ;

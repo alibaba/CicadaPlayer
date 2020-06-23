@@ -121,6 +121,10 @@ int CV420PProgramContext::initProgram() {
     return 0;
 }
 
+void CV420PProgramContext::useProgram(){
+    glUseProgram(mCVProgram);
+}
+
 void CV420PProgramContext::updateScale(IVideoRender::Scale scale) {
     if (mScale != scale) {
         mScale = scale;

@@ -110,6 +110,10 @@ int YUVProgramContext::initProgram() {
     return 0;
 }
 
+void YUVProgramContext::useProgram(){
+    glUseProgram(mProgram);
+}
+
 void YUVProgramContext::updateScale(IVideoRender::Scale scale) {
     if (mScale != scale) {
         mScale = scale;
