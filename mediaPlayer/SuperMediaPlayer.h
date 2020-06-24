@@ -16,16 +16,17 @@ using namespace std;
 #include <deque>
 #include "system_refer_clock.h"
 
+#include "SMP_DCAManager.h"
+#include "SuperMediaPlayerDataSourceListener.h"
+#include "codec/videoDecoderFactory.h"
 #include "hls_adaptive_manager.h"
-#include "player_types.h"
 #include "player_notifier.h"
+#include "player_types.h"
 #include "render/video/IVideoRender.h"
 #include <filter/IAudioFilter.h>
-#include <utils/bitStreamParser.h>
 #include <queue>
 #include <render/audio/IAudioRender.h>
-#include "codec/videoDecoderFactory.h"
-#include "SuperMediaPlayerDataSourceListener.h"
+#include <utils/bitStreamParser.h>
 
 #include <cacheModule/CacheModule.h>
 #include <cacheModule/cache/CacheConfig.h>
@@ -67,6 +68,7 @@ namespace Cicada {
                              private PlayerMessageControllerListener {
 
         friend class SuperMediaPlayerDataSourceListener;
+        friend class SMP_DCAManager;
 
     public:
 
@@ -473,6 +475,7 @@ namespace Cicada {
         MediaPlayerUtil mUtil;
 
         SuperMediaPlayerDataSourceListener mSourceListener;
+        SMP_DCAManager mDcaManager;
 
         std::unique_ptr<IAFPacket> mVideoPacket{};
         std::unique_ptr<IAFPacket> mAudioPacket{};

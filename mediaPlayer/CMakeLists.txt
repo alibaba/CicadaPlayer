@@ -100,7 +100,8 @@ set(SOURCE_FILES
         mediaPlayerSubTitleListener.cpp
         mediaPlayerSubTitleListener.h
         playerOptions.cpp
-        playerOptions.h)
+        playerOptions.h
+        SMP_DCAManager.cpp)
 if (TARGET_PLATFORM STREQUAL "Android")
     set(SOURCE_FILES ${SOURCE_FILES}
             TrafficStats.c
