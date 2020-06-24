@@ -26,6 +26,11 @@ void JavaGlobalSettings::unInit(JNIEnv *pEnv)
     }
 }
 
+void JavaGlobalSettings::java_setIPResolveType(JNIEnv *mEnv, jclass clazz, jint type)
+{
+    Cicada::globalSettings::getSetting()->setIpResolveType((int)type);
+}
+
 void JavaGlobalSettings::java_setDNSResolve(JNIEnv *mEnv, jclass clazz, jstring jhost, jstring jip)
 {
     GetStringUTFChars hostStr(mEnv, jhost);
@@ -47,6 +52,7 @@ void JavaGlobalSettings::java_setDNSResolve(JNIEnv *mEnv, jclass clazz, jstring 
 
 static JNINativeMethod globalSettings_method_table[] = {
     {"nSetDNSResolve",    "(Ljava/lang/String;Ljava/lang/String;)V", (void *) JavaGlobalSettings::java_setDNSResolve},
+    {"nSetIPResolveType", "(I)V",                                    (void *) JavaGlobalSettings::java_setIPResolveType},
 };
 
 int JavaGlobalSettings::registerMethod(JNIEnv *pEnv)

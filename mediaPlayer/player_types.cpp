@@ -8,6 +8,8 @@
     #include <TargetConditionals.h>
 #endif
 
+#include <utils/globalSettings.h>
+
 
 namespace Cicada {
 
@@ -30,7 +32,7 @@ namespace Cicada {
         url = "";
         refer = "";
         timeout_ms = 15000;
-        mIpType = IpResolveWhatEver;
+        mIpType = static_cast<IpResolveType>(globalSettings::getSetting()->getIpResolveType());
         RTMaxDelayTime = 0;
         bLooping = false;
         bDisableAudio = false;
