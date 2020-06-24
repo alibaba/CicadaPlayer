@@ -18,6 +18,8 @@ public:
     static int registerMethod(JNIEnv *pEnv);
 
     static void java_setDNSResolve(JNIEnv *mEnv, jclass clazz, jstring host, jstring ip);
+
+    static void java_setIPResolveType(JNIEnv *mEnv, jclass clazz, jint type);
 };
 
 

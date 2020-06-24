@@ -22,6 +22,16 @@ public class CicadaPlayerGlobalSettings {
         nSetDNSResolve(host, ip);
     }
 
+    /**
+     * 设置网络ip解析类型
+     * @param type 见 {@link CicadaPlayer.IPResolveType}
+     */
+    public void setIPResolveType(CicadaPlayer.IPResolveType type) {
+        nSetIPResolveType(type.ordinal());
+    }
+
     private static native void nSetDNSResolve(String host, String ip);
+
+    private static native void nSetIPResolveType(int type);
 
 }
