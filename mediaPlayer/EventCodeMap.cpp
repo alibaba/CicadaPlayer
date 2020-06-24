@@ -57,4 +57,5 @@ void EventCodeMap::init()
     codeMap.insert(pair<int, int>(MEDIA_PLAYER_EVENT_NETWORK_RETRY_SUCCESS, 113));
     codeMap.insert(pair<int, int>(MEDIA_PLAYER_EVENT_SUBTITLE_SELECT_ERROR, 114));
     codeMap.insert(pair<int, int>(MEDIA_PLAYER_EVENT_DECODER_RECOVER_SIZE, 115));
+    codeMap.insert(pair<int, int>(MEDIA_PLAYER_EVENT_DIRECT_COMPONENT_MSG, 116));
 }
