@@ -50,10 +50,8 @@ namespace Cicada {
     const int64_t SuperMediaPlayer::SEEK_ACCURATE_MAX = 11 * 1000 * 1000;
 
     SuperMediaPlayer::SuperMediaPlayer()
-        : mMessageControl(*this),
-          mAudioRenderCB(*this),
-          mApsaraThread([this]() -> int { return this->mainService(); }, LOG_TAG),
-          mSourceListener(*this)
+        : mMessageControl(*this), mAudioRenderCB(*this), mApsaraThread([this]() -> int { return this->mainService(); }, LOG_TAG),
+          mSourceListener(*this), mDcaManager(*this)
     {
         AF_LOGD("SuperMediaPlayer()");
         mPNotifier = new PlayerNotifier();
@@ -1085,6 +1083,11 @@ namespace Cicada {
     {
         int64_t curTime = af_gettime_relative();
         mUtil.notifyPlayerLoop(curTime);
+        string event = mDcaManager.getEvent();
+        while (!event.empty()) {
+            mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_DIRECT_COMPONENT_MSG, event.c_str());
+            event = mDcaManager.getEvent();
+        }
 
         if (mMessageControl.empty() || (0 == mMessageControl.processMsg())) {
             ProcessVideoLoop();
@@ -3301,6 +3304,7 @@ namespace Cicada {
         mBSSeekCb = nullptr;
         mBSCbArg = nullptr;
         mUtil.reset();
+        mDcaManager.reset();
         mVideoInterlaced = InterlacedType_UNKNOWN;
         mVideoParserTimes = 0;
         mVideoPtsRevert = mAudioPtsRevert = false;
@@ -3451,6 +3455,7 @@ namespace Cicada {
                 mDataSource->Get_config(config);
                 mDemuxerService->getDemuxerHandle()->setDataSourceConfig(config);
             }
+            mDcaManager.createObservers();
         }
 
         //step2: Demuxer init and getstream index
