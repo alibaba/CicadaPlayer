@@ -9,15 +9,16 @@
 #include "utils/AFMediaType.h"
 #include "play_list/playList.h"
 
+#include "DemuxerMetaInfo.h"
+#include <base/IDCA.h>
+#include <base/OptionOwner.h>
+#include <base/media/IAFPacket.h>
+#include <data_source/IDataSource.h>
 #include <functional>
 #include <string>
 #include <utility>
 #include <utils/CicadaType.h>
-#include <base/media/IAFPacket.h>
 #include <utils/mediaTypeInternal.h>
-#include <base/OptionOwner.h>
-#include <data_source/IDataSource.h>
-#include "DemuxerMetaInfo.h"
 
 namespace Cicada {
     typedef enum demuxer_type {
@@ -28,7 +29,7 @@ namespace Cicada {
     } demuxer_type;
 
 
-    class CICADA_CPLUS_EXTERN IDemuxer : public OptionOwner {
+    class CICADA_CPLUS_EXTERN IDemuxer : public OptionOwner, public IDCA {
     public:
 
 
@@ -163,6 +164,11 @@ namespace Cicada {
         virtual bool isLowLatency()
         {
             return false;
+        }
+
+        int invoke(int cmd, const std::string &content) override
+        {
+            return 0;
         }
 
     protected:
