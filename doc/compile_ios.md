@@ -5,8 +5,8 @@ This page is an introduction to the compilation for iOS.
     - Latest Xcode version (version 11 works so far)
     - A correct shell (we recommend bash,zsh coming...)
     - CocoaPods (for dependency management)
+    - make sure the cmake is 3.14 or later
     - [brew](https://brew.sh/)
-
     ```bash
     brew install automake git libtool autoconf cmake
     ```
