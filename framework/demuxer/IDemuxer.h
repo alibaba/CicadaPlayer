@@ -171,6 +171,11 @@ namespace Cicada {
             return 0;
         }
 
+        virtual std::string getName()
+        {
+            return mName;
+        }
+
     protected:
         demuxer_callback_read mReadCb{nullptr};
         demuxer_callback_seek mSeekCb{nullptr};
@@ -185,6 +190,7 @@ namespace Cicada {
         bool mMergerAudioHeader = false;
 
         DemuxerMetaInfo *mMetaInfo = nullptr;
+        std::string mName = "IDemuxer";
     };
 }
 

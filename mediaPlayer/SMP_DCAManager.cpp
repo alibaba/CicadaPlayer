@@ -9,8 +9,9 @@ using namespace Cicada;
 void SMP_DCAObserver::onEvent(int level, const string &content)
 {
     CicadaJSONItem item;
-    item.addValue("name", mName);
+    item.addValue("class", mClass);
     item.addValue("obj", to_string((uint64_t) mObj));
+    item.addValue("name", mName);
     item.addValue("level", level);
     item.addValue("content", content);
     if (mListener) {
@@ -24,7 +25,8 @@ void SMP_DCAObserver::setListener(mediaPlayerDCAObserverListener *listener)
 void SMP_DCAManager::createObservers()
 {
     if (mDemuxerObserver == nullptr && mPlayer.mDemuxerService && mPlayer.mDemuxerService->getDemuxerHandle()) {
-        mDemuxerObserver = static_cast<unique_ptr<SMP_DCAObserver>>(new SMP_DCAObserver("demuxer", mPlayer.mDemuxerService));
+        mDemuxerObserver = static_cast<unique_ptr<SMP_DCAObserver>>(
+                new SMP_DCAObserver("demuxer", mPlayer.mDemuxerService->getDemuxerHandle()->getName(), mPlayer.mDemuxerService));
         mDemuxerObserver->setListener(this);
         mPlayer.mDemuxerService->getDemuxerHandle()->setDCAObserver(mDemuxerObserver.get());
     }
@@ -32,11 +34,13 @@ void SMP_DCAManager::createObservers()
 int SMP_DCAManager::invoke(const string &content)
 {
     CicadaJSONItem item(content);
-    string name = item.getString("name");
-    if (name == "demuxer" && mDemuxerObserver != nullptr) {
+    string ClassName = item.getString("class");
+    if (ClassName == "demuxer" && mDemuxerObserver != nullptr) {
         if ((void *) atoll(item.getString("obj").c_str()) == (void *) mPlayer.mDemuxerService) {
             assert(mPlayer.mDemuxerService->getDemuxerHandle());
-            return mPlayer.mDemuxerService->getDemuxerHandle()->invoke(item.getInt("cmd", -1), item.getString("content"));
+            if (mPlayer.mDemuxerService->getDemuxerHandle()->getName() == item.getString("name")) {
+                return mPlayer.mDemuxerService->getDemuxerHandle()->invoke(item.getInt("cmd", -1), item.getString("content"));
+            }
         }
     }
     // TODO: error code
