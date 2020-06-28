@@ -141,7 +141,16 @@ public enum InfoCode {
 	 */
     SubtitleSelectError(114),
 
-    ;
+    /**
+     * 播放组件中透传输出的消息
+     */
+    /****
+     * The message passthrough the player component
+     */
+
+    DirectComponentMSG(116)
+
+            ;
 
     private int value;
 
