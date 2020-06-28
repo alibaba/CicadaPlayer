@@ -4,6 +4,8 @@
 #include "SMP_DCAManager.h"
 #include "SuperMediaPlayer.h"
 #include <utils/CicadaJSON.h>
+#include <cassert>
+
 using namespace std;
 using namespace Cicada;
 void SMP_DCAObserver::onEvent(int level, const string &content)
