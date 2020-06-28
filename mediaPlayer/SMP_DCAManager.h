@@ -20,7 +20,8 @@ namespace Cicada {
     };
     class SMP_DCAObserver : public IDCAObserver {
     public:
-        explicit SMP_DCAObserver(std::string name, void *obj) : mName(std::move(name)), mObj(obj)
+        explicit SMP_DCAObserver(std::string className, std::string compName, void *obj)
+            : mClass(std::move(className)), mName(compName), mObj(obj)
         {}
         void setListener(mediaPlayerDCAObserverListener *listener);
 
@@ -28,6 +29,7 @@ namespace Cicada {
         void onEvent(int level, const std::string &content) override;
 
     private:
+        std::string mClass{};
         std::string mName{};
         void *mObj{nullptr};
         mediaPlayerDCAObserverListener *mListener{nullptr};

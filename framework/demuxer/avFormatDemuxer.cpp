@@ -29,6 +29,7 @@ namespace Cicada {
 
     void avFormatDemuxer::init()
     {
+        mName = LOG_TAG;
         mCtx = avformat_alloc_context();
         mCtx->interrupt_callback.callback = interrupt_cb;
         mCtx->interrupt_callback.opaque = this;
@@ -363,6 +364,7 @@ namespace Cicada {
             if (mCtx->start_time == INT64_MIN) {
                 mCtx->start_time = packet->getInfo().pts;
             }
+
             packet->getInfo().timePosition = packet->getInfo().pts - mCtx->start_time;
         }
 
@@ -490,9 +492,11 @@ namespace Cicada {
 
         mPacketQueue.clear();
         mError = 0;
+
         if (mCtx->start_time == INT64_MIN) {
             mCtx->start_time = 0;
         }
+
         static const int jitter = 2;
         int64_t timestamp = mCtx->start_time + us;
         int64_t timestamp_seek;
