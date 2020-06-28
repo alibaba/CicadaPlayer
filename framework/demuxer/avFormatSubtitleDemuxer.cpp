@@ -13,6 +13,7 @@ namespace Cicada {
 
     avFormatSubtitleDemuxer::avFormatSubtitleDemuxer()
     {
+        mName = LOG_TAG;
         mCtx = avformat_alloc_context();
         mCtx->interrupt_callback.callback = interrupt_cb;
         mCtx->interrupt_callback.opaque = this;
