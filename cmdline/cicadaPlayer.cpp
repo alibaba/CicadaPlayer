@@ -131,6 +131,9 @@ int main(int argc, char *argv[])
     player->SetLoop(true);
     player->SetIPResolveType(IpResolveWhatEver);
     player->SetFastStart(true);
+    MediaPlayerConfig config = *(player->GetConfig());
+    config.liveStartIndex = -3;
+    player->SetConfig(&config);
     player->Prepare();
     player->SelectTrack(-1);
     player->SetOnRenderFrameCallback(CicadaOnRenderFrame, nullptr);

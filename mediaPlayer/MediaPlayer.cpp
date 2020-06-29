@@ -479,6 +479,7 @@ namespace Cicada {
         CicadaSetOption(handle, "highLevelBufferDuration", chHighBufDur.c_str());
         string chMaxBufDur = to_string(playerConfig.maxBufferDuration);
         CicadaSetOption(handle, "maxBufferDuration", chMaxBufDur.c_str());
+        CicadaSetOption(handle, "liveStartIndex", to_string(playerConfig.liveStartIndex).c_str());
         CicadaSetOption(handle, "http_proxy", playerConfig.httpProxy.c_str());
         CicadaSetOption(handle, "ClearShowWhenStop", playerConfig.bClearShowWhenStop ? "1" : "0");
         CicadaSetOption(handle, "enableVideoTunnelRender", playerConfig.bEnableTunnelRender ? "1" : "0");
