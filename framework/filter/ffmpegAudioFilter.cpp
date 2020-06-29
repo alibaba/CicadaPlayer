@@ -45,9 +45,10 @@ namespace Cicada {
 
     ffmpegAudioFilter::~ffmpegAudioFilter()
     {
-        delete mPThread;
         avfilter_graph_free(&m_pFilterGraph);
         flush();
+        delete mPThread;
+        mPThread = nullptr;
     }
 
     bool ffmpegAudioFilter::isSupported(string capacity)
