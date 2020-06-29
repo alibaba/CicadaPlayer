@@ -7,11 +7,11 @@
 
 #include "IAudioRender.h"
 #include <SDL2/SDL.h>
+#include <base/media/AVAFPacket.h>
+#include <filter/ffmpegAudioFilter.h>
 #include <list>
 #include <mutex>
 #include <queue>
-#include <base/media/AVAFPacket.h>
-#include <filter/ffmpegAudioFilter.h>
 
 using namespace std;
 
@@ -42,12 +42,12 @@ namespace Cicada {
 
         void flush() override;
 
-    private :
+    private:
         static void SDLAudioCallback(void *userdata, Uint8 *stream, int len);
 
     private:
         bool mInited = false;
-        queue<unique_ptr<IAFFrame> > mAudioFrames;
+        queue<unique_ptr<IAFFrame>> mAudioFrames;
 
         int mStartPos = 0;
 
@@ -58,11 +58,13 @@ namespace Cicada {
         SDL_AudioDeviceID mDevID{};
 
         std::unique_ptr<Cicada::ffmpegAudioFilter> mFiler{};
-        uint64_t  mPlayedDuration = 0;
+        uint64_t mPlayedDuration = 0;
         IAFFrame::audioInfo mInfo{};
         float mSpeed{1};
+        float mVolume = 1.0f;
+        std::atomic<bool> mMute{false};
     };
-}
+}// namespace Cicada
 
 
-#endif //FRAMEWORK_SDLAFAUDIORENDER_H
+#endif//FRAMEWORK_SDLAFAUDIORENDER_H
