@@ -125,9 +125,12 @@ namespace Cicada {
         return 0;
     }
 
-    uint64_t SegmentList::getFirstSeqNum()
+    uint64_t SegmentList::getFirstSeqNum() const
     {
         return static_cast<uint64_t>(mFirstSeqNum);
     }
-
+    uint64_t SegmentList::getLastSeqNum() const
+    {
+        return static_cast<uint64_t>(mLastSeqNum);
+    }
 }

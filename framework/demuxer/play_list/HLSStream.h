@@ -214,6 +214,8 @@ namespace Cicada {
         std::unique_ptr<DemuxerMetaInfo> mDemuxerMeta = nullptr;
         int OpenedStreamIndex = 0;
         bool mProtectedBuffer{false};
+
+        int64_t mLiveStartIndex{-3};//segment index to start live streams at (negative values are from the end)
     };
 }
 

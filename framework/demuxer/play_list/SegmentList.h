@@ -39,7 +39,8 @@ namespace Cicada{
 
         void print();
 
-        uint64_t getFirstSeqNum();
+        uint64_t getFirstSeqNum() const;
+        uint64_t getLastSeqNum() const;
 
     private:
         std::list<std::shared_ptr<segment>> segments;

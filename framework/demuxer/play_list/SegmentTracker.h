@@ -68,6 +68,11 @@ namespace Cicada {
             return mRep->GetSegmentList()->getFirstSeqNum();
         }
 
+        uint64_t getLastSegNum()
+        {
+            return mRep->GetSegmentList()->getLastSeqNum();
+        }
+
         uint64_t getSegSize();
 
         string getPlayListUri();
