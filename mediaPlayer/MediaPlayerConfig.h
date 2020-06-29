@@ -41,6 +41,8 @@ namespace Cicada {
          * */
         uint32_t pixelBufferOutputFormat;
 
+        int liveStartIndex;
+
     public:
         std::string toString() const;
     };

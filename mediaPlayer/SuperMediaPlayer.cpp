@@ -584,6 +584,8 @@ namespace Cicada {
             mSet.mFastStart = atol(value) != 0;
         } else if (theKey == "pixelBufferOutputFormat") {
             mSet.pixelBufferOutputFormat = atol(value);
+        } else if (theKey == "liveStartIndex") {
+            mSet.mOptions.set(theKey, value, options::REPLACE);
         }
 
         return 0;
