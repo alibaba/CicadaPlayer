@@ -19,6 +19,7 @@ namespace Cicada {
         bClearShowWhenStop = false;
         bEnableTunnelRender = false;
         pixelBufferOutputFormat = 0;
+        liveStartIndex = -3;
     }
 
     std::string MediaPlayerConfig::toString() const
