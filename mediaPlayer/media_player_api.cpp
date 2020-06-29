@@ -581,6 +581,16 @@ void CicadaSetDefaultBandWidth(playerHandle *pHandle, int bandWidth)
     }
 }
 
+int CicadaInvokeComponent(playerHandle *pHandle, const char *content)
+{
+    GET_PLAYER;
+    if (player) {
+        return player->invokeComponent(content);
+    }
+
+    return 0;
+}
+
 void CicadaSetMediaFrameCb(playerHandle *pHandle, playerMediaFrameCb func, void *arg)
 {
     GET_PLAYER;

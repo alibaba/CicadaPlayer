@@ -191,6 +191,8 @@ namespace Cicada {
 
         int selectExtSubtitle(int index, bool bSelect) override;
 
+        int invokeComponent(std::string content) override;
+
     private:
         void NotifyPosition(int64_t position);
 

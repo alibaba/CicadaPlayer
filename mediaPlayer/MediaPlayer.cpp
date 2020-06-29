@@ -1137,4 +1137,9 @@ namespace Cicada {
         int value = mode;
         CicadaSetOption(handle, "fastStart", to_string(value).c_str());
     }
+    int MediaPlayer::InvokeComponent(const std::string &content)
+    {
+        GET_PLAYER_HANDLE;
+        return CicadaInvokeComponent(handle, content.c_str());
+    }
 }
