@@ -167,6 +167,8 @@ namespace Cicada {
 
         std::map<int, segmentTimeInfo> mStreamStartTimeMap;
         bool mProtectedBuffer{false};
+
+        int64_t mLiveStartIndex{-3};//segment index to start live streams at (negative values are from the end)
     };
 }
 
