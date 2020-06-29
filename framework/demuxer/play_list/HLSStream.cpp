@@ -265,6 +265,24 @@ namespace Cicada {
             mPTracker->setCurSegNum(mPTracker->getFirstSegNum());
         }
 
+        if (mPTracker->isLive()) {
+            uint64_t curNum;
+            if (mOpts) {
+                string value = mOpts->get("liveStartIndex");
+                if (!value.empty()) {
+                    mLiveStartIndex = atoll(value.c_str());
+                    AF_LOGI("set liveStartIndex to %lld\n", mLiveStartIndex);
+                }
+            }
+            if (mLiveStartIndex >= 0) {
+                curNum = std::min(mPTracker->getFirstSegNum() + mLiveStartIndex, mPTracker->getLastSegNum());
+            } else {
+                curNum = std::max(mPTracker->getLastSegNum() + mLiveStartIndex + 1, mPTracker->getFirstSegNum());
+            }
+
+            mPTracker->setCurSegNum(curNum);
+        }
+
         mStopOnSegEnd = false;
         mCurSeg = nullptr;
         mCurSeg = mPTracker->getCurSegment();
