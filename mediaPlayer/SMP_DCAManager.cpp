@@ -24,12 +24,17 @@ void SMP_DCAObserver::setListener(mediaPlayerDCAObserverListener *listener)
 {
     mListener = listener;
 }
+void SMP_DCAObserver::hello()
+{
+    onEvent(0, "hello");
+}
 void SMP_DCAManager::createObservers()
 {
     if (mDemuxerObserver == nullptr && mPlayer.mDemuxerService && mPlayer.mDemuxerService->getDemuxerHandle()) {
         mDemuxerObserver = static_cast<unique_ptr<SMP_DCAObserver>>(
                 new SMP_DCAObserver("demuxer", mPlayer.mDemuxerService->getDemuxerHandle()->getName(), mPlayer.mDemuxerService));
         mDemuxerObserver->setListener(this);
+        mDemuxerObserver->hello();
         mPlayer.mDemuxerService->getDemuxerHandle()->setDCAObserver(mDemuxerObserver.get());
     }
 }

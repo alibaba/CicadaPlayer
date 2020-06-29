@@ -25,6 +25,8 @@ namespace Cicada {
         {}
         void setListener(mediaPlayerDCAObserverListener *listener);
 
+        void hello();
+
     private:
         void onEvent(int level, const std::string &content) override;
 
