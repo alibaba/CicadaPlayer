@@ -4242,4 +4242,8 @@ namespace Cicada {
         mFrameCb = cb;
         mFrameCbUserData = userData;
     }
+    int SuperMediaPlayer::invokeComponent(std::string content)
+    {
+        return mDcaManager.invoke(content);
+    }
 }//namespace Cicada

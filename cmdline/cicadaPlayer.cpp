@@ -7,6 +7,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_main.h>
 #endif
+#include <utils/CicadaJSON.h>
 using namespace Cicada;
 using namespace std;
 
@@ -61,6 +62,18 @@ static void onEvent(int64_t errorCode, const void *errorMsg, void *userData)
         case MediaPlayerEventType::MEDIA_PLAYER_EVENT_NETWORK_RETRY:
             cont->player->Reload();
             break;
+
+        case MediaPlayerEventType::MEDIA_PLAYER_EVENT_DIRECT_COMPONENT_MSG: {
+            AF_LOGI("get a dca message %s\n", errorMsg);
+            CicadaJSONItem msg((char *) errorMsg);
+            if (msg.getString("content", "") == "hello") {
+                msg.deleteItem("content");
+                msg.addValue("content", "hi");
+                msg.addValue("cmd", 0);
+                cont->player->InvokeComponent(msg.printJSON());
+            }
+            break;
+        }
 
         default:
             break;

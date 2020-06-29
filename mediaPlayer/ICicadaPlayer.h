@@ -254,6 +254,8 @@ namespace Cicada {
 
         virtual bool IsAutoPlay() = 0;
 
+        virtual int invokeComponent(std::string content) = 0;
+
     protected:
         playerMediaFrameCb mMediaFrameCb = nullptr;
         void *mMediaFrameCbArg = nullptr;

@@ -334,6 +334,8 @@ namespace Cicada {
 
         void SetDefaultBandWidth(int bandWidth);
 
+        int InvokeComponent(const std::string &content);
+
     protected:
         static void preparedCallback(void *userData);
 
