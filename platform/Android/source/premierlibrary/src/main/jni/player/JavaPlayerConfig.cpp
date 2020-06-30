@@ -31,6 +31,7 @@ jfieldID  gj_playerconfig_ClearFrameWhenStop        = nullptr;
 jfieldID  gj_playerconfig_EnableTunnelRender        = nullptr;
 jfieldID  gj_playerconfig_UserAgent                 = nullptr;
 jfieldID  gj_playerconfig_NetworkRetryCount         = nullptr;
+jfieldID  gj_playerconfig_LiveStartIndex            = nullptr;
 
 
 void JavaPlayerConfig::init(JNIEnv *env)
@@ -84,6 +85,9 @@ void JavaPlayerConfig::init(JNIEnv *env)
         gj_playerconfig_NetworkRetryCount         = env->GetFieldID(gj_PlayerConfig_class,
                 "mNetworkRetryCount",
                 "I");
+        gj_playerconfig_LiveStartIndex            = env->GetFieldID(gj_PlayerConfig_class,
+                "mLiveStartIndex",
+                "I");
     }
 }
 
@@ -117,6 +121,8 @@ jobject JavaPlayerConfig::getJPlayerConfig(JNIEnv *mEnv, const MediaPlayerConfig
                           (jboolean) (playerConfig->bEnableTunnelRender));
     mEnv->SetIntField(jPlayerConfig, gj_playerconfig_NetworkRetryCount,
                       playerConfig->networkRetryCount);
+    mEnv->SetIntField(jPlayerConfig, gj_playerconfig_LiveStartIndex,
+                      playerConfig->liveStartIndex);
     NewStringUTF tmpreferrer(mEnv, playerConfig->referer.c_str());
     jstring      referrer  = tmpreferrer.getString();
     mEnv->SetObjectField(jPlayerConfig, gj_playerconfig_Referrer, referrer);
@@ -179,6 +185,8 @@ MediaPlayerConfig JavaPlayerConfig::convertTo(JNIEnv *env, jobject playerConfig)
             gj_playerconfig_EnableTunnelRender);
     jint              networkRetryCount         = env->GetIntField(playerConfig,
             gj_playerconfig_NetworkRetryCount);
+    jint              liveStartIndex            = env->GetIntField(playerConfig,
+                      gj_playerconfig_LiveStartIndex);
     GetStringUTFChars tmpHttpProxy(env, httpProxyStr);
     char              *httpProxy                = tmpHttpProxy.getChars();
     GetStringUTFChars tmpreferrer(env, referrerStr);
@@ -196,6 +204,7 @@ MediaPlayerConfig JavaPlayerConfig::convertTo(JNIEnv *env, jobject playerConfig)
     config.bClearShowWhenStop     = clearFrameWhenStop;
     config.bEnableTunnelRender    = enableTunnelRender;
     config.networkRetryCount      = networkRetryCount;
+    config.liveStartIndex         = liveStartIndex;
     CallObjectMethod getHeaderMethod(env, playerConfig, gj_playerconfig_getCustomHeaders);
     jobjectArray     headersArray = (jobjectArray) getHeaderMethod.getValue();
 
