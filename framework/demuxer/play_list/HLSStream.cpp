@@ -15,8 +15,9 @@
 #include "segment_decrypt/SegDecryptorFactory.h"
 //#define NOLOGD
 #include "../../utils/frame_work_log.h"
-#include <data_source/dataSourcePrototype.h>
 #include "../IDemuxer.h"
+#include <cstdlib>
+#include <data_source/dataSourcePrototype.h>
 #include <utils/af_string.h>
 
 // TODO support active and no active mode
