@@ -102,6 +102,8 @@ OBJC_EXPORT
  */
 @property (nonatomic, copy) NSMutableArray *httpHeaders;
 
+@property(nonatomic, assign) int liveStartIndex;
+
 @end
 
 #endif /* CicadaConfig_h */
