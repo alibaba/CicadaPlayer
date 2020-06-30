@@ -22,6 +22,7 @@
 @synthesize clearShowWhenStop;
 @synthesize networkRetryCount;
 @synthesize httpHeaders;
+@synthesize liveStartIndex;
 
 - (instancetype)init{
     if (self = [super init]) {
@@ -37,6 +38,7 @@
         userAgent = nil;
         networkRetryCount = 2;
         httpHeaders = [[NSMutableArray alloc] init];
+        liveStartIndex = -3;
     }
     return self;
 }
