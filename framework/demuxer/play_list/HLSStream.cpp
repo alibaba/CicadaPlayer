@@ -14,8 +14,10 @@
 #include "segment_decrypt/SegDecryptorFactory.h"
 //#define NOLOGD
 #include "../../utils/frame_work_log.h"
-#include <data_source/dataSourcePrototype.h>
 #include "../IDemuxer.h"
+#include <cstdlib>
+#include <data_source/dataSourcePrototype.h>
+#include <utils/af_string.h>
 
 // TODO support active and no active mode
 
@@ -174,13 +176,16 @@ namespace Cicada {
 
         if (mPTracker->isLive()) {
             uint64_t curNum;
+
             if (mOpts) {
                 string value = mOpts->get("liveStartIndex");
+
                 if (!value.empty()) {
                     mLiveStartIndex = atoll(value.c_str());
                     AF_LOGI("set liveStartIndex to %lld\n", mLiveStartIndex);
                 }
             }
+
             if (mLiveStartIndex >= 0) {
                 curNum = std::min(mPTracker->getFirstSegNum() + mLiveStartIndex, mPTracker->getLastSegNum());
             } else {
