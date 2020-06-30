@@ -103,6 +103,13 @@ public class PlayerConfig {
      * The maximum network reconnection attempts. networkTimeout specifies the reconnection interval. networkRetryCount=0 indicates that automatic reconnection is disabled. The reconnection policy depends on the app. Default: 2.
      */
     public int mNetworkRetryCount = 2;
+    /**
+     * HLS直播时，起播分片位置。
+     */
+    /****
+     * The start playing index of fragments, when HLS is live, .
+     */
+    public int mLiveStartIndex = -3;
 
     private String[] mCustomHeaders = null;
 
