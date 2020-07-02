@@ -43,6 +43,11 @@ namespace Cicada {
                 return false;
             }
         }
+        string model = get_android_property("ro.product.model");
+        AF_LOGI("phone model is %s\n", model.c_str());
+        if (model == "2014501") {
+            return false;
+        }
 
         return true;
     }
