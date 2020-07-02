@@ -108,6 +108,10 @@ namespace Cicada {
 
         int ReadPacketInternal(std::unique_ptr<IAFPacket> &packet);
 
+        static inline int avio_callback_read(void *arg, uint8_t *buffer, int size);
+
+        static inline int64_t avio_callback_seek(void *arg, int64_t offset, int whence);
+
 #if AF_HAVE_PTHREAD
 
         int readLoop();
