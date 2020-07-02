@@ -82,7 +82,8 @@ namespace Cicada {
 
         if (mReadCb != nullptr ) {
             uint8_t *read_buffer = static_cast<uint8_t *>(av_malloc(INITIAL_BUFFER_SIZE));
-            mPInPutPb = avio_alloc_context(read_buffer, INITIAL_BUFFER_SIZE, 0, mUserArg, mReadCb, nullptr, mSeekCb);
+            mPInPutPb = avio_alloc_context(read_buffer, INITIAL_BUFFER_SIZE, 0, this, mReadCb ? avio_callback_read : nullptr, nullptr,
+                                           mSeekCb ? avio_callback_seek : nullptr);
 
             if (mPInPutPb == nullptr) {
                 av_free(read_buffer);
@@ -232,7 +233,7 @@ namespace Cicada {
             err = av_read_frame(mCtx, pkt);
 
             if (err < 0) {
-                if (err != AVERROR(EAGAIN)) {
+                if (err != AVERROR(EAGAIN) && err != AVERROR_EOF) {
                     if (mCtx->pb && mCtx->pb->error != AVERROR_EXIT) {
                         av_log(NULL, AV_LOG_WARNING, "%s:%d: %s, ctx->pb->error=%d\n", __FILE__, __LINE__, getErrorString(err),
                                mCtx->pb->error);
@@ -704,5 +705,15 @@ namespace Cicada {
         mQueCond.notify_one();
 #endif
     }
-
+    int avFormatDemuxer::avio_callback_read(void *arg, uint8_t *buffer, int size)
+    {
+        auto *demuxer = static_cast<avFormatDemuxer *>(arg);
+        int ret = demuxer->mReadCb(demuxer->mUserArg, buffer, size);
+        return ret ? ret : AVERROR_EOF;
+    }
+    int64_t avFormatDemuxer::avio_callback_seek(void *arg, int64_t offset, int whence)
+    {
+        auto *demuxer = static_cast<avFormatDemuxer *>(arg);
+        return demuxer->mSeekCb(demuxer->mUserArg, offset, whence);
+    }
 }

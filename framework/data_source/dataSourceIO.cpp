@@ -30,7 +30,8 @@ namespace Cicada {
     {
         auto *pHandle = static_cast<dataSourceIO *>(arg);
         //     AF_LOGE("read_callback", "%s %d \n", __func__, size);
-        return pHandle->mPDataSource->Read(buffer, size);
+        int ret = pHandle->mPDataSource->Read(buffer, size);
+        return ret ? ret : AVERROR_EOF;
     }
 
     int64_t dataSourceIO::seek_callback(void *arg, int64_t offset, int whence)
