@@ -71,7 +71,7 @@ public class NativePlayerBase {
         }
     }
 
-    private static final int UPDATE_CURRENT_POSITION = 0;
+    private static final int UPDATE_CURRENT_POSITION = 1000;
 
     private void handleMessage(Message msg) {
         if (msg.what == UPDATE_CURRENT_POSITION) {
