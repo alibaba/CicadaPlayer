@@ -26,7 +26,7 @@ public class CicadaPlayerGlobalSettings {
      * 设置网络ip解析类型
      * @param type 见 {@link CicadaPlayer.IPResolveType}
      */
-    public void setIPResolveType(CicadaPlayer.IPResolveType type) {
+    public static void setIPResolveType(CicadaPlayer.IPResolveType type) {
         nSetIPResolveType(type.ordinal());
     }
 
