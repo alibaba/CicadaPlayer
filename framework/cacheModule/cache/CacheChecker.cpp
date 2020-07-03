@@ -142,10 +142,14 @@ bool compare(const CacheFileInfo &a, const CacheFileInfo &b)
 
 void CacheChecker::getAllCachedFiles(const string &cacheDir, vector<CacheFileInfo> &cacheFileInfos)
 {
-    DIR *dir;
+    DIR *dir = nullptr;
     struct dirent *entry;
     char path[UTILS_PATH_MAX + 1] = {0};
     dir = opendir(cacheDir.c_str());
+
+    if (dir == nullptr) {
+        return;
+    }
 
     while ((entry = readdir(dir)) != nullptr) {
         if (strcmp((const char *) (entry->d_name), ".") &&
@@ -178,7 +182,6 @@ void CacheChecker::getAllCachedFiles(const string &cacheDir, vector<CacheFileInf
     }
 
     sort(cacheFileInfos.begin(), cacheFileInfos.end(), compare);
-
     closedir(dir);
 }
 
