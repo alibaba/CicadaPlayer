@@ -70,7 +70,7 @@ namespace Cicada {
             const AVFrame *avFrame = getAVFrame(frame.get());
             bufferSize = getPCMDataLen(frame->getInfo().audio.channels, (enum AVSampleFormat) frame->getInfo().audio.format,
                                        frame->getInfo().audio.nb_samples);
-            pcmBuffer = static_cast<uint8_t *>(malloc(bufferSize * 8));
+            pcmBuffer = static_cast<uint8_t *>(malloc(bufferSize));
             if (SDL_OpenAudio(&mSpec, nullptr) < 0) {
                 AF_LOGE("SdlAFAudioRender could not openAudio! Error: %s\n", SDL_GetError());
                 return -1;
@@ -95,6 +95,10 @@ namespace Cicada {
                 int pcmDataLength = getPCMDataLen(filter_frame->getInfo().audio.channels, 
                                                     (enum AVSampleFormat) filter_frame->getInfo().audio.format,
                                                     filter_frame->getInfo().audio.nb_samples);
+                if (bufferSize < pcmDataLength) {
+                    bufferSize = pcmDataLength;
+                    pcmBuffer = static_cast<uint8_t *>(realloc(pcmBuffer, bufferSize));
+                }
                 if (!mMute) {
                     copyPCMData(getAVFrame(filter_frame.get()), pcmBuffer);
                 } else {
@@ -111,6 +115,10 @@ namespace Cicada {
         int pcmDataLength = getPCMDataLen(frame->getInfo().audio.channels, 
                                           (enum AVSampleFormat) frame->getInfo().audio.format,
                                           frame->getInfo().audio.nb_samples);
+        if (bufferSize < pcmDataLength) {
+            bufferSize = pcmDataLength;
+            pcmBuffer = static_cast<uint8_t *>(realloc(pcmBuffer, bufferSize));
+        }
         if (!mMute) {
             copyPCMData(getAVFrame(frame.get()), pcmBuffer);
         } else {
