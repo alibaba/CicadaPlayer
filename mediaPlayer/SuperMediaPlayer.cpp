@@ -2603,7 +2603,8 @@ namespace Cicada {
                 }
             }
 
-            if (mMediaFrameCb && !pMedia_Frame->isProtected()) {
+            //TODO : cache depends on this callback. need find another way
+            if (mMediaFrameCb /*&& !pMedia_Frame->isProtected()*/) {
                 // TODO: change to std::unique_ptr<IAFPacket>
                 mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame, ST_TYPE_AUDIO);
             }
@@ -2611,7 +2612,8 @@ namespace Cicada {
             mBufferController.AddPacket(move(pMedia_Frame), BUFFER_TYPE_AUDIO);
         } else if (pFrame->getInfo().streamIndex == mCurrentSubtitleIndex ||
                    pFrame->getInfo().streamIndex == mWillChangedSubtitleStreamIndex) {
-            if (mMediaFrameCb && !pMedia_Frame->isProtected()) {
+            //TODO : cache depends on this callback. need find another way
+            if (mMediaFrameCb /*&& !pMedia_Frame->isProtected()*/) {
                 // TODO: change to std::unique_ptr<IAFPacket>
                 mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame, ST_TYPE_SUB);
             }
