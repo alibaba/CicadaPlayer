@@ -195,7 +195,7 @@ namespace Cicada {
         mDemuxerPtr->PreStop();
     }
 
-    int demuxer_service::GetNbStreams()
+    int demuxer_service::GetNbStreams() const
     {
         AF_TRACE;
         CHECK_DEMUXER;
@@ -209,7 +209,7 @@ namespace Cicada {
         return mDemuxerPtr->GetSourceMeta(meta);
     }
 
-    int demuxer_service::GetStreamMeta(Stream_meta *meta, int index, bool sub)
+    int demuxer_service::GetStreamMeta(Stream_meta *meta, int index, bool sub) const
     {
 //        AF_TRACE;
         CHECK_DEMUXER;

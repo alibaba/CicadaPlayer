@@ -48,11 +48,11 @@ namespace Cicada {
 
         virtual int Open() override;
 
-        int GetNbStreams() override;
+        int GetNbStreams() const override;
 
-        int GetSourceMeta(Source_meta **meta) override;
+        int GetSourceMeta(Source_meta **meta) const override;
 
-        int GetStreamMeta(Stream_meta *meta, int index, bool sub) override;
+        int GetStreamMeta(Stream_meta *meta, int index, bool sub) const override;
 
         void Start() override;
 
@@ -74,7 +74,7 @@ namespace Cicada {
 
         int ReadPacket(std::unique_ptr<IAFPacket> &packet, int index) override;
 
-        virtual const std::string GetProperty(int index, const string &key) override;
+        virtual const std::string GetProperty(int index, const string &key) const override;
 
     protected:
         explicit avFormatDemuxer(int dummy);

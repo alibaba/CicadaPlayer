@@ -87,7 +87,7 @@ namespace Cicada {
         mStarted = false;
     }
 
-    int HLSManager::GetNbStreams()
+    int HLSManager::GetNbStreams() const
     {
         if (mMuxedStream) {
             return mMuxedStream->GetNbStreams();
@@ -96,7 +96,7 @@ namespace Cicada {
         }
     }
 
-    int HLSManager::GetStreamMeta(Stream_meta *meta, int index, bool sub)
+    int HLSManager::GetStreamMeta(Stream_meta *meta, int index, bool sub) const
     {
         memset(meta, 0, sizeof(Stream_meta));
         meta->type = STREAM_TYPE_UNKNOWN;
@@ -115,7 +115,7 @@ namespace Cicada {
         int i = 0;
         HLSStream *stream = nullptr;
 
-        for (auto &item : mStreamInfoList) {
+        for (const auto &item : mStreamInfoList) {
             if (i == streamIndex) {
                 stream = item->mPStream;
                 break;
@@ -547,9 +547,9 @@ namespace Cicada {
         return 0;
     }
 
-    int HLSManager::getNBSubStream(int index)
+    int HLSManager::getNBSubStream(int index) const
     {
-        for (auto &i : mStreamInfoList) {
+        for (const auto &i : mStreamInfoList) {
             if (i->mPStream->getId() == index) {
                 return i->mPStream->getNBStream();
             }

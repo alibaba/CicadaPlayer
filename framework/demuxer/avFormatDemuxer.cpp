@@ -515,18 +515,18 @@ namespace Cicada {
         return ret;
     }
 
-    int avFormatDemuxer::GetNbStreams()
+    int avFormatDemuxer::GetNbStreams() const
     {
         return mCtx->nb_streams;
     }
 
 
-    int avFormatDemuxer::GetSourceMeta(Source_meta **meta)
+    int avFormatDemuxer::GetSourceMeta(Source_meta **meta) const
     {
         return AVDictionary2SourceMeta(meta, mCtx->metadata);
     }
 
-    int avFormatDemuxer::GetStreamMeta(Stream_meta *meta, int index, bool sub)
+    int avFormatDemuxer::GetStreamMeta(Stream_meta *meta, int index, bool sub) const
     {
         if (index < 0 || index > mCtx->nb_streams) {
             return -EINVAL;
@@ -653,7 +653,7 @@ namespace Cicada {
 #endif
     }
 
-    const std::string avFormatDemuxer::GetProperty(int index, const string &key)
+    const std::string avFormatDemuxer::GetProperty(int index, const string &key) const
     {
         if (key == "probeInfo") {
             return mProbeString;

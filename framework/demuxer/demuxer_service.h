@@ -86,12 +86,12 @@ namespace Cicada {
     public:
 
 
-        int GetNbStreams();
+        int GetNbStreams() const;
 
         int GetSourceMeta(Source_meta **meta);
 
         attribute_deprecated
-        int GetStreamMeta(Stream_meta *meta, int index, bool sub);
+        int GetStreamMeta(Stream_meta *meta, int index, bool sub) const;
 
         int GetStreamMeta(std::unique_ptr<streamMeta> &meta, int index, bool sub);
 

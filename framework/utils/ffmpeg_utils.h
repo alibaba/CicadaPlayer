@@ -40,7 +40,7 @@ enum AVCodecID CodecID2AVCodecID(enum AFCodecID codec);
 
 int set_stream_meta(struct AVStream *pStream, Stream_meta *meta);
 
-int get_stream_meta(struct AVStream *pStream, Stream_meta *meta);
+int get_stream_meta(const struct AVStream *pStream, Stream_meta *meta);
 
 int AVPixFmt2Cicada(enum AVPixelFormat fmt);
 

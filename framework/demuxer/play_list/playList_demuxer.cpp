@@ -113,7 +113,7 @@ namespace Cicada {
         }
     }
 
-    int playList_demuxer::GetNbStreams()
+    int playList_demuxer::GetNbStreams() const
     {
         if (mPPlaylistManager) {
             return mPPlaylistManager->GetNbStreams();
@@ -122,12 +122,12 @@ namespace Cicada {
         return -EINVAL;
     }
 
-    int playList_demuxer::GetSourceMeta(Source_meta **meta)
+    int playList_demuxer::GetSourceMeta(Source_meta **meta) const
     {
         return 0;
     }
 
-    int playList_demuxer::GetStreamMeta(Stream_meta *meta, int index, bool sub)
+    int playList_demuxer::GetStreamMeta(Stream_meta *meta, int index, bool sub) const
     {
         if (mPPlaylistManager) {
             return mPPlaylistManager->GetStreamMeta(meta, index, sub);
@@ -180,7 +180,7 @@ namespace Cicada {
     }
 
 
-    int playList_demuxer::GetNbSubStreams(int index)
+    int playList_demuxer::GetNbSubStreams(int index) const
     {
         if (mPPlaylistManager) {
             return mPPlaylistManager->getNBSubStream(index);

@@ -235,7 +235,7 @@ namespace Cicada {
         return ret;
     }
 
-    int SegmentTracker::getStreamType()
+    int SegmentTracker::getStreamType() const
     {
         return mRep->mStreamType;
     }

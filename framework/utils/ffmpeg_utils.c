@@ -474,7 +474,7 @@ int set_stream_meta(struct AVStream *pStream, Stream_meta *meta)
     return 0;
 }
 
-int get_stream_meta(struct AVStream *pStream, Stream_meta *meta)
+int get_stream_meta(const struct AVStream *pStream, Stream_meta *meta)
 {
     enum AVMediaType codec_type = pStream->codecpar->codec_type;
     memset(meta, 0, sizeof(Stream_meta));

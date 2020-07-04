@@ -75,17 +75,17 @@ namespace Cicada {
         return 0;
     }
 
-    int avFormatSubtitleDemuxer::GetNbStreams()
+    int avFormatSubtitleDemuxer::GetNbStreams() const
     {
         return mCtx->nb_streams;
     }
 
-    int avFormatSubtitleDemuxer::GetSourceMeta(Source_meta **meta)
+    int avFormatSubtitleDemuxer::GetSourceMeta(Source_meta **meta) const
     {
         return 0;
     }
 
-    int avFormatSubtitleDemuxer::GetStreamMeta(Stream_meta *meta, int index, bool sub)
+    int avFormatSubtitleDemuxer::GetStreamMeta(Stream_meta *meta, int index, bool sub) const
     {
         if (index < 0 || index > mCtx->nb_streams) {
             return -EINVAL;

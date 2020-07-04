@@ -31,10 +31,9 @@ namespace Cicada{
 
         void stop() override;
 
-        int GetNbStreams() override;
+        int GetNbStreams() const override;
 
-
-        int GetStreamMeta(Stream_meta *meta, int index, bool sub) override;
+        int GetStreamMeta(Stream_meta *meta, int index, bool sub) const override;
 
         int ReadPacket(std::unique_ptr<IAFPacket> &packet, int index) override;
 
@@ -48,7 +47,7 @@ namespace Cicada{
 
         int SwitchStreamAligned(int from, int to) override;
 
-        int getNBSubStream(int index) override;
+        int getNBSubStream(int index) const override;
 
         void interrupt(int inter) override;
 

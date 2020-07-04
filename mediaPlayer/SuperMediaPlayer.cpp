@@ -3660,11 +3660,10 @@ namespace Cicada {
         int number = mDemuxerService->GetNbStreams();
 
         for (i = 0; i < number; i++) {
-            unique_ptr<streamMeta> pMeta;
-            mDemuxerService->GetStreamMeta(pMeta, i, false);
-            auto *meta = (Stream_meta *) (pMeta.get());
-
             if (index == i) {
+                unique_ptr<streamMeta> pMeta;
+                mDemuxerService->GetStreamMeta(pMeta, i, false);
+                auto *meta = (Stream_meta *) (pMeta.get());
                 type = meta->type;
                 break;
             }
