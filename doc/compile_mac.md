@@ -21,6 +21,12 @@ This page is an introduction to the compilation for macOS.
 
 3. build cmdline
 
+    cmdline player need extern library, install using
+    ```bash
+    brew install sdl2
+    ```
+
+    build cmdline
     ```bash
     cd cmdline/
     mkdir build
