@@ -50,15 +50,15 @@ namespace Cicada{
 
         int Seek(int64_t us, int flags, int index) override;
 
-        int GetNbStreams() override;
+        int GetNbStreams() const override;
 
-        int GetNbSubStreams(int index) override;
+        int GetNbSubStreams(int index) const override;
 
         int GetRemainSegmentCount(int index) override;
         
-        int GetSourceMeta(Source_meta **meta) override;
+        int GetSourceMeta(Source_meta **meta) const override;
 
-        int GetStreamMeta(Stream_meta *meta, int index, bool sub) override;
+        int GetStreamMeta(Stream_meta *meta, int index, bool sub) const override;
 
         int OpenStream(int index) override;
 
@@ -73,7 +73,7 @@ namespace Cicada{
             // TODO:
         };
 
-        bool isPlayList() override
+        bool isPlayList() const override
         {
             return true;
         }

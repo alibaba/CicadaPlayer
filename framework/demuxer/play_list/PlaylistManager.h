@@ -24,9 +24,9 @@ namespace Cicada{
 
         virtual void stop() = 0;
 
-        virtual int GetNbStreams() = 0;
+        virtual int GetNbStreams() const = 0;
 
-        virtual int GetStreamMeta(Stream_meta *meta, int index, bool sub) = 0;
+        virtual int GetStreamMeta(Stream_meta *meta, int index, bool sub) const = 0;
 
         virtual int ReadPacket(std::unique_ptr<IAFPacket> &, int index) = 0;
 
@@ -38,7 +38,7 @@ namespace Cicada{
 
         virtual int SwitchStreamAligned(int from, int to) = 0;
 
-        virtual int getNBSubStream(int index) = 0;
+        virtual int getNBSubStream(int index) const = 0;
 
         virtual void interrupt(int inter) = 0;
 

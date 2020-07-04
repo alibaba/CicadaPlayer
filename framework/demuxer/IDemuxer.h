@@ -83,9 +83,9 @@ namespace Cicada {
 
         virtual int Seek(int64_t us, int flags, int index) = 0;
 
-        virtual int GetNbStreams() = 0;
+        virtual int GetNbStreams() const = 0;
 
-        virtual int GetNbSubStreams(int index)
+        virtual int GetNbSubStreams(int index) const
         {
             return -1;
         };
@@ -95,12 +95,12 @@ namespace Cicada {
             return -1;
         }
 
-        virtual int GetSourceMeta(Source_meta **meta) = 0;
+        virtual int GetSourceMeta(Source_meta **meta) const = 0;
 
         attribute_deprecated
-        virtual int GetStreamMeta(Stream_meta *meta, int index, bool sub) = 0;
+        virtual int GetStreamMeta(Stream_meta *meta, int index, bool sub) const = 0;
 
-        virtual int GetStreamMeta(unique_ptr<streamMeta> &meta, int index, bool sub);
+        virtual int GetStreamMeta(unique_ptr<streamMeta> &meta, int index, bool sub) const;
 
         virtual int OpenStream(int index) = 0;
 
@@ -119,7 +119,7 @@ namespace Cicada {
             return nullptr;
         }
 
-        virtual bool isPlayList()
+        virtual bool isPlayList() const
         {
             return false;
         }
@@ -134,7 +134,7 @@ namespace Cicada {
             return nullptr;
         }
 
-        virtual const std::string GetProperty(int index, const string &key)
+        virtual const std::string GetProperty(int index, const string &key) const
         { return ""; }
 
         virtual void SetOption(const options *opts)
@@ -156,12 +156,12 @@ namespace Cicada {
         virtual void setDemuxerCb(std::function<void(std::string, std::string)> func)
         { mDemuxerCbfunc = func; }
 
-        virtual int64_t getBufferDuration(int index)
+        virtual int64_t getBufferDuration(int index) const
         {
             return 0;
         }
 
-        virtual bool isLowLatency()
+        virtual bool isLowLatency() const
         {
             return false;
         }
@@ -171,7 +171,7 @@ namespace Cicada {
             return 0;
         }
 
-        virtual std::string getName()
+        virtual std::string getName() const
         {
             return mName;
         }

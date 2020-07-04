@@ -9,9 +9,9 @@
  * AbstractStream is a single stream proved form playList file,
  * maybe a ts muxed with one or more es stream,or a aac file
  */
-#include <demuxer/demuxer_service.h>
 #include "utils/AFMediaType.h"
 #include <base/OptionOwner.h>
+#include <demuxer/demuxer_service.h>
 
 namespace Cicada{
     class AbstractStream : public OptionOwner {
@@ -24,11 +24,11 @@ namespace Cicada{
 
         virtual void close() = 0;
 
-        virtual int read(std::unique_ptr<IAFPacket> &packet ) = 0;
+        virtual int read(std::unique_ptr<IAFPacket> &packet) = 0;
 
-        virtual int GetNbStreams() = 0;
+        virtual int GetNbStreams() const = 0;
 
-        virtual int GetStreamMeta(Stream_meta *meta, int index, bool sub) = 0;
+        virtual int GetStreamMeta(Stream_meta *meta, int index, bool sub) const = 0;
 
         virtual bool isOpened() = 0;
 
@@ -52,7 +52,7 @@ namespace Cicada{
 
         virtual int64_t getDuration() = 0;
 
-        virtual int getNBStream() = 0;
+        virtual int getNBStream() const = 0;
 
         virtual void interrupt(int inter) = 0;
 

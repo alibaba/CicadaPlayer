@@ -45,7 +45,7 @@ namespace Cicada {
 
         ~HLSStream() override;
 
-        int getStreamType();
+        int getStreamType() const;
 
         int GetRemainSegmentCount();
 
@@ -53,16 +53,16 @@ namespace Cicada {
 
         void close() override;
 
-        int getId()
+        int getId() const
         {
             return mId;
         }
 
         int read(unique_ptr<IAFPacket> &packet) override;
 
-        int GetNbStreams() override;
+        int GetNbStreams() const override;
 
-        int GetStreamMeta(Stream_meta *meta, int index, bool sub) override;
+        int GetStreamMeta(Stream_meta *meta, int index, bool sub) const override;
 
         bool isOpened() override;
 
@@ -87,7 +87,7 @@ namespace Cicada {
 
         int64_t getDuration() override;
 
-        int getNBStream() override;
+        int getNBStream() const override;
 
         void interrupt(int inter) override;
 
@@ -180,7 +180,7 @@ namespace Cicada {
         std::condition_variable mWaitCond;
         std::deque<unique_ptr<IAFPacket>> mQueue;
         IDataSource *mSegKeySource = nullptr;
-        std::mutex mHLSMutex;
+        mutable std::mutex mHLSMutex;
 
         int read_thread();
 

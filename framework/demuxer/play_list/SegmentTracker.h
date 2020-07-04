@@ -27,7 +27,7 @@ namespace Cicada {
 
         std::shared_ptr<segment> getCurSegment();
 
-        int getStreamType();
+        int getStreamType() const;
 
         const string getBaseUri();
 

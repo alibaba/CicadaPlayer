@@ -46,7 +46,7 @@ namespace Cicada {
         }
     }
 
-    int HLSStream::getStreamType()
+    int HLSStream::getStreamType() const
     {
         return mPTracker->getStreamType();
     }
@@ -1072,7 +1072,7 @@ namespace Cicada {
     }
 
 
-    int HLSStream::GetNbStreams()
+    int HLSStream::GetNbStreams() const
     {
         if (mPTracker->getStreamType() == STREAM_TYPE_MIXED) { //mediaPlayList
             if (mPDemuxer) {
@@ -1083,7 +1083,7 @@ namespace Cicada {
         return 1; // masterPlayList only support one es stream per stream url(ext-media-info ext-stream-info) now
     }
 
-    int HLSStream::GetStreamMeta(Stream_meta *meta, int index, bool sub)
+    int HLSStream::GetStreamMeta(Stream_meta *meta, int index, bool sub) const
     {
         // if not muxed stream ,get the 0 stream default index
         meta->type = (Stream_type) mPTracker->getStreamType();
@@ -1364,7 +1364,7 @@ namespace Cicada {
         return mPTracker->getDuration();
     }
 
-    int HLSStream::getNBStream()
+    int HLSStream::getNBStream() const
     {
         if (mPDemuxer) {
             return mPDemuxer->GetNbStreams();
