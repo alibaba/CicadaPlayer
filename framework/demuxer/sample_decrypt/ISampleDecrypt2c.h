@@ -9,6 +9,10 @@
 extern "C" {
 #endif
 
+#include <libavcodec/avcodec.h>
+#include <stdint.h>
+
+
 int SampleDecryptDec(void *decryptor, enum AVCodecID codecId, uint8_t *buffer, int size);
 #ifdef __cplusplus
 }

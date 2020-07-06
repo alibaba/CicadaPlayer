@@ -3,11 +3,6 @@
 //
 
 #include "ISampleDecryptor.h"
-
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
-
 #include <utils/ffmpeg_utils.h>
 #include "ISampleDecrypt2c.h"
 
