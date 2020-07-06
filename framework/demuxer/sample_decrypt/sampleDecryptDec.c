@@ -2,11 +2,12 @@
 // Created by moqi on 2019/11/7.
 //
 
-#include <libavformat/avformat.h>
-#include <libavutil/opt.h>
-#include <libavutil/avassert.h>
 #include "ISampleDecrypt2c.h"
 #include "utils/ffmpeg_utils.h"
+#include <assert.h>
+#include <libavformat/avformat.h>
+#include <libavutil/avassert.h>
+#include <libavutil/opt.h>
 
 void avpriv_set_pts_info(AVStream *s, int pts_wrap_bits,
                          unsigned int pts_num, unsigned int pts_den);
@@ -118,8 +119,11 @@ static int sampleDecrypt_read_packet(AVFormatContext *s, AVPacket *pkt)
 
     if (c->decryptor) {
         int size = SampleDecryptDec((void *) c->decryptor, s->streams[pkt->stream_index]->codecpar->codec_id, pkt->data, pkt->size);
-        av_assert0(size > 0);
-        pkt->size = size;
+        assert(size > 0);
+        av_log(s, AV_LOG_ERROR, "SampleDecryptDec error\n");
+        if (size > 0) {
+            pkt->size = size;
+        }
     }
 
     return ret;
