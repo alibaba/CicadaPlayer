@@ -102,7 +102,9 @@ static int sampleDecrypt_read_packet(AVFormatContext *s, AVPacket *pkt)
     ret = av_read_frame(c->ctx, pkt);
 
     if (ret < 0) {
-        av_log(s, AV_LOG_ERROR, "read subdemuxer error %d (%s)\n", ret,  getErrorString(ret));
+        if (ret != -EAGAIN) {
+            av_log(s, AV_LOG_ERROR, "read subdemuxer error %d (%s)\n", ret, getErrorString(ret));
+        }
         //    s->pb->error = 0;//c->ctx->pb->error;
         return ret;
     }
@@ -120,8 +122,9 @@ static int sampleDecrypt_read_packet(AVFormatContext *s, AVPacket *pkt)
     if (c->decryptor) {
         int size = SampleDecryptDec((void *) c->decryptor, s->streams[pkt->stream_index]->codecpar->codec_id, pkt->data, pkt->size);
         assert(size > 0);
-        av_log(s, AV_LOG_ERROR, "SampleDecryptDec error\n");
-        if (size > 0) {
+        if (size <= 0) {
+            av_log(s, AV_LOG_ERROR, "SampleDecryptDec error\n");
+        } else {
             pkt->size = size;
         }
     }
