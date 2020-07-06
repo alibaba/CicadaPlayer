@@ -40,9 +40,7 @@ public:
 
     int setDisPlay(void *view) override;
 
-/*
-    std::unique_ptr<ScreenShotInfo> screenShot() override;
-    */
+    void captureScreen(std::function<void(uint8_t *data, int width, int height)> func) override;
 
     void setSpeed(float speed) override
     {

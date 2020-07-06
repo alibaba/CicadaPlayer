@@ -352,22 +352,25 @@ void SdlAFVideoRender::setWindowSize(int windWith, int windHeight)
         refreshScreen();
     }
 }
-/*
-std::unique_ptr<IVideoRender::ScreenShotInfo> SdlAFVideoRender::screenShot()
+
+void SdlAFVideoRender::captureScreen(std::function<void(uint8_t *data, int width, int height)> func)
 {
+    if (func == nullptr) {
+        return;
+    }
     {
         std::unique_lock<std::mutex> lock(mRenderMutex);
 
         if (mVideoRender == nullptr) {
-            return nullptr;
+            return;
         }
     }
     SDL_Rect finalRect = getSnapRect();
-    SDL_Surface *surface = SDL_CreateRGBSurface(0, finalRect.w, finalRect.h, 32, 0, 0, 0, 0);
+    SDL_Surface *surface = SDL_CreateRGBSurface(0, finalRect.w, finalRect.h, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
 
     if (surface == nullptr) {
         AF_LOGE("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
-        return nullptr;
+        return;
     }
 
     Uint32 surfaceFormat = surface->format->format;
@@ -375,27 +378,23 @@ std::unique_ptr<IVideoRender::ScreenShotInfo> SdlAFVideoRender::screenShot()
         std::unique_lock<std::mutex> lock(mRenderMutex);
         SDL_RenderReadPixels(mVideoRender, &finalRect, surfaceFormat, surface->pixels, surface->pitch);
     }
-    ScreenShotInfo::Format format = ScreenShotInfo::Format::UNKNOWN;
-    size_t size = 0;
-    char *pixBuf = nullptr;
-
-    if (surfaceFormat == SDL_PIXELFORMAT_RGB888) {
-        format = ScreenShotInfo::Format::RGB888;
-        size = static_cast<size_t>(3 * finalRect.w * finalRect.h);
-        pixBuf = static_cast<char *>(SDL_malloc(size));
+    if (surfaceFormat == SDL_PIXELFORMAT_ARGB8888) {
+        size_t size = 0;
+        uint8_t *pixBuf = nullptr;
+        size = static_cast<size_t>(4 * finalRect.w * finalRect.h);
+        pixBuf = static_cast<uint8_t *>(malloc(size));
         SDL_memcpy(pixBuf, surface->pixels, size);
+        func(pixBuf, finalRect.w, finalRect.h);
+        free(pixBuf);
+        pixBuf = nullptr;
+    } else {
+        func(nullptr, 0, 0);
     }
-
-    auto info = new ScreenShotInfo();
-    info->format = format;
-    info->buf = pixBuf;
-    info->bufLen = size;
-    info->width = finalRect.w;
-    info->height = finalRect.h;
     SDL_FreeSurface(surface);
-    return std::unique_ptr<IVideoRender::ScreenShotInfo>(info);
+    
+    return ;
 }
- */
+ 
 
 SDL_Rect SdlAFVideoRender::getSnapRect()
 {
