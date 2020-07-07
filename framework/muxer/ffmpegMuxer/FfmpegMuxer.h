@@ -49,6 +49,11 @@ public:
 
     int close() override;
 
+    static bool is_supported(const std::string &destPath, const std::string &destFormat, const std::string &description)
+    {
+        return true;
+    }
+
 protected:
     explicit FfmpegMuxer(int dummy)
     {
@@ -69,12 +74,6 @@ private:
             return Cicada::SUPPORT_DEFAULT;
         }
         return 0;
-    }
-
-    static bool is_supported(const std::string &destPath, const std::string &destFormat,
-                             const std::string &description)
-    {
-        return true;
     }
 
     static FfmpegMuxer se;

@@ -4,6 +4,8 @@
 
 #include "IMuxerPrototype.h"
 
+#include "ffmpegMuxer/FfmpegMuxer.h"
+
 using namespace Cicada;
 using namespace std;
 
@@ -31,8 +33,11 @@ IMuxer *IMuxerPrototype::create(const string &destPath, const string &destFormat
 
     if (muxerPrototype && score_res > SUPPORT_NOT) {
         return muxerPrototype->clone(destPath, destFormat, description);
+    } else {
+        if (FfmpegMuxer::is_supported(destPath, destFormat, description)) {
+            return new FfmpegMuxer(destPath, destFormat);
+        }
     }
-
     return nullptr;
 }
 
