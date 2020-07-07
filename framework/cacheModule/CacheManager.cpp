@@ -69,7 +69,7 @@ string CacheManager::init()
     return mSourceUrl;
 }
 
-void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket> &frame, StreamType type)
+void CacheManager::sendMediaFrame(const IAFPacket *frame, StreamType type)
 {
     if (!mNeedProcessFrame) {
         return;

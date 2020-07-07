@@ -36,7 +36,7 @@ public:
 
     ~CacheFileRemuxer();
 
-    void addFrame(const unique_ptr<IAFPacket> &frame, StreamType type);
+    void addFrame(const IAFPacket *frame, StreamType type);
 
     bool prepare();
 
