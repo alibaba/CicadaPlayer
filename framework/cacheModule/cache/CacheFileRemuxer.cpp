@@ -214,6 +214,11 @@ void CacheFileRemuxer::stop()
 
         mMuxThread = nullptr;
     }
+
+    if (FileUtils::isFileExist(mDestFilePath.c_str()) == FILE_TRUE) {
+        FileUtils::rmrf(mDestFilePath.c_str());
+    }
+
     //muxer will close at thread end.
 }
 
