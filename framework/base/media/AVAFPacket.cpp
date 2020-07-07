@@ -68,7 +68,7 @@ uint8_t *AVAFPacket::getData()
     return mpkt->data;
 }
 
-unique_ptr<IAFPacket> AVAFPacket::clone()
+unique_ptr<IAFPacket> AVAFPacket::clone() const
 {
     return unique_ptr<IAFPacket>(new AVAFPacket(mpkt, mIsProtected));
 }

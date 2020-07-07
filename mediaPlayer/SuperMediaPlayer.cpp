@@ -2508,8 +2508,7 @@ int SuperMediaPlayer::ReadPacket()
     if (pFrame->getInfo().streamIndex == mCurrentVideoIndex || pFrame->getInfo().streamIndex == mWillChangedVideoStreamIndex) {
 
         if (mMediaFrameCb && (!pMedia_Frame->isProtected() || mDrmKeyValid)) {
-            // TODO: change to std::unique_ptr<IAFPacket>
-            mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame, ST_TYPE_VIDEO);
+            mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame.get(), ST_TYPE_VIDEO);
         }
 
         mBufferController->AddPacket(move(pMedia_Frame), BUFFER_TYPE_VIDEO);
@@ -2602,15 +2601,13 @@ int SuperMediaPlayer::ReadPacket()
         }
 
         if (mMediaFrameCb && (!pMedia_Frame->isProtected() || mDrmKeyValid)) {
-            // TODO: change to std::unique_ptr<IAFPacket>
-            mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame, ST_TYPE_AUDIO);
+            mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame.get(), ST_TYPE_AUDIO);
         }
 
         mBufferController->AddPacket(move(pMedia_Frame), BUFFER_TYPE_AUDIO);
     } else if (pFrame->getInfo().streamIndex == mCurrentSubtitleIndex || pFrame->getInfo().streamIndex == mWillChangedSubtitleStreamIndex) {
         if (mMediaFrameCb && (!pMedia_Frame->isProtected() || mDrmKeyValid)) {
-            // TODO: change to std::unique_ptr<IAFPacket>
-            mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame, ST_TYPE_SUB);
+            mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame.get(), ST_TYPE_SUB);
         }
 
         mBufferController->AddPacket(move(pMedia_Frame), BUFFER_TYPE_SUBTITLE);

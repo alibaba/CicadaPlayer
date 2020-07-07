@@ -150,7 +150,7 @@ typedef enum PropertyKey {
 
 class AMediaFrame;
 
-typedef void (*playerMediaFrameCb)(void *arg, const std::unique_ptr<IAFPacket>& frame, StreamType type);
+typedef void (*playerMediaFrameCb)(void *arg, const IAFPacket *frame, StreamType type);
 
 typedef int (*readCB)(void *arg, uint8_t *buffer, int size);
 

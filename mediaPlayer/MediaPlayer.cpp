@@ -1085,7 +1085,7 @@ namespace Cicada {
         mPlayUrlChangedCallback = urlChangedCallbak;
     }
 
-    void MediaPlayer::onMediaFrameCallback(void *arg, const unique_ptr<IAFPacket> &frame, StreamType type)
+    void MediaPlayer::onMediaFrameCallback(void *arg, const IAFPacket *frame, StreamType type)
     {
         MediaPlayer *player = (MediaPlayer *) arg;
 
@@ -1096,7 +1096,7 @@ namespace Cicada {
         player->mediaFrameCallback(frame, type);
     }
 
-    void MediaPlayer::mediaFrameCallback(const unique_ptr<IAFPacket> &frame, StreamType type)
+    void MediaPlayer::mediaFrameCallback(const IAFPacket *frame, StreamType type)
     {
 #ifdef ENABLE_CACHE_MODULE
         if (mCacheManager) {

@@ -58,7 +58,7 @@ public:
 
     virtual ~IAFPacket() = default;
 
-    virtual std::unique_ptr<IAFPacket> clone() = 0;
+    virtual std::unique_ptr<IAFPacket> clone() const = 0;
 
     //TODO renturn const uint8_t, now for framework use
     virtual uint8_t *getData() = 0;
