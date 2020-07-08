@@ -568,6 +568,10 @@ namespace Cicada {
 
         if (status != noErr) {
             AF_LOGW("AFVTBDecoder decoder error %d\n", status);
+            if (status == kVTVideoDecoderBadDataErr) {
+                mThrowPacket = true;
+                AF_LOGE("IOSVT: decode failed kVTVideoDecoderBadDataErr");
+            }
             enqueueError(status, packet->getInfo().pts);
         }
 
