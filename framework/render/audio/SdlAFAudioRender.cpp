@@ -178,6 +178,9 @@ namespace Cicada {
 
     void SdlAFAudioRender::mute(bool bMute)
     {
+        if (bMute) {
+            SDL_ClearQueuedAudio(mDevID);
+        }
         mMute = bMute;
     }
 
@@ -193,6 +196,9 @@ namespace Cicada {
         }
 
         mFiler->setOption("volume", std::to_string(volume), "volume");
+        if (volume < 0.001f) {
+            SDL_ClearQueuedAudio(mDevID);
+        }
         mVolume = volume;
         return 0;
     }
