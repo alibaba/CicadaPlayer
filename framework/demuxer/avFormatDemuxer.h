@@ -113,6 +113,7 @@ namespace Cicada {
         int readLoop();
 
 #endif
+        inline int64_t getWorkAroundSeekPos(int64_t pos);
 
 
     protected:
