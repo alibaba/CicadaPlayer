@@ -4015,7 +4015,11 @@ namespace Cicada {
 
         if (!mSeekInCache) {
             mBufferController.ClearPacket(BUFFER_TYPE_ALL);
-            mDemuxerService->Seek(seekPos, 0, -1);
+            int ret = mDemuxerService->Seek(seekPos, 0, -1);
+
+            if (ret < 0) {
+                NotifyError(ret);
+            }
             //in case of seekpos larger than duration.
             mPNotifier->NotifyBufferPosition((seekPos <= mDuration ? seekPos : mDuration) / 1000);
             mEof = false;
