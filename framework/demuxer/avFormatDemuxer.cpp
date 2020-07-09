@@ -95,6 +95,7 @@ namespace Cicada {
 
         av_dict_set_int(&mInputOpts, "safe", 0, 0);
         av_dict_set(&mInputOpts, "protocol_whitelist", "file,http,https,tcp,tls", 0);
+        av_dict_set_int(&mInputOpts, "usetoc", 1, 0);
         /*If a url with mp4 ext name, but is not a mp4 file, the mp4 demuxer will be matched
          * by ext name , mp4 demuxer will try to find moov box, it will ignore the return value
          * of the avio_*, and don't check interrupt flag, if the url is a network file, here will
@@ -173,7 +174,7 @@ namespace Cicada {
         /*
          * this flag is only affect on mp3 and flac
          */
-        if (mCtx->duration > 600 * AV_TIME_BASE) {
+        if (mCtx->duration > 600 * AV_TIME_BASE && strcmp(mCtx->iformat->name, "mp3") == 0) {
             mCtx->flags |= AVFMT_FLAG_FAST_SEEK;
         }
 
@@ -458,6 +459,7 @@ namespace Cicada {
 
     int avFormatDemuxer::Seek(int64_t us, int flags, int index)
     {
+        us = getWorkAroundSeekPos(us);
         if (!bOpened) {
             mStartTime = us;
             return static_cast<int>(us);
@@ -714,4 +716,12 @@ namespace Cicada {
 #endif
     }
 
+    int64_t avFormatDemuxer::getWorkAroundSeekPos(int64_t pos)
+    {
+        if (!bOpened || mCtx == nullptr || !(mCtx->flags & AVFMT_FLAG_FAST_SEEK) || mCtx->duration <= 0) {
+            return pos;
+        }
+
+        return pos >= mCtx->duration - 2 * AV_TIME_BASE ? mCtx->duration - 2 * AV_TIME_BASE : pos;
+    }
 }
