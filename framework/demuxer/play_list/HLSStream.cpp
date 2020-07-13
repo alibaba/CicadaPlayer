@@ -174,7 +174,7 @@ namespace Cicada {
             mPTracker->setCurSegNum(mPTracker->getFirstSegNum());
         }
 
-        if (mPTracker->isLive()) {
+        if (mPTracker->isLive() && !mPTracker->isSeeked()) {
             uint64_t curNum;
 
             if (mOpts) {

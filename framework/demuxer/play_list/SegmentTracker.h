@@ -51,6 +51,7 @@ namespace Cicada{
 
         void setCurSegNum(uint64_t num)
         {
+            mSeeked = true;
             mCurSegNum = num;
         }
 
@@ -78,6 +79,11 @@ namespace Cicada{
         string getPlayListUri();
 
         int GetRemainSegmentCount();
+
+        bool isSeeked()
+        {
+            return mSeeked.load();
+        }
 
     private:
         int loadPlayList();
@@ -112,6 +118,7 @@ namespace Cicada{
         std::recursive_mutex mMutex;
 
         int mPlayListStatus{0};
+        std::atomic_bool mSeeked{false};
     };
 }
 

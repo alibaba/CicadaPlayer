@@ -386,6 +386,8 @@ namespace Cicada {
             mCurSegPos = position;
             AF_LOGD("1206, setCurSegPosition  %llu\n", mCurSegPos);
         }
+
+        mSeeked = true;
     }
 
 }
