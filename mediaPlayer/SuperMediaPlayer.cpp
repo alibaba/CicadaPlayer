@@ -1595,14 +1595,15 @@ namespace Cicada {
                 mSeekFlag = false;
 
                 if (!mMessageControl.findMsgByType(MSG_SEEKTO)) {
-                    ResetSeekStatus();
-                    mPNotifier->NotifySeekEnd(mSeekInCache);
-                    mSeekInCache = false;
-
-                    //update position when seek end. in case of when paused.
+                    // update position when seek end. in case of when paused.
+                    // update position before reset seek status, so getCurrentPosition return mSeekPos instead of mCurrentPos
+                    // fix bug the mCurrentPos not accuracy
                     if (mPlayStatus == PLAYER_PAUSED) {
                         NotifyPosition(getCurrentPosition() / 1000);
                     }
+                    ResetSeekStatus();
+                    mPNotifier->NotifySeekEnd(mSeekInCache);
+                    mSeekInCache = false;
                 }
             }
         }
