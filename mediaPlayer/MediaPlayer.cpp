@@ -232,6 +232,7 @@ namespace Cicada {
                 this->eventCallback(MEDIA_PLAYER_EVENT_CACHE_ERROR, msg.c_str(), this);
             });
             mCacheManager->setCacheSuccessCallback([this]() -> void {
+                mCacheSuccess = true;
                 if (IsLoop()) {
                     //if cache success and want play loop,
                     // we set loop false to let onCompletion callback deal loop.
@@ -361,6 +362,11 @@ namespace Cicada {
         mAbrManager->EnableAbr(false);
         mAbrAlgo->Clear();
 #ifdef ENABLE_CACHE_MODULE
+        if (IsLoop() && mCacheSuccess) {
+            GET_PLAYER_HANDLE
+            CicadaSetLoop(handle, true);
+        }
+        mCacheSuccess = false;
         if (mCacheManager != nullptr) {
             mCacheManager->stop("cache stopped by stop");
         }
@@ -526,9 +532,7 @@ namespace Cicada {
 #ifdef ENABLE_CACHE_MODULE
         //if cache successed before setLoop.
         if (mCacheManager != nullptr) {
-            CacheModule::CacheStatus cacheStatus = mCacheManager->getCacheStatus();
-
-            if (cacheStatus == CacheModule::CacheStatus::success && IsLoop()) {
+            if (mCacheSuccess && IsLoop()) {
                 //if cache success and want play loop,
                 // we set loop false to let onCompletion callback deal loop.
                 CicadaSetLoop(handle, false);
@@ -683,7 +687,7 @@ namespace Cicada {
             CacheModule::CacheStatus cacheStatus = player->mCacheManager->getCacheStatus();
             bool isLoop = player->IsLoop();
 
-            if (isLoop && cacheStatus == CacheModule::CacheStatus::success) {
+            if (isLoop && player->mCacheSuccess) {
                 //If cacheSuccess and want to loop, reuse cache file.
                 string sourceUrl = player->mCacheManager->getSourceUrl();
                 player->Stop();

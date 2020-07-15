@@ -411,6 +411,7 @@ namespace Cicada {
         string mPlayUrl;
         CacheManager *mCacheManager = nullptr;
         CacheConfig mCacheConfig;
+        std::atomic<bool> mCacheSuccess{false};
         PlayerStatus mOldPlayStatus{PLAYER_IDLE};
 
         playerMediaFrameCb mMediaFrameFunc = nullptr;
