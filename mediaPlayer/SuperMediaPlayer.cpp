@@ -1870,16 +1870,10 @@ namespace Cicada {
             int ret;
             do {
                 ret = RenderAudio();
-            } while (ret == RENDER_FULL);
-
-            if (RENDER_NONE != ret) {
-                audioRendered = true;
-
-                // if send all audio data, try to render again to send more data.
-                if (RENDER_FULL == ret) {
-                    RenderAudio();
+                if (RENDER_NONE != ret) {
+                    audioRendered = true;
                 }
-            }
+            } while (ret == RENDER_FULL);
         }
 
         if (HAVE_VIDEO) {
