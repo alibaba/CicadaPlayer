@@ -79,6 +79,9 @@ namespace Cicada {
             mDevID = 1;
             SDL_PauseAudioDevice(mDevID, 0); // start play audio
         }
+        if (frame->getInfo().duration < 0 && frame->getInfo().audio.sample_rate > 0) {
+            frame->getInfo().duration = frame->getInfo().audio.nb_samples * 100000 / frame->getInfo().audio.sample_rate;
+        }
 
         //  mAudioFrames.push(std::move(frame));
         if (getQueDuration() > 500 * 1000) {
@@ -125,6 +128,7 @@ namespace Cicada {
             memset(pcmBuffer, 0, pcmDataLength);
         }
         SDL_QueueAudio(mDevID, pcmBuffer, pcmDataLength);
+        assert(frame->getInfo().duration > 0);
         mPlayedDuration += frame->getInfo().duration;
 //    AF_LOGD("queued duration is %llu\n", getQueDuration());
         frame = nullptr;

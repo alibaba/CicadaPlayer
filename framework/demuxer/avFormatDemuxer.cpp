@@ -345,6 +345,11 @@ namespace Cicada {
 
         if (pkt->duration > 0) {
             pkt->duration = av_rescale_q(pkt->duration, mCtx->streams[pkt->stream_index]->time_base, av_get_time_base_q());
+        } else if (mCtx->streams[pkt->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+            AVCodecParameters *codecpar = mCtx->streams[pkt->stream_index]->codecpar;
+            if (codecpar->sample_rate > 0) {
+                pkt->duration = codecpar->frame_size * 1000000 / codecpar->sample_rate;
+            }
         }
 
         packet = unique_ptr<IAFPacket>(new AVAFPacket(&pkt, mSecretDemxuer));
