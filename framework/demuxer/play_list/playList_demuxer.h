@@ -78,7 +78,7 @@ namespace Cicada{
             return true;
         }
 
-        const std::string GetProperty(int index, const string &key);
+        const std::string GetProperty(int index, const string &key) const override;
 
     private:
         explicit playList_demuxer(int dummy) : IDemuxer("")

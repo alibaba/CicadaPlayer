@@ -270,6 +270,9 @@ void CurlDataSource::closeConnections(bool current)
 int64_t CurlDataSource::Seek(int64_t offset, int whence)
 {
 //    AF_LOGD("CurlDataSource::Seek position is %lld,when is %d", offset, whence);
+if (!mPConnection) {
+    return -(ESPIPE);
+}
     if (whence == SEEK_SIZE) {
         return mFileSize;
     } else if ((whence == SEEK_CUR && offset == 0) ||
@@ -288,7 +291,7 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
     }
 
     if (offset < 0) {
-        return -(EINVAL);
+        return -(ESPIPE);
     }
 
     if (offset == mPConnection->tell()) {
@@ -332,7 +335,6 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
                 delete connection;
             });
         }
-
         mPConnection = con;
         AF_LOGW("short seek ok\n");
         return offset;
