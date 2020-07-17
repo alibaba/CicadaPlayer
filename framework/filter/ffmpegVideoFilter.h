@@ -32,9 +32,9 @@ namespace Cicada {
         int FilterLoop();
 
     private:
-        AVFilterContext *buffersink_ctx;
-        AVFilterContext *buffersrc_ctx;
-        AVFilterGraph *m_pFilterGraph;
+        AVFilterContext *buffersink_ctx{nullptr};
+        AVFilterContext *buffersrc_ctx{nullptr};
+        AVFilterGraph *m_pFilterGraph{nullptr};
         std::string mOpt{};
         afThread *mPThread{nullptr};
 

@@ -518,7 +518,7 @@ int CURLConnection::FillBuffer(uint32_t want)
                 } while (status == IDataSource::Listener::NetWorkRetryStatusPending);
 
                 reConnect = true;
-            } else if (af_getsteady_ms() - starTime > mPConfig->connect_time_out_ms) {
+            } else if (mPConfig && af_getsteady_ms() - starTime > mPConfig->connect_time_out_ms) {
                 AF_LOGE("FillBuffer - Reconnect failed!");
                 // Reset the rest of the variables like we would in Disconnect()
                 mFilePos = 0;

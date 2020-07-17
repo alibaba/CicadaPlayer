@@ -161,7 +161,7 @@ namespace Cicada {
         return -1;
     }
 
-    const std::string playList_demuxer::GetProperty(int index, const string &key)
+    const std::string playList_demuxer::GetProperty(int index, const string &key) const
     {
         if (mPPlaylistManager) {
             return mPPlaylistManager->GetProperty(index, key);

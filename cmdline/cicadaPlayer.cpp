@@ -54,9 +54,11 @@ static void onEvent(int64_t errorCode, const void *errorMsg, void *userData)
 {
     auto *cont = static_cast<cicadaCont *>(userData);
 
-    if (errorMsg) {
-        AF_LOGD("%s\n", errorMsg);
+    if (errorMsg == nullptr) {
+        return;
     }
+
+    AF_LOGD("%s\n", errorMsg);
 
     switch (errorCode) {
         case MediaPlayerEventType::MEDIA_PLAYER_EVENT_NETWORK_RETRY:
