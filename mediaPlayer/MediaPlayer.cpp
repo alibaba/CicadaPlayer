@@ -140,12 +140,6 @@ namespace Cicada {
     {
         delete mQueryListener;
         delete mAbrManager;
-#ifdef ENABLE_CACHE_MODULE
-        if (mCacheManager != nullptr) {
-            delete mCacheManager;
-            mCacheManager = nullptr;
-        }
-#endif
         delete mAbrAlgo;
         playerHandle *handle = (playerHandle *) mPlayerHandle;
         delete mConfig;
@@ -156,6 +150,10 @@ namespace Cicada {
             // avoid be used in derivative class
             mCollector = nullptr;
         }
+#ifdef ENABLE_CACHE_MODULE
+        delete mCacheManager;
+
+#endif
     }
 
     int64_t MediaPlayer::GetMasterClockPts()
