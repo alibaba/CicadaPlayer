@@ -139,12 +139,6 @@ namespace Cicada {
     {
         delete mQueryListener;
         delete mAbrManager;
-
-        if (mCacheManager != nullptr) {
-            delete mCacheManager;
-            mCacheManager = nullptr;
-        }
-
         delete mAbrAlgo;
         playerHandle *handle = (playerHandle *) mPlayerHandle;
         delete mConfig;
@@ -155,6 +149,10 @@ namespace Cicada {
             // avoid be used in derivative class
             mCollector = nullptr;
         }
+
+#ifdef ENABLE_CACHE_MODULE
+        delete mCacheManager;
+#endif
     }
 
     int64_t MediaPlayer::GetMasterClockPts()
@@ -476,9 +474,11 @@ namespace Cicada {
         CicadaSetOption(handle, "http_proxy", playerConfig.httpProxy.c_str());
         CicadaSetOption(handle, "ClearShowWhenStop", playerConfig.bClearShowWhenStop ? "1" : "0");
         CicadaSetOption(handle, "enableVideoTunnelRender", playerConfig.bEnableTunnelRender ? "1" : "0");
+
         if (playerConfig.pixelBufferOutputFormat != 0) {
             CicadaSetOption(handle, "pixelBufferOutputFormat", to_string(playerConfig.pixelBufferOutputFormat).c_str());
         }
+
         CicadaRemoveAllCustomHttpHeader(handle);
 
         //add custom http header
