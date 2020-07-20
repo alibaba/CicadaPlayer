@@ -109,6 +109,18 @@ set(SOURCE_FILES
         playerOptions.h
         SMP_DCAManager.cpp
         CicadaPlayerPrototype.cpp)
+
+if(APPLE)
+    set(SOURCE_FILES ${SOURCE_FILES}
+            externalPlayer/AppleAVPlayer.cpp
+            externalPlayer/AppleAVPlayer.h
+            )
+elseif(ANDROID)
+    set(SOURCE_FILES ${SOURCE_FILES}
+            externalPlayer/JNIPlayer.cpp
+            externalPlayer/JNIPlayer.h
+            )
+endif()
 if (TARGET_PLATFORM STREQUAL "Android")
     set(SOURCE_FILES ${SOURCE_FILES}
             TrafficStats.c
