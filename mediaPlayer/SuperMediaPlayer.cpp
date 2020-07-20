@@ -2389,7 +2389,7 @@ namespace Cicada {
             return;
         }
 
-        if (mCurrentAudioIndex >= 0 && mAudioDecoder == nullptr) {
+        if (mCurrentAudioIndex >= 0 && (mAudioDecoder == nullptr || mAudioRender == nullptr)) {
             AF_LOGD("SetUpAudioPath start");
             int ret = SetUpAudioPath();
 
@@ -2998,13 +2998,17 @@ namespace Cicada {
             return ret;
         }
 
-        IAFFrame::audioInfo info{};
-        info.channels = meta->channels;
-        info.sample_rate = meta->samplerate;
-        info.format = meta->sample_fmt;
-        info.nb_samples = meta->frame_size;
-        info.channel_layout = meta->channel_layout;
-        setUpAudioRender(info);
+        if (mAudioFrameQue.empty() || mAudioRender != nullptr) {
+            return 0;
+        }
+
+        //        IAFFrame::audioInfo info = ;
+        //        info.channels = meta->channels;
+        //        info.sample_rate = meta->samplerate;
+        //        info.format = meta->sample_fmt;
+        //        info.nb_samples = meta->frame_size;
+        //        info.channel_layout = meta->channel_layout;
+        setUpAudioRender(mAudioFrameQue.front()->getInfo().audio);
         return ret;
     }
 
