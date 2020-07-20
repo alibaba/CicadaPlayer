@@ -18,7 +18,7 @@
 #include <base/media/spsc_queue.h>
 #include <queue>
 
-class ActiveDecoder : public Cicada::IDecoder {
+class CICADA_CPLUS_EXTERN ActiveDecoder : public Cicada::IDecoder {
 
 public:
     ActiveDecoder();

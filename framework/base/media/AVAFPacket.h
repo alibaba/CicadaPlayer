@@ -55,7 +55,7 @@ private:
 };
 
 
-class AVAFFrame : public IAFFrame {
+class CICADA_CPLUS_EXTERN AVAFFrame : public IAFFrame {
 public:
     explicit AVAFFrame(AVFrame *frame, FrameType type = FrameTypeUnknown);
 
