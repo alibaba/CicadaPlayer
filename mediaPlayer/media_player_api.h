@@ -13,7 +13,7 @@ typedef struct playerHandle_t playerHandle;
 /*
  *create the Cicada player
  */
-playerHandle *CicadaCreatePlayer();
+playerHandle *CicadaCreatePlayer(const char *opts);
 
 /*
  * release Cicada player

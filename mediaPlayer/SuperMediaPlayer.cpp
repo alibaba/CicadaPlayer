@@ -44,6 +44,7 @@ static int MAX_DECODE_ERROR_FRAME = 100;
 #define PTS_REVERTING (mVideoPtsRevert != mAudioPtsRevert)
 
 namespace Cicada {
+    SuperMediaPlayer SuperMediaPlayer::se(1);
 
     static MsgParam dummyMsg{{nullptr}};
 

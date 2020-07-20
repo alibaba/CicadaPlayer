@@ -107,7 +107,8 @@ set(SOURCE_FILES
         mediaPlayerSubTitleListener.h
         playerOptions.cpp
         playerOptions.h
-        SMP_DCAManager.cpp)
+        SMP_DCAManager.cpp
+        CicadaPlayerPrototype.cpp)
 if (TARGET_PLATFORM STREQUAL "Android")
     set(SOURCE_FILES ${SOURCE_FILES}
             TrafficStats.c

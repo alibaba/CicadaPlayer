@@ -48,9 +48,9 @@ namespace Cicada {
 
     class MediaPlayer {
     public:
-        MediaPlayer();
+        explicit MediaPlayer(const char *opt = nullptr);
 
-        MediaPlayer(IAnalyticsCollectorFactory &factory);
+        explicit MediaPlayer(IAnalyticsCollectorFactory &factory, const char *opt = nullptr);
 
         ~MediaPlayer();
 
