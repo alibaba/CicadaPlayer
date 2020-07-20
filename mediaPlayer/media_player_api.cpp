@@ -1,9 +1,8 @@
+#include "media_player_api.h"
+#include "CicadaPlayerPrototype.h"
 #include <complex>
 #include <utils/af_string.h>
 #include <utils/frame_work_log.h>
-#include "media_player_api.h"
-#include "ICicadaPlayer.h"
-#include "SuperMediaPlayer.h"
 
 using namespace Cicada;
 
@@ -13,10 +12,10 @@ typedef struct playerHandle_t {
 
 #define GET_PLAYER ICicadaPlayer *player = pHandle->pPlayer
 
-playerHandle *CicadaCreatePlayer()
+playerHandle *CicadaCreatePlayer(const char *opts)
 {
     playerHandle *pHandle = new playerHandle();
-    pHandle->pPlayer = new SuperMediaPlayer();
+    pHandle->pPlayer = CicadaPlayerPrototype::create(nullptr);
     return pHandle;
 }
 

@@ -76,15 +76,13 @@ namespace Cicada {
         MediaPlayer *mPlayer = nullptr;
     };
 
-    MediaPlayer::MediaPlayer()
-            : MediaPlayer(*(AnalyticsCollectorFactory::Instance()))
+    MediaPlayer::MediaPlayer(const char *opt) : MediaPlayer(*(AnalyticsCollectorFactory::Instance()), opt)
     {
     }
 
-    MediaPlayer::MediaPlayer(IAnalyticsCollectorFactory &factory)
-            : mCollectorFactory(factory)
+    MediaPlayer::MediaPlayer(IAnalyticsCollectorFactory &factory, const char *opt) : mCollectorFactory(factory)
     {
-        playerHandle *handle = CicadaCreatePlayer();
+        playerHandle *handle = CicadaCreatePlayer("");
         mPlayerHandle = (void *) handle;
         playerListener listener{nullptr};
         listener.userData = this;

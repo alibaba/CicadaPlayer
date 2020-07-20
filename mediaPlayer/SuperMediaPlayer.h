@@ -28,6 +28,7 @@ using namespace std;
 #include <render/audio/IAudioRender.h>
 #include <utils/bitStreamParser.h>
 
+#include "CicadaPlayerPrototype.h"
 #include <cacheModule/CacheModule.h>
 #include <cacheModule/cache/CacheConfig.h>
 
@@ -64,8 +65,7 @@ namespace Cicada {
     } APP_STATUS;
 
 
-    class SuperMediaPlayer : public ICicadaPlayer,
-                             private PlayerMessageControllerListener {
+    class SuperMediaPlayer : public ICicadaPlayer, private PlayerMessageControllerListener, private CicadaPlayerPrototype {
 
         friend class SuperMediaPlayerDataSourceListener;
         friend class SMP_DCAManager;
@@ -374,6 +374,24 @@ namespace Cicada {
         static IVideoRender::Rotate convertRotateMode(RotateMode mode);
 
         static IVideoRender::Flip convertMirrorMode(MirrorMode mode);
+
+    private:
+        explicit SuperMediaPlayer(int dummy)
+            : mMessageControl(*this), mAudioRenderCB(*this), mApsaraThread([this]() -> int { return this->mainService(); }, LOG_TAG),
+              mSourceListener(*this), mDcaManager(*this)
+        {
+            addPrototype(this);
+        }
+        ICicadaPlayer *clone() override
+        {
+            return new SuperMediaPlayer();
+        };
+        bool is_supported(const options *opts) override
+        {
+            return true;
+        }
+
+        static SuperMediaPlayer se;
 
 
     private:
