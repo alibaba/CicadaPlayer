@@ -18,14 +18,9 @@ namespace Cicada {
 
         virtual ICicadaPlayer *clone() = 0;
 
-        virtual bool is_supported(const options *opts) = 0;
-
         virtual int probeScore(const options *opts)
         {
-            if (is_supported(opts)) {
-                return SUPPORT_DEFAULT;
-            }
-            return 0;
+            return SUPPORT_NOT;
         }
 
         static void addPrototype(CicadaPlayerPrototype *se);

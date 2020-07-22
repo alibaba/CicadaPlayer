@@ -4,6 +4,9 @@
 
 #include "CicadaPlayerPrototype.h"
 #include "SuperMediaPlayer.h"
+#ifdef __APPLE__
+#include "externalPlayer/AppleAVPlayer.h"
+#endif
 using namespace Cicada;
 CicadaPlayerPrototype *CicadaPlayerPrototype::playerQueue[];
 int CicadaPlayerPrototype::_nextSlot;
@@ -33,6 +36,10 @@ ICicadaPlayer *CicadaPlayerPrototype::create(const options *opts = nullptr)
         ICicadaPlayer *player = playerType->clone();
         return player;
     }
-
+#ifdef __APPLE__
+    if (AppleAVPlayer::is_supported(opts)) {
+        return new AppleAVPlayer();
+    }
+#endif
     return new SuperMediaPlayer();
 }

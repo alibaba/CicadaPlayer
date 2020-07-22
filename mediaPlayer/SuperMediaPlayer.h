@@ -376,6 +376,13 @@ namespace Cicada {
 
         static IVideoRender::Flip convertMirrorMode(MirrorMode mode);
 
+
+    public:
+        static bool is_supported(const options *opts)
+        {
+            return true;
+        }
+
     private:
         explicit SuperMediaPlayer(int dummy)
         {
@@ -386,10 +393,6 @@ namespace Cicada {
         {
             return new SuperMediaPlayer();
         };
-        bool is_supported(const options *opts) override
-        {
-            return true;
-        }
 
         static SuperMediaPlayer se;
 
