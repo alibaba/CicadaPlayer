@@ -377,9 +377,8 @@ namespace Cicada {
 
     private:
         explicit SuperMediaPlayer(int dummy)
-            : mMessageControl(*this), mAudioRenderCB(*this), mApsaraThread([this]() -> int { return this->mainService(); }, LOG_TAG),
-              mSourceListener(*this), mDcaManager(*this)
         {
+            mIsDummy = true;
             addPrototype(this);
         }
         ICicadaPlayer *clone() override
@@ -409,9 +408,9 @@ namespace Cicada {
         bool audioDecoderEOS = false;
         picture_cache_type mPictureCacheType = picture_cache_type_cannot;
         bool videoDecoderFull = false;
-        PlayerMessageControl mMessageControl;
-        ApsaraAudioRenderCallback mAudioRenderCB;
-        BufferController mBufferController;
+        std::unique_ptr<PlayerMessageControl> mMessageControl{nullptr};
+        std::unique_ptr<ApsaraAudioRenderCallback> mAudioRenderCB{nullptr};
+        std::unique_ptr<BufferController> mBufferController{nullptr};
 
         std::mutex mAppStatusMutex;
         std::atomic<APP_STATUS> mAppStatus{APP_FOREGROUND};
@@ -475,7 +474,7 @@ namespace Cicada {
         int64_t mSubtitleShowIndex{0};
         bool mBufferIsFull{false};
         bool mWillSwitchVideo{false};
-        player_type_set mSet;
+        std::unique_ptr<player_type_set> mSet{};
         int64_t mSoughtVideoPos{INT64_MIN};
         std::atomic<int64_t> mPlayingPosition{0};
 
@@ -487,7 +486,7 @@ namespace Cicada {
         std::mutex mSleepMutex{};
         std::condition_variable mPlayerCondition;
         PlayerNotifier *mPNotifier = nullptr;
-        afThread mApsaraThread;
+        std::unique_ptr<afThread> mApsaraThread{};
         int mLoadingProcess{0};
         int64_t mPrepareStartTime = 0;
 
@@ -495,10 +494,10 @@ namespace Cicada {
         InterlacedType mVideoInterlaced = InterlacedType_UNKNOWN;
         bitStreamParser *mVideoParser = nullptr;
 
-        MediaPlayerUtil mUtil;
+        std::unique_ptr<MediaPlayerUtil> mUtil{};
 
-        SuperMediaPlayerDataSourceListener mSourceListener;
-        SMP_DCAManager mDcaManager;
+        std::unique_ptr<SuperMediaPlayerDataSourceListener> mSourceListener{nullptr};
+        std::unique_ptr<SMP_DCAManager> mDcaManager{nullptr};
 
         std::unique_ptr<IAFPacket> mVideoPacket{};
         std::unique_ptr<IAFPacket> mAudioPacket{};
@@ -535,6 +534,7 @@ namespace Cicada {
 
         onRenderFrame mFrameCb{nullptr};
         void *mFrameCbUserData{nullptr};
+        bool mIsDummy{false};
     };
 }// namespace Cicada
 #endif // CICADA_PLAYER_SERVICE_H
