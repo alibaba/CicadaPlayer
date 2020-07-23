@@ -1668,7 +1668,7 @@ namespace Cicada {
                         break;
                     }
 
-                    if (mVideoPacket && !HAVE_AUDIO) {
+                    if (mVideoPacket && (!HAVE_AUDIO || audioDecoderEOS)) {
                         if (mVideoPacket->getInfo().timePosition >= 0) {
                             mCurrentPos = mVideoPacket->getInfo().timePosition;
 //                            printTimePosition(mCurrentPos);
