@@ -598,6 +598,8 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
         mSet->pixelBufferOutputFormat = atol(value);
     } else if (theKey == "liveStartIndex") {
         mSet->mOptions.set(theKey, value, options::REPLACE);
+    } else if (theKey == "DRMMagicKey") {
+        mSet->drmMagicKey = value;
     }
 
     return 0;
@@ -1918,7 +1920,7 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
         duration = getPCMFrameDuration(avafFrame->ToAVFrame());
     }
 
-    if (mFrameCb && !mSecretPlayBack) {
+    if (mFrameCb && (!mSecretPlayBack || mDrmKeyValid)) {
         mFrameCb(mFrameCbUserData, avafFrame);
     }
 
@@ -2125,7 +2127,7 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
         AF_LOGW("drop frame,master played time is %lld,video pts is %lld\n", masterPlayedTime, videoPts);
         videoFrame->setDiscard(true);
 
-        if (mFrameCb && !mSecretPlayBack) {
+        if (mFrameCb && (!mSecretPlayBack || mDrmKeyValid)) {
             mFrameCb(mFrameCbUserData, videoFrame.get());
         }
         VideoRenderCallback(this, videoPts, nullptr);
@@ -2219,7 +2221,7 @@ void SuperMediaPlayer::OnTimer(int64_t curTime)
 
 void SuperMediaPlayer::SendVideoFrameToRender(unique_ptr<IAFFrame> frame, bool valid)
 {
-    if (mFrameCb && !mSecretPlayBack) {
+    if (mFrameCb && (!mSecretPlayBack || mDrmKeyValid)) {
         bool rendered = mFrameCb(mFrameCbUserData, frame.get());
         if (rendered) {
             VideoRenderCallback(this, frame->getInfo().pts, nullptr);
@@ -2443,6 +2445,10 @@ int SuperMediaPlayer::ReadPacket()
     if (pMedia_Frame->isProtected() && !mSecretPlayBack) {
         AF_LOGI("SecretPlayBack\n");
         mSecretPlayBack = true;
+
+        if (!pMedia_Frame->getMagicKey().empty() && pMedia_Frame->getMagicKey() == mSet->drmMagicKey){
+            mDrmKeyValid = true;
+        }
     }
 
     pFrame = pMedia_Frame.get();
@@ -2501,8 +2507,7 @@ int SuperMediaPlayer::ReadPacket()
 
     if (pFrame->getInfo().streamIndex == mCurrentVideoIndex || pFrame->getInfo().streamIndex == mWillChangedVideoStreamIndex) {
 
-        // FIXME: return non slice nal only when protected packet
-        if (mMediaFrameCb) {
+        if (mMediaFrameCb && (!pMedia_Frame->isProtected() || mDrmKeyValid)) {
             // TODO: change to std::unique_ptr<IAFPacket>
             mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame, ST_TYPE_VIDEO);
         }
@@ -2596,16 +2601,14 @@ int SuperMediaPlayer::ReadPacket()
             }
         }
 
-        //TODO : cache depends on this callback. need find another way
-        if (mMediaFrameCb /*&& !pMedia_Frame->isProtected()*/) {
+        if (mMediaFrameCb && (!pMedia_Frame->isProtected() || mDrmKeyValid)) {
             // TODO: change to std::unique_ptr<IAFPacket>
             mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame, ST_TYPE_AUDIO);
         }
 
         mBufferController->AddPacket(move(pMedia_Frame), BUFFER_TYPE_AUDIO);
     } else if (pFrame->getInfo().streamIndex == mCurrentSubtitleIndex || pFrame->getInfo().streamIndex == mWillChangedSubtitleStreamIndex) {
-        //TODO : cache depends on this callback. need find another way
-        if (mMediaFrameCb /*&& !pMedia_Frame->isProtected()*/) {
+        if (mMediaFrameCb && (!pMedia_Frame->isProtected() || mDrmKeyValid)) {
             // TODO: change to std::unique_ptr<IAFPacket>
             mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame, ST_TYPE_SUB);
         }
@@ -3295,6 +3298,7 @@ void SuperMediaPlayer::Reset()
     }
 
     mSecretPlayBack = false;
+    mDrmKeyValid = false;
 }
 
 int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)

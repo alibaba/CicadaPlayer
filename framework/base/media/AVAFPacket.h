@@ -6,6 +6,7 @@
 #define FRAMEWORK_AVPACKET_H
 
 #include "base/media/IAFPacket.h"
+#include <string>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -47,9 +48,22 @@ public:
 
     explicit operator AVPacket *();
 
+    void setMagicKey(const std::string &key) override
+    {
+        if (mMagicKey.empty()) {
+            mMagicKey = key;
+        }
+    }
+
+    std::string getMagicKey() override
+    {
+        return mMagicKey;
+    }
+
 private:
     AVPacket *mpkt{nullptr};
     bool mIsProtected;
+    std::string mMagicKey{};
 
     void copyInfo();
 };
@@ -100,13 +114,12 @@ static inline AVFrame *getAVFrame(IAFFrame *frame)
 
 static inline AVPacket *getAVPacket(IAFPacket *packet)
 {
-    auto * avafPacket = dynamic_cast<AVAFPacket *>(packet);
+    auto *avafPacket = dynamic_cast<AVAFPacket *>(packet);
     if (avafPacket) {
         return static_cast<AVPacket *>(*(avafPacket));
     }
     return nullptr;
-
 }
 
 
-#endif //FRAMEWORK_AVPACKET_H
+#endif//FRAMEWORK_AVPACKET_H

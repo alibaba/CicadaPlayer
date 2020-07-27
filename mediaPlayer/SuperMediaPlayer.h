@@ -508,6 +508,7 @@ namespace Cicada {
         bool waitingForStart = false;
         bool mBRendingStart {false};
         bool mSecretPlayBack{false};
+        bool mDrmKeyValid{false};
 
     private:
 

@@ -640,6 +640,10 @@ namespace Cicada {
             }
 
             mSegDecrypter->flush();
+
+            if (mDRMMagicKey.empty() && mSegKeySource){
+                mDRMMagicKey = mSegKeySource->GetOption("drmMagicKey");
+            }
         } else if (mCurSeg->encryption.method == SegmentEncryption::AES_PRIVATE) {
             memset(mKey, 0, 16);
             long length = mCurSeg->encryption.keyUrl.length();
@@ -661,6 +665,9 @@ namespace Cicada {
             mSegDecrypter->SetOption("decryption key", mKey, 16);
             mSegDecrypter->SetOption("decryption IV", &mCurSeg->encryption.iv[0], 16);
             mSegDecrypter->flush();
+            if (mDRMMagicKey.empty() && mSegKeySource){
+                mDRMMagicKey = mSegDecrypter->GetOption("drmMagicKey");
+            }
         }
 
         return 0;
@@ -685,6 +692,9 @@ namespace Cicada {
 //                mSampeAesDecrypter->SetOption("decryption KEYFORMAT", (uint8_t *) mCurSeg->encryption.keyFormat.c_str(),
 //                                              (int) mCurSeg->encryption.keyFormat.length());
             }
+        }
+        if (mDRMMagicKey.empty() && mSegKeySource) {
+            mDRMMagicKey = mSegKeySource->GetOption("drmMagicKey");
         }
 
         return 0;
@@ -994,8 +1004,9 @@ namespace Cicada {
         if (packet != nullptr) {
             //  AF_LOGD("read a frame \n");
 
-            if (mProtectedBuffer) {
+            if (mProtectedBuffer && !mDRMMagicKey.empty()) {
                 packet->setProtected();
+                packet->setMagicKey(mDRMMagicKey);
             }
             if (mPTracker->getStreamType() != STREAM_TYPE_MIXED) {
                 packet->getInfo().streamIndex = 0;

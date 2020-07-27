@@ -354,6 +354,10 @@ namespace Cicada {
 
         packet = unique_ptr<IAFPacket>(new AVAFPacket(&pkt, mSecretDemxuer));
 
+        if (mSecretDemxuer){
+            packet->setMagicKey(mDrmMagicKey);
+        }
+
         if (needUpdateExtraData) {
             packet->setExtraData(new_extradata, new_extradata_size);
         }
