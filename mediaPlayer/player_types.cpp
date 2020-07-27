@@ -65,6 +65,7 @@ namespace Cicada {
         maxVideoRecoverSize = 300;
         mFastStart = true;
         pixelBufferOutputFormat = 0;
+        drmMagicKey = "";
     }
 }
 

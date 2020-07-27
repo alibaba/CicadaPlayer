@@ -12,7 +12,7 @@
 #include <memory>
 #include <utils/frame_work_log.h>
 #include <cstring>
-
+#include <string>
 extern "C" {
 //#include <libavutil/rational.h>
 };
@@ -91,6 +91,16 @@ public:
             mInfo.extra_data_size = extra_data_size;
             memcpy(mInfo.extra_data, extra_data, mInfo.extra_data_size);
         }
+    }
+
+    virtual std::string getMagicKey()
+    {
+        return "";
+    }
+
+    virtual void setMagicKey(const std::string & key)
+    {
+
     }
 
 
