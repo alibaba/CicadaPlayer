@@ -56,6 +56,14 @@ void CicadaSetOnRenderCallBack(playerHandle *pHandle, onRenderFrame cb, void *us
     }
 }
 
+void CicadaSetAudioRenderingCallBack(playerHandle *pHandle, onRenderFrame cb, void *userData)
+{
+    GET_PLAYER;
+    if (player) {
+        player->SetAudioRenderingCallBack(cb, userData);
+    }
+}
+
 void CicadaSetComponentCb(playerHandle *pHandle, player_component_type type, void *factory)
 {
     GET_PLAYER;

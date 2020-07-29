@@ -80,6 +80,8 @@ namespace Cicada {
 
         void SetOnRenderCallBack(onRenderFrame cb, void *userData) override;
 
+        void SetAudioRenderingCallBack(onRenderFrame cb, void *userData) override;
+
         // TODO: use setParameters and setOpt to set
         void SetRefer(const char *refer) override;
 
@@ -306,8 +308,7 @@ namespace Cicada {
 
         class ApsaraAudioRenderCallback : public IAudioRenderListener {
         public:
-            ApsaraAudioRenderCallback(SuperMediaPlayer &player)
-                    : mPlayer(player)
+            ApsaraAudioRenderCallback(SuperMediaPlayer &player) : mPlayer(player)
             {}
 
             void onEOS() override
@@ -535,12 +536,10 @@ namespace Cicada {
 
         onRenderFrame mFrameCb{nullptr};
         void *mFrameCbUserData{nullptr};
+
+        onRenderFrame mAudioRenderingCb{nullptr};
+        void *mAudioRenderingCbUserData{nullptr};
         bool mIsDummy{false};
     };
 }// namespace Cicada
-#endif // CICADA_PLAYER_SERVICE_H
-
-
-
-
-
+#endif// CICADA_PLAYER_SERVICE_H

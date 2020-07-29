@@ -16,6 +16,10 @@ namespace Cicada {
 
     SdlAFAudioRender::~SdlAFAudioRender()
     {
+        if (mDevID > 0) {
+            SDL_CloseAudioDevice(mDevID);
+            mDevID = 0;
+        }
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
         if (pcmBuffer != nullptr) {
@@ -71,12 +75,11 @@ namespace Cicada {
             bufferSize = getPCMDataLen(frame->getInfo().audio.channels, (enum AVSampleFormat) frame->getInfo().audio.format,
                                        frame->getInfo().audio.nb_samples);
             pcmBuffer = static_cast<uint8_t *>(malloc(bufferSize));
-            if (SDL_OpenAudio(&mSpec, nullptr) < 0) {
+            mDevID = SDL_OpenAudioDevice(NULL, false, &mSpec, nullptr, SDL_AUDIO_ALLOW_ANY_CHANGE);
+            if (mDevID == 0) {
                 AF_LOGE("SdlAFAudioRender could not openAudio! Error: %s\n", SDL_GetError());
                 return -1;
             }
-
-            mDevID = 1;
             SDL_PauseAudioDevice(mDevID, 0); // start play audio
         }
         if (frame->getInfo().duration < 0 && frame->getInfo().audio.sample_rate > 0) {
@@ -102,7 +105,11 @@ namespace Cicada {
                     bufferSize = pcmDataLength;
                     pcmBuffer = static_cast<uint8_t *>(realloc(pcmBuffer, bufferSize));
                 }
-                if (!mMute) {
+                bool rendered = false;
+                if (mRenderingCb) {
+                    rendered = mRenderingCb(mRenderingCbUserData, filter_frame.get());
+                }
+                if (!mMute && !rendered) {
                     copyPCMData(getAVFrame(filter_frame.get()), pcmBuffer);
                 } else {
                     memset(pcmBuffer, 0, pcmDataLength);
@@ -122,7 +129,11 @@ namespace Cicada {
             bufferSize = pcmDataLength;
             pcmBuffer = static_cast<uint8_t *>(realloc(pcmBuffer, bufferSize));
         }
-        if (!mMute) {
+        bool rendered = false;
+        if (mRenderingCb) {
+            rendered = mRenderingCb(mRenderingCbUserData, frame.get());
+        }
+        if (!mMute && !rendered) {
             copyPCMData(getAVFrame(frame.get()), pcmBuffer);
         } else {
             memset(pcmBuffer, 0, pcmDataLength);

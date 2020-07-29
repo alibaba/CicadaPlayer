@@ -64,6 +64,8 @@ namespace Cicada {
 
         void SetOnRenderFrameCallback(onRenderFrame cb, void *userData);
 
+        void SetAudioRenderingCallback(onRenderFrame cb, void *userData);
+
         void SetStreamTypeFlags(uint64_t flags);
 
 

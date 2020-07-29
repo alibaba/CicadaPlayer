@@ -10,6 +10,9 @@
 #include <utils/AFMediaType.h>
 
 namespace Cicada{
+
+    typedef bool (*renderingFrameCB)(void *userData, IAFFrame *frame);
+
     class IAFRenderFilter {
     public:
         virtual ~IAFRenderFilter() = default;
@@ -164,9 +167,17 @@ namespace Cicada{
             mListener = listener;
         }
 
+        virtual void setRenderingCb(renderingFrameCB cb, void *userData)
+        {
+            mRenderingCb = cb;
+            mRenderingCbUserData = userData;
+        }
+
     protected:
         IAudioRender *mExtFilter{};
         IAudioRenderListener *mListener{};
+        renderingFrameCB mRenderingCb{nullptr};
+        void *mRenderingCbUserData{nullptr};
     };
 }
 

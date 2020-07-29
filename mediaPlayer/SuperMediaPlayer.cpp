@@ -2993,6 +2993,7 @@ int SuperMediaPlayer::setUpAudioRender(const IAFFrame::audioInfo &info)
 {
     if (mAudioRender == nullptr) {
         mAudioRender = AudioRenderFactory::create();
+        mAudioRender->setRenderingCb(mAudioRenderingCb, mFrameCbUserData);
     }
 
     assert(mAudioRender);
@@ -3299,6 +3300,10 @@ void SuperMediaPlayer::Reset()
 
     mSecretPlayBack = false;
     mDrmKeyValid = false;
+    mAudioRenderingCb = nullptr;
+    mAudioRenderingCbUserData = nullptr;
+    mFrameCb = nullptr;
+    mFrameCbUserData = nullptr;
 }
 
 int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)
@@ -4209,6 +4214,13 @@ void SuperMediaPlayer::SetOnRenderCallBack(onRenderFrame cb, void *userData)
     mFrameCb = cb;
     mFrameCbUserData = userData;
 }
+
+void SuperMediaPlayer::SetAudioRenderingCallBack(onRenderFrame cb, void *userData)
+{
+    mAudioRenderingCb = cb;
+    mAudioRenderingCbUserData = userData;
+}
+
 int SuperMediaPlayer::invokeComponent(std::string content)
 {
     return mDcaManager->invoke(content);
