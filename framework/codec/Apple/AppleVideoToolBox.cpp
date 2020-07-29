@@ -108,8 +108,8 @@ namespace Cicada {
 
     int AFVTBDecoder::init_decoder(const Stream_meta *meta, void *voutObsr, uint64_t flags)
     {
-        if (meta->pixel_fmt == AF_PIX_FMT_YUV422P || meta->pixel_fmt == AF_PIX_FMT_YUVJ422P) {
-            return -ENOSPC;
+        if (meta->pixel_fmt == AF_PIX_FMT_YUV422P || meta->pixel_fmt == AF_PIX_FMT_YUVJ422P || meta->interlaced == InterlacedType_YES) {
+            return -ENOTSUP;
         }
 
         mPInMeta = unique_ptr<streamMeta>(new streamMeta(meta));
