@@ -219,6 +219,7 @@ namespace Cicada {
         if (mRenderFrame == nullptr) {
             mRenderFrame = getFrame();
         }
+        int ret = 0;
 
         while (mRenderFrame != nullptr) {
             if (mState != State::state_running) {
@@ -236,7 +237,7 @@ namespace Cicada {
 
             loopChecker();
             int nb_samples = mRenderFrame->getInfo().audio.nb_samples;
-            int ret = device_write(mRenderFrame);
+            ret = device_write(mRenderFrame);
 
             if (ret == -EAGAIN) {
 
@@ -250,7 +251,7 @@ namespace Cicada {
             }
             mRenderFrame = getFrame();
         }
-        if (mFrameQue.empty()) {
+        if (mFrameQue.empty() || ret == -EAGAIN) {
 
             // TODO: only on Android xiaomi miui 9?
             mMaxQueSize = std::min(mMaxQueSize.load() + 1, MAX_INPUT_BUFFER_COUNT);
