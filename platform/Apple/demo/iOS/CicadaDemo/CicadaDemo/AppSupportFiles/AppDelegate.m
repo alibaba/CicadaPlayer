@@ -39,7 +39,7 @@
 
     //不熄灭屏幕
     [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
-    
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
     return YES;
 }
 

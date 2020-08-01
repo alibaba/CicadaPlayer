@@ -927,6 +927,12 @@ int64_t CicadaClockRefer(void *arg)
     return [NSString stringWithUTF8String:value];
 }
 
+-(void)setAVResourceLoaderDelegate:(id<AVAssetResourceLoaderDelegate> *)avResourceLoaderDelegate {
+    NSInteger objAddress = (NSInteger)avResourceLoaderDelegate;
+    NSString *addressStr = [NSString stringWithFormat:@"%ld", (long)objAddress];
+    self.player->SetOption("AVResourceLoaderDelegate", addressStr.UTF8String);
+}
+
 + (NSString *) getSDKVersion
 {
     string version = MediaPlayer::GetSdkVersion();

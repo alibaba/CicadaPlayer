@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15400" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="11F-uH-C27">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097.2" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="11F-uH-C27">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment version="2048" identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15404"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -20,7 +20,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="hvV-5h-Coe">
-                                <rect key="frame" x="0.0" y="202" width="414" height="660"/>
+                                <rect key="frame" x="0.0" y="240" width="414" height="622"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <connections>
                                     <outlet property="dataSource" destination="BYZ-38-t0r" id="s6s-c9-qg6"/>
@@ -72,17 +72,35 @@
                                     <action selector="gotoMultPlayer:" destination="BYZ-38-t0r" eventType="touchUpInside" id="NIX-OO-NfA"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HTK-zn-7Yw">
+                                <rect key="frame" x="0.0" y="202" width="414" height="30"/>
+                                <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="Yyj-ux-7a4"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                <state key="normal" title="FairPlay">
+                                    <color key="titleColor" cocoaTouchSystemColor="darkTextColor"/>
+                                    <color key="titleShadowColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </state>
+                                <connections>
+                                    <segue destination="euc-MR-R58" kind="show" id="6PS-zm-VTU"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="hvV-5h-Coe" firstAttribute="bottom" secondItem="8bC-Xf-vdC" secondAttribute="bottomMargin" id="1ys-NT-UEu"/>
                             <constraint firstItem="vpx-Sk-FbH" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="5kM-Jb-hSU"/>
-                            <constraint firstItem="hvV-5h-Coe" firstAttribute="top" secondItem="lKl-GQ-onz" secondAttribute="bottom" constant="8" id="HJh-iy-RI4"/>
+                            <constraint firstAttribute="trailing" secondItem="HTK-zn-7Yw" secondAttribute="trailing" id="9cm-1N-Lbe"/>
+                            <constraint firstItem="HTK-zn-7Yw" firstAttribute="top" secondItem="lKl-GQ-onz" secondAttribute="bottom" constant="8" id="KmH-Az-eHb"/>
                             <constraint firstItem="lKl-GQ-onz" firstAttribute="trailing" secondItem="hvV-5h-Coe" secondAttribute="trailing" id="OIQ-1y-NR4"/>
                             <constraint firstItem="vpx-Sk-FbH" firstAttribute="top" secondItem="oiV-EL-Uq7" secondAttribute="bottom" id="RwJ-7P-ExU"/>
                             <constraint firstItem="lKl-GQ-onz" firstAttribute="leading" secondItem="hvV-5h-Coe" secondAttribute="leading" id="Td0-Eb-hT6"/>
+                            <constraint firstItem="HTK-zn-7Yw" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="Ybd-uH-O1a"/>
                             <constraint firstItem="vpx-Sk-FbH" firstAttribute="leading" secondItem="u6S-Fk-Q1T" secondAttribute="leading" id="bUN-Qd-1Nt"/>
                             <constraint firstAttribute="trailing" secondItem="vpx-Sk-FbH" secondAttribute="trailing" id="cXo-3B-wXt"/>
+                            <constraint firstItem="hvV-5h-Coe" firstAttribute="top" secondItem="HTK-zn-7Yw" secondAttribute="bottom" constant="8" id="ddh-ah-Gnd"/>
                             <constraint firstItem="u6S-Fk-Q1T" firstAttribute="trailing" secondItem="lKl-GQ-onz" secondAttribute="trailing" id="dh2-B8-V8G"/>
                             <constraint firstItem="vpx-Sk-FbH" firstAttribute="trailing" secondItem="u6S-Fk-Q1T" secondAttribute="trailing" id="fTS-G8-Xr7"/>
                             <constraint firstItem="u6S-Fk-Q1T" firstAttribute="leading" secondItem="lKl-GQ-onz" secondAttribute="leading" id="uVk-Oq-qaA"/>
@@ -104,7 +122,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="488" y="-419"/>
+            <point key="canvasLocation" x="486.95652173913049" y="-419.19642857142856"/>
         </scene>
         <!--设置-->
         <scene sceneID="grU-5M-NOB">
@@ -237,6 +255,137 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Rwh-2d-k0c" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1326" y="-419"/>
+        </scene>
+        <!--FairPlay-->
+        <scene sceneID="EYy-52-0zu">
+            <objects>
+                <viewController id="euc-MR-R58" customClass="FairplayInputViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="hiL-JR-rDx"/>
+                        <viewControllerLayoutGuide type="bottom" id="tfp-mh-K2A"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="UJq-8t-dO2">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="WD1-GW-uEN">
+                                <rect key="frame" x="15" y="132" width="384" height="35"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="35" id="tvo-TT-ug3"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="s60-ny-gMH" id="Tdx-vv-6Mn"/>
+                                </connections>
+                            </textField>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="视频URL" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kdl-s3-oF2">
+                                <rect key="frame" x="15" y="103" width="67" height="21"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="21" id="dlU-e8-YDQ"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="jbZ-8O-3Fz">
+                                <rect key="frame" x="15" y="211" width="384" height="35"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="35" id="ywG-aP-8Er"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="s60-ny-gMH" id="oDX-S9-kte"/>
+                                </connections>
+                            </textField>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="FPS Certificate URL" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uDo-Zk-QBc">
+                                <rect key="frame" x="15" y="182" width="152" height="21"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="21" id="OAP-eq-PnQ"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="YQi-sj-Kcl">
+                                <rect key="frame" x="15" y="290" width="384" height="35"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="35" id="kaV-OM-TeW"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="s60-ny-gMH" id="k37-yo-L3V"/>
+                                </connections>
+                            </textField>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="DRM License URL" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QSD-nQ-rJh">
+                                <rect key="frame" x="15" y="261" width="137" height="21"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="21" id="Mo3-OM-gg8"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ZIS-C2-ibg">
+                                <rect key="frame" x="15" y="340" width="384" height="44"/>
+                                <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="44" id="fGu-oy-Ac6"/>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="44" id="fQW-Mi-Ufd"/>
+                                </constraints>
+                                <state key="normal" title="播放FairPlay"/>
+                                <connections>
+                                    <action selector="gotoURLPlay:" destination="s60-ny-gMH" eventType="touchUpInside" id="4Yn-m3-SN8"/>
+                                    <action selector="gotoURLPlay:" destination="euc-MR-R58" eventType="touchUpInside" id="vJ1-j4-hiW"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="YQi-sj-Kcl" secondAttribute="trailing" constant="15" id="1tz-Nl-TfA"/>
+                            <constraint firstItem="jbZ-8O-3Fz" firstAttribute="top" secondItem="uDo-Zk-QBc" secondAttribute="bottom" constant="8" id="2Ot-KE-qFe"/>
+                            <constraint firstItem="QSD-nQ-rJh" firstAttribute="leading" secondItem="UJq-8t-dO2" secondAttribute="leading" constant="15" id="3c0-Zb-bS0"/>
+                            <constraint firstItem="uDo-Zk-QBc" firstAttribute="top" secondItem="WD1-GW-uEN" secondAttribute="bottom" constant="15" id="Bi4-HO-wZZ"/>
+                            <constraint firstItem="kdl-s3-oF2" firstAttribute="top" secondItem="hiL-JR-rDx" secondAttribute="bottom" constant="15" id="EhG-7w-NEN"/>
+                            <constraint firstItem="ZIS-C2-ibg" firstAttribute="top" secondItem="YQi-sj-Kcl" secondAttribute="bottom" constant="15" id="LTo-70-PKa"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="QSD-nQ-rJh" secondAttribute="trailing" constant="20" symbolic="YES" id="My8-Ya-Pst"/>
+                            <constraint firstItem="WD1-GW-uEN" firstAttribute="top" secondItem="kdl-s3-oF2" secondAttribute="bottom" constant="8" id="SON-y9-RhA"/>
+                            <constraint firstItem="ZIS-C2-ibg" firstAttribute="leading" secondItem="UJq-8t-dO2" secondAttribute="leading" constant="15" id="U26-YZ-gPE"/>
+                            <constraint firstAttribute="trailing" secondItem="jbZ-8O-3Fz" secondAttribute="trailing" constant="15" id="Wix-Ma-wPo"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="uDo-Zk-QBc" secondAttribute="trailing" constant="20" symbolic="YES" id="ZAq-zL-qdg"/>
+                            <constraint firstAttribute="trailing" secondItem="WD1-GW-uEN" secondAttribute="trailing" constant="15" id="a8a-l6-Kbr"/>
+                            <constraint firstItem="QSD-nQ-rJh" firstAttribute="top" secondItem="jbZ-8O-3Fz" secondAttribute="bottom" constant="15" id="e3m-qZ-RiT"/>
+                            <constraint firstItem="uDo-Zk-QBc" firstAttribute="leading" secondItem="UJq-8t-dO2" secondAttribute="leading" constant="15" id="eqo-Pt-OUr"/>
+                            <constraint firstAttribute="trailing" secondItem="ZIS-C2-ibg" secondAttribute="trailing" constant="15" id="gv4-f6-Qhj"/>
+                            <constraint firstItem="jbZ-8O-3Fz" firstAttribute="leading" secondItem="UJq-8t-dO2" secondAttribute="leading" constant="15" id="h2u-VL-JQp"/>
+                            <constraint firstItem="YQi-sj-Kcl" firstAttribute="leading" secondItem="UJq-8t-dO2" secondAttribute="leading" constant="15" id="lkO-G2-Er0"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="kdl-s3-oF2" secondAttribute="trailing" constant="20" symbolic="YES" id="mS8-2v-azc"/>
+                            <constraint firstItem="YQi-sj-Kcl" firstAttribute="top" secondItem="QSD-nQ-rJh" secondAttribute="bottom" constant="8" id="s70-eX-03V"/>
+                            <constraint firstItem="WD1-GW-uEN" firstAttribute="leading" secondItem="UJq-8t-dO2" secondAttribute="leading" constant="15" id="xad-dZ-z8n"/>
+                            <constraint firstItem="kdl-s3-oF2" firstAttribute="leading" secondItem="UJq-8t-dO2" secondAttribute="leading" constant="15" id="zPY-LH-GY6"/>
+                        </constraints>
+                    </view>
+                    <toolbarItems/>
+                    <navigationItem key="navigationItem" title="FairPlay" id="dux-wb-AZ1">
+                        <barButtonItem key="rightBarButtonItem" title="扫码" id="c9W-rc-1lh">
+                            <connections>
+                                <action selector="pushToScan:" destination="euc-MR-R58" id="VhW-J4-hrq"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
+                    <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
+                    <connections>
+                        <outlet property="certificateUrlTextField" destination="jbZ-8O-3Fz" id="Yao-1X-q7u"/>
+                        <outlet property="licenseUrlTextField" destination="YQi-sj-Kcl" id="PGd-Sk-lZ4"/>
+                        <outlet property="mediaUrlTextField" destination="WD1-GW-uEN" id="gDS-4X-rr9"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="q3s-XL-8D1" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="499" y="352"/>
         </scene>
         <!--本地视频列表-->
         <scene sceneID="R65-TG-vA4">
