@@ -107,12 +107,15 @@
     self.player = [[CicadaPlayer alloc] init];
     self.player.enableHardwareDecoder = [CicadaTool isHardware];
     self.player.playerView = self.CicadaView.playerView;
+    [self.player performSelector:@selector(setAVResourceLoaderDelegate:) withObject:self.avResourceLoaderDelegate];
     self.player.delegate = self;
     //enable to test render delegate
 //    self.player.renderDelegate = self;
     self.player.scalingMode = CICADA_SCALINGMODE_SCALEASPECTFIT;
     [self.settingAndConfigView setVolume:self.player.volume/2];
     [self setConfig];
+    
+    
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationDidChangeFunc) name:UIDeviceOrientationDidChangeNotification object:nil];
     // 添加检测app进入后台的观察者

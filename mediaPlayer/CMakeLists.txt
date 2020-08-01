@@ -112,8 +112,14 @@ set(SOURCE_FILES
 
 if(APPLE)
     set(SOURCE_FILES ${SOURCE_FILES}
-            externalPlayer/AppleAVPlayer.cpp
+            externalPlayer/AppleAVPlayer.mm
             externalPlayer/AppleAVPlayer.h
+            externalPlayer/AppleAVPlayerLayerProcessor.mm
+            externalPlayer/AppleAVPlayerLayerProcessor.h
+			externalPlayer/AppleAVPlayerHandler.h
+			externalPlayer/AppleAVPlayerHandler.mm
+			externalPlayer/AppleAVPlayerUtil.h
+			externalPlayer/AppleAVPlayerUtil.m
             )
 elseif(ANDROID)
     set(SOURCE_FILES ${SOURCE_FILES}

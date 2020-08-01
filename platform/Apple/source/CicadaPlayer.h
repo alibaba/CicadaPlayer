@@ -332,6 +332,12 @@ OBJC_EXPORT
  */
 -(NSString *) getOption:(CicadaOption)key;
 
+/****
+@brief 支持业务方设置resourceLoaderDelegate，可支持fairPlay
+@param avResourceLoaderDelegate Log output callback block, which can be nil.
+*/
+-(void)setAVResourceLoaderDelegate:(id<AVAssetResourceLoaderDelegate> *)avResourceLoaderDelegate;
+
 /**
  @brief 获取SDK版本号信息
  */

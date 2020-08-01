@@ -5,10 +5,24 @@
 #ifndef CICADAMEDIA_APPLE_AVPLAYER_H
 #define CICADAMEDIA_APPLE_AVPLAYER_H
 
+#include "native_cicada_player_def.h"
+
 #include "../CicadaPlayerPrototype.h"
 namespace Cicada {
     class AppleAVPlayer : public ICicadaPlayer, private CicadaPlayerPrototype {
     public:
+        
+        void *avPlayer = NULL;
+        void *playerHandler = NULL;
+        playerListener mListener{nullptr};
+        float recordVolume = NULL;
+        StreamInfo **mStreamInfos{nullptr};
+        
+        void *resourceLoaderDelegate{nullptr};
+        void *parentLayer = NULL;
+        void *sourceUrl = NULL;
+        bool isAutoPlay = false;
+        
         AppleAVPlayer();
         ~AppleAVPlayer() override;
 
@@ -19,7 +33,6 @@ namespace Cicada {
         void SetView(void *view) override;
 
         void SetDataSource(const char *url) override;
-
 
         void Prepare() override;
 
@@ -133,6 +146,7 @@ namespace Cicada {
 
         int invokeComponent(std::string content) override;
 
+        
 
     public:
         static bool is_supported(const options *opts)
@@ -152,11 +166,14 @@ namespace Cicada {
 
         int probeScore(const options *opts) override
         {
-            //return SUPPORT_MAX;
+            return SUPPORT_MAX;
             return SUPPORT_NOT;
         }
 
         static AppleAVPlayer se;
+        
+        void setupPlayerLayer();
+        void recheckHander();
     };
 }// namespace Cicada
 

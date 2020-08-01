@@ -25,6 +25,11 @@
  */
 @property (nonatomic,strong)NSDictionary * subtitleDictionary;
 
+/**
+ResourceLoaderDelegate
+*/
+@property (nonatomic,strong)NSObject<AVAssetResourceLoaderDelegate> *avResourceLoaderDelegate;
+
 @end
 
 

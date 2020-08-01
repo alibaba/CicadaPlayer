@@ -1,48 +1,46 @@
 //
-//  SourceInputViewController.m
-//  CicadaPlayerDemo
+//  FairplayInputViewController.m
+//  CicadaDemo
 //
-//  Created by 郦立 on 2018/12/29.
-//  Copyright © 2018年 com.alibaba. All rights reserved.
+//  Created by zhou on 2020/7/30.
+//  Copyright © 2020 com.alibaba. All rights reserved.
 //
 
-#import "SourceInputViewController.h"
+#import "FairplayInputViewController.h"
 #import "CicadaPlayerViewController.h"
 #import "CicadaScanViewController.h"
+#import "AssetLoaderDelegate.h"
 
-@interface SourceInputViewController ()<UITextFieldDelegate>
+@interface FairplayInputViewController ()
 
-@property (weak, nonatomic) IBOutlet UITextField *URLTextField;
+@property (nonatomic, strong) IBOutlet UITextField *mediaUrlTextField;
+@property (nonatomic, strong) IBOutlet UITextField *certificateUrlTextField;
+@property (nonatomic, strong) IBOutlet UITextField *licenseUrlTextField;
+@property (nonatomic, assign) BOOL isClickedFlag;
 
 @end
 
-@implementation SourceInputViewController
+@implementation FairplayInputViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
-    // 开发测试用
-    self.URLTextField.text = @"http://player.alicdn.com/video/aliyunmedia.mp4";
-    
-//    // 苹果官方测试视频
-    self.URLTextField.text = @"https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_16x9/bipbop_16x9_variant.m3u8";
-//
-//    // 有多视频轨，没有音频轨、字幕轨
-//    self.URLTextField.text = @"https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8";
 }
 
 /**
  进入URL播放
-
  @param sender 调用者
  */
 - (IBAction)gotoURLPlay:(id)sender {
     if (self.isClickedFlag == NO) {
         self.isClickedFlag = YES;
-        NSString *urlStr = self.URLTextField.text;
+        NSString *urlStr = self.mediaUrlTextField.text;
         CicadaUrlSource *source = [[CicadaUrlSource alloc] urlWithString:urlStr];
         CicadaPlayerViewController *vc = [[CicadaPlayerViewController alloc]init];
         vc.urlSource = source;
+        NSString *certificateUrl = self.certificateUrlTextField.text;
+        NSString *licenseUrl = self.licenseUrlTextField.text;
+        AssetLoaderDelegate *delegate = [[AssetLoaderDelegate alloc] initWithCertificateUrl:certificateUrl licenseUrl:licenseUrl];
+        vc.avResourceLoaderDelegate = delegate;
         [self.navigationController pushViewController:vc animated:YES];
     }
 }
@@ -52,7 +50,7 @@
         self.isClickedFlag = YES;
         CicadaScanViewController *vc = [[CicadaScanViewController alloc]init];
         vc.scanTextCallBack = ^(NSString *text) {
-            self.URLTextField.text = text;
+            self.mediaUrlTextField.text = text;
         };
         [self.navigationController pushViewController:vc animated:YES];
     }
@@ -66,11 +64,3 @@
 }
 
 @end
-
-
-
-
-
-
-
-
