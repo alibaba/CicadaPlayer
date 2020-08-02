@@ -484,7 +484,6 @@
 				18FCB28A21D6126A00289843 /* Sources */,
 				18FCB28B21D6126A00289843 /* Frameworks */,
 				18FCB28C21D6126A00289843 /* Resources */,
-				4F767942BD279EAAAC8B8DEB /* [CP] Copy Pods Resources */,
 				18818E3D225614B000E20011 /* Embed Frameworks */,
 			);
 			buildRules = (
@@ -681,24 +680,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		4F767942BD279EAAAC8B8DEB /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-CicadaDemo/Pods-CicadaDemo-resources.sh",
-				"${PODS_CONFIGURATION_BUILD_DIR}/IQKeyboardManager/IQKeyboardManager.bundle",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/IQKeyboardManager.bundle",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-CicadaDemo/Pods-CicadaDemo-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		E9D084FFFA6DCB9CAF4823D1 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;

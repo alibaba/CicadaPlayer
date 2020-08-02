@@ -382,7 +382,7 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
         float color[4] = {0.0f,0.0f,0.0f,1.0f};
         cicada::convertToGLColor(mBackgroundColor , color);
         glClearColor(color[0], color[1], color[2], color[3]);
-        mBackgroundColorChanged = true;
+        mBackgroundColorChanged = false;
     }
 
     glClear(GL_COLOR_BUFFER_BIT);
