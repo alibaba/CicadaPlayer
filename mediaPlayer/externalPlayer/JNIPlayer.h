@@ -6,8 +6,10 @@
 #define CICADAMEDIA_JNIPLAYER_H
 
 #include "../CicadaPlayerPrototype.h"
-class JNIPlayer : public ICicadaPlayer, private CicadaPlayerPrototype {
-};
+namespace Cicada {
+    class JNIPlayer : public ICicadaPlayer, private CicadaPlayerPrototype {
+    };
+}
 
 
 #endif//CICADAMEDIA_JNIPLAYER_H
