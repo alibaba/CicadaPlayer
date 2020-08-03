@@ -3007,7 +3007,7 @@ int SuperMediaPlayer::setUpAudioRender(const IAFFrame::audioInfo &info)
 {
     if (mAudioRender == nullptr) {
         mAudioRender = AudioRenderFactory::create();
-        mAudioRender->setRenderingCb(mAudioRenderingCb, mFrameCbUserData);
+        mAudioRender->setRenderingCb(mAudioRenderingCb, mAudioRenderingCbUserData);
     }
 
     assert(mAudioRender);
