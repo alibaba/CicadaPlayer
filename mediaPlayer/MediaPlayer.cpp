@@ -82,7 +82,7 @@ namespace Cicada {
 
     MediaPlayer::MediaPlayer(IAnalyticsCollectorFactory &factory, const char *opt) : mCollectorFactory(factory)
     {
-        playerHandle *handle = CicadaCreatePlayer("");
+        playerHandle *handle = CicadaCreatePlayer(opt);
         mPlayerHandle = (void *) handle;
         playerListener listener{nullptr};
         listener.userData = this;
