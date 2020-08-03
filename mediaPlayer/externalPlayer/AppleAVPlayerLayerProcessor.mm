@@ -4,9 +4,13 @@
 //
 //  Created by zhou on 2020/7/26.
 //
-
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
 #import "AppleAVPlayerLayerProcessor.h"
+#if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
+#endif
 
 @interface AppleAVPlayerLayerProcessor ()
 
@@ -18,10 +22,12 @@
 
 - (instancetype)init {
     self = [super init];
+#if TARGET_OS_IPHONE
     if (self) {
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
     }
+#endif
     return self;
 }
 

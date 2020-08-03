@@ -2,9 +2,15 @@
 // Created by moqi on 2020/7/20.
 //
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
+#if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
+#endif
 #include "AppleAVPlayer.h"
 #include "AppleAVPlayerLayerProcessor.h"
 #include "AppleAVPlayerUtil.h"
@@ -20,6 +26,9 @@ AppleAVPlayer::AppleAVPlayer()
 
 AppleAVPlayer::~AppleAVPlayer()
 {
+    if (mIsDummy) {
+        return;
+    }
     AVPlayer *avPlayer = (__bridge AVPlayer *)this->avPlayer;
     CALayer *playerLayer = (CALayer *)CFBridgingRelease(this->parentLayer);
     CFRelease(this->playerHandler);
@@ -188,6 +197,7 @@ int AppleAVPlayer::Stop()
 {
     AVPlayer *player = (__bridge AVPlayer *)this->avPlayer;
     [player pause];
+    return 0;
 }
 
 PlayerStatus AppleAVPlayer::GetPlayerStatus() const
@@ -358,6 +368,7 @@ bool AppleAVPlayer::isLooping()
 
 void AppleAVPlayer::CaptureScreen()
 {
+#if TARGET_OS_IPHONE
     AppleAVPlayerHandler *playerHandler = (__bridge AppleAVPlayerHandler *)this->playerHandler;
     UIImage *captureImage = [playerHandler captureScreen];
     NSData *imageData = UIImagePNGRepresentation(captureImage);
@@ -365,6 +376,7 @@ void AppleAVPlayer::CaptureScreen()
     if (this->mListener.CaptureScreen) {
         this->mListener.CaptureScreen(imageSize.width, imageSize.height, imageData.bytes, this->mListener.userData);
     }
+#endif
 }
 
 void AppleAVPlayer::GetVideoResolution(int &width, int &height)
