@@ -101,11 +101,15 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif ()
 
 if (APPLE)
+    find_library(AVFOUNDATION AVFoundation)
+    find_library(QUARTZCORE QuartzCore)
     target_link_libraries(
             cicadaPlayer PUBLIC
             iconv
             bz2
             ${FRAMEWORK_LIBS}
+            ${AVFOUNDATION}
+            ${QUARTZCORE}
     )
 elseif (MSVC)
 else ()
