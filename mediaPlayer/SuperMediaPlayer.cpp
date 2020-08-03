@@ -1153,8 +1153,6 @@ void SuperMediaPlayer::ProcessVideoLoop()
 
         return;
     }
-
-    setUpAVPath();
     doReadPacket();
 
     if (!DoCheckBufferPass()) {
@@ -1162,6 +1160,9 @@ void SuperMediaPlayer::ProcessVideoLoop()
     }
 
     doDeCode();
+
+    // audio render will create after get a frame from decoder
+    setUpAVPath();
 
     if (!mBRendingStart && mPlayStatus == PLAYER_PLAYING && !mBufferingFlag) {
         if ((!HAVE_VIDEO || !mVideoFrameQue.empty() || (APP_BACKGROUND == mAppStatus)) && (!HAVE_AUDIO || !mAudioFrameQue.empty())) {
