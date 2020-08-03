@@ -1,6 +1,7 @@
 #include "media_player_api.h"
 #include "CicadaPlayerPrototype.h"
 #include <complex>
+#include <utils/CicadaJSON.h>
 #include <utils/af_string.h>
 #include <utils/frame_work_log.h>
 
@@ -15,7 +16,18 @@ typedef struct playerHandle_t {
 playerHandle *CicadaCreatePlayer(const char *opts)
 {
     playerHandle *pHandle = new playerHandle();
-    pHandle->pPlayer = CicadaPlayerPrototype::create(nullptr);
+    if (opts == nullptr) {
+        opts = "";
+    }
+    CicadaJSONItem item{opts};
+    options createOpt;
+    const string defaultString{};
+    string value;
+    value = item.getString("name", defaultString);
+    if (value != defaultString) {
+        createOpt.set("name", value);
+    }
+    pHandle->pPlayer = CicadaPlayerPrototype::create(&createOpt);
     return pHandle;
 }
 
