@@ -4,10 +4,11 @@
 //
 //  Created by zhou on 2020/7/26.
 //
-
 #import "AppleAVPlayerHandler.h"
 #import "AppleAVPlayerUtil.h"
+#if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
+#endif
 
 @interface AppleAVPlayerHandler ()
 
@@ -126,7 +127,7 @@
     self.playerLayer = layer;
     self.layerProcessor.playerLayer = layer;
 }
-
+#if TARGET_OS_IPHONE
 - (UIImage *)captureScreen{
     UIGraphicsBeginImageContext(self.parentLayer.bounds.size);
     [self.parentLayer renderInContext:UIGraphicsGetCurrentContext()];
@@ -134,7 +135,7 @@
     UIGraphicsEndImageContext();
     return captureImage;
 }
-
+#endif
 - (void)dealloc {
     [self.avplayer removeTimeObserver:self.timeObserver];
     [self.avplayer.currentItem removeObserver:self forKeyPath:@"status"];

@@ -11,18 +11,6 @@
 namespace Cicada {
     class AppleAVPlayer : public ICicadaPlayer, private CicadaPlayerPrototype {
     public:
-        
-        void *avPlayer = NULL;
-        void *playerHandler = NULL;
-        playerListener mListener{nullptr};
-        float recordVolume = NULL;
-        StreamInfo **mStreamInfos{nullptr};
-        
-        void *resourceLoaderDelegate{nullptr};
-        void *parentLayer = NULL;
-        void *sourceUrl = NULL;
-        bool isAutoPlay = false;
-        
         AppleAVPlayer();
         ~AppleAVPlayer() override;
 
@@ -146,7 +134,9 @@ namespace Cicada {
 
         int invokeComponent(std::string content) override;
 
-        
+        void SetAudioRenderingCallBack(onRenderFrame cb, void *userData)
+        {}
+
 
     public:
         static bool is_supported(const options *opts)
@@ -162,18 +152,42 @@ namespace Cicada {
         explicit AppleAVPlayer(int dummy)
         {
             addPrototype(this);
+            mIsDummy = true;
         }
 
         int probeScore(const options *opts) override
         {
-            return SUPPORT_MAX;
+            if (opts) {
+                string name = opts->get("name");
+                if (!name.empty()) {
+                    if (name == "AppleAVPlayer") {
+                        return SUPPORT_MAX;
+                    } else {
+                        return SUPPORT_NOT;
+                    }
+                }
+            }
             return SUPPORT_NOT;
         }
 
         static AppleAVPlayer se;
-        
+
         void setupPlayerLayer();
         void recheckHander();
+
+    private:
+        void *avPlayer{nullptr};
+        void *playerHandler{nullptr};
+        playerListener mListener{nullptr};
+        float recordVolume = 0.0;
+        StreamInfo **mStreamInfos{nullptr};
+
+        void *resourceLoaderDelegate{nullptr};
+        void *parentLayer{nullptr};
+        void *sourceUrl{nullptr};
+        bool isAutoPlay = false;
+
+        bool mIsDummy{false};
     };
 }// namespace Cicada
 

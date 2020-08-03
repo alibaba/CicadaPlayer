@@ -5,6 +5,10 @@
 //  Created by zhou on 2020/7/26.
 //
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 #import "native_cicada_player_def.h"
 
 #import <Foundation/Foundation.h>
@@ -26,8 +30,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)init;
 - (void)setmPlayerListener:(playerListener)playerListener;
+#if TARGET_OS_IPHONE
 - (UIImage *)captureScreen;
-
+#endif
 @end
 
 

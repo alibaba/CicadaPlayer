@@ -111,6 +111,8 @@ set(SOURCE_FILES
         CicadaPlayerPrototype.cpp)
 
 if(APPLE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fobjc-arc")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fobjc-arc")
     set(SOURCE_FILES ${SOURCE_FILES}
             externalPlayer/AppleAVPlayer.mm
             externalPlayer/AppleAVPlayer.h
