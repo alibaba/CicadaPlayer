@@ -104,10 +104,15 @@
     [self.view addSubview:self.settingAndConfigView];
 
     [CicadaPlayer setAudioSessionDelegate:self];
-    self.player = [[CicadaPlayer alloc] init];
+    if (self.useFairPlay) {
+        self.player = [[CicadaPlayer alloc] init:nil opt:@{@"name":@"AppleAVPlayer"}];
+        [self.player performSelector:@selector(setAVResourceLoaderDelegate:) withObject:self.avResourceLoaderDelegate];
+    } else {
+        self.player = [[CicadaPlayer alloc] init];
+    }
+    
     self.player.enableHardwareDecoder = [CicadaTool isHardware];
     self.player.playerView = self.CicadaView.playerView;
-    [self.player performSelector:@selector(setAVResourceLoaderDelegate:) withObject:self.avResourceLoaderDelegate];
     self.player.delegate = self;
     //enable to test render delegate
 //    self.player.renderDelegate = self;
