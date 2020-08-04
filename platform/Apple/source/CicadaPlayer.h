@@ -339,6 +339,19 @@ OBJC_EXPORT
  */
 -(NSString *) getOption:(CicadaOption)key;
 
+/**
+ @brief 向播放器的组件发送命令。
+ @param content 命令内容。
+ @return 命令执行结果， < 0 失败。
+ */
+/****
+ @brief Send command to component
+ @param content command content
+ @return < 0 on Error
+ */
+
+- (int)invokeComponent:(NSString *)content;
+
 /****
 @brief 支持业务方设置resourceLoaderDelegate，可支持fairPlay
 @param avResourceLoaderDelegate Log output callback block, which can be nil.

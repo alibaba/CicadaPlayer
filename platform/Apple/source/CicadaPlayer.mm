@@ -869,6 +869,14 @@ static int logOutput = 1;
     }
 }
 
+- (int)invokeComponent:(NSString *)content
+{
+    if (self.player) {
+        return self.player->InvokeComponent([content UTF8String]);
+    }
+    return -1;
+}
+
 - (void) setDelegate:(id<CicadaDelegate>)theDelegate
 {
     _delegate = theDelegate;
