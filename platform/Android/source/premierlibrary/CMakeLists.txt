@@ -37,6 +37,8 @@ add_library(CicadaPlayer SHARED
         src/main/jni/player/JavaTrackInfo.cpp
         src/main/jni/player/JavaMediaInfo.cpp
         src/main/jni/player/JavaGlobalSettings.cpp
+        src/main/jni/player/JavaExternalPlayer.cpp
+        src/main/jni/player/JavaOptions.cpp
         src/main/jni/utils/JavaLogger.cpp
 
         )

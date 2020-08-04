@@ -123,11 +123,11 @@ if(APPLE)
 			externalPlayer/AppleAVPlayerUtil.h
 			externalPlayer/AppleAVPlayerUtil.m
             )
-elseif(ANDROID)
-    set(SOURCE_FILES ${SOURCE_FILES}
-            externalPlayer/JNIPlayer.cpp
-            externalPlayer/JNIPlayer.h
-            )
+#elseif(ANDROID)
+#    set(SOURCE_FILES ${SOURCE_FILES}
+#            externalPlayer/JNIPlayer.cpp
+#            externalPlayer/JNIPlayer.h
+#            )
 endif()
 if (TARGET_PLATFORM STREQUAL "Android")
     set(SOURCE_FILES ${SOURCE_FILES}

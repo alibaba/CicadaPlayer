@@ -20,6 +20,10 @@ public:
 
     static jobject getTrackInfo(JNIEnv *mEnv, const StreamInfo &streamInfo);
 
+    static StreamInfo* getStreamInfo(JNIEnv *mEnv,jobject trackInfo);
+
+    static int getStreamIndexByTrackInfo(JNIEnv *mEnv,jobject trackInfo);
+
     static jobjectArray
     getTrackInfoArray(JNIEnv *mEnv, const std::vector<StreamInfo> &streamInfos, int len);
 

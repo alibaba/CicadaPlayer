@@ -30,7 +30,7 @@ public class NativePlayerBase {
     private static final String TAG = "NativePlayerBase";
     private static String libPath = null;
     private MainHandler mCurrentThreadHandler;
-    private boolean mEnableLog = false;
+    private boolean mEnableLog = true;
 
     void log(String tag, String msg) {
         if (mEnableLog) {
