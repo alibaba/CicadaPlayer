@@ -37,6 +37,13 @@ OBJC_EXPORT
  */
 - (instancetype)init:(NSString*)traceID;
 
+/****
+ @brief Initialize the player.
+ @param traceID A trace ID for debugging.
+ @param opt user defined settings
+ */
+- (instancetype)init:(NSString*)traceID opt:(NSDictionary *)opt;
+
 /**
  @brief 使用url方式来播放视频
  @param source CicadaUrlSource的输入类型
