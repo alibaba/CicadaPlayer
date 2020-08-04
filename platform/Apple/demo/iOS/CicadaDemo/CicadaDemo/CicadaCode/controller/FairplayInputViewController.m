@@ -40,6 +40,7 @@
         NSString *certificateUrl = self.certificateUrlTextField.text;
         NSString *licenseUrl = self.licenseUrlTextField.text;
         AssetLoaderDelegate *delegate = [[AssetLoaderDelegate alloc] initWithCertificateUrl:certificateUrl licenseUrl:licenseUrl];
+        vc.useFairPlay = YES;
         vc.avResourceLoaderDelegate = delegate;
         [self.navigationController pushViewController:vc animated:YES];
     }
