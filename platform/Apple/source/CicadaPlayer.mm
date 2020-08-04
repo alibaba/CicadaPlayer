@@ -108,9 +108,23 @@ static int logOutput = 1;
 
 - (instancetype)init:(NSString*)traceID
 {
+    self = [self init:traceID opt:nil];
+    if (self) {
+        
+    }
+    return self;
+}
+
+- (instancetype)init:(NSString*)traceID opt:(NSDictionary *)opt {
     if (self = [super init]) {
         self.traceId = traceID;
-        self.player = new MediaPlayer();
+        NSString *name = opt[@"name"];
+        self.player = NULL;
+        if (name) {
+            self.player = new MediaPlayer([name UTF8String]);
+        } else {
+            self.player = new MediaPlayer();
+        }
         [self resetProperty];
         playerListener listener = {0};
         mHelper = new CicadaOCHelper(self);
