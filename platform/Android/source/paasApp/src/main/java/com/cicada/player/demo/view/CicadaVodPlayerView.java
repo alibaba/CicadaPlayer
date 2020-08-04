@@ -1,5 +1,8 @@
 package com.cicada.player.demo.view;
 
+import static com.cicada.player.demo.view.subtitle.LocationStyle.Location_CenterH;
+import static com.cicada.player.demo.view.subtitle.LocationStyle.Location_Top;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
@@ -16,7 +19,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
-
 import com.cicada.player.CicadaPlayer;
 import com.cicada.player.CicadaPlayerFactory;
 import com.cicada.player.bean.ErrorInfo;
@@ -28,9 +30,11 @@ import com.cicada.player.demo.listener.LockPortraitListener;
 import com.cicada.player.demo.listener.ViewAction;
 import com.cicada.player.demo.util.BrightnessUtil;
 import com.cicada.player.demo.util.DensityUtils;
+import com.cicada.player.demo.util.NetWatchdog;
 import com.cicada.player.demo.util.OrientationWatchDog;
 import com.cicada.player.demo.util.ScreenUtils;
 import com.cicada.player.demo.util.SharedPreferenceUtils;
+import com.cicada.player.demo.util.VcPlayerLog;
 import com.cicada.player.demo.view.control.ControlView;
 import com.cicada.player.demo.view.gesture.GestureView;
 import com.cicada.player.demo.view.guide.GuideView;
@@ -42,15 +46,11 @@ import com.cicada.player.nativeclass.CacheConfig;
 import com.cicada.player.nativeclass.MediaInfo;
 import com.cicada.player.nativeclass.PlayerConfig;
 import com.cicada.player.nativeclass.TrackInfo;
-import com.cicada.player.demo.util.NetWatchdog;
-import com.cicada.player.demo.util.VcPlayerLog;
 import com.cicada.player.utils.Logger;
-
 import java.io.File;
 import java.lang.ref.WeakReference;
-
-import static com.cicada.player.demo.view.subtitle.LocationStyle.Location_CenterH;
-import static com.cicada.player.demo.view.subtitle.LocationStyle.Location_Top;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * UI播放器的主要实现类。
@@ -1237,6 +1237,21 @@ public class CicadaVodPlayerView extends RelativeLayout {
                     mRetryTime = 3;
                     Log.e(TAG, "NetworkRetrySuccess");
                     Toast.makeText(getContext(), R.string.cicada_tip_network_connect_success, Toast.LENGTH_SHORT).show();
+                } else if (infoBean.getCode() == InfoCode.DirectComponentMSG) {
+                    String msg = infoBean.getExtraMsg();
+                    try {
+                        JSONObject msgJson = new JSONObject(msg);
+                        if (msgJson.has("content")) {
+                            if ("hello".equals(msgJson.getString("content"))) {
+                                msgJson.remove("content");
+                                msgJson.put("content", "hi");
+                                msgJson.put("cmd", 0);
+                                mCicadaVodPlayer.invokeComponent(msgJson.toString());
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
                 if (mOutInfoListener != null) {
                     mOutInfoListener.onInfo(infoBean);
