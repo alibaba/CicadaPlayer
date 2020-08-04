@@ -3316,10 +3316,6 @@ void SuperMediaPlayer::Reset()
 
     mSecretPlayBack = false;
     mDrmKeyValid = false;
-    mAudioRenderingCb = nullptr;
-    mAudioRenderingCbUserData = nullptr;
-    mFrameCb = nullptr;
-    mFrameCbUserData = nullptr;
 }
 
 int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)
