@@ -79,6 +79,7 @@ dependencies {
 
     implementation project(':premierlibrary')
     implementation project(':zxing')
+    implementation project(':ExternalPlayerExoLibrary')
 
     //ExoPlayer
     implementation 'com.google.android.exoplayer:exoplayer:2.9.6'

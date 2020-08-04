@@ -25,6 +25,8 @@ namespace Cicada {
 
         void reset();
 
+        std::map<std::string, std::string> getOptions();
+
     private:
         std::map<std::string, std::string> mDict;
     };

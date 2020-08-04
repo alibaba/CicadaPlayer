@@ -27,7 +27,7 @@
                 android:singleLine="true"
                 android:background="@drawable/shape_edit_bg"
                 android:hint="http://player.alicdn.com/video/aliyunmedia.mp4"
-                android:text="http://player.alicdn.com/video/aliyunmedia.mp4"
+                android:text="https://alivc-demo-vod.aliyuncs.com/b4da45beb07b4d5b81b54b1ac50fb502/88839cae0df0489584ca3d8217ef8048.m3u8"
                 android:maxLines="1" />
 
             <Button

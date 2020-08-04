@@ -38,3 +38,7 @@ void Cicada::options::reset()
 {
     mDict.clear();
 }
+
+std::map<std::string, std::string> Cicada::options::getOptions() {
+    return mDict;
+}
