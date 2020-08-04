@@ -30,7 +30,7 @@ namespace Cicada {
         mInterruptCb = inter;
     }
 
-    int IDemuxer::GetStreamMeta(unique_ptr<streamMeta> &meta, int index, bool sub) const
+    int IDemuxer::GetStreamMeta(unique_ptr<streamMeta> &meta, int index, bool sub)
     {
         Stream_meta Meta;
         int ret = GetStreamMeta(&Meta, index, sub);

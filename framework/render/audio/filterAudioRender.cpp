@@ -240,7 +240,7 @@ namespace Cicada {
             ret = device_write(mRenderFrame);
 
             if (ret == -EAGAIN) {
-
+                unique_lock<mutex> lock(mFrameQueMutex);
                 if (mFrameQue.size() == mMaxQueSize) {
                     mMaxQueSize = std::max(MIN_INPUT_BUFFER_COUNT, mMaxQueSize.load() - 1);
                 }

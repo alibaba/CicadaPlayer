@@ -58,7 +58,7 @@ namespace Cicada{
         
         int GetSourceMeta(Source_meta **meta) const override;
 
-        int GetStreamMeta(Stream_meta *meta, int index, bool sub) const override;
+        int GetStreamMeta(Stream_meta *meta, int index, bool sub) override;
 
         int OpenStream(int index) override;
 

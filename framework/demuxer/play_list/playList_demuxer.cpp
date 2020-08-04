@@ -127,7 +127,7 @@ namespace Cicada {
         return 0;
     }
 
-    int playList_demuxer::GetStreamMeta(Stream_meta *meta, int index, bool sub) const
+    int playList_demuxer::GetStreamMeta(Stream_meta *meta, int index, bool sub)
     {
         if (mPPlaylistManager) {
             return mPPlaylistManager->GetStreamMeta(meta, index, sub);
