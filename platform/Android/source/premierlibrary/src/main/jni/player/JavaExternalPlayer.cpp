@@ -374,11 +374,13 @@ bool JavaExternalPlayer::is_supported(const Cicada::options *opts) {
     jobject jOption = JavaOptions::convertTo(mEnv, const_cast<Cicada::options *>(opts));
     jboolean ret = mEnv->CallStaticBooleanMethod(gj_NativeExternalPlayer_Class,
                                                  gj_NativeExternalPlayer_isSupport, jOption);
-    mEnv->DeleteLocalRef(jOption);
+    if(jOption != nullptr) {
+        mEnv->DeleteLocalRef(jOption);
+    }
     return (bool) ret;
 }
 
-JavaExternalPlayer::JavaExternalPlayer() {
+JavaExternalPlayer::JavaExternalPlayer(const Cicada::options * opts) {
     JniEnv Jenv;
     JNIEnv *mEnv = Jenv.getEnv();
 
@@ -391,9 +393,11 @@ JavaExternalPlayer::JavaExternalPlayer() {
     jExternalPlayer = mEnv->NewGlobalRef(tmpPlayer);
     mEnv->DeleteLocalRef(tmpPlayer);
 
-    //TODO  参数设置
-//    jobject jOption = JavaOptions::convertTo(mEnv ,  );
-    mEnv->CallVoidMethod(jExternalPlayer, gj_NativeExternalPlayer_create, (long) this, nullptr);
+    jobject jOption = JavaOptions::convertTo(mEnv , const_cast<Cicada::options *>(opts));
+    mEnv->CallVoidMethod(jExternalPlayer, gj_NativeExternalPlayer_create, (long) this, jOption);
+    if(jOption != nullptr) {
+        mEnv->DeleteLocalRef(jOption);
+    }
 }
 
 JavaExternalPlayer::~JavaExternalPlayer() {

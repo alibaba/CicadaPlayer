@@ -315,7 +315,16 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
 
     @Override
     public boolean isSupport(Options options) {
-        return true;
+        if (options == null) {
+            return false;
+        }
+
+        String name = options.get("name");
+        if ("ExoPlayer".equals(name)) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override

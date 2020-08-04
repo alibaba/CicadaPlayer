@@ -23,7 +23,7 @@ void JavaOptions::init(JNIEnv *env) {
                                            "()V");
         gj_Options_set = env->GetMethodID(gj_Options_Class,
                                           "set",
-                                          "(Ljava/lang/String;Ljava/lang/String;I)V");
+                                          "(Ljava/lang/String;Ljava/lang/String;I)Z");
 
     }
 }
@@ -47,7 +47,7 @@ jobject JavaOptions::convertTo(JNIEnv *pEnv, Cicada::options *options) {
     for (auto &opt : opts) {
         NewStringUTF key(pEnv, opt.first.c_str());
         NewStringUTF value(pEnv, opt.second.c_str());
-        pEnv->CallVoidMethod(jOptions, gj_Options_set, key.getString(), value.getString(), 1);
+        pEnv->CallBooleanMethod(jOptions, gj_Options_set, key.getString(), value.getString(), 1);
     }
 
     return jOptions;
