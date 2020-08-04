@@ -2624,6 +2624,22 @@ int SuperMediaPlayer::ReadPacket()
         }
     } else {
         AF_LOGD("unknown stream %x, read packet pts is %lld\n", pFrame->getInfo().streamIndex, pFrame->getInfo().pts);
+        if (mCurrentAudioIndex < 0 || mCurrentVideoIndex < 0) {
+            std::unique_ptr<streamMeta> meta;
+            int ret1 = mDemuxerService->GetStreamMeta(meta, pFrame->getInfo().streamIndex, true);
+            if (ret1 >= 0) {
+                switch (((Stream_meta *) (*meta))->type) {
+                    case STREAM_TYPE_VIDEO: {
+                        if (mCurrentVideoIndex < 0 && ((Stream_meta *) (*meta))->width > 0) {
+                            mCurrentVideoIndex = pFrame->getInfo().streamIndex;
+                        }
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+        }
     }
 
     if (mWillSwitchVideo) {
