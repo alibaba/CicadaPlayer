@@ -620,6 +620,17 @@ tableview点击外挂字幕回调
         }
     }else if (eventWithString == CICADA_EVENT_PLAYER_NETWORK_RETRY_SUCCESS) {
         self.retryCount = 3;
+    } else if (eventWithString == CICADA_EVENT_PLAYER_DIRECT_COMPONENT_MSG) {
+        NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:[description dataUsingEncoding:NSUTF8StringEncoding]
+                                                            options:0
+                                                              error:nil];
+        NSString *value = dic[@"content"];
+        if ([value isEqualToString:@"hello"]) {
+            NSMutableDictionary *mutableDic = [dic mutableCopy];
+            mutableDic[@"content"] = @"hi";
+            NSData *data = [NSJSONSerialization dataWithJSONObject:mutableDic options:0 error:nil];
+            [self.player invokeComponent:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]];
+        }
     }
     [CicadaTool hudWithText:description view:self.view];
 }
