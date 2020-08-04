@@ -85,7 +85,7 @@ namespace Cicada {
         return 0;
     }
 
-    int avFormatSubtitleDemuxer::GetStreamMeta(Stream_meta *meta, int index, bool sub) const
+    int avFormatSubtitleDemuxer::GetStreamMeta(Stream_meta *meta, int index, bool sub)
     {
         if (index < 0 || index > mCtx->nb_streams) {
             return -EINVAL;

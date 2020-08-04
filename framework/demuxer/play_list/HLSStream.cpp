@@ -419,14 +419,16 @@ namespace Cicada {
             std::lock_guard<std::mutex> lock(mHLSMutex);
             mPDemuxer = std::unique_ptr<demuxer_service>(new demuxer_service(nullptr));
         }
-
-        mPDemuxer->setOptions(this->mOpts);
-        unique_ptr<DemuxerMeta> demuxerMeta = unique_ptr<DemuxerMeta>(new DemuxerMeta());
-        demuxerMeta->ownerUrl = mPTracker->getPlayListUri();
-        mPDemuxer->setDemuxerMeta(demuxerMeta);
-        mPDemuxer->SetDataCallBack(read_callback, this, nullptr, nullptr, nullptr);
-        mPDemuxer->setSampleDecryptor(this->mSampeAesDecrypter.get());
-        ret = mPDemuxer->createDemuxer(demuxer_type_unknown);
+        {
+            std::lock_guard<std::mutex> lock(mHLSMutex);
+            mPDemuxer->setOptions(this->mOpts);
+            unique_ptr<DemuxerMeta> demuxerMeta = unique_ptr<DemuxerMeta>(new DemuxerMeta());
+            demuxerMeta->ownerUrl = mPTracker->getPlayListUri();
+            mPDemuxer->setDemuxerMeta(demuxerMeta);
+            mPDemuxer->SetDataCallBack(read_callback, this, nullptr, nullptr, nullptr);
+            mPDemuxer->setSampleDecryptor(this->mSampeAesDecrypter.get());
+            ret = mPDemuxer->createDemuxer(demuxer_type_unknown);
+        }
 
         if (ret < 0) {
             return ret;
