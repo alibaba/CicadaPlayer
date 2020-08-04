@@ -472,10 +472,10 @@ import java.lang.ref.WeakReference;
         }
     };
 
-    public CicadaPlayerImpl(Context context, String traceID) {
+    public CicadaPlayerImpl(Context context, String name, String traceID) {
         mContext = context;
         mTraceID = traceID;
-        mCorePlayer = new NativePlayerBase(context);
+        mCorePlayer = new NativePlayerBase(context , name);
         mCorePlayer.setTraceId(mTraceID);
 
         bindListeners();

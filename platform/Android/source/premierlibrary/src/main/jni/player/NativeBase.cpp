@@ -19,6 +19,7 @@
 #include <utils/Android/GetStringUTFChars.h>
 #include <utils/Android/JniException.h>
 #include <utils/Android/FindClass.h>
+#include <utils/CicadaJSON.h>
 
 
 #include "NativeBase.h"
@@ -57,12 +58,21 @@ jmethodID gj_NativePlayer_onBufferPositionUpdate = nullptr;
 jmethodID gj_NativePlayer_onCurrentPositionUpdate = nullptr;
 jmethodID gj_NativePlayer_onSubtitleExtAdded = nullptr;
 
-void NativeBase::java_Construct(JNIEnv *env, jobject instance)
+void NativeBase::java_Construct(JNIEnv *env, jobject instance , jstring name)
 {
     AF_TRACE;
     PlayerPrivateData *privateData = new PlayerPrivateData();
     privateData->j_instance = env->NewGlobalRef(instance);
-    privateData->player = new MediaPlayer();
+
+    if(name != nullptr) {
+        GetStringUTFChars jName(env, name);
+        CicadaJSONItem opts{};
+        opts.addValue("name", jName.getChars());
+        privateData->player = new MediaPlayer(opts.printJSON().c_str());
+    }else {
+        privateData->player = new MediaPlayer();
+    }
+
     env->CallVoidMethod(instance, gj_NativePlayer_setNativeContext, (jlong) privateData);
     JniException::clearException(env);
     jobject userData = privateData->j_instance;
@@ -936,7 +946,7 @@ void NativeBase::unInit(JNIEnv *pEnv)
 }
 
 static JNINativeMethod nativePlayer_method_table[] = {
-    {"nConstruct",              "()V",                                     (void *) NativeBase::java_Construct},
+    {"nConstruct",              "(Ljava/lang/String;)V",                   (void *) NativeBase::java_Construct},
     {"nSetConnectivityManager", "(Ljava/lang/Object;)V",                   (void *) NativeBase::java_SetConnectivityManager},
     {"nEnableHardwareDecoder",  "(Z)V",                                    (void *) NativeBase::java_EnableHardwareDecoder},
     {"nSetSurface",             "(Landroid/view/Surface;)V",               (void *) NativeBase::java_SetView},

@@ -38,7 +38,7 @@ public:
 
 
 public:
-    static void java_Construct(JNIEnv *env, jobject instance);
+    static void java_Construct(JNIEnv *env, jobject instance, jstring name);
 
     static void java_SetConnectivityManager(JNIEnv *env, jobject instance, jobject connectManager);
 
