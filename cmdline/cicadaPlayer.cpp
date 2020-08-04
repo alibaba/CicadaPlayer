@@ -72,7 +72,7 @@ static void onEvent(int64_t errorCode, const void *errorMsg, void *userData)
                 msg.deleteItem("content");
                 msg.addValue("content", "hi");
                 msg.addValue("cmd", 0);
-                cont->player->InvokeComponent(msg.printJSON());
+                cont->player->InvokeComponent(msg.printJSON().c_str());
             }
             break;
         }
