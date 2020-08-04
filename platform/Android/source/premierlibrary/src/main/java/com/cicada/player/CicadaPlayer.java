@@ -1389,4 +1389,6 @@ public interface CicadaPlayer {
 
 
     abstract public void setFastStart(boolean open);
+
+    abstract public void invokeComponent(String content);
 }

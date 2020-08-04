@@ -127,6 +127,8 @@ public:
 
     static void java_SetOption(JNIEnv *env, jobject instance, jstring key, jstring value);
 
+    static int java_InvokeComponent(JNIEnv *env, jobject instance, jstring content);
+
     static void java_SetAutoPlay(JNIEnv *env, jobject instance,
                                  jboolean autoPlay);
 
