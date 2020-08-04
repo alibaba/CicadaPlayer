@@ -97,7 +97,7 @@ public class NativePlayerBase {
         mNativeContext = l;
     }
 
-    public NativePlayerBase(Context context) {
+    public NativePlayerBase(Context context, String name) {
 
         mContext = context;
 
@@ -115,7 +115,7 @@ public class NativePlayerBase {
         //TODO Later : 线程的情况下回调的问题。
         mCurrentThreadHandler = new MainHandler(this, Looper.getMainLooper());
 
-        construct(context);
+        construct(context , name);
     }
 
     private static String getUserNativeLibPath(Context context) {
@@ -139,8 +139,8 @@ public class NativePlayerBase {
         return userPath;
     }
 
-    private void construct(Context context) {
-        nConstruct();
+    private void construct(Context context, String name) {
+        nConstruct(name);
         if (context != null) {
             ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
             nSetConnectivityManager(connectivityManager);
@@ -458,7 +458,7 @@ public class NativePlayerBase {
 
     ////===============-------------------==================------------------////
 
-    protected native void nConstruct();
+    protected native void nConstruct(String name);
 
     protected native void nSetConnectivityManager(Object connectManager);
 
