@@ -87,7 +87,7 @@ public :
 
 
 public:
-    JavaExternalPlayer();
+    JavaExternalPlayer(const Cicada::options * opts);
 
     ~JavaExternalPlayer() override;
 
@@ -217,7 +217,7 @@ public:
 
 private:
     ICicadaPlayer *clone() override {
-        return new JavaExternalPlayer();
+        return new JavaExternalPlayer(options);
     }
 
     explicit JavaExternalPlayer(int dummy) {
@@ -225,17 +225,12 @@ private:
     }
 
     int probeScore(const Cicada::options *opts) override {
-        if (opts) {
-            string name = opts->get("name");
-            if (!name.empty()) {
-                if (name == "JavaExternalPlayer") {
-                    return Cicada::SUPPORT_MAX;
-                } else {
-                    return Cicada::SUPPORT_NOT;
-                }
-            }
+        options = opts;
+        if (is_supported(opts)) {
+            return Cicada::SUPPORT_MAX;
+        } else {
+            return Cicada::SUPPORT_NOT;
         }
-        return Cicada::SUPPORT_NOT;
     }
 
     static JavaExternalPlayer se;
@@ -274,7 +269,7 @@ private:
     playerListener mPlayerListener{};
     StreamInfo ** mStreamInfos{nullptr};
     int mStreamCount{0};
-
+    const Cicada::options *options{nullptr};
 private:
     void releaseStreamInfo(StreamInfo *pInfo);
 

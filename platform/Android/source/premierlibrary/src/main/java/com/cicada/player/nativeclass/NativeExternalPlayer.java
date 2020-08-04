@@ -20,15 +20,12 @@ public class NativeExternalPlayer {
 
     @NativeUsed
     public static boolean isSupport(Options options) {
-        //TODO 根据option判断
-//        CicadaExternalPlayer dummyPlayer = CicadaExternalPlayer.isSupportExternal(options);
-//        if (dummyPlayer != null) {
-//            return true;
-//        } else {
-//            return false;
-//        }
-
-        return true;
+        CicadaExternalPlayer dummyPlayer = CicadaExternalPlayer.isSupportExternal(options);
+        if (dummyPlayer != null) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @NativeUsed
