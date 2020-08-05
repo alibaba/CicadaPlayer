@@ -34,7 +34,8 @@ jobs:
       - name: Build debug APK
         run: |
           export ANDROID_NDK=/home/runner/android-env/android-ndk-r14b
-          export ANDROID_NDK_ROOT=/home/runner/android-env/android-ndk-r14b
+          export ANDROID_NDK_ROOT=${ANDROID_NDK}
+          export ANDROID_NDK_HOME=${ANDROID_NDK}
           echo "y" | sudo apt-get install ninja-build
           cd $GITHUB_WORKSPACE/platform/Android/source
           export ANDROID_FULL_PACKAGE='true'
