@@ -1060,9 +1060,10 @@ import java.lang.ref.WeakReference;
         mCorePlayer.setFastStart(open);
     }
 
-    @Override public void invokeComponent(String content)
+    @Override
+    public int invokeComponent(String content)
     {
-        mCorePlayer.invokeComponent(content);
+        return mCorePlayer.invokeComponent(content);
     }
 }
 

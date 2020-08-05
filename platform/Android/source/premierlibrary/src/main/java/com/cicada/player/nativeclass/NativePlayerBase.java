@@ -456,9 +456,9 @@ public class NativePlayerBase {
         nSetBlackType(type);
     }
 
-    public void invokeComponent(String content)
+    public int invokeComponent(String content)
     {
-        nInvokeComponent(content);
+        return nInvokeComponent(content);
     }
 
     ////===============-------------------==================------------------////
@@ -573,7 +573,7 @@ public class NativePlayerBase {
 
     protected native void nSetFastStart(boolean open);
 
-    protected native void nInvokeComponent(String content);
+    protected native int nInvokeComponent(String content);
 
     //////==========--------------==================------------------================//
 
