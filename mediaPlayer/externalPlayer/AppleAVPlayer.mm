@@ -31,12 +31,15 @@ AppleAVPlayer::~AppleAVPlayer()
     }
     AVPlayer *avPlayer = (__bridge AVPlayer *)this->avPlayer;
     CALayer *playerLayer = (CALayer *)CFBridgingRelease(this->parentLayer);
-    CFRelease(this->playerHandler);
-    this->playerHandler = NULL;
-    CFRelease(this->avPlayer);
-    this->avPlayer = NULL;
-    CFRelease(this->sourceUrl);
-    this->sourceUrl = NULL;
+    if (this->playerHandler) {
+        CFRelease(this->playerHandler);
+    }
+    if (this->avPlayer) {
+        CFRelease(this->avPlayer);
+    }
+    if (this->sourceUrl) {
+        CFRelease(this->sourceUrl);
+    }
     this->parentLayer = NULL;
     this->mListener = {nullptr,};
     this->mStreamInfos = NULL;
