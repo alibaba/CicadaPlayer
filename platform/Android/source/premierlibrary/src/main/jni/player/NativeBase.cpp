@@ -1012,7 +1012,7 @@ static JNINativeMethod nativePlayer_method_table[] = {
         {"nSetFastStart", "(Z)V", (void *) NativeBase::java_SetFastStart},
         {"nGetCacheFilePath", "(Ljava/lang/String;)Ljava/lang/String;", (void *) NativeBase::java_GetCacheFilePathByURL},
         {"nSetDefaultBandWidth", "(I)V", (void *) NativeBase::java_SetDefaultBandWidth},
-        {"nInvokeComponent", "(Ljava/lang/String;)V", (void *) NativeBase::java_InvokeComponent},
+        {"nInvokeComponent", "(Ljava/lang/String;)I", (void *) NativeBase::java_InvokeComponent},
 
 };
 
