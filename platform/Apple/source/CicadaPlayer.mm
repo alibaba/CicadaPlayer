@@ -118,7 +118,11 @@ static int logOutput = 1;
 - (instancetype)init:(NSString*)traceID opt:(NSDictionary *)opt {
     if (self = [super init]) {
         self.traceId = traceID;
-        NSString *json = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:opt options:0 error:nil] encoding:NSUTF8StringEncoding];
+        NSString *json = nullptr;
+        if (opt != nullptr) {
+            json = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:opt options:0 error:nil]
+                                         encoding:NSUTF8StringEncoding];
+        }
         self.player = new MediaPlayer([json UTF8String]);
         [self resetProperty];
         playerListener listener = {0};
