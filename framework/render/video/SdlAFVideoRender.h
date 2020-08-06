@@ -89,6 +89,7 @@ private:
     SDL_Window *mVideoWindow = nullptr;
     SDL_Texture *mVideoTexture = nullptr;
     SDL_Renderer *mVideoRender = nullptr;
+    bool mWindowNeedRelease{false};
     bool mRenderNeedRelease{false};
     void* mCurrentView = nullptr;
 
