@@ -437,17 +437,27 @@ int SdlAFVideoRender::setDisPlay(void *view)
     }
     if (mVideoTexture != nullptr) {
         SDL_DestroyTexture(mVideoTexture);
+        mVideoTexture = nullptr;
+        mInited = false;
     }
     if (mRenderNeedRelease) {
         SDL_DelEventWatch(SdlWindowSizeEventWatch, this);
         SDL_DestroyRenderer(mVideoRender);
+        mVideoRender = nullptr;
         mRenderNeedRelease = false;
+    }
+    if (mWindowNeedRelease && mVideoWindow) {
+        SDL_DestroyWindow(mVideoWindow);
+        mVideoWindow = nullptr;
+        mWindowNeedRelease = false;
     }
     if (display->type == CicadaSDLViewType_NATIVE_WINDOW) {
         mVideoWindow = SDL_CreateWindowFrom(display->view);
         SDL_ShowWindow(mVideoWindow);
+        mWindowNeedRelease = true;
     } else {
         mVideoWindow = static_cast<SDL_Window *>(display->view);
+        mWindowNeedRelease = false;
     }
 
     if (mVideoWindow) {
@@ -461,8 +471,9 @@ int SdlAFVideoRender::setDisPlay(void *view)
 #endif
             mVideoRender = SDL_CreateRenderer(mVideoWindow, -1, renderFlags);
             mRenderNeedRelease = true;
-        } else
+        } else {
             mRenderNeedRelease = false;
+        }
     }
 
     return 0;
