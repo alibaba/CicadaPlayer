@@ -21,8 +21,8 @@ ffmpeg_config_add_protocols file crypto rtmp
 ffmpeg_config_add_filters atempo aresample aformat volume
 
 
-ffmpeg_config_add_user "--enable-libxml2"
-ffmpeg_config_add_demuxers dash
+#ffmpeg_config_add_user "--enable-libxml2"
+#ffmpeg_config_add_demuxers dash
 
 #for ffmpeg concat demuxer
 ffmpeg_config_add_demuxers concat
