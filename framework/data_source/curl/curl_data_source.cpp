@@ -49,6 +49,7 @@ CURLConnection *CurlDataSource::initConnection()
 {
     auto *pHandle = new CURLConnection(pConfig);
     pHandle->setSource(mLocation, headerList);
+    pHandle->setPost(mBPost, mPostSize, mPostData);
     return pHandle;
 }
 
@@ -148,6 +149,13 @@ CurlDataSource::~CurlDataSource()
 
     Interrupt(true);
     Close();
+}
+
+void CurlDataSource::setPost(bool post, int64_t size, const uint8_t *data)
+{
+    mBPost = post;
+    mPostSize = size;
+    mPostData = data;
 }
 
 int CurlDataSource::Open(int flags)

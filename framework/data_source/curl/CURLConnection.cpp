@@ -292,6 +292,17 @@ void Cicada::CURLConnection::setSource(const string &location, struct curl_slist
         curl_easy_setopt(mHttp_handle, CURLOPT_RESOLVE, reSolveList);
     }
 }
+void CURLConnection::setPost(bool post, int64_t size, const uint8_t *data)
+{
+    if (post) {
+        curl_easy_setopt(mHttp_handle, CURLOPT_POST, 1);
+        curl_easy_setopt(mHttp_handle, CURLOPT_POSTFIELDSIZE, (long) size);
+        curl_easy_setopt(mHttp_handle, CURLOPT_POSTFIELDS, data);
+
+    } else {
+        curl_easy_setopt(mHttp_handle, CURLOPT_POST, 0);
+    }
+}
 
 int CURLConnection::my_trace(CURL *handle, curl_infotype type,
                              char *data, size_t size,
