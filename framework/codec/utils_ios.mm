@@ -139,12 +139,11 @@ namespace Cicada{
 
         IOSNotificationManager *manager = (IOSNotificationManager *) observer;
 
-        if (CFStringCompare(name, (__bridge CFStringRef) UIApplicationWillResignActiveNotification, 0) == kCFCompareEqualTo) {
+        if (CFStringCompare(name, (__bridge CFStringRef) UIApplicationDidEnterBackgroundNotification, 0) == kCFCompareEqualTo) {
             manager->HandleSystemNotification(IOSResignActive);
-        } else if (CFStringCompare(name, (__bridge CFStringRef) UIApplicationDidBecomeActiveNotification, 0) == kCFCompareEqualTo) {
+        } else if (CFStringCompare(name, (__bridge CFStringRef) UIApplicationWillEnterForegroundNotification, 0) == kCFCompareEqualTo) {
             manager->HandleSystemNotification(IOSBecomeActive);
         }
-
     }
 
     void RegisterIOSNotificationObserver(IOSNotificationObserver *observer, int mask)
@@ -167,15 +166,13 @@ namespace Cicada{
 
     IOSNotificationManager::IOSNotificationManager()
     {
-        CFNotificationCenterAddObserver(
-                CFNotificationCenterGetLocalCenter(), this, &IOSNotificationHandler,
-                (__bridge CFStringRef) UIApplicationWillResignActiveNotification, NULL,
-                CFNotificationSuspensionBehaviorDeliverImmediately);
+        CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), this, &IOSNotificationHandler,
+                                        (__bridge CFStringRef) UIApplicationDidEnterBackgroundNotification, NULL,
+                                        CFNotificationSuspensionBehaviorDeliverImmediately);
 
-        CFNotificationCenterAddObserver(
-                CFNotificationCenterGetLocalCenter(), this, &IOSNotificationHandler,
-                (__bridge CFStringRef) UIApplicationDidBecomeActiveNotification, NULL,
-                CFNotificationSuspensionBehaviorDeliverImmediately);
+        CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), this, &IOSNotificationHandler,
+                                        (__bridge CFStringRef) UIApplicationWillEnterForegroundNotification, NULL,
+                                        CFNotificationSuspensionBehaviorDeliverImmediately);
 
         dispatch_async(dispatch_get_main_queue(), ^{
             mbActive = [UIApplication sharedApplication].applicationState == UIApplicationStateActive;
