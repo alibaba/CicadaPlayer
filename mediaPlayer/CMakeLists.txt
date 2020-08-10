@@ -81,6 +81,8 @@ set(SOURCE_FILES
         native_cicada_player_def.h
         MediaPlayer.cpp
         MediaPlayerConfig.cpp
+        QueryListener.cpp
+        QueryListener.h
         abr/AbrManager.h
         abr/AbrManager.cpp
         abr/AbrRefererData.h
