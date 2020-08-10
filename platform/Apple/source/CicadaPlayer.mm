@@ -122,11 +122,11 @@ static int logOutput = 1;
 #if TARGET_OS_IPHONE
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(becomeActive)
-                                                     name:UIApplicationDidBecomeActiveNotification
+                                                     name:UIApplicationWillEnterForegroundNotification
                                                    object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(resignActive)
-                                                     name:UIApplicationWillResignActiveNotification
+                                                     name:UIApplicationDidEnterBackgroundNotification
                                                    object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(willTerminate)
@@ -146,8 +146,8 @@ static int logOutput = 1;
     [self destroy];
     
 #if TARGET_OS_IPHONE
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationDidBecomeActiveNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationWillResignActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationWillEnterForegroundNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationDidEnterBackgroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationWillTerminateNotification object:nil];
 #endif // TARGET_OS_IPHONE
 }
