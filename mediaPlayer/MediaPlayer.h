@@ -60,6 +60,9 @@ namespace Cicada {
         }
 
     public:
+
+        void SetAnalyticsCollector(IAnalyticsCollector * collector);
+
         void EnableVideoRenderedCallback(bool enable);
 
         void SetOnRenderFrameCallback(onRenderFrame cb, void *userData);
@@ -401,6 +404,7 @@ namespace Cicada {
         MediaPlayerConfig *mConfig;
         AnalyticsQueryListener *mQueryListener;
         IAnalyticsCollector *mCollector{nullptr};
+        bool  bExternalCollector{false};
         IAnalyticsCollectorFactory &mCollectorFactory;
         AbrManager *mAbrManager;
         AbrAlgoStrategy *mAbrAlgo;
