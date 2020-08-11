@@ -97,9 +97,10 @@ namespace Cicada {
 
         virtual int GetSourceMeta(Source_meta **meta) const = 0;
 
-        attribute_deprecated virtual int GetStreamMeta(Stream_meta *meta, int index, bool sub) = 0;
+        attribute_deprecated
+        virtual int GetStreamMeta(Stream_meta *meta, int index, bool sub) const = 0;
 
-        virtual int GetStreamMeta(unique_ptr<streamMeta> &meta, int index, bool sub);
+        virtual int GetStreamMeta(unique_ptr<streamMeta> &meta, int index, bool sub) const;
 
         virtual int OpenStream(int index) = 0;
 

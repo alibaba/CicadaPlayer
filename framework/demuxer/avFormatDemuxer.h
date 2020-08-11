@@ -52,7 +52,7 @@ namespace Cicada {
 
         int GetSourceMeta(Source_meta **meta) const override;
 
-        int GetStreamMeta(Stream_meta *meta, int index, bool sub) override;
+        int GetStreamMeta(Stream_meta *meta, int index, bool sub) const override;
 
         void Start() override;
 
@@ -143,7 +143,6 @@ namespace Cicada {
         std::mutex mQueLock{};
         std::condition_variable mQueCond{};
         atomic <int64_t> mError{0};
-        std::mutex mCtxMutex{};
 #endif
 
     };
