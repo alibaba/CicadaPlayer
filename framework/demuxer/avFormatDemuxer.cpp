@@ -435,6 +435,9 @@ namespace Cicada {
         }
 
         if (!bsfName.empty()) {
+#if AF_HAVE_PTHREAD
+            std::lock_guard<std::mutex> uLock(mCtxMutex);
+#endif
             mStreamCtxMap[index]->bsf = unique_ptr<IAVBSF>(IAVBSFFactory::create(bsfName));
             ret = mStreamCtxMap[index]->bsf->init(bsfName, mCtx->streams[index]->codecpar);
 
@@ -539,7 +542,10 @@ namespace Cicada {
 
     int avFormatDemuxer::GetStreamMeta(Stream_meta *meta, int index, bool sub) const
     {
-        if (index < 0 || index > mCtx->nb_streams) {
+#if AF_HAVE_PTHREAD
+        std::lock_guard<std::mutex> uLock(mCtxMutex);
+#endif
+        if (index < 0 || mCtx == nullptr || index > mCtx->nb_streams) {
             return -EINVAL;
         }
 

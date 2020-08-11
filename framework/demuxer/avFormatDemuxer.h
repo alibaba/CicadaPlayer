@@ -143,6 +143,7 @@ namespace Cicada {
         std::mutex mQueLock{};
         std::condition_variable mQueCond{};
         atomic <int64_t> mError{0};
+        mutable std::mutex mCtxMutex{};
 #endif
 
     };
