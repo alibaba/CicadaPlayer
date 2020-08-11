@@ -35,7 +35,8 @@ private:
     float mHz{0};
     std::unique_ptr<afThread> mThread{};
     af_clock mClock;
-    std::atomic_bool mBPaused{false};
+    bool mBPaused{false};
+
 };
 
 
