@@ -3071,21 +3071,22 @@ int SuperMediaPlayer::SetUpVideoPath()
         }
         AF_LOGD("SetUpVideoRender start");
         CreateVideoRender();
-        if (mVideoRender) {
-            IVideoRender::Rotate finalRotate = IVideoRender::Rotate::Rotate_None;
+    }
+    
+    if (mVideoRender) {
+        IVideoRender::Rotate finalRotate = IVideoRender::Rotate::Rotate_None;
 
-            if (meta->rotate == 0) {
-                finalRotate = IVideoRender::Rotate::Rotate_None;
-            } else if (meta->rotate == 90) {
-                finalRotate = IVideoRender::Rotate::Rotate_90;
-            } else if (meta->rotate == 180) {
-                finalRotate = IVideoRender::Rotate::Rotate_180;
-            } else if (meta->rotate == 270) {
-                finalRotate = IVideoRender::Rotate::Rotate_270;
-            }
-
-            mVideoRender->setVideoRotate(finalRotate);
+        if (meta->rotate == 0) {
+            finalRotate = IVideoRender::Rotate::Rotate_None;
+        } else if (meta->rotate == 90) {
+            finalRotate = IVideoRender::Rotate::Rotate_90;
+        } else if (meta->rotate == 180) {
+            finalRotate = IVideoRender::Rotate::Rotate_180;
+        } else if (meta->rotate == 270) {
+            finalRotate = IVideoRender::Rotate::Rotate_270;
         }
+
+        mVideoRender->setVideoRotate(finalRotate);
     }
 
     //re set view in case for not set view before
