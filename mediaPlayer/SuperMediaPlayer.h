@@ -306,6 +306,8 @@ namespace Cicada {
 
         void notifyPreparedCallback();
 
+        void updateVideoMeta();
+
         class ApsaraAudioRenderCallback : public IAudioRenderListener {
         public:
             ApsaraAudioRenderCallback(SuperMediaPlayer &player) : mPlayer(player)
