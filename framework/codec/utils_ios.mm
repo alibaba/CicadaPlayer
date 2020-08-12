@@ -175,7 +175,7 @@ namespace Cicada{
                                         CFNotificationSuspensionBehaviorDeliverImmediately);
 
         dispatch_async(dispatch_get_main_queue(), ^{
-            mbActive = [UIApplication sharedApplication].applicationState == UIApplicationStateActive;
+            mbActive = [UIApplication sharedApplication].applicationState != UIApplicationStateBackground;
         });
     }
 
