@@ -122,14 +122,20 @@ void AppleAVPlayer::Prepare()
     [selectionOptionArray enumerateObjectsUsingBlock:^(AVMediaSelectionOption * _Nonnull options, NSUInteger idx, BOOL * _Nonnull stop) {
         auto *info = new StreamInfo();
         info->streamIndex = (int)idx;
-        info->description = strdup((const char *)[options.displayName UTF8String]);
-        
+        if (options.displayName != nullptr) {
+            info->description = strdup((const char *) [options.displayName UTF8String]);
+        }
+
         if ([options.mediaType isEqualToString:AVMediaTypeSubtitle]) {
             info->type = ST_TYPE_SUB;
-            info->subtitleLang = strdup((const char *)[options.extendedLanguageTag UTF8String]);
+            if (options.extendedLanguageTag != nullptr) {
+                info->subtitleLang = strdup((const char *) [options.extendedLanguageTag UTF8String]);
+            }
         } else if ([options.mediaType isEqualToString:AVMediaTypeAudio]) {
             info->type = ST_TYPE_AUDIO;
-            info->audioLang = strdup((const char *)[options.extendedLanguageTag UTF8String]);
+            if (options.extendedLanguageTag != nullptr) {
+                info->audioLang = strdup((const char *) [options.extendedLanguageTag UTF8String]);
+            }
         } else if ([options.mediaType isEqualToString:AVMediaTypeVideo]) {
             info->type = ST_TYPE_VIDEO;
         }
