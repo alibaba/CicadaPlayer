@@ -96,8 +96,10 @@ int SdlAFVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
 {
     {
 
+        bool paused = false;
         if (frame == nullptr) {
             mVSync->pause();
+            paused = true;
         }
         {
             std::unique_lock<std::mutex> lock(mRenderMutex);
@@ -106,8 +108,11 @@ int SdlAFVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
                 mRenderResultCallback(mLastVideoFrame->getInfo().pts, false);
             }
         }
+        if (frame && mVideoRotate != getRotate(frame->getInfo().video.rotate)) {
+            mVideoRotate = getRotate(frame->getInfo().video.rotate);
+        }
         mLastVideoFrame = std::move(frame);
-        if (frame == nullptr) {
+        if (paused) {
             mVSync->start();
         }
     }
@@ -227,11 +232,6 @@ int SdlAFVideoRender::setRotate(Rotate rotate)
 {
     mRotate = rotate;
     return 0;
-}
-
-void SdlAFVideoRender::setVideoRotate(Rotate rotate)
-{
-    mVideoRotate = rotate;
 }
 
 int SdlAFVideoRender::setFlip(Flip flip)
