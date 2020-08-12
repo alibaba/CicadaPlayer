@@ -3071,7 +3071,9 @@ int SuperMediaPlayer::SetUpVideoPath()
         }
         AF_LOGD("SetUpVideoRender start");
         CreateVideoRender();
-        if (mVideoRender) {
+    }
+    
+    if (mVideoRender) {
             IVideoRender::Rotate finalRotate = IVideoRender::Rotate::Rotate_None;
 
             if (meta->rotate == 0) {
@@ -3086,7 +3088,6 @@ int SuperMediaPlayer::SetUpVideoPath()
 
             mVideoRender->setVideoRotate(finalRotate);
         }
-    }
 
     //re set view in case for not set view before
     if (mSet->mView) {
