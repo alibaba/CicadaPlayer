@@ -85,14 +85,26 @@ int SdlAFVideoRender::clearScreen()
 
 int SdlAFVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
 {
+    bool paused = false;
+    if (frame == nullptr) {
+        mVSync->pause();
+        paused = true;
+    }
     {
         std::unique_lock<std::mutex> lock(mRenderMutex);
         if (mLastVideoFrame && mRenderResultCallback) {
             mLastVideoFrame->setDiscard(true);
             mRenderResultCallback(mLastVideoFrame->getInfo().pts, false);
         }
-        mLastVideoFrame = std::move(frame);
     }
+    if (frame && mVideoRotate != getRotate(frame->getInfo().video.rotate)) {
+        mVideoRotate = getRotate(frame->getInfo().video.rotate);
+    }
+    mLastVideoFrame = std::move(frame);
+    if (paused) {
+        mVSync->start();
+    }
+
 //    int width = frame->getInfo().video.width;
 //    int height = frame->getInfo().video.height;
 //    AF_LOGD("video width = %d , height = %d", width, height);
@@ -191,11 +203,6 @@ int SdlAFVideoRender::setRotate(Rotate rotate)
 {
     mRotate = rotate;
     return 0;
-}
-
-void SdlAFVideoRender::setVideoRotate(Rotate rotate)
-{
-    mVideoRotate = rotate;
 }
 
 int SdlAFVideoRender::setFlip(Flip flip)

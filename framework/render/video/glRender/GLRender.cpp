@@ -125,11 +125,6 @@ int GLRender::setRotate(IVideoRender::Rotate rotate)
     return 0;
 }
 
-void GLRender::setVideoRotate(Rotate rotate)
-{
-    mVideoRotate = rotate;
-}
-
 int GLRender::setFlip(IVideoRender::Flip flip)
 {
     AF_LOGD("-----> setFlip");
@@ -348,6 +343,7 @@ bool GLRender::renderActually()
 
     if (frame != nullptr) {
         framePts = frame->getInfo().pts;
+        mVideoRotate = getRotate(frame->getInfo().video.rotate);
     }
 
     Rotate finalRotate = Rotate_None;
