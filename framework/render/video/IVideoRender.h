@@ -33,6 +33,20 @@ public:
         Scale_Fill
     };
 
+    static Rotate getRotate(int value)
+    {
+        switch (value) {
+            case 90:
+                return Rotate_90;
+            case 180:
+                return Rotate_180;
+            case 270:
+                return Rotate_270;
+            default:
+                return Rotate_None;
+        }
+    };
+
     class ScreenShotInfo {
     public:
         enum Format {
@@ -75,8 +89,6 @@ public:
      * @return
      */
     virtual int init() = 0;
-
-    virtual void setVideoRotate(Rotate rotate) = 0;
 
     /**
      * clear screen to black.

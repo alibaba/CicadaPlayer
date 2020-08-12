@@ -24,8 +24,6 @@ public:
 
     int init() override;
 
-    void setVideoRotate(Rotate rotate) override ;
-
     void setWindowSize(int windWith, int mWindHeight) override;
 
     int clearScreen() override;
