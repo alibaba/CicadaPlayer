@@ -2025,7 +2025,7 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
 
     int frameWidth = videoFrame->getInfo().video.width;
     int frameHeight = videoFrame->getInfo().video.height;
-    int frameRotate = videoFrame->getInfo().video.rotate;
+    videoFrame->getInfo().video.rotate = mVideoRotation;
 
     if (!mVideoPtsRevert) {
         mVideoPtsRevert = mPlayedVideoPts != INT64_MIN && videoPts < mPlayedVideoPts - PTS_DISCONTINUE_DELTA;
@@ -2114,7 +2114,6 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
         if (frameWidth != mVideoWidth || frameHeight != mVideoHeight) {
             mVideoWidth = frameWidth;
             mVideoHeight = frameHeight;
-            mVideoRotation = frameRotate;
             mPNotifier->NotifyVideoSizeChanged(mVideoWidth, mVideoHeight);
         }
 
@@ -2340,6 +2339,7 @@ void SuperMediaPlayer::ProcessOpenStreamInit(int streamIndex)
                     AF_LOGD("get a video stream\n");
                     mCurrentVideoIndex = GEN_STREAM_ID(mMainStreamId, j);
                     mVideoInterlaced = meta->interlaced;
+                    updateVideoMeta();
                 } else if (!mSet->bDisableAudio && meta->type == STREAM_TYPE_AUDIO && mCurrentAudioIndex < 0 && meta->channels > 0) {
                     AF_LOGD("get a audio stream\n");
                     mCurrentAudioIndex = GEN_STREAM_ID(mMainStreamId, j);
@@ -2632,6 +2632,7 @@ int SuperMediaPlayer::ReadPacket()
                     case STREAM_TYPE_VIDEO: {
                         if (mCurrentVideoIndex < 0 && ((Stream_meta *) (*meta))->width > 0) {
                             mCurrentVideoIndex = pFrame->getInfo().streamIndex;
+                            updateVideoMeta();
                         }
                         break;
                     }
@@ -3033,22 +3034,15 @@ int SuperMediaPlayer::setUpAudioRender(const IAFFrame::audioInfo &info)
 
 int SuperMediaPlayer::SetUpVideoPath()
 {
+    assert(mCurrentVideoMeta);
+    auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
+
     if (mVideoDecoder && mVideoRender) {
         return 0;
     }
 
     if (mBufferController->IsPacketEmtpy(BUFFER_TYPE_VIDEO)) {
         return 0;
-    }
-
-    mDemuxerService->GetStreamMeta(mCurrentVideoMeta, mCurrentVideoIndex, false);
-    auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
-
-    if (mVideoWidth != meta->width || mVideoHeight != meta->height) {
-        mVideoWidth = meta->width;
-        mVideoHeight = meta->height;
-        mVideoRotation = meta->rotate;
-        mPNotifier->NotifyVideoSizeChanged(mVideoWidth, mVideoHeight);
     }
 
     if (mSet->mView == nullptr && mFrameCb == nullptr) {
@@ -3071,21 +3065,6 @@ int SuperMediaPlayer::SetUpVideoPath()
         }
         AF_LOGD("SetUpVideoRender start");
         CreateVideoRender();
-        if (mVideoRender) {
-            IVideoRender::Rotate finalRotate = IVideoRender::Rotate::Rotate_None;
-
-            if (meta->rotate == 0) {
-                finalRotate = IVideoRender::Rotate::Rotate_None;
-            } else if (meta->rotate == 90) {
-                finalRotate = IVideoRender::Rotate::Rotate_90;
-            } else if (meta->rotate == 180) {
-                finalRotate = IVideoRender::Rotate::Rotate_180;
-            } else if (meta->rotate == 270) {
-                finalRotate = IVideoRender::Rotate::Rotate_270;
-            }
-
-            mVideoRender->setVideoRotate(finalRotate);
-        }
     }
 
     //re set view in case for not set view before
@@ -3148,6 +3127,19 @@ int SuperMediaPlayer::SetUpVideoPath()
     }
 
     return ret;
+}
+
+void SuperMediaPlayer::updateVideoMeta()
+{
+    mDemuxerService->GetStreamMeta(mCurrentVideoMeta, mCurrentVideoIndex, false);
+    auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
+
+    if (mVideoWidth != meta->width || mVideoHeight != meta->height || mVideoRotation != meta->rotate) {
+        mVideoWidth = meta->width;
+        mVideoHeight = meta->height;
+        mVideoRotation = meta->rotate;
+        mPNotifier->NotifyVideoSizeChanged(mVideoWidth, mVideoHeight);
+    }
 }
 
 bool SuperMediaPlayer::CreateVideoRender()
@@ -3518,6 +3510,7 @@ void SuperMediaPlayer::ProcessPrepareMsg()
                     AF_LOGD("get a video stream\n");
                     openStreamRet = mDemuxerService->OpenStream(i);
                     mCurrentVideoIndex = i;
+                    updateVideoMeta();
                     mDemuxerService->GetStreamMeta(mCurrentVideoMeta, i, false);
                 }
             }
