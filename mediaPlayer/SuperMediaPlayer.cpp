@@ -1505,7 +1505,19 @@ namespace Cicada {
 
                 if (rendered) {
                     AF_LOGD("TIMEPOS RenderVideo :%lld", mPlayedVideoPts / 1000);
-                    mMasterClock.setTime(mPlayedVideoPts);
+
+                    /*
+                     *  set the position to video position tmp, audio will
+                     * update the position when it rendered, otherwise the
+                     * position will update to the old audio position when audio
+                     * not reach on time after seek.
+                     *
+                     */
+                    if (mSoughtVideoPos != INT64_MIN) {
+                        mCurrentPos = mSoughtVideoPos;
+                    } else {
+                        mCurrentPos = mPlayedVideoPts;
+                    }
                     NotifyPosition(getCurrentPosition() / 1000);
 
                     // seek preview can't render audio,but set the audio clock to here pts
