@@ -87,7 +87,7 @@ private:
     std::mutex mSleepMutex{};
     std::unique_ptr<IAFPacket> mPacket{nullptr};
 #endif
-    bool bHolding = false;
+    std::atomic_bool bHolding{false};
     std::queue<std::unique_ptr<IAFPacket>> mHoldingQueue{};
 
 };
