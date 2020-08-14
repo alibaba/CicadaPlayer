@@ -685,7 +685,7 @@ int CURLConnection::short_seek(int64_t off)
             return ret;
         }
 
-        AF_LOGI("read buffer size %d need is %d\n", RingBuffergetMaxReadSize(pRbuf), delta - len);
+        AF_LOGI("read buffer size %" PRIu32 " need is %d\n", RingBuffergetMaxReadSize(pRbuf), (int) (delta - len));
 
         if (!RingBufferSkipBytes(pRbuf, (int) (delta - len))) {
             AF_LOGI("%s - Failed to skip to position after having filled buffer", __FUNCTION__);
