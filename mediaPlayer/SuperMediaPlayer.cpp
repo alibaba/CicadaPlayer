@@ -2982,17 +2982,25 @@ int SuperMediaPlayer::setUpAudioDecoder(const Stream_meta *meta)
 
 int SuperMediaPlayer::SetUpAudioPath()
 {
-    if (mBufferController->IsPacketEmtpy(BUFFER_TYPE_AUDIO)) {
-        return 0;
-    }
+    int ret;
+    if (mAudioDecoder == nullptr) {
 
-    unique_ptr<streamMeta> pMeta{};
-    mDemuxerService->GetStreamMeta(pMeta, mCurrentAudioIndex, false);
-    Stream_meta *meta = (Stream_meta *) (pMeta.get());
-    int ret = setUpAudioDecoder(meta);
+        /*
+         * make sure the audio stream is opened before get stream meta,
+         * otherwise, will crash in hls stream
+         */
+        if (mBufferController->IsPacketEmtpy(BUFFER_TYPE_AUDIO)) {
+            return 0;
+        }
 
-    if (ret < 0) {
-        return ret;
+        unique_ptr<streamMeta> pMeta{};
+        mDemuxerService->GetStreamMeta(pMeta, mCurrentAudioIndex, false);
+        Stream_meta *meta = (Stream_meta *) (pMeta.get());
+        ret = setUpAudioDecoder(meta);
+
+        if (ret < 0) {
+            return ret;
+        }
     }
 
     if (mAudioFrameQue.empty() || mAudioRender != nullptr) {
