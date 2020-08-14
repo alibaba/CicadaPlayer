@@ -536,6 +536,8 @@ namespace Cicada {
 
         void startRendering(bool start);
 
+        void sendDCAMessage();
+
         int64_t mCheckAudioQueEOSTime{INT64_MIN};
         uint64_t mAudioQueDuration{UINT64_MAX};
 

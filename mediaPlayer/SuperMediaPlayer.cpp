@@ -1093,11 +1093,7 @@ int SuperMediaPlayer::mainService()
 {
     int64_t curTime = af_gettime_relative();
     mUtil->notifyPlayerLoop(curTime);
-    string event = mDcaManager->getEvent();
-    while (!event.empty()) {
-        mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_DIRECT_COMPONENT_MSG, event.c_str());
-        event = mDcaManager->getEvent();
-    }
+    sendDCAMessage();
 
     if (mMessageControl->empty() || (0 == mMessageControl->processMsg())) {
         ProcessVideoLoop();
@@ -1118,6 +1114,15 @@ int SuperMediaPlayer::mainService()
     }
 
     return 0;
+}
+
+void SuperMediaPlayer::sendDCAMessage()
+{
+    string event = mDcaManager->getEvent();
+    while (!event.empty()) {
+        mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_DIRECT_COMPONENT_MSG, event.c_str());
+        event = mDcaManager->getEvent();
+    }
 }
 
 void SuperMediaPlayer::ProcessVideoLoop()
@@ -3443,6 +3448,7 @@ void SuperMediaPlayer::ProcessPrepareMsg()
             mDemuxerService->getDemuxerHandle()->setDataSourceConfig(config);
         }
         mDcaManager->createObservers();
+        sendDCAMessage();
     }
 
     //step2: Demuxer init and getstream index
