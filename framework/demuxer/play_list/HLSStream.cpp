@@ -1221,6 +1221,12 @@ namespace Cicada {
             AF_LOGE("(%d)getSegmentNumberByTime error us is %lld\n", mPTracker->getStreamType(),
                     us);
 
+            if (us == mPTracker->getDuration()) {
+                mIsEOS = true;
+                mPTracker->setCurSegNum(mPTracker->getLastSegNum());
+                return 0;
+            }
+
             if (mPTracker->getStreamType() == STREAM_TYPE_SUB) {
                 mIsEOS = false;
                 mError = 0;
@@ -1229,7 +1235,6 @@ namespace Cicada {
                     mThreadPtr->start();
                 }
             }
-
             return -1;
         }
 
