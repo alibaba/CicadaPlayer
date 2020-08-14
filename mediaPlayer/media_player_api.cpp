@@ -25,7 +25,11 @@ playerHandle *CicadaCreatePlayer(const char *opts)
     string value;
     value = item.getString("name", defaultString);
     if (value != defaultString) {
-        createOpt.set("name", value);
+        createOpt.set("name", value , options::REPLACE);
+    }
+    value = item.getString("playerPointer" , defaultString);
+    if (value != defaultString) {
+        createOpt.set("playerPointer", value , options::REPLACE);
     }
     pHandle->pPlayer = CicadaPlayerPrototype::create(&createOpt);
     return pHandle;
