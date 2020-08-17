@@ -38,6 +38,13 @@
 
 - (void)setScaleMode:(ScaleMode)scaleMode {
     _scaleMode = scaleMode;
+    if (scaleMode == SM_FIT) {
+        self.playerLayer.videoGravity = AVLayerVideoGravityResizeAspect;
+    }else if (scaleMode == SM_CROP){
+        self.playerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+    }else if (scaleMode == SM_EXTRACTTOFIT){
+        self.playerLayer.videoGravity = AVLayerVideoGravityResize;
+    }
 }
 
 - (void)setMirrorMode:(MirrorMode)mirrorMode {
