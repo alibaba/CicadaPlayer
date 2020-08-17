@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 import android.view.Surface;
+import android.view.TextureView;
 
 import com.cicada.player.CicadaExternalPlayer;
 import com.cicada.player.CicadaPlayer;
@@ -89,6 +90,12 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
     private List<String> mHttpHeader = new ArrayList<>();
     private List<String> mExtSubtitleUrls = new ArrayList<>();
     private FrameworkMediaDrm mediaDrm;
+    private CicadaPlayer.MirrorMode mMirrorMode = CicadaPlayer.MirrorMode.MIRROR_MODE_NONE;
+    private CicadaPlayer.RotateMode mRotateMode = CicadaPlayer.RotateMode.ROTATE_0;
+    private CicadaPlayer.ScaleMode mScaleMode = CicadaPlayer.ScaleMode.SCALE_ASPECT_FIT;
+    private TextureView mTextureView;
+    private int mVideoHeight;
+    private int mVideoWith;
 
     private ExternPlayerExo(Context context, Options options) {
         mContext = context;
@@ -394,6 +401,9 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
         } else {
             mExoPlayer.setVideoSurface(surface);
         }
+        if(surface instanceof ExternExoSurface){
+            mTextureView = ((ExternExoSurface) surface).getTextureView();
+        }
     }
 
     @Override
@@ -435,6 +445,12 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
             videoComponent.addVideoListener(new VideoListener() {
                 @Override
                 public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
+                    mVideoWith = width;
+                    mVideoHeight = height;
+                    if(mTextureView instanceof ExternExoTextureView){
+                        ((ExternExoTextureView) mTextureView).setVideoSize(mVideoWith,mVideoHeight);
+                        mTextureView.requestLayout();
+                    }
                     if (mOutOnVideoSizeChangedListener != null) {
                         mOutOnVideoSizeChangedListener.onVideoSizeChanged(width, height);
                     }
@@ -536,7 +552,6 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
                     }
                 }
             }
-
         });
 
     }
@@ -740,16 +755,15 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
             return;
         }
 
-        int mode = C.VIDEO_SCALING_MODE_DEFAULT;
-        if (scaleMode == CicadaPlayer.ScaleMode.SCALE_ASPECT_FIT) {
-            mode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT;
-        } else if (scaleMode == CicadaPlayer.ScaleMode.SCALE_ASPECT_FILL) {
-            mode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING;
-        } else if (scaleMode == CicadaPlayer.ScaleMode.SCALE_TO_FILL) {
-            mode = C.VIDEO_SCALING_MODE_DEFAULT;
+        if(mTextureView == null){
+            return ;
         }
 
-        mExoPlayer.setVideoScalingMode(mode);
+        ((ExternExoTextureView)mTextureView).setScaleType(scaleMode);
+
+        this.mScaleMode = scaleMode;
+
+        mTextureView.requestLayout();
     }
 
     @Override
@@ -757,9 +771,7 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
         if (mExoPlayer == null) {
             return CicadaPlayer.RotateMode.ROTATE_0;
         }
-        //TODO
-
-        return CicadaPlayer.RotateMode.ROTATE_0;
+        return this.mRotateMode;
     }
 
     @Override
@@ -767,7 +779,23 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
         if (mExoPlayer == null) {
             return;
         }
-        //TODO
+
+        if(mTextureView == null){
+            return ;
+        }
+
+        if(rotateMode == CicadaPlayer.RotateMode.ROTATE_0){
+            mTextureView.setRotation(0f);
+        }else if(rotateMode == CicadaPlayer.RotateMode.ROTATE_90){
+            mTextureView.setRotation(90f);
+        }else if(rotateMode == CicadaPlayer.RotateMode.ROTATE_180){
+            mTextureView.setRotation(180f);
+        }else{
+            mTextureView.setRotation(270f);
+        }
+        mTextureView.requestLayout();
+
+        this.mRotateMode = rotateMode;
     }
 
     @Override
@@ -775,8 +803,7 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
         if (mExoPlayer == null) {
             return CicadaPlayer.MirrorMode.MIRROR_MODE_NONE;
         }
-        //TODO
-        return CicadaPlayer.MirrorMode.MIRROR_MODE_NONE;
+        return mMirrorMode;
     }
 
     @Override
@@ -784,7 +811,21 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
         if (mExoPlayer == null) {
             return;
         }
-        //TODO
+        if(mTextureView == null){
+            return ;
+        }
+        if(mirrorMode == CicadaPlayer.MirrorMode.MIRROR_MODE_NONE){
+            mTextureView.setScaleX(1f);
+            mTextureView.setScaleY(1f);
+        }else if(mirrorMode == CicadaPlayer.MirrorMode.MIRROR_MODE_VERTICAL){
+            mTextureView.setScaleX(1f);
+            mTextureView.setScaleY(-1f);
+        }else{
+            mTextureView.setScaleX(-1f);
+            mTextureView.setScaleY(1f);
+        }
+        mTextureView.invalidate();
+        this.mMirrorMode = mirrorMode;
     }
 
     @Override
