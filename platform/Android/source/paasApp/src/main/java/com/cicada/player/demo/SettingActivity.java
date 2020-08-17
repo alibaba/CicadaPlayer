@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,6 +36,7 @@ public class SettingActivity extends BaseActivity {
      * phone Model info
      */
     private TextView mModelTextView;
+    private RadioGroup mPlayerSelectRadioGroup;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -54,11 +56,14 @@ public class SettingActivity extends BaseActivity {
         mBlackListButton = findViewById(R.id.blacklit);
         mVersionTextView = findViewById(R.id.tv_version);
         mHardwareDecoderCheckBox = findViewById(R.id.hardwaredecoder);
+        mPlayerSelectRadioGroup = findViewById(R.id.radio_group_player);
     }
 
     private void initData(){
         mVersionTextView.setText(CicadaPlayerFactory.getSdkVersion());
         mHardwareDecoderCheckBox.setChecked(SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.CICADA_PLAYER_HARDWARE_DECODER));
+        boolean selectedCicadaPlayer = SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.SELECTED_CICADA_PLAYER);
+        mPlayerSelectRadioGroup.check(selectedCicadaPlayer ? R.id.radio_btn_cicada : R.id.radio_btn_exo);
         mModelTextView.setText(Build.MODEL);
     }
 
@@ -87,6 +92,13 @@ public class SettingActivity extends BaseActivity {
                 CicadaPlayerFactory.DeviceInfo deviceInfo = new CicadaPlayerFactory.DeviceInfo();
                 deviceInfo.model = Build.MODEL;
                 CicadaPlayerFactory.addBlackDevice(CicadaPlayerFactory.BlackType.HW_Decode_H264,deviceInfo);
+            }
+        });
+
+        mPlayerSelectRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int checkedId) {
+                SharedPreferenceUtils.putBooleanExtra(SharedPreferenceUtils.SELECTED_CICADA_PLAYER,checkedId == R.id.radio_btn_cicada);
             }
         });
     }
