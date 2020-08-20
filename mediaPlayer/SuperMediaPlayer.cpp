@@ -2992,7 +2992,7 @@ int SuperMediaPlayer::setUpAudioDecoder(const Stream_meta *meta)
 
 int SuperMediaPlayer::SetUpAudioPath()
 {
-    int ret;
+    int ret = 0;
     if (mAudioDecoder == nullptr) {
 
         /*
