@@ -1839,6 +1839,10 @@ int SuperMediaPlayer::FillVideoFrame()
 
     if (pFrame != nullptr) {
         mVideoDecoder->clean_error();
+
+        if (mSecretPlayBack) {
+            pFrame->setProtect(true);
+        }
         int64_t pts = pFrame->getInfo().pts;
 
         if (mSeekFlag && mSeekNeedCatch) {
@@ -2276,6 +2280,9 @@ int SuperMediaPlayer::DecodeAudio(unique_ptr<IAFPacket> &pPacket)
         }
 
         if (frame != nullptr) {
+            if (mSecretPlayBack) {
+                frame->setProtect(true);
+            }
             if (frame->getInfo().pts == INT64_MIN) {
                 // TODO: why mAudioFrameQue.back()->getInfo().pts is INT64_MIN
                 if (!mAudioFrameQue.empty() && mAudioFrameQue.back()->getInfo().pts != INT64_MIN) {
