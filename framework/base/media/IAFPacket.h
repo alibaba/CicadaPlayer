@@ -190,11 +190,22 @@ public:
 
     AFFrameInfo &getInfo();
 
+    void setProtect(bool protect)
+    {
+        mbProtected = protect;
+    }
+
+    bool isProtected() const
+    {
+        return mbProtected;
+    }
+
     void dump();
 
 protected:
     AFFrameInfo mInfo{};
     bool mbDiscard{false};
+    bool mbProtected{false};
 };
 
 
