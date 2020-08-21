@@ -403,9 +403,13 @@ int ActiveDecoder::holdOn(bool hold)
         return 0;
     }
 
-    unique_lock<mutex> uMutex(mMutex);
-
     if (hold) {
+        mRunning = false;
+        mDecodeThread->pause();
+        if (mPacket) {
+            mPacket->setDiscard(true);
+            mHoldingQueue.push(move(mPacket));
+        }
         while (!mInputQueue.empty()) {
             mInputQueue.front()->setDiscard(true);
             mHoldingQueue.push(move(mInputQueue.front()));
@@ -434,6 +438,9 @@ int ActiveDecoder::holdOn(bool hold)
     }
 
     bHolding = hold;
+
+    mRunning = true;
+    mDecodeThread->start();
     return 0;
 }
 
