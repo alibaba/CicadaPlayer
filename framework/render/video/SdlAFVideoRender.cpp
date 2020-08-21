@@ -25,10 +25,19 @@ SdlAFVideoRender::~SdlAFVideoRender()
 {
     if (mVideoTexture != nullptr) {
         SDL_DestroyTexture(mVideoTexture);
+        mVideoTexture = nullptr;
+        mInited = false;
     }
     if (mRenderNeedRelease) {
         SDL_DelEventWatch(SdlWindowSizeEventWatch, this);
         SDL_DestroyRenderer(mVideoRender);
+        mVideoRender = nullptr;
+        mRenderNeedRelease = false;
+    }
+    if (mWindowNeedRelease && mVideoWindow) {
+        SDL_DestroyWindow(mVideoWindow);
+        mVideoWindow = nullptr;
+        mWindowNeedRelease = false;
     }
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
