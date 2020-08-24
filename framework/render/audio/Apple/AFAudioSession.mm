@@ -90,7 +90,11 @@
 
 -(void) handleInterruption:(NSNotification *)notification
 {
-    UInt8 theInterruptionType = [[notification.userInfo valueForKey:AVAudioSessionInterruptionTypeKey] intValue];
+    NSDictionary *userInfo = notification.userInfo;
+    if (!userInfo || !userInfo[AVAudioSessionInterruptionTypeKey]) {
+        return;
+    }
+    NSUInteger theInterruptionType = [userInfo[AVAudioSessionInterruptionTypeKey] unsignedIntegerValue];
 
     AF_LOGI("Session %s\n", theInterruptionType == AVAudioSessionInterruptionTypeBegan ? "Begin Interruption" : "End Interruption");
 
