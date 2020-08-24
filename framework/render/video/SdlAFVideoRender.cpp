@@ -381,7 +381,7 @@ void SdlAFVideoRender::captureScreen(std::function<void(uint8_t *data, int width
         AF_LOGE("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
         return;
     }
-
+    refreshScreen();
     Uint32 surfaceFormat = surface->format->format;
     {
         std::unique_lock<std::mutex> lock(mRenderMutex);
