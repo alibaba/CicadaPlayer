@@ -151,7 +151,7 @@ static int logOutput = 1;
                                                      name:UIApplicationWillTerminateNotification
                                                    object:nil];
 
-        if (UIApplicationStateActive != [[UIApplication sharedApplication] applicationState]) {
+        if (UIApplicationStateBackground == [[UIApplication sharedApplication] applicationState]) {
             self.player->EnterBackGround(true);
         }
 #endif // TARGET_OS_IPHONE
