@@ -126,7 +126,7 @@ TEST(cmd, autoPlay)
     listener.AutoPlayStart = onAutoPlayStart;
     test_simple("http://player.alicdn.com/video/aliyunmedia.mp4", nullptr, simple_loop,
                 nullptr, &listener);
-    assert(g_autoPlay);
+    ASSERT_TRUE(g_autoPlay);
 }
 
 static void onCompletion(void *userData)
