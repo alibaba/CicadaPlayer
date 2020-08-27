@@ -81,7 +81,7 @@ namespace Cicada {
 
         virtual void flush() = 0;
 
-        virtual int Seek(int64_t us, int flags, int index) = 0;
+        virtual int64_t Seek(int64_t us, int flags, int index) = 0;
 
         virtual int GetNbStreams() const = 0;
 

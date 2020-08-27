@@ -43,7 +43,7 @@ namespace Cicada{
 
         int start() override;
 
-        int seek(int64_t us, int flags, int index) override;
+        int64_t seek(int64_t us, int flags, int index) override;
 
         int SwitchStreamAligned(int from, int to) override;
 

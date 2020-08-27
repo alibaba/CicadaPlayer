@@ -70,7 +70,7 @@ namespace Cicada {
 
         void CloseStream(int index) override;
 
-        int Seek(int64_t us, int flags, int index) override;
+        int64_t Seek(int64_t us, int flags, int index) override;
 
         int ReadPacket(std::unique_ptr<IAFPacket> &packet, int index) override;
 

@@ -34,7 +34,7 @@ namespace Cicada{
 
         virtual void CloseStream(int id) = 0;
 
-        virtual int seek(int64_t us, int flags, int index) = 0;
+        virtual int64_t seek(int64_t us, int flags, int index) = 0;
 
         virtual int SwitchStreamAligned(int from, int to) = 0;
 

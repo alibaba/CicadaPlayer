@@ -462,7 +462,7 @@ namespace Cicada {
         mInterrupted = inter;
     }
 
-    int avFormatDemuxer::Seek(int64_t us, int flags, int index)
+    int64_t avFormatDemuxer::Seek(int64_t us, int flags, int index)
     {
         us = getWorkAroundSeekPos(us);
         if (!bOpened) {
