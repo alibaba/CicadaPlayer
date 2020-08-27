@@ -148,7 +148,7 @@ namespace Cicada {
     {
     }
 
-    int avFormatSubtitleDemuxer::Seek(int64_t us, int flags, int index)
+    int64_t avFormatSubtitleDemuxer::Seek(int64_t us, int flags, int index)
     {
         mSeekPTS = us;
         return 0;

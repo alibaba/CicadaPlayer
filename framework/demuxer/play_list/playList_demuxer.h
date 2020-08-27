@@ -48,7 +48,7 @@ namespace Cicada{
 
         void Stop() override;
 
-        int Seek(int64_t us, int flags, int index) override;
+        int64_t Seek(int64_t us, int flags, int index) override;
 
         int GetNbStreams() const override;
 

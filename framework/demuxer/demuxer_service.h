@@ -64,7 +64,7 @@ namespace Cicada {
 
         void preStop();
 
-        int Seek(int64_t us, int flags, int index);
+        int64_t Seek(int64_t us, int flags, int index);
 
         static int read_callback(void *arg, uint8_t *buffer, int size);
 

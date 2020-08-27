@@ -4025,7 +4025,7 @@ void SuperMediaPlayer::ProcessSeekToMsg(int64_t seekPos, bool bAccurate)
 
     if (!mSeekInCache) {
         mBufferController->ClearPacket(BUFFER_TYPE_ALL);
-        int ret = mDemuxerService->Seek(seekPos, 0, -1);
+        int64_t ret = mDemuxerService->Seek(seekPos, 0, -1);
 
         if (ret < 0) {
             NotifyError(ret);
