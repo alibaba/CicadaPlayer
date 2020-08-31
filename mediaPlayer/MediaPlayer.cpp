@@ -1112,4 +1112,10 @@ namespace Cicada {
         GET_PLAYER_HANDLE;
         return CicadaInvokeComponent(handle, content);
     }
+
+    std::string MediaPlayer::getName()
+    {
+        GET_PLAYER_HANDLE;
+        return CicadaGetPlayerName(handle);
+    }
 }

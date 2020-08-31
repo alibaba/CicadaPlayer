@@ -22,6 +22,8 @@ namespace Cicada {
 
         virtual ~ICicadaPlayer() = default;
 
+        virtual string getName() = 0;
+
         /*
         * 初始化;(同步)
         */

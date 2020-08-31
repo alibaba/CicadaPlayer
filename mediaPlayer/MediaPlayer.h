@@ -59,6 +59,8 @@ namespace Cicada {
             return "paas 0.9";//TODO version
         }
 
+        std::string getName();
+
     public:
 
         void SetAnalyticsCollector(IAnalyticsCollector * collector);

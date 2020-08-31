@@ -91,6 +91,12 @@ public:
 
     ~JavaExternalPlayer() override;
 
+    string getName() override
+    {
+        // TODO: get the name form java
+        return "ExoPlayer";
+    }
+
     int SetListener(const playerListener &Listener) override;
 
     void SetOnRenderCallBack(onRenderFrame cb, void *userData) override;

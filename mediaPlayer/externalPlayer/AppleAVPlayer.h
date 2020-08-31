@@ -14,6 +14,11 @@ namespace Cicada {
         AppleAVPlayer();
         ~AppleAVPlayer() override;
 
+        string getName() override
+        {
+            return "AppleAVPlayer";
+        }
+
         int SetListener(const playerListener &Listener) override;
 
         void SetOnRenderCallBack(onRenderFrame cb, void *userData) override;
