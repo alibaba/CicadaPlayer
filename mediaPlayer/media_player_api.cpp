@@ -686,3 +686,12 @@ void CicadaSelectExtSubtitle(playerHandle *pHandle, int index, bool select)
         player->selectExtSubtitle(index, select);
     }
 }
+
+std::string CicadaGetPlayerName(playerHandle *pHandle)
+{
+    GET_PLAYER;
+    if (player) {
+        return player->getName();
+    }
+    return "";
+}
