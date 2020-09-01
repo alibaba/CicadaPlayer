@@ -43,7 +43,10 @@
         //取出status的新值
         AVPlayerItemStatus status = (AVPlayerItemStatus)[change[NSKeyValueChangeNewKey] integerValue];
         if (status == AVPlayerItemStatusFailed) {
-            
+            auto item = (AVPlayerItem *) object;
+            if (mPlayerListener.ErrorCallback) {
+                mPlayerListener.ErrorCallback(item.error.code, [item.error.localizedDescription UTF8String], mPlayerListener.userData);
+            }
         } else if (status == AVPlayerItemStatusReadyToPlay) {
             if (mPlayerListener.Prepared) {
                 mPlayerListener.Prepared(mPlayerListener.userData);
