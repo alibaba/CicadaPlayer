@@ -236,6 +236,9 @@ int64_t AppleAVPlayer::GetDuration() const
         return 0;
     }
     AVPlayer *player = (__bridge AVPlayer *)this->avPlayer;
+    if (isnan(CMTimeGetSeconds(player.currentItem.duration))) {
+        return 0;
+    }
     return (int64_t)(CMTimeGetSeconds(player.currentItem.duration) * 1000);
 }
 
@@ -243,6 +246,9 @@ int64_t AppleAVPlayer::GetPlayingPosition()
 {
     AVPlayer *player = (__bridge AVPlayer *)this->avPlayer;
     NSTimeInterval currentTimeSeconds = CMTimeGetSeconds(player.currentTime);
+    if (isnan(currentTimeSeconds)) {
+        return 0;
+    }
     return (int64_t)(currentTimeSeconds * 1000);
 }
 
