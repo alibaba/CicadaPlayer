@@ -4162,7 +4162,7 @@ namespace Cicada {
         }
 
         if (select) {
-            mSubPlayer->seek(mCurVideoPts - mMediaStartPts);
+            mSubPlayer->seek(getCurrentPosition());
         }
     }
 
