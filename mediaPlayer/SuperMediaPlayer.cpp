@@ -4172,7 +4172,7 @@ void SuperMediaPlayer::ProcessSelectExtSubtitleMsg(int index, bool select)
     }
 
     if (select) {
-        mSubPlayer->seek(mCurVideoPts - mMediaStartPts);
+        mSubPlayer->seek(getCurrentPosition());
     }
 }
 
