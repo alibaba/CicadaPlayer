@@ -193,11 +193,19 @@ void AppleAVPlayer::SeekTo(int64_t seekPos, bool bAccurate)
     if (this->mListener.Seeking) {
         this->mListener.Seeking(1, this->mListener.userData);
     }
+    AppleAVPlayerHandler *playerHandler = (__bridge AppleAVPlayerHandler *) this->playerHandler;
+    if (playerHandler) {
+        playerHandler.isSeeking = true;
+    }
     AVPlayer *player = (__bridge AVPlayer *)this->avPlayer;
     Float64 seconds = seekPos / 1000;
     [player seekToTime:CMTimeMakeWithSeconds(seconds, 1) completionHandler:^(BOOL finished) {
         if (this->mListener.SeekEnd) {
             this->mListener.SeekEnd(1, this->mListener.userData);
+        }
+        AppleAVPlayerHandler *playerHandler = (__bridge AppleAVPlayerHandler *) this->playerHandler;
+        if (playerHandler) {
+            playerHandler.isSeeking = false;
         }
     }];
 }
@@ -206,6 +214,10 @@ int AppleAVPlayer::Stop()
 {
     AVPlayer *player = (__bridge AVPlayer *)this->avPlayer;
     [player pause];
+    AppleAVPlayerHandler *playerHandler = (__bridge AppleAVPlayerHandler *) this->playerHandler;
+    if (playerHandler) {
+        playerHandler.isSeeking = false;
+    }
     return 0;
 }
 

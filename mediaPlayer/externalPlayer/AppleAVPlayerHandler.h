@@ -27,6 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) id timeObserver;
 @property (nonatomic, assign) BOOL isCirclePlay;
 @property (nonatomic, strong) AppleAVPlayerLayerProcessor *layerProcessor;
+@property(nonatomic, assign) BOOL isSeeking;
 
 - (instancetype)init;
 - (void)setmPlayerListener:(playerListener)playerListener;
