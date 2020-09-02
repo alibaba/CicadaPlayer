@@ -15,6 +15,9 @@
     NSTimeInterval loadStartSeconds = CMTimeGetSeconds(timeRange.start);
     NSTimeInterval loadDurationSeconds = CMTimeGetSeconds(timeRange.duration);
     NSTimeInterval currentLoadTotalTime = loadStartSeconds + loadDurationSeconds;
+    if (isnan(currentLoadTotalTime)) {
+        return 0;
+    }
     int64_t position = (int64_t)(currentLoadTotalTime * 1000);
     return position;
 }
