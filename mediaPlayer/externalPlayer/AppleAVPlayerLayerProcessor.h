@@ -20,6 +20,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) MirrorMode mirrorMode;
 @property (nonatomic, assign) RotateMode rotateMode;
 
+- (void)setVideoSize:(CGSize)videoSize;
+
 @end
 
 NS_ASSUME_NONNULL_END
