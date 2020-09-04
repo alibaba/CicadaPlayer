@@ -55,6 +55,7 @@
             if (mPlayerListener.VideoSizeChanged) {
                 mPlayerListener.VideoSizeChanged(item.presentationSize.width, item.presentationSize.height, mPlayerListener.userData);
             }
+            [self.layerProcessor setVideoSize:item.presentationSize];
         } else if (status == AVPlayerItemStatusUnknown) {
             
         }
