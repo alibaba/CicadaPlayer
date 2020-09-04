@@ -8,17 +8,21 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.SurfaceTexture;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import com.aliyun.externalplayer.exo.ExternExoSurface;
+import com.aliyun.externalplayer.exo.ExternExoTextureView;
 import com.cicada.player.CicadaPlayer;
 import com.cicada.player.CicadaPlayerFactory;
 import com.cicada.player.bean.ErrorInfo;
@@ -66,14 +70,14 @@ import org.json.JSONObject;
  * view 的初始化是在{@link #initVideoView}方法中实现的。
  * 然后是对各个view添加监听方法，处理对应的操作，从而实现与播放器的共同操作
  */
-public class CicadaVodPlayerView extends RelativeLayout {
+public class CicadaVodPlayerView extends FrameLayout {
 
     private static final String TAG = CicadaVodPlayerView.class.getSimpleName();
 
     /**
      * 视频画面
      */
-    private SurfaceView mSurfaceView;
+    private TextureView mTextureView;
     /**
      * 手势操作view
      */
@@ -218,8 +222,8 @@ public class CicadaVodPlayerView extends RelativeLayout {
      * 初始化view
      */
     private void initVideoView() {
-        //初始化播放用的surfaceView
-        initSurfaceView();
+        //初始化播放用的TextureView
+        initTextureView();
         //初始化播放器
         initCicadaPlayer();
         //初始化封面
@@ -1047,38 +1051,44 @@ public class CicadaVodPlayerView extends RelativeLayout {
     /**
      * 初始化播放器显示view
      */
-    private void initSurfaceView() {
-        mSurfaceView = new SurfaceView(getContext().getApplicationContext());
-        addSubView(mSurfaceView);
+    private void initTextureView() {
+        boolean selectedCicadaPlayer = SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.SELECTED_CICADA_PLAYER);
+        mTextureView = new ExternExoTextureView(getContext().getApplicationContext());
+        addTextureView(mTextureView);
 
-        SurfaceHolder holder = mSurfaceView.getHolder();
-        //增加surfaceView的监听
-        holder.addCallback(new SurfaceHolder.Callback() {
+        mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
             @Override
-            public void surfaceCreated(SurfaceHolder surfaceHolder) {
-                VcPlayerLog.d(TAG, " surfaceCreated = surfaceHolder = " + surfaceHolder);
+            public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
                 if (mCicadaVodPlayer != null) {
-                    mCicadaVodPlayer.setDisplay(surfaceHolder);
+                    ExternExoSurface surface = new ExternExoSurface(surfaceTexture);
+                    if(!selectedCicadaPlayer){
+                        surface.setTextureView(mTextureView);
+                    }
+                    mCicadaVodPlayer.setSurface(surface);
+
                     //防止黑屏
                     mCicadaVodPlayer.redraw();
                 }
             }
 
             @Override
-            public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width,
-                                       int height) {
-                VcPlayerLog.d(TAG, " surfaceChanged surfaceHolder = " + surfaceHolder + " ,  width = " + width + " , height = " + height);
+            public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
                 if (mCicadaVodPlayer != null) {
                     mCicadaVodPlayer.redraw();
                 }
             }
 
             @Override
-            public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-                VcPlayerLog.d(TAG, " surfaceDestroyed = surfaceHolder = " + surfaceHolder);
+            public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
                 if (mCicadaVodPlayer != null) {
-                    mCicadaVodPlayer.setDisplay(null);
+                    mCicadaVodPlayer.setSurface(null);
                 }
+                return false;
+            }
+
+            @Override
+            public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+
             }
         });
     }
@@ -1096,7 +1106,13 @@ public class CicadaVodPlayerView extends RelativeLayout {
      */
     private void initCicadaPlayer() {
         Logger.enableConsoleLog(true);
-        mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext());
+        boolean selectedCicadaPlayer = SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.SELECTED_CICADA_PLAYER);
+        if(selectedCicadaPlayer){
+            mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext());
+        }else{
+            mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext(), "ExoPlayer");
+        }
+
         mCicadaVodPlayer.enableHardwareDecoder(SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.CICADA_PLAYER_HARDWARE_DECODER));
 
         //设置准备回调
@@ -1370,7 +1386,6 @@ public class CicadaVodPlayerView extends RelativeLayout {
         });
 
         mCicadaVodPlayer.setScaleMode(CicadaPlayer.ScaleMode.SCALE_ASPECT_FIT);
-        mCicadaVodPlayer.setDisplay(mSurfaceView.getHolder());
     }
 
     private int currentPlayState = CicadaPlayer.idle;
@@ -1533,11 +1548,24 @@ public class CicadaVodPlayerView extends RelativeLayout {
     }
 
     /**
+     * addSubView
+     * 添加子view到布局中
+     *
+     * @param view 子view
+     */
+    private void addTextureView(View view) {
+        LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        params.gravity = Gravity.CENTER;
+        //添加到布局中
+        addView(view, params);
+    }
+
+    /**
      * 添加子View到布局中央
      */
     private void addSubViewByCenter(View view) {
         LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        params.addRule(RelativeLayout.CENTER_IN_PARENT);
+        params.gravity = Gravity.CENTER;
         addView(view, params);
     }
 
@@ -1837,7 +1865,7 @@ public class CicadaVodPlayerView extends RelativeLayout {
             mCicadaVodPlayer.setSurface(null);
             mCicadaVodPlayer.release();
         }
-        mSurfaceView = null;
+        mTextureView = null;
 
         if (mNetWatchdog != null) {
             mNetWatchdog.stopWatch();
@@ -1968,8 +1996,8 @@ public class CicadaVodPlayerView extends RelativeLayout {
      *
      * @return 播放surfaceView
      */
-    public SurfaceView getPlayerView() {
-        return mSurfaceView;
+    public TextureView getPlayerView() {
+        return mTextureView;
     }
 
     /**

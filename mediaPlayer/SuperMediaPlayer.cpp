@@ -1659,7 +1659,7 @@ void SuperMediaPlayer::doDeCode()
                 if (mVideoPacket && (!HAVE_AUDIO || audioDecoderEOS)) {
                     if (mVideoPacket->getInfo().timePosition >= 0) {
                         mCurrentPos = mVideoPacket->getInfo().timePosition;
-                        printTimePosition(mCurrentPos);
+                        //printTimePosition(mCurrentPos);
                     }
                 }
 
@@ -1839,6 +1839,10 @@ int SuperMediaPlayer::FillVideoFrame()
 
     if (pFrame != nullptr) {
         mVideoDecoder->clean_error();
+
+        if (mSecretPlayBack) {
+            pFrame->setProtect(true);
+        }
         int64_t pts = pFrame->getInfo().pts;
 
         if (mSeekFlag && mSeekNeedCatch) {
@@ -2276,6 +2280,9 @@ int SuperMediaPlayer::DecodeAudio(unique_ptr<IAFPacket> &pPacket)
         }
 
         if (frame != nullptr) {
+            if (mSecretPlayBack) {
+                frame->setProtect(true);
+            }
             if (frame->getInfo().pts == INT64_MIN) {
                 // TODO: why mAudioFrameQue.back()->getInfo().pts is INT64_MIN
                 if (!mAudioFrameQue.empty() && mAudioFrameQue.back()->getInfo().pts != INT64_MIN) {
@@ -2566,7 +2573,11 @@ int SuperMediaPlayer::ReadPacket()
         }
 
         if (mSoughtVideoPos == INT64_MIN) {
-            mSoughtVideoPos = pFrame->getInfo().timePosition;
+            if (mSeekNeedCatch) {
+                mSoughtVideoPos = mSeekPos;
+            } else {
+                mSoughtVideoPos = pFrame->getInfo().timePosition;
+            }
 
             /*
                  * seek would clean the packet which have ExtraData in decoder queue,
@@ -2992,7 +3003,7 @@ int SuperMediaPlayer::setUpAudioDecoder(const Stream_meta *meta)
 
 int SuperMediaPlayer::SetUpAudioPath()
 {
-    int ret;
+    int ret = 0;
     if (mAudioDecoder == nullptr) {
 
         /*
@@ -4014,7 +4025,7 @@ void SuperMediaPlayer::ProcessSeekToMsg(int64_t seekPos, bool bAccurate)
 
     if (!mSeekInCache) {
         mBufferController->ClearPacket(BUFFER_TYPE_ALL);
-        int ret = mDemuxerService->Seek(seekPos, 0, -1);
+        int64_t ret = mDemuxerService->Seek(seekPos, 0, -1);
 
         if (ret < 0) {
             NotifyError(ret);
@@ -4161,7 +4172,7 @@ void SuperMediaPlayer::ProcessSelectExtSubtitleMsg(int index, bool select)
     }
 
     if (select) {
-        mSubPlayer->seek(mCurVideoPts - mMediaStartPts);
+        mSubPlayer->seek(getCurrentPosition());
     }
 }
 

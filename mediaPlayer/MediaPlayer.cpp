@@ -18,6 +18,7 @@
 #include "analytics/AnalyticsQueryListener.h"
 #include "media_player_error_def.h"
 #include "PlayerCacheDataSource.h"
+#include "QueryListener.h"
 
 using namespace Cicada;
 
@@ -25,57 +26,6 @@ namespace Cicada {
 
 #define GET_PLAYER_HANDLE  playerHandle* handle = (playerHandle*)mPlayerHandle;
 #define GET_MEDIA_PLAYER MediaPlayer* player = (MediaPlayer*)userData;
-
-    class QueryListener : public AnalyticsQueryListener {
-    public:
-        explicit QueryListener(MediaPlayer *player)
-        {
-            mPlayer = player;
-        }
-
-        ~QueryListener() override = default;;
-
-        // analytics query interface
-        int64_t OnAnalyticsGetCurrentPosition() override
-        {
-            if (mPlayer) {
-                return mPlayer->GetCurrentPosition();
-            }
-
-            return -1;
-        }
-
-        int64_t OnAnalyticsGetBufferedPosition() override
-        {
-            if (mPlayer) {
-                return mPlayer->GetBufferedPosition();
-            }
-
-            return -1;
-        }
-
-        int64_t OnAnalyticsGetDuration() override
-        {
-            if (mPlayer) {
-                return mPlayer->GetDuration();
-            }
-
-            return -1;
-        }
-
-        std::string OnAnalyticsGetPropertyString(PropertyKey key) override
-        {
-            if (mPlayer) {
-                return mPlayer->GetPropertyString(key);
-            }
-
-            return "";
-        }
-
-    private:
-        MediaPlayer *mPlayer = nullptr;
-    };
-
     MediaPlayer::MediaPlayer(const char *opt) : MediaPlayer(*(AnalyticsCollectorFactory::Instance()), opt)
     {
     }
@@ -115,6 +65,7 @@ namespace Cicada {
         configPlayer(mConfig);
         mQueryListener = new QueryListener(this);
         mCollector = mCollectorFactory.createAnalyticsCollector(mQueryListener);
+        bExternalCollector = false;
         mAbrManager = new AbrManager();
         std::function<void(int)> fun = [this](int stream) -> void {
             return this->abrChanged(stream);
@@ -123,6 +74,18 @@ namespace Cicada {
         AbrBufferRefererData *pRefererData = new AbrBufferRefererData(handle);
         mAbrAlgo->SetRefererData(pRefererData);
         mAbrManager->SetAbrAlgoStrategy(mAbrAlgo);
+    }
+
+
+    void MediaPlayer::SetAnalyticsCollector(IAnalyticsCollector * collector) {
+        if (mCollector && !bExternalCollector) {
+            mCollectorFactory.destroyAnalyticsCollector(mCollector);
+            // avoid be used in derivative class
+            mCollector = nullptr;
+        }
+
+        bExternalCollector = true;
+        mCollector = collector;
     }
 
     void MediaPlayer::dummyFunction(bool dummy)
@@ -143,7 +106,7 @@ namespace Cicada {
         delete mConfig;
         CicadaReleasePlayer(&handle);
 
-        if (mCollector) {
+        if (mCollector && !bExternalCollector) {
             mCollectorFactory.destroyAnalyticsCollector(mCollector);
             // avoid be used in derivative class
             mCollector = nullptr;
@@ -1148,5 +1111,11 @@ namespace Cicada {
     {
         GET_PLAYER_HANDLE;
         return CicadaInvokeComponent(handle, content);
+    }
+
+    std::string MediaPlayer::getName()
+    {
+        GET_PLAYER_HANDLE;
+        return CicadaGetPlayerName(handle);
     }
 }

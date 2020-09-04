@@ -294,7 +294,7 @@ namespace Cicada {
         return mDemuxerPtr->interrupt(inter);
     }
 
-    int demuxer_service::Seek(int64_t us, int flags, int index)
+    int64_t demuxer_service::Seek(int64_t us, int flags, int index)
     {
         AF_TRACE;
 

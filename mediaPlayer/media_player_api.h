@@ -285,4 +285,6 @@ void CicadaSetDefaultBandWidth(playerHandle *player, int bandWidth);
 
 int CicadaInvokeComponent(playerHandle *player, const char *content);
 
+std::string CicadaGetPlayerName(playerHandle *player);
+
 #endif // CICADA_PLAYER_H_

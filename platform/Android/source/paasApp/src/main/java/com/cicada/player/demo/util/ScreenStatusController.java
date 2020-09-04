@@ -16,6 +16,7 @@ public class ScreenStatusController {
     private String TAG = ScreenStatusController.class.getSimpleName();
 
 
+    private boolean mReceiverTag = false;
     private Context mContext;
     private IntentFilter mScreenStatusFilter = null;
     private ScreenStatusListener mScreenStatusListener = null;
@@ -61,14 +62,16 @@ public class ScreenStatusController {
 
     //开始监听
     public void startListen() {
-        if (mContext != null) {
+        if (mContext != null && !mReceiverTag) {
+            mReceiverTag = true;
             mContext.registerReceiver(mScreenStatusReceiver, mScreenStatusFilter);
         }
     }
 
     //结束监听
     public void stopListen() {
-        if (mContext != null) {
+        if (mContext != null && mReceiverTag) {
+            mReceiverTag = false;
             mContext.unregisterReceiver(mScreenStatusReceiver);
         }
     }

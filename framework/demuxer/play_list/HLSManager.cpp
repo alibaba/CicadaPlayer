@@ -396,9 +396,8 @@ namespace Cicada {
         return 0;
     }
 
-    int HLSManager::seek(int64_t us, int flags, int index)
+    int64_t HLSManager::seek(int64_t us, int flags, int index)
     {
-        int ret = 0;
         bool hasOpened = false;
 
         for (auto &i : mStreamInfoList) {

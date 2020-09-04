@@ -57,6 +57,8 @@ public:
 
     void onWindowSizeChange(SDL_Window *window);
 
+    int refreshScreen();
+
 private:
     int VSyncOnInit() override
     {
@@ -80,7 +82,6 @@ private:
 
     void recreateTextureIfNeed(int videoWidth, int videoHeight);
 
-    int refreshScreen();
 
 private:
     bool mInited = false;

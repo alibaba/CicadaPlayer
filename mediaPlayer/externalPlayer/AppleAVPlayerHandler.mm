@@ -24,6 +24,7 @@
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playerTimeJumped:) name:AVPlayerItemTimeJumpedNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playerDidPlayToEndTime:) name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
         self.layerProcessor = [[AppleAVPlayerLayerProcessor alloc] init];
+        self.isSeeking = false;
     }
     return self;
 }
@@ -43,7 +44,10 @@
         //取出status的新值
         AVPlayerItemStatus status = (AVPlayerItemStatus)[change[NSKeyValueChangeNewKey] integerValue];
         if (status == AVPlayerItemStatusFailed) {
-            
+            auto item = (AVPlayerItem *) object;
+            if (mPlayerListener.ErrorCallback) {
+                mPlayerListener.ErrorCallback(item.error.code, [item.error.localizedDescription UTF8String], mPlayerListener.userData);
+            }
         } else if (status == AVPlayerItemStatusReadyToPlay) {
             if (mPlayerListener.Prepared) {
                 mPlayerListener.Prepared(mPlayerListener.userData);
@@ -79,11 +83,13 @@
         __weak typeof(self) weakSelf = self;
         self.timeObserver = [_avplayer addPeriodicTimeObserverForInterval:CMTimeMake(1, 1) queue:dispatch_get_main_queue() usingBlock:^(CMTime time) {
             __strong typeof(self) strongSelf = weakSelf;
-            playerListener playerListener = [strongSelf getListener];
-            NSTimeInterval currentTime = CMTimeGetSeconds(time);
-            int64_t position = (int64_t)(currentTime * 1000);
-            if (playerListener.PositionUpdate) {
-                playerListener.PositionUpdate(position, playerListener.userData);
+            if (!strongSelf.isSeeking) {
+                playerListener playerListener = [strongSelf getListener];
+                NSTimeInterval currentTime = CMTimeGetSeconds(time);
+                int64_t position = (int64_t)(currentTime * 1000);
+                if (playerListener.PositionUpdate) {
+                    playerListener.PositionUpdate(position, playerListener.userData);
+                }
             }
         }];
         [avplayer.currentItem addObserver:weakSelf forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];

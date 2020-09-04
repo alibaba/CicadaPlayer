@@ -40,6 +40,9 @@ AppleAVPlayer::~AppleAVPlayer()
     if (this->sourceUrl) {
         CFRelease(this->sourceUrl);
     }
+    if (this->resourceLoaderDelegate) {
+        CFRelease(this->resourceLoaderDelegate);
+    }
     this->parentLayer = NULL;
     this->mListener = {nullptr,};
     this->mStreamInfos = NULL;
@@ -193,11 +196,19 @@ void AppleAVPlayer::SeekTo(int64_t seekPos, bool bAccurate)
     if (this->mListener.Seeking) {
         this->mListener.Seeking(1, this->mListener.userData);
     }
+    AppleAVPlayerHandler *playerHandler = (__bridge AppleAVPlayerHandler *) this->playerHandler;
+    if (playerHandler) {
+        playerHandler.isSeeking = true;
+    }
     AVPlayer *player = (__bridge AVPlayer *)this->avPlayer;
     Float64 seconds = seekPos / 1000;
     [player seekToTime:CMTimeMakeWithSeconds(seconds, 1) completionHandler:^(BOOL finished) {
         if (this->mListener.SeekEnd) {
             this->mListener.SeekEnd(1, this->mListener.userData);
+        }
+        AppleAVPlayerHandler *playerHandler = (__bridge AppleAVPlayerHandler *) this->playerHandler;
+        if (playerHandler) {
+            playerHandler.isSeeking = false;
         }
     }];
 }
@@ -206,6 +217,10 @@ int AppleAVPlayer::Stop()
 {
     AVPlayer *player = (__bridge AVPlayer *)this->avPlayer;
     [player pause];
+    AppleAVPlayerHandler *playerHandler = (__bridge AppleAVPlayerHandler *) this->playerHandler;
+    if (playerHandler) {
+        playerHandler.isSeeking = false;
+    }
     return 0;
 }
 
@@ -224,6 +239,9 @@ int64_t AppleAVPlayer::GetDuration() const
         return 0;
     }
     AVPlayer *player = (__bridge AVPlayer *)this->avPlayer;
+    if (isnan(CMTimeGetSeconds(player.currentItem.duration))) {
+        return 0;
+    }
     return (int64_t)(CMTimeGetSeconds(player.currentItem.duration) * 1000);
 }
 
@@ -231,6 +249,9 @@ int64_t AppleAVPlayer::GetPlayingPosition()
 {
     AVPlayer *player = (__bridge AVPlayer *)this->avPlayer;
     NSTimeInterval currentTimeSeconds = CMTimeGetSeconds(player.currentTime);
+    if (isnan(currentTimeSeconds)) {
+        return 0;
+    }
     return (int64_t)(currentTimeSeconds * 1000);
 }
 
@@ -419,6 +440,7 @@ int AppleAVPlayer::SetOption(const char *key, const char *value)
     if ([kkey isEqualToString:@"AVResourceLoaderDelegate"]) {
         NSString *addressStr = [[NSString alloc] initWithUTF8String:value];
         void *resourceLoaderDelegate = (void *)[addressStr integerValue];
+        CFRetain(resourceLoaderDelegate);
         this->resourceLoaderDelegate = resourceLoaderDelegate;
         return 0;
     }

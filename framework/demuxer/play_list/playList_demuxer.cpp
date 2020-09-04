@@ -103,7 +103,7 @@ namespace Cicada {
         }
     }
 
-    int playList_demuxer::Seek(int64_t us, int flags, int index)
+    int64_t playList_demuxer::Seek(int64_t us, int flags, int index)
     {
         if (mPPlaylistManager) {
             return mPPlaylistManager->seek(us, flags, index);

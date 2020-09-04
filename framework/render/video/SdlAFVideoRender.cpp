@@ -25,10 +25,19 @@ SdlAFVideoRender::~SdlAFVideoRender()
 {
     if (mVideoTexture != nullptr) {
         SDL_DestroyTexture(mVideoTexture);
+        mVideoTexture = nullptr;
+        mInited = false;
     }
     if (mRenderNeedRelease) {
         SDL_DelEventWatch(SdlWindowSizeEventWatch, this);
         SDL_DestroyRenderer(mVideoRender);
+        mVideoRender = nullptr;
+        mRenderNeedRelease = false;
+    }
+    if (mWindowNeedRelease && mVideoWindow) {
+        SDL_DestroyWindow(mVideoWindow);
+        mVideoWindow = nullptr;
+        mWindowNeedRelease = false;
     }
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
@@ -372,7 +381,7 @@ void SdlAFVideoRender::captureScreen(std::function<void(uint8_t *data, int width
         AF_LOGE("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
         return;
     }
-
+    refreshScreen();
     Uint32 surfaceFormat = surface->format->format;
     {
         std::unique_lock<std::mutex> lock(mRenderMutex);
@@ -463,6 +472,7 @@ int SdlAFVideoRender::setDisPlay(void *view)
     if (mVideoWindow) {
         mVideoRender = SDL_GetRenderer(mVideoWindow);
         if (mVideoRender == nullptr) {
+            // add before renderer created, so this callback will be called before renderer's window size change callback
             SDL_AddEventWatch(SdlWindowSizeEventWatch, this);
             Uint32 renderFlags = 0;
 #ifdef __WINDOWS__
@@ -488,6 +498,12 @@ int SDLCALL SdlWindowSizeEventWatch(void *userdata, SDL_Event *event)
                 SDL_Window *window = SDL_GetWindowFromID(event->window.windowID);
                 pSelf->onWindowSizeChange(window);
             }
+        } else if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
+            // after SDL_WINDOWEVENT_SIZE_CHANGED event, d3d11 recreate resource, then in this event refresh use new d3d11 resource
+            SdlAFVideoRender *pSelf = (SdlAFVideoRender *) userdata;
+            if (pSelf) {
+                pSelf->refreshScreen();
+            }
         }
     }
     return 0;
@@ -500,6 +516,7 @@ void SdlAFVideoRender::onWindowSizeChange(SDL_Window *window)
         if (!mInited) {
             return;
         }
+        // block the renderer's window size change callback(d3d11 recreate resource) until render complete
         std::unique_lock<std::mutex> lock(mWindowSizeChangeMutex);
         mWindowSizeChangeCon.wait(lock);
 #endif

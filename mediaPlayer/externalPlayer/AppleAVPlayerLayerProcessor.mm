@@ -84,7 +84,6 @@
 -(void)applayTransform{
     CATransform3D transform = CATransform3DConcat(_mirrorTransform,_rotateTransform);
     
-    
     CGRect bounds = self.playerLayer.bounds;
     if (_scaleMode == SM_FIT) {
         float scale = 1;
