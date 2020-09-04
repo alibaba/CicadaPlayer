@@ -40,6 +40,9 @@ AppleAVPlayer::~AppleAVPlayer()
     if (this->sourceUrl) {
         CFRelease(this->sourceUrl);
     }
+    if (this->resourceLoaderDelegate) {
+        CFRelease(this->resourceLoaderDelegate);
+    }
     this->parentLayer = NULL;
     this->mListener = {nullptr,};
     this->mStreamInfos = NULL;
@@ -437,6 +440,7 @@ int AppleAVPlayer::SetOption(const char *key, const char *value)
     if ([kkey isEqualToString:@"AVResourceLoaderDelegate"]) {
         NSString *addressStr = [[NSString alloc] initWithUTF8String:value];
         void *resourceLoaderDelegate = (void *)[addressStr integerValue];
+        CFRetain(resourceLoaderDelegate);
         this->resourceLoaderDelegate = resourceLoaderDelegate;
         return 0;
     }
