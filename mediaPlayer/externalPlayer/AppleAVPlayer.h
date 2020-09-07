@@ -9,10 +9,10 @@
 
 #include "../CicadaPlayerPrototype.h"
 namespace Cicada {
-    class AppleAVPlayer : public ICicadaPlayer, private CicadaPlayerPrototype {
+    class AppleAVPlayer final : public ICicadaPlayer, private CicadaPlayerPrototype {
     public:
         AppleAVPlayer();
-        ~AppleAVPlayer() override;
+        ~AppleAVPlayer() final;
 
         string getName() override
         {
@@ -176,8 +176,6 @@ namespace Cicada {
         }
 
         static AppleAVPlayer se;
-
-        void setupPlayerLayer();
         void recheckHander();
 
     private:
@@ -193,6 +191,9 @@ namespace Cicada {
         bool isAutoPlay = false;
 
         bool mIsDummy{false};
+        PlayerStatus mStatus{PLAYER_IDLE};
+
+        void UpdatePlayerStatus(PlayerStatus status);
     };
 }// namespace Cicada
 
