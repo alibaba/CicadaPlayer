@@ -4,6 +4,7 @@
 
 #ifdef __APPLE__
 #include <TargetConditionals.h>
+#include <render/audio/Apple/AFAudioSessionWrapper.h>
 #endif
 
 #import <Foundation/Foundation.h>
@@ -101,6 +102,10 @@ void AppleAVPlayer::UpdatePlayerStatus(PlayerStatus status)
 
 void AppleAVPlayer::Prepare()
 {
+#if TARGET_OS_IPHONE
+    AFAudioSessionWrapper::activeAudio();
+#endif
+
     NSString *urlString = (__bridge NSString *)this->sourceUrl;
     NSLog(@"Prepare url : %@", urlString);
     NSURL *mediaURL = [NSURL URLWithString:urlString];
@@ -211,8 +216,11 @@ void AppleAVPlayer::SeekTo(int64_t seekPos, bool bAccurate)
         playerHandler.isSeeking = true;
     }
     AVPlayer *player = (__bridge AVPlayer *)this->avPlayer;
+    float rate = player.rate;
+    [player pause];
     Float64 seconds = seekPos / 1000;
     [player seekToTime:CMTimeMakeWithSeconds(seconds, 1) completionHandler:^(BOOL finished) {
+        player.rate = rate;
         if (this->mListener.SeekEnd) {
             this->mListener.SeekEnd(1, this->mListener.userData);
         }

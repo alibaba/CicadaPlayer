@@ -132,12 +132,15 @@
     if (self.playerLayer) {
         [self.playerLayer removeFromSuperlayer];
     }
-    AVPlayerLayer *layer = [AVPlayerLayer playerLayerWithPlayer:self.avplayer];
-    layer.frame = CGRectMake(0, 0, self.parentLayer.bounds.size.width, self.parentLayer.bounds.size.height);
-    [self.parentLayer addSublayer:layer];
-    self.playerLayer = layer;
-    self.layerProcessor.playerLayer = layer;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        AVPlayerLayer *layer = [AVPlayerLayer playerLayerWithPlayer:self.avplayer];
+        layer.frame = CGRectMake(0, 0, self.parentLayer.bounds.size.width, self.parentLayer.bounds.size.height);
+        [self.parentLayer addSublayer:layer];
+        self.playerLayer = layer;
+        self.layerProcessor.playerLayer = layer;
+    });
 }
+
 - (void)removePlayerLayer
 {
     if (self.playerLayer) {
