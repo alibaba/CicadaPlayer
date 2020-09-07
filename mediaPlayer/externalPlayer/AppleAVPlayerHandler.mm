@@ -52,12 +52,16 @@
             if (mPlayerListener.Prepared) {
                 mPlayerListener.Prepared(mPlayerListener.userData);
             }
+            if (mPlayerListener.StatusChanged) {
+                mPlayerListener.StatusChanged(PLAYER_PREPARING, PLAYER_PREPARED, mPlayerListener.userData);
+            }
             if (mPlayerListener.FirstFrameShow) {
                 mPlayerListener.FirstFrameShow(mPlayerListener.userData);
             }
             AVPlayerItem *item = (AVPlayerItem *)object;
             if (mPlayerListener.VideoSizeChanged) {
-                mPlayerListener.VideoSizeChanged(item.presentationSize.width, item.presentationSize.height, mPlayerListener.userData);
+                mPlayerListener.VideoSizeChanged(static_cast<int64_t>(item.presentationSize.width),
+                                                 static_cast<int64_t>(item.presentationSize.height), mPlayerListener.userData);
             }
             [self.layerProcessor setVideoSize:item.presentationSize];
         } else if (status == AVPlayerItemStatusUnknown) {
@@ -133,6 +137,14 @@
     [self.parentLayer addSublayer:layer];
     self.playerLayer = layer;
     self.layerProcessor.playerLayer = layer;
+}
+- (void)removePlayerLayer
+{
+    if (self.playerLayer) {
+        [self.playerLayer removeFromSuperlayer];
+    }
+    self.playerLayer = nullptr;
+    self.layerProcessor.playerLayer = nullptr;
 }
 #if TARGET_OS_IPHONE
 - (UIImage *)captureScreen{

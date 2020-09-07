@@ -31,6 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)init;
 - (void)setmPlayerListener:(playerListener)playerListener;
+- (void)removePlayerLayer;
 #if TARGET_OS_IPHONE
 - (UIImage *)captureScreen;
 #endif

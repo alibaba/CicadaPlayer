@@ -21,7 +21,6 @@ using namespace Cicada;
 AppleAVPlayer AppleAVPlayer::se(1);
 AppleAVPlayer::AppleAVPlayer()
 {
-
 }
 
 AppleAVPlayer::~AppleAVPlayer()
@@ -29,23 +28,11 @@ AppleAVPlayer::~AppleAVPlayer()
     if (mIsDummy) {
         return;
     }
-    AVPlayer *avPlayer = (__bridge AVPlayer *)this->avPlayer;
-    CALayer *playerLayer = (CALayer *)CFBridgingRelease(this->parentLayer);
-    if (this->playerHandler) {
-        CFRelease(this->playerHandler);
+    Stop();
+    if (this->parentLayer) {
+        CFRelease(this->parentLayer);
     }
-    if (this->avPlayer) {
-        CFRelease(this->avPlayer);
-    }
-    if (this->sourceUrl) {
-        CFRelease(this->sourceUrl);
-    }
-    if (this->resourceLoaderDelegate) {
-        CFRelease(this->resourceLoaderDelegate);
-    }
-    this->parentLayer = NULL;
-    this->mListener = {nullptr,};
-    this->mStreamInfos = NULL;
+    this->parentLayer = nullptr;
 }
 
 int AppleAVPlayer::SetListener(const playerListener &Listener)
@@ -80,8 +67,18 @@ void AppleAVPlayer::recheckHander()
 
 void AppleAVPlayer::SetView(void *view)
 {
+    if (this->parentLayer) {
+        AppleAVPlayerHandler *playerHandler = (__bridge AppleAVPlayerHandler *) this->playerHandler;
+        if (this->parentLayer != NULL) {
+            [playerHandler removePlayerLayer];
+        }
+        CFRelease(this->parentLayer);
+    }
     this->parentLayer = view;
-    this->recheckHander();
+    if (view) {
+        CFRetain(view);
+        this->recheckHander();
+    }
 }
 
 void AppleAVPlayer::SetDataSource(const char *url)
@@ -90,6 +87,16 @@ void AppleAVPlayer::SetDataSource(const char *url)
     NSString *urlString = [[NSString alloc] initWithUTF8String:url];
     this->sourceUrl = (__bridge_retained void *)urlString;
 //    NSLog(@"SetDataSource url : %@", urlString);
+    UpdatePlayerStatus(PLAYER_INITIALZED);
+}
+
+void AppleAVPlayer::UpdatePlayerStatus(PlayerStatus status)
+{
+    if (mListener.StatusChanged) {
+        mListener.StatusChanged(mStatus, status, mListener.userData);
+    }
+
+    mStatus = status;
 }
 
 void AppleAVPlayer::Prepare()
@@ -102,9 +109,9 @@ void AppleAVPlayer::Prepare()
         [asset.resourceLoader setDelegate:(__bridge id<AVAssetResourceLoaderDelegate>)this->resourceLoaderDelegate queue:dispatch_get_main_queue()];
     }
     AVPlayerItem *item = [AVPlayerItem playerItemWithAsset:asset];
+    UpdatePlayerStatus(PLAYER_PREPARING);
     AVPlayer *player = [[AVPlayer alloc] initWithPlayerItem:item];
     this->avPlayer = (__bridge_retained void *)player;
-    
     AppleAVPlayerHandler *playerHandler = [[AppleAVPlayerHandler alloc] init];
     this->playerHandler = (__bridge_retained void *)playerHandler;
     this->recheckHander();
@@ -151,6 +158,7 @@ void AppleAVPlayer::Prepare()
     
     if (this->isAutoPlay) {
         [player play];
+        UpdatePlayerStatus(PLAYER_PLAYING);
     }
 }
 
@@ -158,12 +166,14 @@ void AppleAVPlayer::Start()
 {
     AVPlayer *player = (__bridge AVPlayer *)this->avPlayer;
     [player play];
+    UpdatePlayerStatus(PLAYER_PLAYING);
 }
 
 void AppleAVPlayer::Pause()
 {
     AVPlayer *player = (__bridge AVPlayer *)this->avPlayer;
     [player pause];
+    UpdatePlayerStatus(PLAYER_PAUSED);
 }
 
 StreamType AppleAVPlayer::SwitchStream(int index)
@@ -215,12 +225,40 @@ void AppleAVPlayer::SeekTo(int64_t seekPos, bool bAccurate)
 
 int AppleAVPlayer::Stop()
 {
-    AVPlayer *player = (__bridge AVPlayer *)this->avPlayer;
-    [player pause];
-    AppleAVPlayerHandler *playerHandler = (__bridge AppleAVPlayerHandler *) this->playerHandler;
-    if (playerHandler) {
-        playerHandler.isSeeking = false;
+    if (mStatus == PLAYER_STOPPED) {
+        return 0;
     }
+    mStatus = PLAYER_STOPPED;
+    AVPlayer *avPlayer = (__bridge AVPlayer *) this->avPlayer;
+    if (avPlayer) {
+        [avPlayer pause];
+    }
+    AppleAVPlayerHandler *playerHandler = (__bridge AppleAVPlayerHandler *) this->playerHandler;
+    if (this->parentLayer != NULL) {
+        [playerHandler removePlayerLayer];
+    }
+    //    CALayer *playerLayer = (CALayer *)CFBridgingRelease(this->parentLayer);
+    if (this->playerHandler) {
+        CFRelease(this->playerHandler);
+    }
+    this->playerHandler = nullptr;
+    if (this->avPlayer) {
+        CFRelease(this->avPlayer);
+    }
+    this->avPlayer = nullptr;
+    if (this->sourceUrl) {
+        CFRelease(this->sourceUrl);
+    }
+    this->sourceUrl = nullptr;
+    if (this->resourceLoaderDelegate) {
+        CFRelease(this->resourceLoaderDelegate);
+    }
+    this->resourceLoaderDelegate = nullptr;
+
+    this->mListener = {
+            nullptr,
+    };
+    this->mStreamInfos = nullptr;
     return 0;
 }
 
