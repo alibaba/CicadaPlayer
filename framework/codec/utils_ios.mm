@@ -175,7 +175,8 @@ namespace Cicada{
                                         CFNotificationSuspensionBehaviorDeliverImmediately);
 
         dispatch_async(dispatch_get_main_queue(), ^{
-            mbActive = [UIApplication sharedApplication].applicationState != UIApplicationStateBackground;
+          // set active default, the status is Background when globle value init on iOS 12.1.4
+            mbActive = true;//[UIApplication sharedApplication].applicationState != UIApplicationStateBackground;
         });
     }
 
