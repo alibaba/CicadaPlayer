@@ -69,6 +69,7 @@ if (APPLE)
             ../base/media/PBAFFrame.cpp
             ../base/media/PBAFFrame.h
             ../base/media/avFrame2pixelBuffer.c
+            appleLog.m
             )
 endif ()
 
@@ -116,7 +117,8 @@ if (ANDROID)
 elseif (IOS)
     set(SOURCE_FILES ${SOURCE_FILES}
             oscl/ios_utils.c
-            ../base/media/subTitlePacket.cpp ../base/media/subTitlePacket.h)
+            ../base/media/subTitlePacket.cpp
+            ../base/media/subTitlePacket.h)
 endif ()
 
 include_directories(
