@@ -146,6 +146,16 @@ namespace Cicada {
     public:
         static bool is_supported(const options *opts)
         {
+            if (opts) {
+                string name = opts->get("name");
+                if (!name.empty()) {
+                    if (name == "AppleAVPlayer") {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            }
             return false;
         }
 
@@ -162,15 +172,8 @@ namespace Cicada {
 
         int probeScore(const options *opts) override
         {
-            if (opts) {
-                string name = opts->get("name");
-                if (!name.empty()) {
-                    if (name == "AppleAVPlayer") {
-                        return SUPPORT_MAX;
-                    } else {
-                        return SUPPORT_NOT;
-                    }
-                }
+            if (is_supported(opts)) {
+                return SUPPORT_MAX;
             }
             return SUPPORT_NOT;
         }
