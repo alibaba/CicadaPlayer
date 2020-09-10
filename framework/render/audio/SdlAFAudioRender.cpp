@@ -82,9 +82,9 @@ namespace Cicada {
             }
             SDL_PauseAudioDevice(mDevID, 0); // start play audio
         }
-        if (frame->getInfo().duration < 0 && frame->getInfo().audio.sample_rate > 0) {
-            frame->getInfo().duration = frame->getInfo().audio.nb_samples * 100000 / frame->getInfo().audio.sample_rate;
-        }
+        //        if (frame->getInfo().duration < 0 &&  frame->getInfo().audio.sample_rate > 0) {
+        //            frame->getInfo().duration = (uint64_t) frame->getInfo().audio.nb_samples * 1000000 / frame->getInfo().audio.sample_rate;
+        //        }
 
         //  mAudioFrames.push(std::move(frame));
         if (getQueDuration() > 500 * 1000) {
@@ -93,6 +93,7 @@ namespace Cicada {
 
         if (mFiler != nullptr) {
             int ret;
+            int origin_samples = frame->getInfo().audio.nb_samples;
             unique_ptr<IAFFrame> filter_frame{};
             ret = mFiler->pull(filter_frame, 0);
 
@@ -115,7 +116,7 @@ namespace Cicada {
                     memset(pcmBuffer, 0, pcmDataLength);
                 }
                 SDL_QueueAudio(mDevID, pcmBuffer, pcmDataLength);
-                mPlayedDuration += filter_frame->getInfo().duration;
+                mPlayedDuration += (uint64_t) origin_samples * 1000000 / filter_frame->getInfo().audio.sample_rate;
             }
 
             return mFiler->push(frame, 0);
@@ -140,8 +141,8 @@ namespace Cicada {
         }
         SDL_QueueAudio(mDevID, pcmBuffer, pcmDataLength);
         assert(frame->getInfo().duration > 0);
-        mPlayedDuration += frame->getInfo().duration;
-//    AF_LOGD("queued duration is %llu\n", getQueDuration());
+        mPlayedDuration += (uint64_t) frame->getInfo().audio.nb_samples * 1000000 / frame->getInfo().audio.sample_rate;
+        //    AF_LOGD("queued duration is %llu\n", getQueDuration());
         frame = nullptr;
         return 0;
     }
