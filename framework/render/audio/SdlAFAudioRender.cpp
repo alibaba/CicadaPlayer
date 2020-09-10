@@ -82,8 +82,9 @@ namespace Cicada {
             }
             SDL_PauseAudioDevice(mDevID, 0); // start play audio
         }
-        if (frame->getInfo().duration < 0 && frame->getInfo().audio.sample_rate > 0) {
-            frame->getInfo().duration = frame->getInfo().audio.nb_samples * 100000 / frame->getInfo().audio.sample_rate;
+        // frame duration was calculated by pts,may be not accurate
+        if (/*frame->getInfo().duration < 0 && */ frame->getInfo().audio.sample_rate > 0) {
+            frame->getInfo().duration = (uint64_t) frame->getInfo().audio.nb_samples * 1000000 / frame->getInfo().audio.sample_rate;
         }
 
         //  mAudioFrames.push(std::move(frame));
