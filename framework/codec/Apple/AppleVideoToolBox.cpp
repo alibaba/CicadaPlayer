@@ -51,7 +51,7 @@ namespace Cicada {
             return false;
         }
 
-#ifdef NDEBUG
+#ifndef NDEBUG
 
         if (codec == AF_CODEC_ID_HEVC) {
 #if TARGET_OS_IPHONE
