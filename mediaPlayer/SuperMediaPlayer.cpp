@@ -1942,12 +1942,16 @@ namespace Cicada {
         } else {
             if (mLastAudioFrameDuration > 0) {
                 int64_t offset = pts - (mPlayedAudioPts + mLastAudioFrameDuration);
-
-                if (llabs(offset) > 200000) {
+                /*
+                 * the mLastAudioFrameDuration and the pts are all not the accurate value,
+                 * the mLastAudioFrameDuration accurate for 1/1000000 s,
+                 * the pts maybe accurate for 1/1000 s (eg. flv file), so can't increase the deltaTimeTmp when
+                 * offset little than 1ms.
+                 */
+                if (llabs(offset) > 1000) {
                     AF_LOGW("offset is %lld,pts is %lld", offset, pts);
+                    mAudioTime.deltaTimeTmp += offset;
                 }
-
-                mAudioTime.deltaTimeTmp += offset;
 
                 if (llabs(mAudioTime.deltaTimeTmp) > 100000) {
                     AF_LOGW("correct audio and master clock offset is %lld, frameDuration :%lld", mAudioTime.deltaTimeTmp,
