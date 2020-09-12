@@ -288,6 +288,9 @@ int AppleAVPlayer::Stop()
     if (this->sourceUrl) {
         CFRelease(this->sourceUrl);
     }
+    if (this->subtitleUrl) {
+        CFRelease(this->subtitleUrl);
+    }
     this->sourceUrl = nullptr;
     if (this->resourceLoaderDelegate) {
         CFRelease(this->resourceLoaderDelegate);

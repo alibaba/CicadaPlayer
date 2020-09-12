@@ -76,6 +76,18 @@
         if (mPlayerListener.BufferPositionUpdate) {
             mPlayerListener.BufferPositionUpdate(position, mPlayerListener.userData);
         }
+    } else if ([keyPath isEqualToString:@"playbackBufferEmpty"]) {
+        AVPlayerItem *playerItem = (AVPlayerItem *)object;
+        if (mPlayerListener.LoadingStart && playerItem.playbackBufferEmpty) {
+            mPlayerListener.LoadingStart(mPlayerListener.userData);
+        }
+    } else if ([keyPath isEqualToString:@"playbackLikelyToKeepUp"]) {
+        AVPlayerItem *playerItem = (AVPlayerItem *)object;
+        if (mPlayerListener.LoadingEnd && playerItem.playbackLikelyToKeepUp) {
+            mPlayerListener.LoadingEnd(mPlayerListener.userData);
+        }
+    } else if ([keyPath isEqualToString:@"playbackBufferFull"]) {
+
     }
 }
 
@@ -101,6 +113,9 @@
         }];
         [avplayer.currentItem addObserver:weakSelf forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
         [avplayer.currentItem addObserver:weakSelf forKeyPath:@"loadedTimeRanges" options:NSKeyValueObservingOptionNew context:nil];
+        [avplayer.currentItem addObserver:weakSelf forKeyPath:@"playbackBufferEmpty" options:NSKeyValueObservingOptionNew context:nil];
+        [avplayer.currentItem addObserver:weakSelf forKeyPath:@"playbackLikelyToKeepUp" options:NSKeyValueObservingOptionNew context:nil];
+        [avplayer.currentItem addObserver:weakSelf forKeyPath:@"playbackBufferFull" options:NSKeyValueObservingOptionNew context:nil];
         [self setupPlayerLayer];
     }
 }
@@ -126,6 +141,9 @@
             [self.avplayer play];
             if (mPlayerListener.AutoPlayStart) {
                 mPlayerListener.AutoPlayStart(mPlayerListener.userData);
+            }
+            if (mPlayerListener.LoopingStart) {
+                mPlayerListener.LoopingStart(mPlayerListener.userData);
             }
         }];
     }
@@ -165,6 +183,9 @@
     [self.avplayer removeTimeObserver:self.timeObserver];
     [self.avplayer.currentItem removeObserver:self forKeyPath:@"status"];
     [self.avplayer.currentItem removeObserver:self forKeyPath:@"loadedTimeRanges"];
+    [self.avplayer.currentItem removeObserver:self forKeyPath:@"playbackBufferEmpty"];
+    [self.avplayer.currentItem removeObserver:self forKeyPath:@"playbackLikelyToKeepUp"];
+    [self.avplayer.currentItem removeObserver:self forKeyPath:@"playbackBufferFull"];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
