@@ -36,7 +36,6 @@
 - (void)setParentLayer:(CALayer *)parentLayer {
     _parentLayer = parentLayer;
     self.layerProcessor.parentLayer = parentLayer;
-    
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context{
@@ -46,7 +45,11 @@
         if (status == AVPlayerItemStatusFailed) {
             auto item = (AVPlayerItem *) object;
             if (mPlayerListener.ErrorCallback) {
-                mPlayerListener.ErrorCallback(item.error.code, [item.error.localizedDescription UTF8String], mPlayerListener.userData);
+                NSString *errorDesc = item.error.localizedDescription;
+                if (item.errorLog) {
+                    errorDesc = [errorDesc stringByAppendingFormat:@"\n%@", item.errorLog.description];
+                }
+                mPlayerListener.ErrorCallback(item.error.code, [errorDesc UTF8String], mPlayerListener.userData);
             }
         } else if (status == AVPlayerItemStatusReadyToPlay) {
             if (mPlayerListener.Prepared) {
