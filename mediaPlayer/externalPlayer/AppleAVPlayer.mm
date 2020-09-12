@@ -219,7 +219,7 @@ void AppleAVPlayer::SeekTo(int64_t seekPos, bool bAccurate)
     float rate = player.rate;
     [player pause];
     Float64 seconds = seekPos / 1000;
-    [player seekToTime:CMTimeMakeWithSeconds(seconds, 1) completionHandler:^(BOOL finished) {
+    void (^completionHandler)(BOOL finished) = ^(BOOL finished) {
         player.rate = rate;
         if (this->mListener.SeekEnd) {
             this->mListener.SeekEnd(1, this->mListener.userData);
@@ -228,7 +228,12 @@ void AppleAVPlayer::SeekTo(int64_t seekPos, bool bAccurate)
         if (playerHandler) {
             playerHandler.isSeeking = false;
         }
-    }];
+    };
+    if (bAccurate) {
+        [player seekToTime:CMTimeMakeWithSeconds(seconds, 1)toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero completionHandler:completionHandler];
+    } else {
+        [player seekToTime:CMTimeMakeWithSeconds(seconds, 1) completionHandler:completionHandler];
+    }
 }
 
 int AppleAVPlayer::Stop()
