@@ -110,10 +110,35 @@ void AppleAVPlayer::Prepare()
     NSLog(@"Prepare url : %@", urlString);
     NSURL *mediaURL = [NSURL URLWithString:urlString];
     AVURLAsset *asset = [AVURLAsset assetWithURL:mediaURL];
-    if (this->resourceLoaderDelegate) {
-        [asset.resourceLoader setDelegate:(__bridge id<AVAssetResourceLoaderDelegate>)this->resourceLoaderDelegate queue:dispatch_get_main_queue()];
+    
+    AVURLAsset *subtitleAsset = nil;
+    if (this->subtitleUrl) {
+        NSString *subtitleUrlString = (__bridge NSString *)this->subtitleUrl;
+        NSURL *subtitleURL = [NSURL URLWithString:subtitleUrlString];
+        subtitleAsset = [AVURLAsset assetWithURL:subtitleURL];
     }
-    AVPlayerItem *item = [AVPlayerItem playerItemWithAsset:asset];
+    
+    AVPlayerItem *item = nil;
+    if (subtitleAsset && subtitleAsset.tracks.count > 0) {
+        AVMutableComposition *mutableComposition = [[AVMutableComposition alloc] init];
+        // origin tracks
+        for (AVAssetTrack *track in asset.tracks) {
+            AVMutableCompositionTrack *compositionTrack = [mutableComposition addMutableTrackWithMediaType:track.mediaType preferredTrackID:track.trackID];
+            [compositionTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, asset.duration) ofTrack:track atTime:kCMTimeZero error:nil];
+        }
+        // subtitle
+        for (AVAssetTrack *track in subtitleAsset.tracks) {
+            AVMutableCompositionTrack *compositionTrack = [mutableComposition addMutableTrackWithMediaType:track.mediaType preferredTrackID:track.trackID];
+            [compositionTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, asset.duration) ofTrack:track atTime:kCMTimeZero error:nil];
+        }
+        item = [AVPlayerItem playerItemWithAsset:mutableComposition];
+    } else {
+        if (this->resourceLoaderDelegate) {
+            [asset.resourceLoader setDelegate:(__bridge id<AVAssetResourceLoaderDelegate>)this->resourceLoaderDelegate queue:dispatch_get_main_queue()];
+        }
+        item = [AVPlayerItem playerItemWithAsset:asset];
+    }
+    
     UpdatePlayerStatus(PLAYER_PREPARING);
     AVPlayer *player = [[AVPlayer alloc] initWithPlayerItem:item];
     this->avPlayer = (__bridge_retained void *)player;
@@ -229,6 +254,7 @@ void AppleAVPlayer::SeekTo(int64_t seekPos, bool bAccurate)
             playerHandler.isSeeking = false;
         }
     };
+    
     if (bAccurate) {
         [player seekToTime:CMTimeMakeWithSeconds(seconds, 1)toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero completionHandler:completionHandler];
     } else {
@@ -527,7 +553,8 @@ void AppleAVPlayer::RemoveAllCustomHttpHeader()
 
 void AppleAVPlayer::addExtSubtitle(const char *uri)
 {
-    
+    NSString *urlString = [[NSString alloc] initWithUTF8String:uri];
+    this->subtitleUrl = (__bridge_retained void *)urlString;
 }
 
 int AppleAVPlayer::selectExtSubtitle(int index, bool bSelect)

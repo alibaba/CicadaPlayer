@@ -191,8 +191,9 @@ namespace Cicada {
         void *resourceLoaderDelegate{nullptr};
         void *parentLayer{nullptr};
         void *sourceUrl{nullptr};
+        void *subtitleUrl{nullptr};
         bool isAutoPlay = false;
-
+        
         bool mIsDummy{false};
         PlayerStatus mStatus{PLAYER_IDLE};
 
