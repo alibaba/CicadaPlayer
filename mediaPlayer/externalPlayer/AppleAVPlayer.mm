@@ -254,7 +254,7 @@ void AppleAVPlayer::SeekTo(int64_t seekPos, bool bAccurate)
             playerHandler.isSeeking = false;
         }
     };
-    
+    [player.currentItem cancelPendingSeeks];
     if (bAccurate) {
         [player seekToTime:CMTimeMakeWithSeconds(seconds, 1)toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero completionHandler:completionHandler];
     } else {
