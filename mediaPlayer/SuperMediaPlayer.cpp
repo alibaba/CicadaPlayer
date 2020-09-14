@@ -1615,14 +1615,11 @@ namespace Cicada {
                 mSeekFlag = false;
 
                 if (!mMessageControl.findMsgByType(MSG_SEEKTO)) {
+                    //update position when seek end
+                    NotifyPosition(getCurrentPosition() / 1000);
                     ResetSeekStatus();
                     mPNotifier->NotifySeekEnd(mSeekInCache);
                     mSeekInCache = false;
-
-                    //update position when seek end. in case of when paused.
-                    if (mPlayStatus == PLAYER_PAUSED) {
-                        NotifyPosition(getCurrentPosition() / 1000);
-                    }
                 }
             }
         }
