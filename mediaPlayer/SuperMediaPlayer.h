@@ -104,7 +104,10 @@ namespace Cicada {
 
         void GetOption(const char *key, char *value) override;
 
-        int64_t GetPlayingPosition() override;
+        int64_t GetPlayingPosition() override
+        {
+            return getCurrentPosition();
+        };
 
         int64_t GetBufferPosition() override;
 
@@ -202,8 +205,6 @@ namespace Cicada {
 
     private:
         void NotifyPosition(int64_t position);
-
-        int64_t GetCurrentPosition();
 
         void OnTimer(int64_t curTime);
 
@@ -487,8 +488,6 @@ namespace Cicada {
         bool mWillSwitchVideo{false};
         std::unique_ptr<player_type_set> mSet{};
         int64_t mSoughtVideoPos{INT64_MIN};
-        std::atomic<int64_t> mPlayingPosition{0};
-
         int mMaxRunningLoopGap = 10;
         int mTimerInterval = 0;
         int64_t mTimerLatestTime = 0;
