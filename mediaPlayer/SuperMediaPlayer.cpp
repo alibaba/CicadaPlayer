@@ -638,24 +638,9 @@ void SuperMediaPlayer::GetOption(const char *key, char *value)
     return;
 }
 
-int64_t SuperMediaPlayer::GetCurrentPosition()
-{
-    return getCurrentPosition() / 1000;
-}
-
 void SuperMediaPlayer::NotifyPosition(int64_t position)
 {
-    mPlayingPosition = position;
-    mPNotifier->NotifyPosition(position);
-}
-
-int64_t SuperMediaPlayer::GetPlayingPosition()
-{
-    if (isSeeking()) {
-        return mSeekPos / 1000;
-    }
-
-    return mPlayingPosition;
+    mPNotifier->NotifyPosition(position / 1000);
 }
 
 int64_t SuperMediaPlayer::getCurrentPosition()
@@ -1563,7 +1548,7 @@ void SuperMediaPlayer::doRender()
                 } else {
                     mCurrentPos = mPlayedVideoPts;
                 }
-                NotifyPosition(getCurrentPosition() / 1000);
+                NotifyPosition(getCurrentPosition());
 
                 // seek preview can't render audio,but set the audio clock to here pts
                 if (HAVE_AUDIO && (mAudioTime.startTime <= 0)) {
@@ -1577,7 +1562,7 @@ void SuperMediaPlayer::doRender()
         } else {// audio only
             if (!mAudioFrameQue.empty()) {
                 int64_t audioPTS = mAudioFrameQue.front()->getInfo().pts;
-                NotifyPosition(audioPTS / 1000);
+                NotifyPosition(audioPTS);
                 rendered = true;
                 mAudioTime.startTime = audioPTS;
             }
@@ -1605,9 +1590,7 @@ void SuperMediaPlayer::doRender()
                 // update position when seek end. in case of when paused.
                 // update position before reset seek status, so getCurrentPosition return mSeekPos instead of mCurrentPos
                 // fix bug the mCurrentPos not accuracy
-                if (mPlayStatus == PLAYER_PAUSED) {
-                    NotifyPosition(getCurrentPosition() / 1000);
-                }
+                NotifyPosition(getCurrentPosition());
                 ResetSeekStatus();
                 mPNotifier->NotifySeekEnd(mSeekInCache);
                 mSeekInCache = false;
@@ -1750,7 +1733,7 @@ void SuperMediaPlayer::checkEOS()
         }
     }
 
-    NotifyPosition(mDuration / 1000);
+    NotifyPosition(mDuration);
 
     if (mSet->bLooping && mDuration > 0) {
         mSeekPos = 0;//19644161: need reset seek position
@@ -2234,9 +2217,8 @@ void SuperMediaPlayer::OnTimer(int64_t curTime)
              * jumping
              */
         if ((mPlayStatus == PLAYER_PLAYING) && !isSeeking()) {
-            int64_t pos = getCurrentPosition() / 1000;
-            //AF_LOGD("TIMEPOS OnTimer :%lld", pos);
-            NotifyPosition(pos);
+            //AF_LOGD("TIMEPOS OnTimer :%lld", getCurrentPosition());
+            NotifyPosition(getCurrentPosition());
         }
 
         PostBufferPositionMsg();
@@ -3318,7 +3300,6 @@ void SuperMediaPlayer::Reset()
     mVideoChangedFirstPts = INT64_MIN;
     mSubtitleChangedFirstPts = INT64_MIN;
     mSoughtVideoPos = INT64_MIN;
-    mPlayingPosition = 0;
     mFirstReadPacketSucMS = 0;
     mCanceled = false;
     mPNotifier->Enable(true);
