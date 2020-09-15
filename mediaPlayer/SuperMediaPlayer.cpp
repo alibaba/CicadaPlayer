@@ -2567,6 +2567,11 @@ namespace Cicada {
 
             if (mSoughtVideoPos == INT64_MIN) {
                 mSoughtVideoPos = pFrame->getInfo().timePosition;
+                if (mSeekNeedCatch) {
+                    mSoughtVideoPos = mSeekPos;
+                } else {
+                    mSoughtVideoPos = pFrame->getInfo().timePosition;
+                }
 
                 /*
                  * seek would clean the packet which have ExtraData in decoder queue,
