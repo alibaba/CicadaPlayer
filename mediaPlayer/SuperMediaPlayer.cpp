@@ -26,7 +26,7 @@
 #ifdef __APPLE__
 
     #include <TargetConditionals.h>
-    #include <codec/Apple/AppleVideoToolBox.cpp>
+    #include <codec/Apple/AppleVideoToolBox.h>
     #include <render/audio/Apple/AFAudioSessionWrapper.h>
 
 #endif
