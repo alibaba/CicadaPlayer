@@ -2054,7 +2054,7 @@ namespace Cicada {
 
         int frameWidth = videoFrame->getInfo().video.width;
         int frameHeight = videoFrame->getInfo().video.height;
-        int frameRotate = videoFrame->getInfo().video.rotate;
+        videoFrame->getInfo().video.rotate = mVideoRotation;
 
         if (!mVideoPtsRevert) {
             mVideoPtsRevert = mPlayedVideoPts != INT64_MIN && videoPts < mPlayedVideoPts - PTS_DISCONTINUE_DELTA;
@@ -2144,7 +2144,6 @@ namespace Cicada {
             if (frameWidth != mVideoWidth || frameHeight != mVideoHeight) {
                 mVideoWidth = frameWidth;
                 mVideoHeight = frameHeight;
-                mVideoRotation = frameRotate;
                 mPNotifier->NotifyVideoSizeChanged(mVideoWidth, mVideoHeight);
             }
 
@@ -2371,6 +2370,7 @@ namespace Cicada {
                         AF_LOGD("get a video stream\n");
                         mCurrentVideoIndex = GEN_STREAM_ID(mMainStreamId, j);
                         mVideoInterlaced = meta->interlaced;
+                        updateVideoMeta();
                     } else if (!mSet.bDisableAudio && meta->type == STREAM_TYPE_AUDIO && mCurrentAudioIndex < 0 &&
                                meta->channels > 0) {
                         AF_LOGD("get a audio stream\n");
@@ -3024,7 +3024,9 @@ namespace Cicada {
 
     int SuperMediaPlayer::SetUpVideoPath()
     {
-        if (mVideoDecoder && mVideoRender) {
+        assert(mCurrentVideoMeta);
+        auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
+        if (mVideoDecoder) {
             return 0;
         }
 
@@ -3032,17 +3034,7 @@ namespace Cicada {
             return 0;
         }
 
-        mDemuxerService->GetStreamMeta(mCurrentVideoMeta, mCurrentVideoIndex, false);
-        auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
-
-        if (mVideoWidth != meta->width || mVideoHeight != meta->height) {
-            mVideoWidth = meta->width;
-            mVideoHeight = meta->height;
-            mVideoRotation = meta->rotate;
-            mPNotifier->NotifyVideoSizeChanged(mVideoWidth, mVideoHeight);
-        }
-
-        if (mSet.mView == nullptr && mFrameCb == nullptr) {
+        if (mSet.mView == nullptr) {
             return 0;
         }
 
@@ -3064,24 +3056,7 @@ namespace Cicada {
 
             AF_LOGD("SetUpVideoRender start");
             CreateVideoRender();
-
-            if (mVideoRender) {
-                IVideoRender::Rotate finalRotate = IVideoRender::Rotate::Rotate_None;
-
-                if (meta->rotate == 0) {
-                    finalRotate = IVideoRender::Rotate::Rotate_None;
-                } else if (meta->rotate == 90) {
-                    finalRotate = IVideoRender::Rotate::Rotate_90;
-                } else if (meta->rotate == 180) {
-                    finalRotate = IVideoRender::Rotate::Rotate_180;
-                } else if (meta->rotate == 270) {
-                    finalRotate = IVideoRender::Rotate::Rotate_270;
-                }
-
-                mVideoRender->setVideoRotate(finalRotate);
-            }
         }
-
         //re set view in case for not set view before
         if (mSet.mView) {
             if (mVideoRender) {
@@ -3142,6 +3117,18 @@ namespace Cicada {
         }
 
         return ret;
+    }
+    void SuperMediaPlayer::updateVideoMeta()
+    {
+       mDemuxerService->GetStreamMeta(mCurrentVideoMeta, mCurrentVideoIndex, false);
+       auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
+
+       if (mVideoWidth != meta->width || mVideoHeight != meta->height || mVideoRotation != meta->rotate) {
+           mVideoWidth = meta->width;
+           mVideoHeight = meta->height;
+           mVideoRotation = meta->rotate;
+           mPNotifier->NotifyVideoSizeChanged(mVideoWidth, mVideoHeight);
+       }
     }
 
     bool SuperMediaPlayer::CreateVideoRender()
@@ -3517,6 +3504,7 @@ namespace Cicada {
                         AF_LOGD("get a video stream\n");
                         openStreamRet = mDemuxerService->OpenStream(i);
                         mCurrentVideoIndex = i;
+                        updateVideoMeta();
                         mDemuxerService->GetStreamMeta(mCurrentVideoMeta, i, false);
                     }
                 }
