@@ -205,7 +205,7 @@ int SdlAFVideoRender::onVSyncInner(int64_t tick)
     srcRect.y = 0;
     srcRect.w = mVideoWidth;
     srcRect.h = mVideoHeight;
-    int angle = mRotate;
+    int angle = (mRotate + mVideoRotate) % 360;
     SDL_RendererFlip flip = convertFlip();
     SDL_Rect dstRect = getDestRet();
     {
@@ -400,10 +400,10 @@ void SdlAFVideoRender::captureScreen(std::function<void(uint8_t *data, int width
         func(nullptr, 0, 0);
     }
     SDL_FreeSurface(surface);
-    
+
     return ;
 }
- 
+
 
 SDL_Rect SdlAFVideoRender::getSnapRect()
 {
@@ -415,10 +415,12 @@ SDL_Rect SdlAFVideoRender::getSnapRect()
     SDL_Rect rect = getDestRet();
     int finalW, finalH;
 
-    if (mRotate == Rotate::Rotate_None || mRotate == Rotate::Rotate_180) {
+    int angle = (mRotate + mVideoRotate) % 360;
+
+    if (angle == Rotate::Rotate_None || angle == Rotate::Rotate_180) {
         finalW = rect.w;
         finalH = rect.h;
-    } else if (mRotate == Rotate::Rotate_90 || mRotate == Rotate::Rotate_270) {
+    } else if (angle == Rotate::Rotate_90 || angle == Rotate::Rotate_270) {
         finalW = rect.h;
         finalH = rect.w;
     } else {
