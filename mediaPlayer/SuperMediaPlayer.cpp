@@ -133,7 +133,7 @@ void SuperMediaPlayer::CaptureScreen()
 {
     std::lock_guard<std::mutex> uMutex(mCreateMutex);
 
-    if (mVideoRender && mCurrentVideoIndex >= 0) {
+    if (mVideoRender) {
         mVideoRender->captureScreen([this](uint8_t *data, int width, int height) {
             if (this->mPNotifier) {
                 this->mPNotifier->NotifyCaptureScreen(data, width, height);
