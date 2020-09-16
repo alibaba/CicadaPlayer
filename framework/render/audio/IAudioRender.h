@@ -40,6 +40,7 @@ namespace Cicada{
     public:
 
         const static int FORMAT_NOT_SUPPORT = -201;
+        const static int OPEN_AUDIO_DEVICE_FAILED = -202;
 
         virtual ~IAudioRender() = default;
 

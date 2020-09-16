@@ -78,7 +78,7 @@ namespace Cicada {
             mDevID = SDL_OpenAudioDevice(NULL, false, &mSpec, nullptr, SDL_AUDIO_ALLOW_ANY_CHANGE);
             if (mDevID == 0) {
                 AF_LOGE("SdlAFAudioRender could not openAudio! Error: %s\n", SDL_GetError());
-                return -1;
+                return OPEN_AUDIO_DEVICE_FAILED;
             }
             SDL_PauseAudioDevice(mDevID, 0); // start play audio
         }
