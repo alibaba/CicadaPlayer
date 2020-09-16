@@ -7,6 +7,7 @@
 #import <list>
 #import "AFAudioSessionWrapper.h"
 #import "AFAudioSession.h"
+#include <dispatch/dispatch.h>
 
 std::mutex gAFRenderMutex;
 
@@ -41,5 +42,8 @@ void AFAudioSessionWrapper::onInterruption(AF_AUDIO_SESSION_STATUS status)
 // call from main thread
 int AFAudioSessionWrapper::activeAudio()
 {
-    return [[AFAudioSession sharedInstance] activeAudio];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[AFAudioSession sharedInstance] activeAudio];
+    });
+    return 0;
 }
