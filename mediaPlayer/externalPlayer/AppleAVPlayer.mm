@@ -297,9 +297,9 @@ int AppleAVPlayer::Stop()
     }
     this->resourceLoaderDelegate = nullptr;
 
-    this->mListener = {
-            nullptr,
-    };
+//    this->mListener = {
+//            nullptr,
+//    };
     this->mStreamInfos = nullptr;
     return 0;
 }
