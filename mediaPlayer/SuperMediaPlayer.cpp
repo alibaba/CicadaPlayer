@@ -1943,9 +1943,23 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
             }
             mAudioRender->renderFrame(mAudioFrameQue.front(), 0);
         }
+    } else if (render_ret == IAudioRender::OPEN_AUDIO_DEVICE_FAILED) {
+        AF_LOGE("render audio failed due to can not open device, close audio stream");
+        mDemuxerService->CloseStream(mCurrentAudioIndex);
+        mCurrentAudioIndex = -1;
+        mMasterClock.setReferenceClock(nullptr, nullptr);
+        mAudioFrameQue.clear();
+        mBufferController->ClearPacket(BUFFER_TYPE_AUDIO);
+        if (HAVE_VIDEO) {
+            mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_OPEN_AUDIO_DEVICE_FAILED, "open audio device failed");
+        } else {
+            ChangePlayerStatus(PLAYER_ERROR);
+            mPNotifier->NotifyError(MEDIA_PLAYER_ERROR_RENDER_AUDIO_OPEN_DEVICE_FAILED, "open audio device failed");
+            return ret;
+        }
     }
 
-    if (mAudioFrameQue.front() == nullptr) {
+    if (mAudioFrameQue.size() > 0 && mAudioFrameQue.front() == nullptr) {
         mAudioFrameQue.pop_front();
         ret = RENDER_FULL;
     } else {

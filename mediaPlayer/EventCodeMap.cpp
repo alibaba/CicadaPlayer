@@ -58,4 +58,5 @@ void EventCodeMap::init()
     codeMap.insert(pair<int, int>(MEDIA_PLAYER_EVENT_SUBTITLE_SELECT_ERROR, 114));
     codeMap.insert(pair<int, int>(MEDIA_PLAYER_EVENT_DECODER_RECOVER_SIZE, 115));
     codeMap.insert(pair<int, int>(MEDIA_PLAYER_EVENT_DIRECT_COMPONENT_MSG, 116));
+    codeMap.insert(pair<int, int>(MEDIA_PLAYER_EVENT_OPEN_AUDIO_DEVICE_FAILED, 117));
 }
