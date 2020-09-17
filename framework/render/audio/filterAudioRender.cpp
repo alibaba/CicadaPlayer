@@ -52,6 +52,11 @@ namespace Cicada {
             AF_LOGE("subInit failed , ret = %d ", ret);
             return ret;
         }
+        if (mOutputInfo.nb_samples > 0) {
+            float rate = (float) mInputInfo.sample_rate / mOutputInfo.sample_rate;
+            float nb_samples = mOutputInfo.nb_samples /= rate;
+            mOutputInfo.nb_samples = nb_samples;
+        }
 
         if (needFilter) {
             mFilter = std::unique_ptr<IAudioFilter>(filterFactory::createAudioFilter(mInputInfo, mOutputInfo, mUseActiveFilter));
@@ -82,7 +87,8 @@ namespace Cicada {
         }
 
         if (mOutputInfo.nb_samples == 0) {
-            mOutputInfo.nb_samples = frame->getInfo().audio.nb_samples;
+            float rate = mInputInfo.sample_rate / mOutputInfo.sample_rate;
+            mOutputInfo.nb_samples = frame->getInfo().audio.nb_samples / rate;
         }
 
         mFrameQue.push(move(frame));
