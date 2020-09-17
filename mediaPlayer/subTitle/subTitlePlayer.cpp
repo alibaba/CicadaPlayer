@@ -164,4 +164,15 @@ namespace Cicada {
         }
 
     }
+
+    void subTitlePlayer::flush()
+    {
+        for (auto item = mSources.begin(); item != mSources.end();) {
+            if ((*item)->mPacket && (*item)->mPacket->getDiscard()) {
+                mListener.onRender(false, (*item)->mPacket.release());
+            }
+            (*item)->mPacket = nullptr;
+            ++item;
+        }
+    }
 }

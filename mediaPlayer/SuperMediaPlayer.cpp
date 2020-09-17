@@ -433,7 +433,6 @@ namespace Cicada {
         mStreamInfos = nullptr;
         delete mVideoParser;
         mVideoParser = nullptr;
-        mSubPlayer = nullptr;
         {
             std::lock_guard<std::mutex> uMutex(mCreateMutex);
 
@@ -2752,6 +2751,9 @@ namespace Cicada {
 
         mSubtitleShowedQueue.clear();
         mSubtitleShowIndex = 0;
+        if (mSubPlayer) {
+            mSubPlayer->flush();
+        }
     }
 
     void SuperMediaPlayer::PostBufferPositionMsg()
@@ -3290,6 +3292,7 @@ namespace Cicada {
         mMasterClock.reset();
         FlushSubtitleInfo();
         mSubtitleShowedQueue.clear();
+        mSubPlayer = nullptr;
         mBSReadCb = nullptr;
         mBSCbArg = nullptr;
         mBSSeekCb = nullptr;
