@@ -307,7 +307,10 @@ ActiveDecoder::~ActiveDecoder()
 void ActiveDecoder::flush()
 {
 #if AF_HAVE_PTHREAD
-    bool running = mDecodeThread->getStatus() == afThread::THREAD_STATUS_RUNNING;
+    bool running = false;
+    if (mDecodeThread) {
+        running = mDecodeThread->getStatus() == afThread::THREAD_STATUS_RUNNING;
+    }
     mDecodeThread->pause();
 
     while (!mInputQueue.empty()) {
@@ -405,7 +408,9 @@ int ActiveDecoder::holdOn(bool hold)
 
     if (hold) {
         mRunning = false;
-        mDecodeThread->pause();
+        if (mDecodeThread) {
+            mDecodeThread->pause();
+        }
         if (mPacket) {
             mPacket->setDiscard(true);
             mHoldingQueue.push(move(mPacket));
@@ -440,7 +445,9 @@ int ActiveDecoder::holdOn(bool hold)
     bHolding = hold;
 
     mRunning = true;
-    mDecodeThread->start();
+    if (mDecodeThread) {
+        mDecodeThread->start();
+    }
     return 0;
 }
 
