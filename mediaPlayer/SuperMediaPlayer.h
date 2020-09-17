@@ -106,7 +106,7 @@ namespace Cicada {
 
         int64_t GetPlayingPosition() override
         {
-            return getCurrentPosition();
+            return getCurrentPosition() / 1000;
         };
 
         int64_t GetBufferPosition() override;
