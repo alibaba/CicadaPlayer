@@ -445,7 +445,6 @@ int SuperMediaPlayer::Stop()
     mStreamInfos = nullptr;
     delete mVideoParser;
     mVideoParser = nullptr;
-    mSubPlayer = nullptr;
     {
         std::lock_guard<std::mutex> uMutex(mCreateMutex);
 
@@ -2771,6 +2770,9 @@ void SuperMediaPlayer::FlushSubtitleInfo()
     mSubtitleShowedQueue.clear();
     mSubtitleShowIndex = 0;
     mSubtitleEOS = false;
+    if (mSubPlayer) {
+        mSubPlayer->flush();
+    }
 }
 
 void SuperMediaPlayer::PostBufferPositionMsg()
@@ -3324,6 +3326,7 @@ void SuperMediaPlayer::Reset()
     mMasterClock.reset();
     FlushSubtitleInfo();
     mSubtitleShowedQueue.clear();
+    mSubPlayer = nullptr;
     mBSReadCb = nullptr;
     mBSCbArg = nullptr;
     mBSSeekCb = nullptr;

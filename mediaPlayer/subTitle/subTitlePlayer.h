@@ -88,6 +88,8 @@ namespace Cicada {
 
         void onNoop();
 
+        void flush();
+
     private:
         void render(subTitlePlayer::SourceInfo &info, int64_t pts);
 
