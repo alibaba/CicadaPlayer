@@ -311,7 +311,10 @@ ActiveDecoder::~ActiveDecoder()
 void ActiveDecoder::flush()
 {
 #if AF_HAVE_PTHREAD
-    bool running = mDecodeThread->getStatus() == afThread::THREAD_STATUS_RUNNING;
+    bool running = false;
+    if (mDecodeThread) {
+        running = mDecodeThread->getStatus() == afThread::THREAD_STATUS_RUNNING;
+    }
     mRunning = false;
     mDecodeThread->pause();
 
@@ -407,7 +410,9 @@ int ActiveDecoder::holdOn(bool hold)
     if (hold) {
 #if AF_HAVE_PTHREAD
         mRunning = false;
-        mDecodeThread->pause();
+        if (mDecodeThread) {
+            mDecodeThread->pause();
+        }
 #endif
         while (!mInputQueue.empty()) {
             mInputQueue.front()->setDiscard(true);
@@ -441,7 +446,9 @@ int ActiveDecoder::holdOn(bool hold)
 #if AF_HAVE_PTHREAD
     mRunning = true;
 #endif
-    mDecodeThread->start();
+    if (mDecodeThread) {
+        mDecodeThread->start();
+    }
     return 0;
 }
 
