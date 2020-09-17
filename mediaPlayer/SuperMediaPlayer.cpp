@@ -3029,8 +3029,6 @@ namespace Cicada {
 
     int SuperMediaPlayer::SetUpVideoPath()
     {
-        assert(mCurrentVideoMeta);
-        auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
         if (mVideoDecoder) {
             return 0;
         }
@@ -3049,10 +3047,6 @@ namespace Cicada {
         }
 
         int ret = 0;
-
-        if (meta->interlaced == InterlacedType_UNKNOWN) {
-            meta->interlaced = mVideoInterlaced;
-        }
 
         if (!mSet.bEnableTunnelRender && mSet.mView != nullptr && mVideoRender == nullptr) {
             if (mAppStatus == APP_BACKGROUND) {
@@ -3074,6 +3068,16 @@ namespace Cicada {
         }
 
         AF_LOGD("SetUpVideoDecoder start");
+        /*
+        * update the video meta after the first video packet was reached,
+        * otherwise the video meta is incomplete when playing a master hls playList.
+        */
+        updateVideoMeta();
+        auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
+
+        if (meta->interlaced == InterlacedType_UNKNOWN) {
+            meta->interlaced = mVideoInterlaced;
+        }
         bool bHW = false;
 
         if (mSet.bEnableHwVideoDecode) {
