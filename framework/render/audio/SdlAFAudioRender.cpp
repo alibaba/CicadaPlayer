@@ -75,7 +75,7 @@ namespace Cicada {
             bufferSize = getPCMDataLen(frame->getInfo().audio.channels, (enum AVSampleFormat) frame->getInfo().audio.format,
                                        frame->getInfo().audio.nb_samples);
             pcmBuffer = static_cast<uint8_t *>(malloc(bufferSize));
-            mDevID = SDL_OpenAudioDevice(NULL, false, &mSpec, nullptr, SDL_AUDIO_ALLOW_ANY_CHANGE);
+            mDevID = SDL_OpenAudioDevice(NULL, false, &mSpec, nullptr, 0);
             if (mDevID == 0) {
                 AF_LOGE("SdlAFAudioRender could not openAudio! Error: %s\n", SDL_GetError());
                 return OPEN_AUDIO_DEVICE_FAILED;
@@ -149,7 +149,11 @@ namespace Cicada {
 
     inline uint64_t SdlAFAudioRender::getQueDuration()
     {
-        double byteRate = mSpec.channels * 4 * mSpec.freq;
+        int sampleSize = 4;
+        if (mSpec.format == AUDIO_S16SYS) {
+            sampleSize = 2;
+        }
+        double byteRate = mSpec.channels * sampleSize * mSpec.freq;
         return (uint64_t) ((SDL_GetQueuedAudioSize(mDevID) / byteRate) * 1000000);
     }
 
