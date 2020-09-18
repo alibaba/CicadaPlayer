@@ -161,7 +161,7 @@ bool ActiveDecoder::needDrop(IAFPacket *packet)
             keyPts = packet->getInfo().pts;
             return false;
         }
-    } else if (packet->getInfo().flags) {
+    } else if (packet->getInfo().flags & AF_PKT_FLAG_KEY) {
         keyPts = INT64_MIN; // get the next key frame, stop to check
     }
 
@@ -216,7 +216,7 @@ int ActiveDecoder::thread_send_packet(unique_ptr<IAFPacket> &packet)
     unique_lock<mutex> uMutex(mMutex);
 
     if (bHolding) {
-        if (packet->getInfo().flags) {
+        if (packet->getInfo().flags & AF_PKT_FLAG_KEY) {
             while (!mHoldingQueue.empty()) {
                 mHoldingQueue.pop();
             }
