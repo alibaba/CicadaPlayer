@@ -39,6 +39,8 @@ namespace Cicada {
 
         void Interrupt(bool interrupt) override;
 
+        std::string GetUri() override;
+
     private:
 
         CURLConnection *initConnection();
