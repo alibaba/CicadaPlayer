@@ -90,8 +90,6 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
             curl_easy_getinfo(pConnection->getCurlHandle(), CURLINFO_EFFECTIVE_URL, &location)) {
         if (location) {
             mLocation = location;
-        } else {
-            mLocation = "";
         }
     }
 
@@ -516,4 +514,9 @@ CurlDataSource::CurlDataSource(int dummy) : IDataSource("")
     mBDummy = true;
     init_curl();
     addPrototype(this);
+}
+
+std::string CurlDataSource::GetUri()
+{
+    return mLocation;
 }
