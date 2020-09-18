@@ -97,6 +97,10 @@ int OESProgramContext::initProgram() {
     return 0;
 }
 
+void OESProgramContext::useProgram(){
+    glUseProgram(mOESProgram);
+}
+
 void OESProgramContext::updateScale(IVideoRender::Scale scale) {
     if (mScale != scale) {
         mScale = scale;

@@ -259,7 +259,7 @@ void GLRender::VSyncOnDestroy()
 {
     mPrograms.clear();
 
-    if(mContext == nullptr) {
+    if (mContext == nullptr) {
         return;
     }
 
@@ -273,7 +273,7 @@ void GLRender::VSyncOnDestroy()
 
 bool GLRender::renderActually()
 {
-    if(mContext == nullptr) {
+    if (mContext == nullptr) {
         return false;
     }
 
@@ -296,7 +296,6 @@ bool GLRender::renderActually()
     }
 
 #endif
-
     bool displayViewChanged  = false;
     {
         unique_lock<mutex> viewLock(mViewMutex);
@@ -523,7 +522,9 @@ void *GLRender::getSurface()
 IProgramContext *GLRender::getProgram(int frameFormat, IAFFrame *frame)
 {
     if (mPrograms.count(frameFormat) > 0) {
-        return mPrograms[frameFormat].get();
+        IProgramContext *pContext = mPrograms[frameFormat].get();
+        pContext->useProgram();
+        return pContext;
     }
 
     unique_ptr<IProgramContext> targetProgram{nullptr};
