@@ -915,7 +915,7 @@ void SuperMediaPlayer::reLoad()
 {
     mSourceListener->enableRetry();
     std::lock_guard<std::mutex> uMutex(mCreateMutex);
-    if (mDemuxerService) {
+    if (mDemuxerService && mDemuxerService->getDemuxerHandle()) {
         mDemuxerService->getDemuxerHandle()->Reload();
     }
 }
