@@ -89,6 +89,7 @@ private:
     Cicada::SpscQueue<IAFPacket *> mInputQueue;
     Cicada::SpscQueue<IAFFrame *> mOutputQueue;
     int maxOutQueueSize = 10;
+    int maxInQueueSize = 16;
     std::mutex mMutex{};
     std::mutex mSleepMutex{};
 #endif
