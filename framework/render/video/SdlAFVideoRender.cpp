@@ -252,6 +252,7 @@ int SdlAFVideoRender::setFlip(Flip flip)
 int SdlAFVideoRender::setScale(Scale scale)
 {
     mScale = scale;
+    refreshScreen();
     return 0;
 }
 
