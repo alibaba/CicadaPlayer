@@ -313,7 +313,12 @@ bool GLRender::renderActually()
     mWindowHeight = mContext->GetHeight();
 
     if (mGLSurface == nullptr) {
-//        AF_LOGE("0918 renderActurally  return mGLSurface = null..");
+
+        std::unique_lock<std::mutex> locker(mFrameMutex);
+        if (!mInputQueue.empty()) {
+            dropFrame();
+        }
+
         return false;
     }
 
