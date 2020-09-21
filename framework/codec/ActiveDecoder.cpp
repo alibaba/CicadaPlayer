@@ -7,11 +7,19 @@
 #include "utils/timer.h"
 
 //TODO: can set
-#define MAX_INPUT_SIZE 16
+#define MAX_OUTPUT_SIZE 16
+
+/*
+ * input queue will hold all the packets in holding queue, so the input queue must
+ * big enough for now
+ */
+#define MAX_INPUT_SIZE (20 * 30)
+
+// TODO: use mHoldingQueue and mInputQueue in decode func, so we can decrease the MAX_INPUT_SIZE
 
 using namespace std;
 
-ActiveDecoder::ActiveDecoder() : mInputQueue(MAX_INPUT_SIZE), mOutputQueue(MAX_INPUT_SIZE)
+ActiveDecoder::ActiveDecoder() : mInputQueue(MAX_INPUT_SIZE), mOutputQueue(MAX_OUTPUT_SIZE)
 {
     mFlags = 0;
 }
@@ -168,7 +176,7 @@ bool ActiveDecoder::needDrop(IAFPacket *packet)
         return false;
     }
 
-    if (packet->getInfo().pts < keyPts) {// after get the key frame, check the wrong frame use pts
+    if (packet->getInfo().pts != INT64_MIN && packet->getInfo().pts < keyPts) {// after get the key frame, check the wrong frame use pts
         AF_LOGW("key pts is %lld,pts is %lld\n", keyPts, packet->getInfo().pts);
         AF_LOGW("drop a error frame\n");
         return true;
@@ -234,7 +242,7 @@ int ActiveDecoder::thread_send_packet(unique_ptr<IAFPacket> &packet)
 
     //   AF_LOGD("mInputQueue.size() is %d\n",mInputQueue.size());
 
-    if ((mInputQueue.size() >= MAX_INPUT_SIZE) || (mOutputQueue.size() >= maxOutQueueSize)) {
+    if ((mInputQueue.size() >= maxInQueueSize) || (mOutputQueue.size() >= maxOutQueueSize)) {
         // TODO: wait for timeOut us
         status |= STATUS_RETRY_IN;
     } else {
@@ -428,6 +436,9 @@ int ActiveDecoder::holdOn(bool hold)
         AF_LOGD("mHoldingQueue size is %d\n", mHoldingQueue.size());
         int64_t pts = 0;
 
+        if (mInputQueue.write_available() < mHoldingQueue.size()) {
+            AF_LOGW("mHoldingQueue is too big(%lld), please increase the input queue size\n", mHoldingQueue.size());
+        }
         while (!mHoldingQueue.empty()) {
             mHoldingQueue.front()->setDiscard(true);
 
