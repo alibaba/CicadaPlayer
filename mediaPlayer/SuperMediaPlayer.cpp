@@ -865,6 +865,7 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key)
         }
 
         case PROPERTY_KEY_DELAY_INFO: {
+            std::lock_guard<std::mutex> uMutex(mCreateMutex);
             if (nullptr != mDemuxerService) {
                 string ret = mDemuxerService->GetProperty(0, "delayInfo");
                 return ret;
