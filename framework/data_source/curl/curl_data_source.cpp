@@ -316,7 +316,7 @@ if (!mPConnection) {
         AF_LOGI("short seek ok\n");
         return offset;
     } else {
-        AF_LOGI("short seek filed\n");
+        AF_LOGI("short seek failed\n");
     }
 
     CURLConnection *con = nullptr;
@@ -345,7 +345,7 @@ if (!mPConnection) {
         AF_LOGW("short seek ok\n");
         return offset;
     } else {
-        AF_LOGW("short seek filed\n");
+        AF_LOGW("short seek failed\n");
     }
 
     int64_t ret = TrySeekByNewConnection(offset);
