@@ -796,9 +796,19 @@ jstring NativeBase::java_GetSdkVersion(JNIEnv *env, jclass jclazz)
 void NativeBase::java_SetBlackType(JNIEnv *env, jclass jclazz, jint type)
 {
     AF_TRACE;
-
-    if (type == 0) { //hw_decode_h264
-        setProperty("ro.video.dec.h264", "OFF");
+    const char *key = nullptr;
+    switch (type) {
+        case 0://hw_decode_h264
+            key = "ro.video.dec.h264";
+            break;
+        case 1://hw_decode_hevc
+            key = "ro.video.dec.hevc";
+            break;
+        default:
+            break;
+    }
+    if (key != nullptr) {
+        setProperty(key, "OFF");
     }
 }
 

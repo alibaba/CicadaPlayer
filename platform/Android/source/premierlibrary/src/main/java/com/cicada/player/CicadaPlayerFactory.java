@@ -108,7 +108,9 @@ public class CicadaPlayerFactory {
         /****
          * H264 hardware decoding.
          */
-        HW_Decode_H264
+        HW_Decode_H264,
+
+        HW_Decode_HEVC
     }
 
     /**
