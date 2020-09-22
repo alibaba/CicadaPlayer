@@ -3130,6 +3130,11 @@ int SuperMediaPlayer::SetUpVideoPath()
                 bHW = !(value == "OFF");
                 break;
             }
+            case AF_CODEC_ID_HEVC: {
+                string value = getProperty("ro.video.dec.hevc");
+                bHW = !(value == "OFF");
+                break;
+            }
 
             default:
                 bHW = true;
