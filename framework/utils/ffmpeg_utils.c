@@ -505,15 +505,25 @@ int get_stream_meta(const struct AVStream *pStream, Stream_meta *meta)
 //    meta->cicada_codec_context = pStream->codec;
     meta->cicada_codec_context_size = sizeof(AVCodecContext);
 //        meta->index = stream_index;
-
     if (codec_type == AVMEDIA_TYPE_VIDEO) {
-        if (pStream->codecpar->sample_aspect_ratio.num) {
+        if (pStream->sample_aspect_ratio.num && av_cmp_q(pStream->sample_aspect_ratio, pStream->codecpar->sample_aspect_ratio)) {
+            AVRational display_aspect_ratio;
+            av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den,
+                      pStream->codecpar->width * (int64_t) pStream->sample_aspect_ratio.num,
+                      pStream->codecpar->height * (int64_t) pStream->sample_aspect_ratio.den, 1024 * 1024);
+            meta->displayWidth = pStream->codecpar->width;
+            meta->displayWidth *= pStream->sample_aspect_ratio.num;
+            meta->displayWidth /= pStream->sample_aspect_ratio.den;
+            meta->displayHeight = pStream->codecpar->height;
+            AF_LOGI("DAR %d:%d", meta->displayWidth, meta->displayHeight);
+        } else if (pStream->codecpar->sample_aspect_ratio.num){
             meta->displayWidth = pStream->codecpar->width;
             meta->displayWidth *= pStream->codecpar->sample_aspect_ratio.num;
             meta->displayWidth /= pStream->codecpar->sample_aspect_ratio.den;
             meta->displayHeight = pStream->codecpar->height;
-//           av_log(NULL, AV_LOG_ERROR, "DAR %d:%d", meta->displayWidth, meta->displayHeight);
-        } else {
+            AF_LOGI("DAR %d:%d", meta->displayWidth, meta->displayHeight);
+        }
+        else {
             meta->displayWidth = meta->displayHeight = 0;
         }
 
