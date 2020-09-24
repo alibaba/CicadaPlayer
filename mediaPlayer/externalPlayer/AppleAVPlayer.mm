@@ -243,7 +243,6 @@ void AppleAVPlayer::SeekTo(int64_t seekPos, bool bAccurate)
     AVPlayer *player = (__bridge AVPlayer *)this->avPlayer;
     float rate = player.rate;
     [player pause];
-    Float64 seconds = seekPos / 1000;
     void (^completionHandler)(BOOL finished) = ^(BOOL finished) {
         player.rate = rate;
         if (this->mListener.SeekEnd) {
@@ -254,14 +253,21 @@ void AppleAVPlayer::SeekTo(int64_t seekPos, bool bAccurate)
             playerHandler.isSeeking = false;
         }
     };
-    if (seekPos >= GetDuration()){
+    /*
+     * Work around seek to end, the avplayer can't perform seek to end
+     */
+    CMTime toleranceTime = kCMTimeZero;
+    int64_t duration = GetDuration();
+    if (seekPos + 1000 >= duration) {
         bAccurate = true;
+        toleranceTime = CMTimeMakeWithSeconds(0.5, 1);
+        seekPos =  duration - 1000;
     }
     [player.currentItem cancelPendingSeeks];
     if (bAccurate) {
-        [player seekToTime:CMTimeMakeWithSeconds(seconds, 1)toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero completionHandler:completionHandler];
+        [player seekToTime:CMTimeMakeWithSeconds((Float64)seekPos/1000, 1) toleranceBefore:toleranceTime toleranceAfter:toleranceTime completionHandler:completionHandler];
     } else {
-        [player seekToTime:CMTimeMakeWithSeconds(seconds, 1) completionHandler:completionHandler];
+        [player seekToTime:CMTimeMakeWithSeconds((Float64)seekPos/1000, 1) completionHandler:completionHandler];
     }
 }
 
