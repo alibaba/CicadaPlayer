@@ -11,16 +11,20 @@
 #define LOG_TAG "AsyncJob"
 #include "timer.h"
 
+static int AsyncJobLive = -1;
+
 namespace Cicada {
     AsyncJob AsyncJob::sInstance{};
 
     AsyncJob::AsyncJob()
     {
         mThread = NEW_AF_THREAD(runJobs);
+        AsyncJobLive = 1;
     }
 
     AsyncJob::~AsyncJob()
     {
+        AsyncJobLive = 0;
         delete mThread;
 
         while (0 < mFuncs.size()) {
@@ -32,6 +36,7 @@ namespace Cicada {
 
     AsyncJob *AsyncJob::Instance(void)
     {
+        if (AsyncJobLive == 0) return nullptr;
         return &sInstance;
     }
 
