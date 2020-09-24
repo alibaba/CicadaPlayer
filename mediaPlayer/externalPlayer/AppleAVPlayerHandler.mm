@@ -133,9 +133,6 @@
     if (item != self.avplayer.currentItem) {
         return;
     }
-    if (mPlayerListener.Completion) {
-        mPlayerListener.Completion(mPlayerListener.userData);
-    }
     if (self.isCirclePlay) {
         [self.avplayer seekToTime:CMTimeMakeWithSeconds(0, 1) completionHandler:^(BOOL finished) {
             [self.avplayer play];
@@ -146,6 +143,8 @@
                 mPlayerListener.LoopingStart(mPlayerListener.userData);
             }
         }];
+    } else if (mPlayerListener.Completion) {
+        mPlayerListener.Completion(mPlayerListener.userData);
     }
 }
 
