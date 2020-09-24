@@ -256,20 +256,29 @@ void CurlDataSource::closeConnections(bool current)
     }
 
     if (deleteConnection) {
-        AsyncJob::Instance()->addJob([deleteConnection] {
+        if (AsyncJob::Instance()) {
+            AsyncJob::Instance()->addJob([deleteConnection] { delete deleteConnection; });
+        } else {
             delete deleteConnection;
-        });
+        }
     }
 
     if (pConnections) {
-        AsyncJob::Instance()->addJob([pConnections] {
-            for (auto item = pConnections->begin(); item != pConnections->end();)
-            {
+        if (AsyncJob::Instance()) {
+            AsyncJob::Instance()->addJob([pConnections] {
+                for (auto item = pConnections->begin(); item != pConnections->end();) {
+                    delete *item;
+                    item = pConnections->erase(item);
+                }
+                delete pConnections;
+            });
+        } else {
+            for (auto item = pConnections->begin(); item != pConnections->end();) {
                 delete *item;
                 item = pConnections->erase(item);
             }
             delete pConnections;
-        });
+        }
     }
 }
 
