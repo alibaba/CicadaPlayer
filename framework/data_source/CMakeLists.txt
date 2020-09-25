@@ -58,6 +58,12 @@ if (ENABLE_CACHED_SOURCE)
             )
 endif ()
 
+if (ANDROID)
+    target_sources(data_source PRIVATE
+            ContentDataSource.cpp
+            ContentDataSource.h
+            )
+endif ()
 
 target_include_directories(data_source PRIVATE
         ${FFMPEG_SOURCE_DIR}
