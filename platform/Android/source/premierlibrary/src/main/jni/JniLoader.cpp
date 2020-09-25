@@ -6,6 +6,7 @@
 #include <render/video/vsync/AndroidVSync.h>
 #include <render/video/glRender/platform/android/decoder_surface.h>
 #include <utils/Android/JniEnv.h>
+#include <data_source/ContentDataSource.h>
 #include "player/JavaOptions.h"
 #include "player/JavaExternalPlayer.h"
 #include "utils/JavaLogger.h"
@@ -31,6 +32,7 @@ int initJavaInfo(JNIEnv *env)
     JavaGlobalSettings::init(env);
     JavaOptions::init(env);
     JavaExternalPlayer::init(env);
+    ContentDataSource::init();
     int result = NativeBase::registerMethod(env);
 
     if (result == JNI_FALSE) {
@@ -71,6 +73,7 @@ void unInitJavaInfo(JNIEnv *env)
     JavaGlobalSettings::unInit(env);
     JavaOptions::unInit(env);
     JavaExternalPlayer::unInit(env);
+    ContentDataSource::unInit();
 }
 
 extern "C"

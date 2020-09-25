@@ -85,11 +85,16 @@ public class NativePlayerBase {
     }
 
 
-    private Context mContext;
+
+    private static Context mContext = null;
     private long mNativeContext;
 
     protected long getNativeContext() {
         return mNativeContext;
+    }
+
+    public static Context getContext() {
+        return mContext;
     }
 
     protected void setNativeContext(long l) {
