@@ -4077,16 +4077,6 @@ void SuperMediaPlayer::ProcessSeekToMsg(int64_t seekPos, bool bAccurate)
         mSubPlayer->seek(seekPos);
     }
 
-    if ((seekPos / 1000 >= mDuration / 1000) && mDuration > 0) {
-        //if eof notifySeekEndMsg
-        ResetSeekStatus();
-        notifySeekEndCallback();
-        mSeekInCache = false;
-        mEof = true;
-        mSeekFlag = false;
-        return;
-    }
-
     mFirstBufferFlag = true;
     mMasterClock.setTime(seekPos);
 }
