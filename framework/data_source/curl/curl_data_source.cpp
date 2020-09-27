@@ -80,6 +80,8 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
         if (length > 0.0) {
             mFileSize = pConnection->tell() + (int64_t) length;
             //AF_LOGE("file size is %lld\n",mFileSize);
+        } else {
+            mFileSize = 0;
         }
 
 //        if (curlContext.fileSize == 0)
@@ -226,6 +228,7 @@ int CurlDataSource::Open(const string &url)
     mLocation = (isRTMP ? (url + " live=1").c_str() : url.c_str());
     // only change url, don,t change share and resolve
     mPConnection->updateSource(mLocation);
+
     int ret = curl_connect(mPConnection, rangeStart != INT64_MIN ? rangeStart : 0);
     mOpenTimeMS = af_gettime_relative() / 1000 - mOpenTimeMS;
 
