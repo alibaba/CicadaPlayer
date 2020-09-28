@@ -946,7 +946,7 @@ namespace Cicada {
             return -EAGAIN;
         }
 
-        if (ret == network_errno_http_range) {
+        if (ret == gen_framework_errno(error_class_network, network_errno_http_range)) {
             ret = 0;
         }
 
