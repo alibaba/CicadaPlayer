@@ -116,11 +116,11 @@ int SdlAFVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
                 mLastVideoFrame->setDiscard(true);
                 mRenderResultCallback(mLastVideoFrame->getInfo().pts, false);
             }
+            mLastVideoFrame = std::move(frame);
         }
         if (frame && mVideoRotate != getRotate(frame->getInfo().video.rotate)) {
             mVideoRotate = getRotate(frame->getInfo().video.rotate);
         }
-        mLastVideoFrame = std::move(frame);
         if (paused) {
             mVSync->start();
         }
