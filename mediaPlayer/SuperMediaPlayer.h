@@ -208,7 +208,7 @@ namespace Cicada {
 
         void OnTimer(int64_t curTime);
 
-        void updateLoopGap();
+        int updateLoopGap();
 
         int mainService();
 
@@ -488,7 +488,6 @@ namespace Cicada {
         bool mWillSwitchVideo{false};
         std::unique_ptr<player_type_set> mSet{};
         int64_t mSoughtVideoPos{INT64_MIN};
-        int mMaxRunningLoopGap = 10;
         int mTimerInterval = 0;
         int64_t mTimerLatestTime = 0;
         std::mutex mCreateMutex{}; // need lock if access pointer outside of loop thread
