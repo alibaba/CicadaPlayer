@@ -1009,68 +1009,26 @@ void SuperMediaPlayer::NotifyError(int code)
     }
 }
 
-void SuperMediaPlayer::updateLoopGap()
+int SuperMediaPlayer::updateLoopGap()
 {
     switch (mPlayStatus.load()) {
         case PLAYER_PREPARINIT:
         case PLAYER_PREPARING:
         case PLAYER_PREPARED:
-            mMaxRunningLoopGap = 3;
-            break;
+            return 3;
 
         case PLAYER_PLAYING:
             if (!mFirstRendered) {
-                mMaxRunningLoopGap = 3;
-            } else {
-                if (mSet->bDisableBufferManager) {
-                    if (CicadaUtils::isEqual(mSet->rate, 1.0)) {
-                        mMaxRunningLoopGap = 8;
-                    } else {
-                        mMaxRunningLoopGap = 6;
-                    }
-                } else {
-                    if (dropLateVideoFrames || mSeekNeedCatch) {
-                        mMaxRunningLoopGap = 2;
-                        return;
-                    }
-
-                    float fps = GetVideoRenderFps();
-
-                    if (fps > 20 && (mSet->rate < 1.3)) {
-                        mMaxRunningLoopGap = static_cast<int>(1000 / fps - 5);
-                    } else {
-                        mMaxRunningLoopGap = 15;
-                    }
-
-                    //FIXME: for now this logic is not good, close it temp
-                    mMaxRunningLoopGap = 10;
-
-                    if (mLastAudioFrameDuration > 0) {
-                        float duration = mLastAudioFrameDuration;
-
-                        if (mSet->rate >= 0.5) {
-                            // loop once will decoder and render two audio frame, set 1.5 for more safe
-                            duration = static_cast<float>(((float) mLastAudioFrameDuration * 1.5) / (1000 * mSet->rate));
-                        }
-
-                        if (mMaxRunningLoopGap > duration) {
-                            mMaxRunningLoopGap = static_cast<int>(duration);
-                        }
-                    }
-
-                    if (mMaxRunningLoopGap > 25) {
-                        mMaxRunningLoopGap = 25;
-                    } else if (mMaxRunningLoopGap < 10) {
-                        mMaxRunningLoopGap = 10;
-                    }
+                return 3;
+            } else if (HAVE_VIDEO) {
+                if (mCurrentVideoMeta && mCurrentVideoMeta->operator Stream_meta *()->avg_fps > 0) {
+                    return 1000 / int(mCurrentVideoMeta->operator Stream_meta *()->avg_fps * mSet->rate * 1.5);
                 }
             }
-
-            break;
+            return 1000 / int(50 * mSet->rate);
 
         default:
-            mMaxRunningLoopGap = 40;
-            break;
+            return 40;
     }
 }
 
@@ -1082,12 +1040,13 @@ int SuperMediaPlayer::mainService()
 
     if (mMessageControl->empty() || (0 == mMessageControl->processMsg())) {
         ProcessVideoLoop();
+        int loopGap = updateLoopGap();
         int64_t use = (af_gettime_relative() - curTime) / 1000;
-        int64_t needWait = mMaxRunningLoopGap - use;
-        //            AF_LOGD("use :%lld, needWait:%lld", use, needWait);
+        int64_t needWait = loopGap - use;
+        // AF_LOGD("use :%lld, needWait:%lld", use, needWait);
 
         if (needWait <= 0) {
-            if (mMaxRunningLoopGap < 5) {
+            if (loopGap < 5) {
                 needWait = 2;
             } else {
                 return 0;
@@ -2224,8 +2183,6 @@ void SuperMediaPlayer::RenderSubtitle(int64_t pts)
 void SuperMediaPlayer::OnTimer(int64_t curTime)
 {
     if (mPlayedAudioPts != INT64_MIN || mPlayedVideoPts != INT64_MIN) {
-        updateLoopGap();
-
         /*
              * if have seek not completed,DO NOT update the position,it will lead process bar
              * jumping
@@ -2645,7 +2602,6 @@ int SuperMediaPlayer::ReadPacket()
             mCurrentSubtitleIndex = mWillChangedSubtitleStreamIndex;
             mWillChangedSubtitleStreamIndex = -1;
         }
-
         if (mSubtitleChangedFirstPts == INT64_MAX) {
             mSubtitleChangedFirstPts = pFrame->getInfo().pts;
         }
@@ -3900,7 +3856,6 @@ void SuperMediaPlayer::checkFirstRender()
 {
     if (!mFirstRendered) {
         mFirstRendered = true;
-        updateLoopGap();
         AF_LOGI("Player NotifyFirstFrame");
         mPNotifier->NotifyFirstFrame();
     }
@@ -3993,7 +3948,6 @@ void SuperMediaPlayer::ChangePlayerStatus(PlayerStatus newStatus)
     if (mPlayStatus != newStatus) {
         mPNotifier->NotifyPlayerStatusChanged(mPlayStatus, newStatus);
         mPlayStatus = newStatus;
-        updateLoopGap();
     }
 }
 
@@ -4001,7 +3955,6 @@ void SuperMediaPlayer::ResetSeekStatus()
 {
     mSeekPos = INT64_MIN;
     mSeekNeedCatch = false;
-    updateLoopGap();
 }
 
 void SuperMediaPlayer::ProcessSeekToMsg(int64_t seekPos, bool bAccurate)
@@ -4018,8 +3971,6 @@ void SuperMediaPlayer::ProcessSeekToMsg(int64_t seekPos, bool bAccurate)
         ResetSeekStatus();
         return;
     }
-
-    updateLoopGap();
     //checkPosInPackQueue cache in seek
     //TODO: seek sync
     mSeekFlag = true;
@@ -4229,7 +4180,6 @@ void SuperMediaPlayer::ProcessSetSpeed(float speed)
         }
 
         mSet->rate = speed;
-        updateLoopGap();
         mMasterClock.SetScale(speed);
     }
 }
