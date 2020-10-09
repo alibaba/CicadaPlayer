@@ -1256,10 +1256,11 @@ void SuperMediaPlayer::doReadPacket()
                 AF_LOGE("Player ReadPacket error 0x%04x :%s\n", -ret, framework_err2_string(ret));
                 break;
             } else if (ret == FRAMEWORK_ERR_FORMAT_NOT_SUPPORT) {
-                AF_LOGW("read error %s\n", framework_err2_string(ret));
+                AF_LOGE("read error %s\n", framework_err2_string(ret));
+                NotifyError(ret);
                 break;
             } else if (ret < 0) {
-                if (!mBufferingFlag) {
+                if (!mBufferingFlag && mPlayStatus >= PLAYER_PREPARED) {
                     //AF_LOGI("Player ReadPacket ret < 0 with data");
                 } else {
                     AF_LOGE("Player ReadPacket error 0x%04x :%s\n", -ret, framework_err2_string(ret));
