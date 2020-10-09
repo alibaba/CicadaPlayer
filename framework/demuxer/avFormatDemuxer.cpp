@@ -545,7 +545,7 @@ namespace Cicada {
 #if AF_HAVE_PTHREAD
         std::lock_guard<std::mutex> uLock(mCtxMutex);
 #endif
-        if (index < 0 || mCtx == nullptr || index > mCtx->nb_streams) {
+        if (index < 0 || mCtx == nullptr || index >= mCtx->nb_streams) {
             return -EINVAL;
         }
 
