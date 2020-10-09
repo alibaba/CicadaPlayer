@@ -298,7 +298,7 @@ namespace Cicada {
                     return -EAGAIN;
                 } else {
                     AF_LOGE("can't find seg %llu\n", mPTracker->getCurSegNum());
-                    return -1;
+                    return gen_framework_errno(error_class_format, 0);
                 }
             }
 
