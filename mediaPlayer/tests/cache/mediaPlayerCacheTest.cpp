@@ -2,15 +2,16 @@
 // Created by moqi on 2020/1/14.
 //
 
-#include "gtest/gtest.h"
-#include <memory>
 #include "tests/mediaPlayerTest.h"
-#include <utils/timer.h>
 #include "tests/player_command.h"
-#include <vector>
-#include <data_source/cachedSource.h>
+#include "gtest/gtest.h"
 #include <data_source/SourceReader.h>
+#include <data_source/cachedSource.h>
+#include <memory>
 #include <utils/AFUtils.h>
+#include <utils/frame_work_log.h>
+#include <utils/timer.h>
+#include <vector>
 
 
 using namespace std;

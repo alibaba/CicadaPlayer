@@ -3,6 +3,8 @@
 //
 #define LOG_TAG "avFormatSubtitleDemuxer"
 
+#include <utils/frame_work_log.h>
+
 #include "avFormatSubtitleDemuxer.h"
 
 #include <utils/errors/framework_error.h>

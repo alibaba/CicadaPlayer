@@ -10,13 +10,12 @@
 //#include <functional>
 #include <vector>
 #include <memory>
-#include <utils/frame_work_log.h>
 #include <cstring>
 #include <string>
 extern "C" {
 //#include <libavutil/rational.h>
 };
-
+#include <utils/CicadaType.h>
 
 struct AVRational;
 

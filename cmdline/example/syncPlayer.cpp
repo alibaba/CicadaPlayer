@@ -1,5 +1,6 @@
 #include <MediaPlayer.h>
 #include <memory>
+#include <utils/frame_work_log.h>
 #include <utils/timer.h>
 
 using namespace Cicada;

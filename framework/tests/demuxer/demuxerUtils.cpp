@@ -3,6 +3,7 @@
 //
 #define LOG_TAG "demuxerUtils"
 #include "demuxerUtils.h"
+#include <utils/frame_work_log.h>
 
 #include <demuxer/demuxerPrototype.h>
 #include <data_source/dataSourcePrototype.h>

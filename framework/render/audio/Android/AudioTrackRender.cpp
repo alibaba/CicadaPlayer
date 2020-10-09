@@ -3,6 +3,7 @@
 //
 #define LOG_TAG "AudioTrackRender"
 #include "AudioTrackRender.h"
+#include <utils/frame_work_log.h>
 
 #include <cassert>
 #include <cerrno>

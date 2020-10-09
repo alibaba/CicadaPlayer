@@ -3,6 +3,8 @@
 //
 #define LOG_TAG "AudioRender"
 
+#include <utils/frame_work_log.h>
+
 #include <cerrno>
 #include <utils/af_string.h>
 #include <utils/ffmpeg_utils.h>
