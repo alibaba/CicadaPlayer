@@ -192,7 +192,7 @@ TEST(http, keep_alive)
 
 TEST(http, post)
 {
-    string url = "https://apizza.net/";
+    string url = "https://ptsv2.com/t/50oow-1602229322";
     CurlDataSource source(url);
     uint8_t c = 'c';
     source.setPost(true, 1, &c);
