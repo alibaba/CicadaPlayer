@@ -16,7 +16,7 @@
 
 #include <utility>
 
-#define IS_LIVE (mPPlayList->getDuration() == 0)
+#define IS_LIVE (mRep->b_live)
 
 
 namespace Cicada {

@@ -120,7 +120,9 @@ namespace Cicada {
             segments.pop_front();
         }
 
-        mFirstSeqNum = segments.front()->sequence;
+        if (!segments.empty()) {
+            mFirstSeqNum = segments.front()->sequence;
+        }
         delete pSList;
         return 0;
     }
