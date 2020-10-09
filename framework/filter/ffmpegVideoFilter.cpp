@@ -1,9 +1,10 @@
 //
 // Created by moqi on 2020/5/28.
 //
-
+#define LOG_TAG "ffmpegVideoFilter"
 #include "ffmpegVideoFilter.h"
 #include <base/media/AVAFPacket.h>
+#include <utils/frame_work_log.h>
 #include <utils/timer.h>
 extern "C" {
 #include <libavcodec/avcodec.h>

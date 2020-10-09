@@ -7,6 +7,7 @@
 #include "gtest/gtest.h"
 #include <memory>
 #include <utils/AFUtils.h>
+#include <utils/frame_work_log.h>
 #include <utils/mediaFrame.h>
 #include <utils/timer.h>
 #include <vector>

@@ -11,9 +11,10 @@
 using namespace Cicada;
 using namespace std;
 
+#include "NetWorkEventReceiver.h"
 #include "SDLEventReceiver.h"
 #include "cicadaEventListener.h"
-#include "NetWorkEventReceiver.h"
+#include <utils/frame_work_log.h>
 
 #include <media_player_error_def.h>
 

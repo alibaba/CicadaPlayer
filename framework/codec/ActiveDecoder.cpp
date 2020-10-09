@@ -5,6 +5,7 @@
 
 #include "ActiveDecoder.h"
 #include "utils/timer.h"
+#include <utils/frame_work_log.h>
 
 //TODO: can set
 #define MAX_OUTPUT_SIZE 16

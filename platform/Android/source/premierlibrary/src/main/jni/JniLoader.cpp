@@ -2,6 +2,7 @@
 
 #define LOG_TAG "JNI"
 #define NOLOGD
+#include <utils/frame_work_log.h>
 
 #include <render/video/vsync/AndroidVSync.h>
 #include <render/video/glRender/platform/android/decoder_surface.h>
