@@ -76,14 +76,22 @@ int SdlAFVideoRender::init()
 
 int SdlAFVideoRender::refreshScreen()
 {
+    bool needClearScreen = false;
     {
         std::unique_lock<std::mutex> lock(mRenderMutex);
 
         if (mLastVideoFrame == nullptr && mBackFrame != nullptr) {
             mLastVideoFrame = mBackFrame->clone();
         }
+        if (mLastVideoFrame == nullptr) {
+            needClearScreen = true;
+        }
     }
-    onVSync(-1);
+    if (needClearScreen) {
+        clearScreen();
+    } else {
+        onVSync(-1);
+    }
     return 0;
 }
 
@@ -97,6 +105,7 @@ int SdlAFVideoRender::clearScreen()
         SDL_RenderClear(mVideoRender);
         SDL_RenderPresent(mVideoRender);
     }
+    mBackFrame = nullptr;
 
     return 0;
 }
