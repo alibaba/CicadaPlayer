@@ -169,6 +169,7 @@ void SuperMediaPlayer::Start()
     }
 
     this->putMsg(MSG_START, dummyMsg);
+    mPausedByAudioInterrupted = false;
 }
 
 
@@ -176,6 +177,7 @@ void SuperMediaPlayer::Pause()
 {
     waitingForStart = false;
     this->putMsg(MSG_PAUSE, dummyMsg);
+    mPausedByAudioInterrupted = false;
 }
 
 
@@ -3305,6 +3307,7 @@ void SuperMediaPlayer::Reset()
     dropLateVideoFrames = false;
     mBRendingStart = false;
     mSubtitleEOS = false;
+    mPausedByAudioInterrupted = false;
 
     if (mVideoRender) {
         mVideoRender->setSpeed(1);
