@@ -8,7 +8,7 @@
 #endif
 
 #ifdef __APPLE__
-    #include <render/audio/Apple/AFAudioUnitRender.h>
+    #include <render/audio/Apple/AFAudioQueueRender.h>
 #endif
 
 
@@ -59,7 +59,7 @@ std::unique_ptr<IAudioRender> AudioRenderFactory::create()
     return std::unique_ptr<IAudioRender>(new AudioTrackRender());
 #endif
 #ifdef __APPLE__
-    return std::unique_ptr<IAudioRender>(new AFAudioUnitRender());
+    return std::unique_ptr<IAudioRender>(new AFAudioQueueRender());
 #endif
 #ifdef ENABLE_SDL
     return std::unique_ptr<IAudioRender>(new SdlAFAudioRender());

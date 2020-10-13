@@ -58,8 +58,8 @@ endif ()
 if (APPLE)
     list(APPEND SRC_FILES
             audio/Apple/AudioRenderType.h
-            audio/Apple/AFAudioUnitRender.cpp
-            audio/Apple/AFAudioUnitRender.h
+            audio/Apple/AFAudioQueueRender.cpp
+            audio/Apple/AFAudioQueueRender.h
             )
 endif ()
 
