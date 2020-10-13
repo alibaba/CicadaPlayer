@@ -158,9 +158,9 @@ int AFAudioQueueRender::start_device()
 {
     mPlaying = true;
     if (_audioQueueRef) {
-        OSStatus status = AudioQueueStart(_audioQueueRef, nullptr);
-        if (status != noErr) {
-            AF_LOGE("AudioQueue: AudioQueueStart failed (%d)\n", (int) status);
+        mStartStatus = AudioQueueStart(_audioQueueRef, nullptr);
+        if (mStartStatus != AVAudioSessionErrorCodeNone) {
+            AF_LOGE("AudioQueue: AudioQueueStart failed (%d)\n", (int) mStartStatus);
         }
     }
     return 0;
@@ -230,32 +230,41 @@ uint64_t AFAudioQueueRender::device_get_que_duration()
 void AFAudioQueueRender::onInterrupted(Cicada::AF_AUDIO_SESSION_STATUS status)
 {
     bool deal = false;
-
     if (status != AFAudioSessionMediaServicesWereReset && mListener) {
-        if (mListener->onInterrupt(status == AFAudioSessionBeginInterruption)) {
-            return;
-        }
+        deal = mListener->onInterrupt(status == AFAudioSessionBeginInterruption);
+    }
+    if (status == AFAudioSessionEndInterruption && mStartStatus != AVAudioSessionErrorCodeNone) {
+        /*
+         Start audioQueue would fail during interrupted, restart it on interrupt end.
+         */
+        deal = false;
+    }
+    if (deal) {
+        return;
     }
     switch (status) {
         case AFAudioSessionEndInterruption:
-            if (mPlaying) {
+            if (mPlaying && _audioQueueRef) {
                 AFAudioSessionWrapper::activeAudio();
-                if (_audioQueueRef) {
-                    AudioQueueStart(_audioQueueRef, nullptr);
+                mStartStatus = AudioQueueStart(_audioQueueRef, nullptr);
+                if (mStartStatus != AVAudioSessionErrorCodeNone) {
+                    AF_LOGE("AudioQueueStart error at interrupt end %d\n", mStartStatus);
                 }
             }
             break;
 
         case AFAudioSessionBeginInterruption:
-            if (mPlaying) {
-                if (_audioQueueRef) {
-                    AudioQueuePause(_audioQueueRef);
+            if (mPlaying && _audioQueueRef) {
+                OSStatus status1 = AudioQueuePause(_audioQueueRef);
+                if (status1 != AVAudioSessionErrorCodeNone) {
+                    AF_LOGE("AudioQueuePause error at interrupt %d\n", status1);
                 }
             }
             break;
 
         case AFAudioSessionMediaServicesWereReset:
             assert(0);
+            AF_LOGE("AFAudioSessionMediaServicesWereReset\n");
             //            closeDevice();
             //            start_device();
             break;

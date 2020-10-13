@@ -84,6 +84,7 @@ namespace Cicada {
         bool mNeedFlush{false};
         bool mRunning{true};
         bool mPlaying{false};
+        OSStatus mStartStatus{AVAudioSessionErrorCodeNone};
     };
 }// namespace Cicada
 
