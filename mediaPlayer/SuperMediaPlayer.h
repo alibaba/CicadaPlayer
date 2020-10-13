@@ -316,19 +316,26 @@ namespace Cicada {
 
         class ApsaraAudioRenderCallback : public IAudioRenderListener {
         public:
-            ApsaraAudioRenderCallback(SuperMediaPlayer &player) : mPlayer(player)
+            explicit ApsaraAudioRenderCallback(SuperMediaPlayer &player) : mPlayer(player)
             {}
 
             void onEOS() override
             {}
 
-            void onInterrupt(bool interrupt) override
+            bool onInterrupt(bool interrupt) override
             {
                 if (interrupt) {
-                    mPlayer.Pause();
+                    if (mPlayer.mPlayStatus == PLAYER_PLAYING) {
+                        mPlayer.Pause();
+                        mPlayer.mPausedByAudioInterrupted = true;
+                    }
                 } else {
-                    mPlayer.Start();
+                    if (mPlayer.mPlayStatus == PLAYER_PAUSED && mPlayer.mPausedByAudioInterrupted) {
+                        mPlayer.Start();
+                    }
                 }
+
+                return true;
             }
 
         private:
@@ -550,6 +557,7 @@ namespace Cicada {
         onRenderFrame mAudioRenderingCb{nullptr};
         void *mAudioRenderingCbUserData{nullptr};
         bool mIsDummy{false};
+        bool mPausedByAudioInterrupted{false};
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H

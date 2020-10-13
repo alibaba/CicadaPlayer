@@ -32,7 +32,10 @@ namespace Cicada{
         /**
          * playback interrupt
          */
-        virtual void onInterrupt(bool interrupt) {};
+        virtual bool onInterrupt(bool interrupt)
+        {
+            return false;
+        };
     };
 
     class IAudioRender {
