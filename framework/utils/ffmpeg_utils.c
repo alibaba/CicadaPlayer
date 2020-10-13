@@ -666,7 +666,7 @@ void copyPCMData(const AVFrame *frame, uint8_t *buffer)
             }
         }
     } else {
-        memcpy(buffer, frame->extended_data[0], (size_t) (sampleSize * frame->nb_samples * frame->channels));
+        memcpy(buffer, frame->extended_data[0], ((size_t) sampleSize * frame->nb_samples * frame->channels));
     }
 }
 
@@ -730,7 +730,7 @@ void copyPCMData2(const AVFrame *frame, fillBufferCallback fillCallback, void *a
         }
     } else {
         if (fillCallback != NULL) {
-            fillCallback(args, frame->extended_data[0], (size_t) (sampleSize * frame->nb_samples * frame->channels));
+            fillCallback(args, frame->extended_data[0], ((size_t) sampleSize * frame->nb_samples * frame->channels));
         }
     }
 }
