@@ -47,7 +47,9 @@ function ffmpeg_cross_compile_set_win32(){
     ffmpeg_cross_compile_config_add "--cross-prefix="${CROSS_COMPILE}-""
 
     ffmpeg_cross_compile_config_add "--enable-shared "
-    ffmpeg_cross_compile_config_add "--disable-dxva2"
+    ffmpeg_cross_compile_config_add "--enable-hwaccels"
+    ffmpeg_cross_compile_config_add "--enable-d3d11va"
+    ffmpeg_cross_compile_config_add "--enable-dxva2"
     ffmpeg_cross_compile_config_add "--disable-schannel" #make tls_openssl enable
     if [ "${NEON_SUPPORT}" == "TRUE" ]
     then
