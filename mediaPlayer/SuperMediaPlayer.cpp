@@ -3330,7 +3330,6 @@ void SuperMediaPlayer::Reset()
     mFirstReadPacketSucMS = 0;
     mCanceled = false;
     mPNotifier->Enable(true);
-    mMasterClock.reset();
     FlushSubtitleInfo();
     mSubtitleShowedQueue.clear();
     mSubPlayer = nullptr;
@@ -3349,11 +3348,6 @@ void SuperMediaPlayer::Reset()
     dropLateVideoFrames = false;
     mBRendingStart = false;
     mSubtitleEOS = false;
-
-    if (mVideoRender) {
-        mVideoRender->setSpeed(1);
-    }
-
     mSecretPlayBack = false;
     mDrmKeyValid = false;
 }
