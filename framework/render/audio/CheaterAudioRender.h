@@ -41,6 +41,11 @@ namespace Cicada {
 
         uint64_t device_get_que_duration() override;
 
+        uint64_t device_get_ability() override
+        {
+            return 0;
+        }
+
     private:
         af_clock mClock{};
         int64_t mPCMDuration{0};

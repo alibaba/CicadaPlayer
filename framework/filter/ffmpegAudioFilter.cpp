@@ -168,9 +168,10 @@ namespace Cicada {
         return err;
     }
 
-    int ffmpegAudioFilter::init()
+    int ffmpegAudioFilter::init(uint64_t flags)
     {
         int err;
+        mFlags = flags;
         m_pFilterGraph = avfilter_graph_alloc();
 
         if (m_pFilterGraph == nullptr) {
@@ -194,8 +195,10 @@ namespace Cicada {
         char options_str[1024];
         bool needAFormat = false;
         // for now enlarge only
-        snprintf(options_str, sizeof(options_str), "volume=%f", std::max(mVolume, 1.0));
-        err = addFilter(&current, "volume", options_str);
+        if (flags & A_FILTER_FLAG_VOLUME) {
+            snprintf(options_str, sizeof(options_str), "volume=%f", std::max(mVolume, 1.0));
+            err = addFilter(&current, "volume", options_str);
+        }
 
         if (err == 0 //volume would add a aformat filter too
                 || mSrcFormat.sample_rate != mDstFormat.sample_rate
@@ -204,8 +207,10 @@ namespace Cicada {
             needAFormat = true;
         }
 
-        snprintf(options_str, sizeof(options_str), "tempo=%f", mRate.load());
-        addFilter(&current, "atempo", options_str);
+        if (flags & A_FILTER_FLAG_TEMPO) {
+            snprintf(options_str, sizeof(options_str), "tempo=%f", mRate.load());
+            addFilter(&current, "atempo", options_str);
+        }
 
         if (needAFormat) {
             snprintf(options_str, sizeof(options_str),
@@ -290,7 +295,7 @@ namespace Cicada {
                 std::lock_guard<std::mutex> uMutex(mMutexRate);
 
                 if (m_pFilterGraph == nullptr) {
-                    ret = init();
+                    ret = init(mFlags);
 
                     if (ret < 0) {
                         AF_LOGE("init error\n");

@@ -12,6 +12,8 @@
 using namespace std;
 namespace Cicada{
     class IAudioFilter {
+#define A_FILTER_FLAG_TEMPO (1 << 1)
+#define A_FILTER_FLAG_VOLUME (1 << 2)
     public:
         typedef IAFFrame::audioInfo format;
 
@@ -22,8 +24,7 @@ namespace Cicada{
 //        virtual bool beSupported(const char* capacity) = 0;
         virtual bool setOption(const string &key, const string &value, const string &capacity) = 0;
 
-        attribute_warn_unused_result
-        virtual int init() = 0;
+        attribute_warn_unused_result virtual int init(uint64_t flags) = 0;
 
         virtual int push(std::unique_ptr<IAFFrame> &frame, uint64_t timeOut) = 0;
 
