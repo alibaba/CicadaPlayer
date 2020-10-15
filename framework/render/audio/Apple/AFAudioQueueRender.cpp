@@ -78,6 +78,14 @@ AFAudioQueueRender::~AFAudioQueueRender()
 void AFAudioQueueRender::fillAudioFormat()
 {
     int bytesPerSample = 2;
+    /*
+     * There is a performance problem when use copyPCMData to copy a planer audio,
+     * use ffmpeg filter convert it to packed audio
+     */
+    if (mOutputInfo.format >= AF_SAMPLE_FMT_U8P) {
+        mOutputInfo.format -= AF_SAMPLE_FMT_U8P;
+        needFilter = true;
+    }
 
     switch (mOutputInfo.format) {
         case AF_SAMPLE_FMT_S16:

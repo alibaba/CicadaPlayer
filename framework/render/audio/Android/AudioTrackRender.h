@@ -38,6 +38,11 @@ private:
 
     uint64_t device_get_que_duration() override;
 
+    uint64_t device_get_ability() override
+    {
+        return 0;
+    }
+
 private:
     AudioTrackRender(int dummy) : mFrameQueue(1)
     {

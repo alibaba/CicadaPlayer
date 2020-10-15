@@ -72,6 +72,8 @@ namespace Cicada {
             return 0;
         };
 
+        virtual uint64_t device_get_ability() = 0;
+
 
     private:
         int renderLoop();
@@ -106,6 +108,7 @@ namespace Cicada {
         std::unique_ptr<IAFFrame> mRenderFrame{nullptr};
         bool mUseActiveFilter{false};
         std::atomic_int mMaxQueSize{2};
+        uint64_t mFilterFlags{};
 
     protected:
         std::unique_ptr<afThread> mRenderThread = nullptr;

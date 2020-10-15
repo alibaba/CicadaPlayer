@@ -5,12 +5,13 @@
 
 #include <utils/frame_work_log.h>
 
+#include "filterAudioRender.h"
+#include <base/media/AVAFPacket.h>
+#include <cassert>
 #include <cerrno>
+#include <filter/filterFactory.h>
 #include <utils/af_string.h>
 #include <utils/ffmpeg_utils.h>
-#include <filter/filterFactory.h>
-#include <base/media/AVAFPacket.h>
-#include "filterAudioRender.h"
 #include <utils/timer.h>
 
 namespace Cicada {
@@ -50,6 +51,16 @@ namespace Cicada {
         mOutputInfo.nb_samples = 0;
         int ret = init_device();
 
+        uint64_t device_ability = device_get_ability();
+
+        if (!(device_ability & A_FILTER_FLAG_TEMPO)) {
+            mFilterFlags |= A_FILTER_FLAG_TEMPO;
+        }
+
+        if (!(device_ability & A_FILTER_FLAG_VOLUME)) {
+            mFilterFlags |= A_FILTER_FLAG_VOLUME;
+        }
+
         if (ret < 0) {
             AF_LOGE("subInit failed , ret = %d ", ret);
             return ret;
@@ -62,7 +73,7 @@ namespace Cicada {
 
         if (needFilter) {
             mFilter = std::unique_ptr<IAudioFilter>(filterFactory::createAudioFilter(mInputInfo, mOutputInfo, mUseActiveFilter));
-            ret = mFilter->init();
+            ret = mFilter->init(mFilterFlags);
 
             if (ret < 0) {
                 return ret;
@@ -125,7 +136,7 @@ namespace Cicada {
         if (bMute) {
             device_setVolume(0);
         } else {
-            device_setVolume(mVolume);
+            device_setVolume(mVolume * mVolume * mVolume);
         }
     }
 
@@ -134,6 +145,10 @@ namespace Cicada {
         if (mVolume != volume) {
             mVolume = volume;
             mVolumeChanged = true;
+
+            if (!(mFilterFlags & A_FILTER_FLAG_VOLUME)) {
+                device_setVolume(mVolume * mVolume * mVolume);
+            }
         }
 
         return 0;
@@ -141,6 +156,7 @@ namespace Cicada {
 
     int filterAudioRender::setSpeed(float speed)
     {
+        assert(mFilterFlags & A_FILTER_FLAG_TEMPO);
         if (mSpeed != speed) {
             mSpeed = speed;
             mSpeedChanged = true;
@@ -307,7 +323,7 @@ namespace Cicada {
         if (mFilter == nullptr) {
             mFilter = std::unique_ptr<IAudioFilter>(filterFactory::createAudioFilter(mInputInfo, mOutputInfo, mUseActiveFilter));
             mFilter->setOption("rate", AfString::to_string(mSpeed), "atempo");
-            int ret = mFilter->init();
+            int ret = mFilter->init(mFilterFlags);
 
             if (ret < 0) {
                 return ret;
@@ -329,7 +345,7 @@ namespace Cicada {
             if (mFilter == nullptr) {
                 mFilter = std::unique_ptr<IAudioFilter>(filterFactory::createAudioFilter(mInputInfo, mOutputInfo, mUseActiveFilter));
                 mFilter->setOption("volume", AfString::to_string(gain), "volume");
-                int ret = mFilter->init();
+                int ret = mFilter->init(mFilterFlags);
 
                 if (ret < 0) {
                     return ret;

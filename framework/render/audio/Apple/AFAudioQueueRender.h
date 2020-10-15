@@ -50,6 +50,11 @@ namespace Cicada {
 
         uint64_t device_get_que_duration() override;
 
+        uint64_t device_get_ability() override
+        {
+            return (uint64_t) A_FILTER_FLAG_TEMPO;
+        }
+
     private:
         explicit AFAudioQueueRender(int dummy);
 

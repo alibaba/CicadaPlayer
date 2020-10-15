@@ -24,7 +24,7 @@ namespace Cicada {
 
         bool setOption(const string &key, const string &value, const string &capacity) override;
 
-        int init() override;
+        int init(uint64_t flags) override;
 
 
         int push(std::unique_ptr<IAFFrame> &frame, uint64_t timeOut) override;
@@ -59,6 +59,8 @@ namespace Cicada {
 
         std::atomic<int64_t> mLastInputPts {INT64_MIN};
         std::atomic<int64_t> mLastInPutDuration {0};
+
+        uint64_t mFlags{0};
 
         int addFilter(AVFilterContext **current, const char *name, const char *options_str);
     };

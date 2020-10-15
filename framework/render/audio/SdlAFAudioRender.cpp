@@ -210,7 +210,7 @@ namespace Cicada {
 
         if (mFiler == nullptr) {
             mFiler = std::unique_ptr<ffmpegAudioFilter>(new ffmpegAudioFilter(mInfo, mInfo, true));
-            mFiler->init();
+            mFiler->init(A_FILTER_FLAG_VOLUME | A_FILTER_FLAG_TEMPO);
         }
 
         mFiler->setOption("volume", std::to_string(volume), "volume");
@@ -226,7 +226,7 @@ namespace Cicada {
 
         if (mFiler == nullptr) {
             mFiler = std::unique_ptr<ffmpegAudioFilter>(new ffmpegAudioFilter(mInfo, mInfo, true));
-            mFiler->init();
+            mFiler->init(A_FILTER_FLAG_VOLUME | A_FILTER_FLAG_TEMPO);
         }
 
         mFiler->setOption("rate", std::to_string(speed), "atempo");
