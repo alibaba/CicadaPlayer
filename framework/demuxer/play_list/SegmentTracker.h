@@ -23,7 +23,7 @@ namespace Cicada {
 
         int init();
 
-        std::shared_ptr<segment> getNextSegment();
+        std::shared_ptr<segment> getNextSegment(bool forceMoveNext = true);
 
         std::shared_ptr<segment> getCurSegment();
 
@@ -84,6 +84,8 @@ namespace Cicada {
         {
             return mSeeked.load();
         }
+        
+        bool isRealTimeStream() { return mRealtime; }
 
     private:
         int loadPlayList();
@@ -120,6 +122,8 @@ namespace Cicada {
         std::atomic_int mPlayListStatus{0};
 
         std::atomic_bool mSeeked{false};
+        
+        bool mRealtime = false;
     };
 }
 

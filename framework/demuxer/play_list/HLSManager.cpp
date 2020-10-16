@@ -563,4 +563,15 @@ namespace Cicada {
             i->mPStream->interrupt(inter);
         }
     }
+
+    bool HLSManager::isRealTimeStream(int index)
+    {
+        for (auto &i : mStreamInfoList) {
+            if (i->mPStream->getId() == index) {
+                return i->mPStream->isRealTimeStream();
+            }
+        }
+
+        return false;
+    }
 }

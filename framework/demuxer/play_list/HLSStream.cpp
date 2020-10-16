@@ -20,6 +20,7 @@
 #include <data_source/dataSourcePrototype.h>
 #include <utils/af_string.h>
 
+#define REUSE_SEGMENT 1
 // TODO support active and no active mode
 
 namespace Cicada {
@@ -171,7 +172,7 @@ namespace Cicada {
             return 0;
         }
 
-        uri = Helper::combinePaths(mPTracker->getBaseUri(), mCurSeg->init_section->mUri);
+        uri = Helper::combinePaths(mPTracker->getBaseUri(), mCurSeg->init_section->getDownloadUrl());
         ret = tryOpenSegment(uri, mCurSeg->init_section->rangeStart, mCurSeg->init_section->rangeEnd);
 
         if (ret < 0) {
@@ -310,7 +311,7 @@ namespace Cicada {
 
             string uri;
             uri = Helper::combinePaths(mPTracker->getBaseUri(),
-                                       mCurSeg->mUri);
+                                       mCurSeg->getDownloadUrl());
             AF_LOGD("open uri is %s seq is %llu\n", uri.c_str(), mCurSeg->sequence);
             ret = tryOpenSegment(uri, mCurSeg->rangeStart, mCurSeg->rangeEnd);
 
@@ -863,7 +864,10 @@ namespace Cicada {
     {
         shared_ptr<segment> seg = nullptr;
         AF_LOGD("getCurSegNum is %lld\n", mPTracker->getCurSegNum());
-        seg = mPTracker->getNextSegment();
+        
+        uint64_t old_seg_num = mPTracker->getCurSegNum();
+        seg = mPTracker->getNextSegment(false);
+        
         int ret;
         mCurSeg = nullptr;
 
@@ -871,7 +875,7 @@ namespace Cicada {
             do {
                 mCurSeg = seg;
                 string uri = Helper::combinePaths(mPTracker->getBaseUri(),
-                                                  seg->mUri);
+                                                  seg->getDownloadUrl());
                 ret = tryOpenSegment(uri, seg->rangeStart, seg->rangeEnd);
 
                 if (isHttpError(ret)) {
@@ -882,7 +886,8 @@ namespace Cicada {
                         af_msleep(20);
                         continue;
                     } else if (mPTracker->isLive()) {
-                        return -EAGAIN;
+                        mLiveGotHttpError = true;
+                        return ret;
                     } else {
                         //no more seg
                         break;
@@ -901,7 +906,7 @@ namespace Cicada {
                 return ret;
             }
 
-            AF_LOGD("stream(%p) read seg %s seqno is %llu\n", this, seg->mUri.c_str(),
+            AF_LOGD("stream(%p) read seg %s seqno is %llu\n", this, seg->getDownloadUrl().c_str(),
                     seg->getSequenceNumber());
             ret = updateDecrypter();
 
@@ -909,7 +914,8 @@ namespace Cicada {
                 return ret;
             }
 
-            return 0;
+            mLiveGotHttpError = false;
+            return (old_seg_num == mPTracker->getCurSegNum()) ? REUSE_SEGMENT : 0;
         } else if (mPTracker->getDuration() > 0) {
             AF_LOGE("EOS");
             mIsDataEOS = true;
@@ -950,7 +956,7 @@ namespace Cicada {
             ret = 0;
         }
 
-        if (ret == 0 || mReopen) {
+        if (ret == 0 || mReopen || mLiveGotHttpError) {
             if (mReopen) {
                 AF_LOGD("reopen");
                 mReopen = false;
@@ -963,27 +969,33 @@ namespace Cicada {
             }
 
             if (ret >= 0) {
-                upDateInitSection();
-                ret = createDemuxer();
+                if(ret != REUSE_SEGMENT) {
+                    upDateInitSection();
+                    ret = createDemuxer();
 
-                if (ret >= 0) {
-                    int nbStream = mPDemuxer->GetNbStreams();
-                    AF_LOGI("file have %d streams\n", nbStream);
-                    // open all stream in demuxer
-                    Stream_meta meta{};
+                    if (ret >= 0) {
+                        int nbStream = mPDemuxer->GetNbStreams();
+                        AF_LOGI("file have %d streams\n", nbStream);
+                        // open all stream in demuxer
+                        Stream_meta meta{};
 
-                    for (int i = 0; i < nbStream; ++i) {
-                        mPDemuxer->GetStreamMeta(&meta, i, false);
+                        for (int i = 0; i < nbStream; ++i) {
+                            mPDemuxer->GetStreamMeta(&meta, i, false);
 
-                        if (meta.type == mPTracker->getStreamType()
-                                || (mPTracker->getStreamType() == STREAM_TYPE_MIXED && meta.type != STREAM_TYPE_UNKNOWN)) {
-                            mPDemuxer->OpenStream(i);
+                            if (meta.type == mPTracker->getStreamType()
+                                    || (mPTracker->getStreamType() == STREAM_TYPE_MIXED && meta.type != STREAM_TYPE_UNKNOWN)) {
+                                mPDemuxer->OpenStream(i);
+                            }
+
+                            releaseMeta(&meta);
                         }
 
-                        releaseMeta(&meta);
+                        mPacketFirstPts = getPackedStreamPTS();
                     }
-
-                    mPacketFirstPts = getPackedStreamPTS();
+                } else {
+                    if(mPDemuxer != nullptr) {
+                        mPDemuxer->reset();
+                    }
                 }
             }
 
@@ -1544,5 +1556,14 @@ namespace Cicada {
         mSize = 0;
         mMapPTS = INT64_MIN;
         bFinished = false;
+    }
+
+    bool HLSStream::isRealTimeStream()
+    {
+        if (mPTracker != nullptr) {
+            return mPTracker->isRealTimeStream();
+        } else {
+            return false;
+        }
     }
 }

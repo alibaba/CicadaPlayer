@@ -175,6 +175,13 @@ namespace Cicada {
         {
             return mName;
         }
+        
+        virtual bool isRealTimeStream(int index)
+        {
+            return false;
+        }
+        
+        virtual void reset() {};
 
     protected:
         demuxer_callback_read mReadCb{nullptr};

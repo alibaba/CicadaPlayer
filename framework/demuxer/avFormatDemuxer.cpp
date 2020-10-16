@@ -744,4 +744,12 @@ namespace Cicada {
         }
         return pos >= mCtx->duration - 2 * AV_TIME_BASE ? mCtx->duration - 2 * AV_TIME_BASE : pos;
     }
+
+    void avFormatDemuxer::reset()
+    {
+        if (mCtx && mCtx->pb) {
+            mCtx->pb->eof_reached = 0;
+            mCtx->pb->error = 0;
+        }
+    }
 }

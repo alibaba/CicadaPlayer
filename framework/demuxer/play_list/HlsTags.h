@@ -63,6 +63,7 @@ namespace Cicada{
                 EXTXMEDIASEQUENCE,
                 EXTXDISCONTINUITYSEQUENCE,
                 EXTXPLAYLISTTYPE,
+                EXTXTARGETSEGMENTS,
             };
 
             SingleValueTag(int, const std::string &);
@@ -82,6 +83,8 @@ namespace Cicada{
                 EXTXMAP,
                 EXTXMEDIA,
                 EXTXSTREAMINF,
+                EXTXPART,
+                EXTXPRIVINF
             };
 
             AttributesTag(int, const std::string &);

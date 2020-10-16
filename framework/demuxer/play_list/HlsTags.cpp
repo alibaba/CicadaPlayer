@@ -300,6 +300,9 @@ namespace Cicada {
                 {"EXT-X-STREAM-INF",             AttributesTag::EXTXSTREAMINF},
                 {"EXTINF",                       ValuesListTag::EXTINF},
                 {"",                             SingleValueTag::URI},
+                {"EXT-X-TARGETSEGMENTS",         SingleValueTag::EXTXTARGETSEGMENTS},
+                {"EXT-X-PART",                   AttributesTag::EXTXPART},
+                {"EXT-X-PRIVINF",                AttributesTag::EXTXPRIVINF},
                 {NULL,                           0},
             };
 
@@ -322,6 +325,7 @@ namespace Cicada {
                     case SingleValueTag::EXTXMEDIASEQUENCE:
                     case SingleValueTag::EXTXDISCONTINUITYSEQUENCE:
                     case SingleValueTag::EXTXPLAYLISTTYPE:
+                    case SingleValueTag::EXTXTARGETSEGMENTS:
                         return new (std::nothrow) SingleValueTag(exttagmapping[i].i, value);
 
                     case ValuesListTag::EXTINF:
@@ -331,6 +335,8 @@ namespace Cicada {
                     case AttributesTag::EXTXMAP:
                     case AttributesTag::EXTXMEDIA:
                     case AttributesTag::EXTXSTREAMINF:
+                    case AttributesTag::EXTXPART:
+                    case AttributesTag::EXTXPRIVINF:
                         return new (std::nothrow) AttributesTag(exttagmapping[i].i, value);
                 }
             }

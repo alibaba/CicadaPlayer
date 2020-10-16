@@ -11,6 +11,7 @@
 #include "playList_demuxer.h"
 #include "Helper.h"
 #include "../../utils/timer.h"
+#include "LHLSSegment.h"
 
 #include <data_source/dataSourcePrototype.h>
 
@@ -65,23 +66,65 @@ namespace Cicada {
         return seg;
     }
 
-    std::shared_ptr<segment> SegmentTracker::getNextSegment()
+    std::shared_ptr<segment> SegmentTracker::getNextSegment(bool forceMoveNext)
     {
         std::unique_lock<std::recursive_mutex> locker(mMutex);
-        shared_ptr<segment> seg = nullptr;
-        mCurSegNum++;
+        shared_ptr<segment> next_seg = nullptr;
+        bool bMoveToNextSegment = true;
 
-        if (mRep->GetSegmentList()) {
-            seg = mRep->GetSegmentList()->getSegmentByNumber(mCurSegNum);
+        if (!forceMoveNext) {
+            shared_ptr<segment> current_seg = nullptr;
+            
+            if (mRep->GetSegmentList()) {
+                current_seg = mRep->GetSegmentList()->getSegmentByNumber(mCurSegNum);
+            }
+            
+            if (current_seg == nullptr) {
+                return nullptr;
+            }
+
+            if (current_seg->segType == SEG_LHLS) {
+                shared_ptr<LHLSSegment> lhls_current_seg = dynamic_pointer_cast<LHLSSegment>(current_seg);
+                bool bHasUnusedParts = false;
+                bool res = lhls_current_seg->isDownloadComplete(bHasUnusedParts);
+
+                if (!res) {
+                    bMoveToNextSegment = false;
+                    
+                    if (!bHasUnusedParts) {
+                        return nullptr;
+                    } else {
+                        lhls_current_seg->moveToNextPart();
+                        next_seg = current_seg;
+                    }
+                }
+            }
         }
 
-        if (seg) {
-            mCurSegNum = seg->getSequenceNumber();
-        } else {
-            mCurSegNum--;
+        if (bMoveToNextSegment) {
+            mCurSegNum++;
+    
+            if (mRep->GetSegmentList()) {
+                next_seg = mRep->GetSegmentList()->getSegmentByNumber(mCurSegNum);
+            }
+
+            if (next_seg != nullptr) {
+                if (next_seg->segType == SEG_LHLS) {
+                    shared_ptr<LHLSSegment> lhls_next_seg = dynamic_pointer_cast<LHLSSegment>(next_seg);
+                    lhls_next_seg->moveToNextPart();
+                }
+                
+                mCurSegNum = next_seg->getSequenceNumber();
+            } else {
+                mCurSegNum--;
+            }
         }
 
-        return seg;
+        if (next_seg != nullptr) {
+            AF_LOGD("SegmentTracker::getNextSegment [%lld] [%s]\n", next_seg->sequence, next_seg->getDownloadUrl().c_str());
+        }
+        
+        return next_seg;
     }
 
     int SegmentTracker::GetRemainSegmentCount()
@@ -214,6 +257,10 @@ namespace Cicada {
                 playListOwnedByMe = false;
             }
 
+            if (mRep != nullptr && mRep->GetSegmentList() != nullptr) {
+                mRealtime = mRep->GetSegmentList()->hasLHLSSegments();
+            }
+            
             if (IS_LIVE) {
                 mThread->start();
             }
@@ -331,6 +378,11 @@ namespace Cicada {
 
             if (!mStopLoading) {
                 mPlayListStatus = loadPlayList();
+                if (!mRealtime && mRep != nullptr && mRep->GetSegmentList() != nullptr)
+                {
+                    mRealtime = mRep->GetSegmentList()->hasLHLSSegments();
+                }
+                
                 mNeedUpdate = false;
             }
         }

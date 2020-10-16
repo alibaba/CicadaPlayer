@@ -13,11 +13,18 @@
 
 //using namespace std;
 namespace Cicada{
+
+    enum SegTypes
+    {
+        SEG_NORMAL = 0,
+        SEG_LHLS,
+    };
+
     class segment {
     public:
         explicit segment(uint64_t seq);
 
-        ~segment();
+        virtual ~segment();
 
         uint64_t getSequenceNumber();
 
@@ -31,6 +38,8 @@ namespace Cicada{
 
         void setByteRange(int64_t start, int64_t end);
 
+        virtual std::string getDownloadUrl();
+        
     public:
         std::string mUri = "";
         uint64_t startTime = 0;
@@ -44,7 +53,7 @@ namespace Cicada{
         int64_t rangeEnd {INT64_MIN};
 
         std::shared_ptr<segment> init_section{nullptr};
-
+        SegTypes segType = SEG_NORMAL;
     };
 }
 

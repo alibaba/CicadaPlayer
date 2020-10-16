@@ -75,6 +75,8 @@ namespace Cicada {
         int ReadPacket(std::unique_ptr<IAFPacket> &packet, int index) override;
 
         virtual const std::string GetProperty(int index, const string &key) const override;
+        
+        void reset() override;
 
     protected:
         explicit avFormatDemuxer(int dummy);

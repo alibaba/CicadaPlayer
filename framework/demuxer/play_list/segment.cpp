@@ -49,4 +49,9 @@ namespace Cicada {
         rangeStart = start;
         rangeEnd = end;
     }
+
+    std::string segment::getDownloadUrl()
+    {
+        return mUri;
+    }
 }

@@ -10,7 +10,7 @@
 #include "Helper.h"
 #include "../../utils/frame_work_log.h"
 #include "utils/AFMediaType.h"
-
+#include "LHLSSegment.h"
 
 #define CLOCK_FREQ INT64_C(1000000)
 
@@ -167,9 +167,11 @@ namespace Cicada {
         const SingleValueTag *ctx_byterange = nullptr;
         SegmentEncryption encryption;
         const ValuesListTag *ctx_extinf = nullptr;
+        const AttributesTag *ctx_privinf = nullptr;
         std::list<Tag *>::const_iterator it;
         std::shared_ptr<segment> curInitSegment = nullptr;
-
+        std::vector<SegmentPart> segmentParts;
+        
         for (it = tagslist.begin(); it != tagslist.end(); ++it) {
             const Tag *tag = *it;
 
@@ -191,11 +193,27 @@ namespace Cicada {
                     if (uritag->getValue().value.empty()) {
                         ctx_extinf = nullptr;
                         ctx_byterange = nullptr;
+                        ctx_privinf = nullptr;
                         break;
                     }
 
-                    auto pSegment = std::make_shared<segment>(sequenceNumber++);
-                    pSegment->setSourceUrl(uritag->getValue().value);
+                    std::shared_ptr<segment> pSegment = nullptr;
+                    if (segmentParts.size() > 0) {
+                        uint64_t filesize = 0;
+                        
+                        if (ctx_privinf != nullptr) {
+                                filesize = ctx_privinf->getAttributeByName("FILESIZE")->decimal();
+                        }
+                        
+                        pSegment = std::make_shared<LHLSSegment>(sequenceNumber++, uritag->getValue().value, filesize);
+                        auto pLHLSSegment = dynamic_pointer_cast<LHLSSegment>(pSegment);
+                        pLHLSSegment->updateParts(segmentParts);
+                        segmentParts.clear();
+                    } else {
+                        pSegment = std::make_shared<segment>(sequenceNumber++);
+                        pSegment->setSourceUrl(uritag->getValue().value);
+                    }
+                    
 //                    if ((unsigned) rep->getStreamFormat() == StreamFormat::UNKNOWN)
 //                        setFormatFromExtension(rep, uritag->getValue().value);
                     /* Need to use EXTXTARGETDURATION as default as some can't properly set segment one */
@@ -209,6 +227,10 @@ namespace Cicada {
                         }
 
                         ctx_extinf = nullptr;
+                    }
+                    
+                    if(ctx_privinf) {
+                        ctx_privinf = nullptr;
                     }
 
                     const auto nzDuration = static_cast<const mtime_t>(CLOCK_FREQ * duration);
@@ -333,6 +355,34 @@ namespace Cicada {
                     }
                 }
                 break;
+                    
+                case AttributesTag::EXTXPART: {
+                    const auto *keytag = static_cast<const AttributesTag *>(tag);
+                    SegmentPart part;
+                    part.sequence = segmentParts.size();
+
+                    if (keytag->getAttributeByName("DURATION")) {
+                        double duration = keytag->getAttributeByName("DURATION")->floatingPoint();
+                        const auto nzDuration = static_cast<const mtime_t>(CLOCK_FREQ * duration);
+                        part.duration = nzDuration;
+                    }
+
+                    if (keytag->getAttributeByName("URI")) {
+                        part.uri = keytag->getAttributeByName("URI")->quotedString();
+                    }
+
+                    if (keytag->getAttributeByName("INDEPENDENT")) {
+                        part.independent = (keytag->getAttributeByName("INDEPENDENT")->value == "YES");
+                    }
+
+                    segmentParts.push_back(part);
+                }
+                break;
+
+                case AttributesTag::EXTXPRIVINF: {
+                    ctx_privinf = dynamic_cast<const AttributesTag *>(tag);
+                }
+                break;
 
                 case Tag::EXTXDISCONTINUITY:
                     discontinuityNum++;
@@ -345,6 +395,47 @@ namespace Cicada {
                 default:
                     break;
             }
+        }
+        
+        if (segmentParts.size() > 0) {
+            auto pSegment = std::make_shared<LHLSSegment>(sequenceNumber, "", 0);
+            pSegment->setSourceUrl("");
+            int64_t duration = 0;
+
+            for (auto part : segmentParts) {
+                duration += part.duration;
+            }
+     
+            pSegment->duration = duration;
+            pSegment->startTime = static_cast<uint64_t>(nzStartTime);
+            pSegment->updateParts(segmentParts);
+            totalduration += duration;
+
+            if (ctx_byterange) {
+                std::pair<std::size_t, std::size_t> range = ctx_byterange->getValue().getByteRange();
+                
+                if (range.first == 0) {
+                    range.first = prevbyterangeoffset;
+                }
+            
+                prevbyterangeoffset = range.first + range.second;
+                pSegment->setByteRange(range.first, prevbyterangeoffset - 1);
+                ctx_byterange = nullptr;
+            }
+
+            ctx_privinf = nullptr;
+
+            if (encryption.method != SegmentEncryption::NONE) {
+                pSegment->setEncryption(encryption);
+            }
+    
+            pSegment->init_section = curInitSegment;
+            pSegment->discontinuityNum = discontinuityNum;
+
+            segmentList->addSegment(pSegment);
+            ctx_byterange = nullptr;
+
+            segmentParts.clear();
         }
 
         if (rep->b_live) {

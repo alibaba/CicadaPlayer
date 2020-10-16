@@ -5,6 +5,7 @@
 
 #include <utils/frame_work_log.h>
 #include "SegmentList.h"
+#include "LHLSSegment.h"
 
 namespace Cicada {
 
@@ -105,8 +106,14 @@ namespace Cicada {
         int size = sList.size();
 
         for (auto i = sList.begin(); i != sList.end();) {
-            if ((*i)->sequence <= mLastSeqNum) {
+            if ((*i)->sequence < mLastSeqNum) {
                 (*i) = nullptr;
+            } else if ((*i)->sequence == mLastSeqNum) {
+                if ((*i)->segType == SEG_LHLS) {
+                    updateLastLHLSSegment((*i));
+                } else {
+                    (*i) = nullptr;
+                }
             } else {
                 AF_LOGI("xxxxxx add a new seg %llu", (*i)->sequence);
                 (*i)->startTime = UINT64_MAX;
@@ -134,5 +141,41 @@ namespace Cicada {
     uint64_t SegmentList::getLastSeqNum() const
     {
         return static_cast<uint64_t>(mLastSeqNum);
+    }
+
+    void SegmentList::updateLastLHLSSegment(const std::shared_ptr<segment> &seg)
+    {
+        std::lock_guard<std::mutex> uMutex(segmetsMuxtex);
+
+        if (segments.size() > 0) {
+            std::shared_ptr<segment> old_seg = segments.back();
+
+            if (old_seg != nullptr && old_seg->sequence == mLastSeqNum && old_seg->mUri.empty()) {
+                std::shared_ptr<LHLSSegment> old_lhlsSegment = dynamic_pointer_cast<LHLSSegment>(old_seg);
+                std::shared_ptr<LHLSSegment> new_lhlsSegment = dynamic_pointer_cast<LHLSSegment>(seg);
+
+                if (old_lhlsSegment != nullptr && new_lhlsSegment != nullptr) {
+                    old_lhlsSegment->updateParts(new_lhlsSegment->getSegmentParts());
+
+                    if (!new_lhlsSegment->mUri.empty()) {
+                        old_lhlsSegment->updateUriWithFileSize(new_lhlsSegment->mUri, new_lhlsSegment->getFileSize());
+                    }
+                }
+            }
+        }
+    }
+
+    bool SegmentList::hasLHLSSegments()
+    {
+        bool ret = false;
+
+        for (auto seg : segments) {
+            if (seg->segType == SEG_LHLS) {
+                ret = true;
+                break;
+            }
+        }
+
+        return ret;
     }
 }
