@@ -316,6 +316,10 @@ namespace Cicada {
                 needUpdateExtraData = true;
             }
         }
+        /*
+         * TODO: can't support this for now, audio render only support fixed sample size
+         */
+        av_packet_shrink_side_data(pkt, AV_PKT_DATA_SKIP_SAMPLES, 0);
 
         if (mStreamCtxMap[pkt->stream_index]->bsf) {
             // TODO: while pulling and ret value
