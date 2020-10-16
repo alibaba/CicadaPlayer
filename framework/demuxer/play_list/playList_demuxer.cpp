@@ -195,4 +195,13 @@ namespace Cicada {
             mPPlaylistManager->interrupt(inter);
         }
     }
+
+    bool playList_demuxer::isRealTimeStream(int index)
+    {
+        if (mPPlaylistManager) {
+            return mPPlaylistManager->isRealTimeStream(index);
+        }
+
+        return false;
+    }
 }

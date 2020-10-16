@@ -4,6 +4,7 @@
 
 #define LOG_TAG "SMPAVDeviceManager"
 #include "SMPAVDeviceManager.h"
+#include <algorithm>
 #include <cassert>
 #include <codec/decoderFactory.h>
 #include <render/renderFactory.h>
@@ -12,6 +13,7 @@
 #ifdef __APPLE__
 #include <codec/Apple/AppleVideoToolBox.h>
 #endif
+
 using namespace Cicada;
 using namespace std;
 SMPAVDeviceManager::SMPAVDeviceManager()
@@ -61,7 +63,7 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
     decoderHandle->meta = *meta;
     decoderHandle->decFlag = decFlag;
     decoderHandle->device = device;
-    decoderHandle->decoder = decoderFactory::create(meta->codec, decFlag, max(meta->height, meta->width));
+    decoderHandle->decoder = decoderFactory::create(meta->codec, decFlag, std::max(meta->height, meta->width));
     if (decoderHandle->decoder == nullptr) {
         return gen_framework_errno(error_class_codec, codec_error_video_not_support);
     }

@@ -287,6 +287,15 @@ namespace Cicada {
         return mDemuxerPtr->GetRemainSegmentCount(index);
     }
 
+    bool demuxer_service::isRealTimeStream(int index)
+    {
+        if (nullptr == mDemuxerPtr) {
+            return false;
+        }
+
+        return (!mDemuxerPtr->isPlayList()) || mDemuxerPtr->isRealTimeStream(index);
+    }
+
     void demuxer_service::interrupt(int inter)
     {
         AF_TRACE;
@@ -391,4 +400,5 @@ namespace Cicada {
             return pHandle->mPDataSource->Interrupt(static_cast<bool>(inter));
         }
     }
+
 }

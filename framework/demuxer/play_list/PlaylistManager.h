@@ -61,6 +61,8 @@ namespace Cicada{
             mMergeVideoHeader = vMergeHeader;
             mMergerAudioHeader = aMergeHeader;
         }
+        
+        virtual bool isRealTimeStream(int index) = 0;
 
     protected:
         playList *mPList = nullptr;

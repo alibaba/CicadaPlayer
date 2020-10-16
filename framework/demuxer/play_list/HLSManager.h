@@ -54,6 +54,8 @@ namespace Cicada{
         const std::string GetProperty(int index, const string &key) override;
 
         int GetRemainSegmentCount(int index) override;
+        
+        bool isRealTimeStream(int index) override;
 
     private:
         std::list<HLSStreamInfo*> mStreamInfoList{};

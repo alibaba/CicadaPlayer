@@ -84,6 +84,10 @@ namespace Cicada {
         {
             return mSeeked.load();
         }
+        
+        bool isRealTimeStream() { return mRealtime; }
+
+        void MoveToLiveStartSegment(const int64_t liveStartIndex);
 
     private:
         int loadPlayList();
@@ -98,6 +102,7 @@ namespace Cicada {
 
         std::string mLocation = "";
         std::atomic<time_t> mTargetDuration{0};
+        std::atomic<time_t> mPartTargetDuration{0};
 
         int64_t mLastLoadTime = 0;
         bool playListOwnedByMe = false;
@@ -120,6 +125,8 @@ namespace Cicada {
         std::atomic_int mPlayListStatus{0};
 
         std::atomic_bool mSeeked{false};
+        
+        bool mRealtime = false;
     };
 }
 

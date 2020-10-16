@@ -5,19 +5,27 @@
 #ifndef FRAMEWORK_SEGMENT_H
 #define FRAMEWORK_SEGMENT_H
 
-
+#include "SegmentPart.h"
+#include "segment_decrypt/SegmentEncryption.h"
 #include <cstdint>
-#include <string>
 #include <memory>
-#include "demuxer/play_list/segment_decrypt/SegmentEncryption.h"
+#include <mutex>
+#include <string>
 
 //using namespace std;
 namespace Cicada{
+
+    enum SegTypes
+    {
+        SEG_NORMAL = 0,
+        SEG_LHLS,
+    };
+
     class segment {
     public:
         explicit segment(uint64_t seq);
 
-        ~segment();
+        virtual ~segment();
 
         uint64_t getSequenceNumber();
 
@@ -31,6 +39,15 @@ namespace Cicada{
 
         void setByteRange(int64_t start, int64_t end);
 
+        // Low-Latency HLS
+        std::string getDownloadUrl();
+        void updateParts(const std::vector<SegmentPart> &parts);
+        const std::vector<SegmentPart> &getSegmentParts();
+        void moveToNextPart();
+        void moveToPart(int partIndex);
+        void moveToNearestIndependentPart(int partIndex);
+        bool isDownloadComplete(bool &bHasUnusedParts);
+        
     public:
         std::string mUri = "";
         uint64_t startTime = 0;
@@ -45,6 +62,12 @@ namespace Cicada{
 
         std::shared_ptr<segment> init_section{nullptr};
 
+        // Low-Latency HLS
+        SegTypes mSegType = SEG_NORMAL;
+        std::vector<SegmentPart> mParts;
+        int mPartsNextIndex = 0;
+        std::recursive_mutex mMutex;
+        std::string mDownloadUri = "";
     };
 }
 

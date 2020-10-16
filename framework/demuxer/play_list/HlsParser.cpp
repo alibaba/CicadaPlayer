@@ -3,14 +3,13 @@
 //
 #define LOG_TAG "HlsParser"
 
+#include "HlsParser.h"
+#include "Helper.h"
+#include "utils/AFMediaType.h"
+#include "utils/frame_work_log.h"
 #include <cstring>
 #include <map>
 #include <utils/af_string.h>
-#include "HlsParser.h"
-#include "Helper.h"
-#include "../../utils/frame_work_log.h"
-#include "utils/AFMediaType.h"
-
 
 #define CLOCK_FREQ INT64_C(1000000)
 
@@ -169,7 +168,8 @@ namespace Cicada {
         const ValuesListTag *ctx_extinf = nullptr;
         std::list<Tag *>::const_iterator it;
         std::shared_ptr<segment> curInitSegment = nullptr;
-
+        std::vector<SegmentPart> segmentParts;
+        
         for (it = tagslist.begin(); it != tagslist.end(); ++it) {
             const Tag *tag = *it;
 
@@ -196,22 +196,27 @@ namespace Cicada {
 
                     auto pSegment = std::make_shared<segment>(sequenceNumber++);
                     pSegment->setSourceUrl(uritag->getValue().value);
+                    if (segmentParts.size() > 0) {
+                        pSegment->updateParts(segmentParts);
+                        segmentParts.clear();
+                    }
+                    
 //                    if ((unsigned) rep->getStreamFormat() == StreamFormat::UNKNOWN)
 //                        setFormatFromExtension(rep, uritag->getValue().value);
                     /* Need to use EXTXTARGETDURATION as default as some can't properly set segment one */
-                    double duration = rep->targetDuration;
+                    int64_t nzDuration = rep->targetDuration;
 
                     if (ctx_extinf) {
                         const Attribute *durAttribute = ctx_extinf->getAttributeByName("DURATION");
 
                         if (durAttribute) {
-                            duration = durAttribute->floatingPoint();
+                            double duration = durAttribute->floatingPoint();
+                            nzDuration = static_cast<const mtime_t>(CLOCK_FREQ * duration);
                         }
 
                         ctx_extinf = nullptr;
                     }
 
-                    const auto nzDuration = static_cast<const mtime_t>(CLOCK_FREQ * duration);
                     pSegment->duration = nzDuration;
                     pSegment->startTime = static_cast<uint64_t>(nzStartTime);
                     nzStartTime += nzDuration;
@@ -243,9 +248,11 @@ namespace Cicada {
                 }
                 break;
 
-                case SingleValueTag::EXTXTARGETDURATION:
-                    rep->targetDuration = static_cast<const SingleValueTag *>(tag)->getValue().decimal();
-                    break;
+                case SingleValueTag::EXTXTARGETDURATION: {
+                    int64_t duration = static_cast<const SingleValueTag *>(tag)->getValue().decimal();
+                    rep->targetDuration = static_cast<const mtime_t>(CLOCK_FREQ * duration);
+                }
+                break;
 
                 case SingleValueTag::EXTXPLAYLISTTYPE:
                     rep->b_live = (static_cast<const SingleValueTag *>(tag)->getValue().value != "VOD");
@@ -333,6 +340,33 @@ namespace Cicada {
                     }
                 }
                 break;
+                    
+                case AttributesTag::EXTXPART: {
+                    const auto *keytag = static_cast<const AttributesTag *>(tag);
+                    SegmentPart part;
+                    part.sequence = segmentParts.size();
+
+                    if (keytag->getAttributeByName("DURATION")) {
+                        double duration = keytag->getAttributeByName("DURATION")->floatingPoint();
+                        const auto nzDuration = static_cast<const mtime_t>(CLOCK_FREQ * duration);
+                        part.duration = nzDuration;
+                    }
+
+                    if (part.duration > rep->partTargetDuration) {
+                        rep->partTargetDuration = part.duration;
+                    }
+
+                    if (keytag->getAttributeByName("URI")) {
+                        part.uri = keytag->getAttributeByName("URI")->quotedString();
+                    }
+
+                    if (keytag->getAttributeByName("INDEPENDENT")) {
+                        part.independent = (keytag->getAttributeByName("INDEPENDENT")->value == "YES");
+                    }
+
+                    segmentParts.push_back(part);
+                }
+                break;
 
                 case Tag::EXTXDISCONTINUITY:
                     discontinuityNum++;
@@ -345,6 +379,45 @@ namespace Cicada {
                 default:
                     break;
             }
+        }
+        
+        if (segmentParts.size() > 0) {
+            auto pSegment = std::make_shared<segment>(sequenceNumber);
+            pSegment->setSourceUrl("");
+            int64_t duration = 0;
+
+            for (auto part : segmentParts) {
+                duration += part.duration;
+            }
+     
+            pSegment->duration = duration;
+            pSegment->startTime = static_cast<uint64_t>(nzStartTime);
+            pSegment->updateParts(segmentParts);
+            totalduration += duration;
+
+            if (ctx_byterange) {
+                std::pair<std::size_t, std::size_t> range = ctx_byterange->getValue().getByteRange();
+                
+                if (range.first == 0) {
+                    range.first = prevbyterangeoffset;
+                }
+            
+                prevbyterangeoffset = range.first + range.second;
+                pSegment->setByteRange(range.first, prevbyterangeoffset - 1);
+                ctx_byterange = nullptr;
+            }
+
+            if (encryption.method != SegmentEncryption::NONE) {
+                pSegment->setEncryption(encryption);
+            }
+    
+            pSegment->init_section = curInitSegment;
+            pSegment->discontinuityNum = discontinuityNum;
+
+            segmentList->addSegment(pSegment);
+            ctx_byterange = nullptr;
+
+            segmentParts.clear();
         }
 
         if (rep->b_live) {
@@ -574,7 +647,7 @@ namespace Cicada {
 
         while (!stream->isEOF()) {
             stream->get_line(mBuffer, MAX_LINE_SIZE);
-
+            AF_LOGD("HLS: %s", mBuffer);
             if (*mBuffer == '#') {
                 if (!strncmp(mBuffer, "#EXT", 4)) { //tag
                     std::string key;
