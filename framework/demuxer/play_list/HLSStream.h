@@ -92,6 +92,8 @@ namespace Cicada {
         void interrupt(int inter) override;
 
         std::string GetProperty(const string &key);
+        
+        bool isRealTimeStream();
 
 
     private:
@@ -136,6 +138,8 @@ namespace Cicada {
         int createDemuxer();
 
         int readSegment(const uint8_t *buffer, int size);
+
+        int moveToNextPartialSegment();
 
         int upDateInitSection();
 
@@ -215,9 +219,11 @@ namespace Cicada {
         int OpenedStreamIndex = 0;
         bool mProtectedBuffer{false};
 
-        int64_t mLiveStartIndex{-3};//segment index to start live streams at (negative values are from the end)
+        //segment index to start live streams at (negative values are from the end). for lhls, it is partial segment index
+        int64_t mLiveStartIndex{-3};
 
         std::string mDRMMagicKey{};
+        
     };
 }
 

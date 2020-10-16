@@ -300,6 +300,8 @@ namespace Cicada {
                 {"EXT-X-STREAM-INF",             AttributesTag::EXTXSTREAMINF},
                 {"EXTINF",                       ValuesListTag::EXTINF},
                 {"",                             SingleValueTag::URI},
+                {"EXT-X-PART",                   AttributesTag::EXTXPART},
+                // TODO: add other lhls tag
                 {NULL,                           0},
             };
 
@@ -331,6 +333,7 @@ namespace Cicada {
                     case AttributesTag::EXTXMAP:
                     case AttributesTag::EXTXMEDIA:
                     case AttributesTag::EXTXSTREAMINF:
+                    case AttributesTag::EXTXPART:
                         return new (std::nothrow) AttributesTag(exttagmapping[i].i, value);
                 }
             }

@@ -337,7 +337,7 @@ namespace Cicada {
             }
         }
 
-        err = pkt->size;
+        int packet_size = pkt->size;
 
         if (pkt->pts != AV_NOPTS_VALUE) {
             pkt->pts = av_rescale_q(pkt->pts, mCtx->streams[pkt->stream_index]->time_base, av_get_time_base_q());
@@ -373,7 +373,7 @@ namespace Cicada {
             packet->getInfo().timePosition = packet->getInfo().pts - mCtx->start_time;
         }
 
-        return err;
+        return packet_size;
     }
 
     int avFormatDemuxer::OpenStream(int index)
@@ -744,4 +744,5 @@ namespace Cicada {
         }
         return pos >= mCtx->duration - 2 * AV_TIME_BASE ? mCtx->duration - 2 * AV_TIME_BASE : pos;
     }
+
 }

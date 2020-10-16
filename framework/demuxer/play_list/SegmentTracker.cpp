@@ -4,17 +4,16 @@
 
 #define LOG_TAG "SegmentTracker"
 
-#include <utils/frame_work_log.h>
-#include <utils/errors/framework_error.h>
 #include "SegmentTracker.h"
+#include "Helper.h"
 #include "HlsParser.h"
 #include "playList_demuxer.h"
-#include "Helper.h"
-#include "../../utils/timer.h"
-
+#include "utils/timer.h"
+#include <algorithm>
 #include <data_source/dataSourcePrototype.h>
-
 #include <utility>
+#include <utils/errors/framework_error.h>
+#include <utils/frame_work_log.h>
 
 #define IS_LIVE (mRep->b_live)
 
@@ -80,7 +79,7 @@ namespace Cicada {
         } else {
             mCurSegNum--;
         }
-
+        
         return seg;
     }
 
@@ -94,6 +93,69 @@ namespace Cicada {
         }
 
         return count;
+    }
+
+    void SegmentTracker::MoveToLiveStartSegment(const int64_t liveStartIndex)
+    {
+        SegmentList *segList = mRep->GetSegmentList();
+        if (segList == nullptr) {
+            AF_LOGW("SegmentTracker::MoveToLiveStartSegment, segmentList is empty");
+            return;
+        }
+        if (segList->hasLHLSSegments()) {
+            // lhls stream, liveStartIndex is partial segment index
+            auto segments = segList->getSegments();
+            if (liveStartIndex >= 0) {
+                int offset = liveStartIndex;
+                bool isFindPart = false;
+                for (auto iter = segments.begin(); iter != segments.end(); iter++) {
+                    const vector<SegmentPart> &segmentParts = (*iter)->getSegmentParts();
+                    if (offset >= segmentParts.size()) {
+                        offset -= segmentParts.size();
+                    } else {
+                        (*iter)->moveToNearestIndependentPart(offset);
+                        isFindPart = true;
+                        setCurSegNum((*iter)->getSequenceNumber());
+                        break;
+                    }
+                }
+                if (!isFindPart) {
+                    // use last independent part
+                    auto iter = segments.back();
+                    iter->moveToNearestIndependentPart(iter->getSegmentParts().size() - 1);
+                    setCurSegNum(iter->getSequenceNumber());
+                }
+            } else {
+                int offset = -liveStartIndex - 1;
+                bool isFindPart = false;
+                for (auto iter = segments.rbegin(); iter != segments.rend(); iter++) {
+                    const vector<SegmentPart> &segmentParts = (*iter)->getSegmentParts();
+                    if (offset >= segmentParts.size()) {
+                        offset -= segmentParts.size();
+                    } else {
+                        (*iter)->moveToNearestIndependentPart(segmentParts.size() - 1 - offset);
+                        isFindPart = true;
+                        setCurSegNum((*iter)->getSequenceNumber());
+                        break;
+                    }
+                }
+                if (!isFindPart) {
+                    // use first independent part
+                    auto iter = segments.front();
+                    iter->moveToNearestIndependentPart(0);
+                    setCurSegNum(iter->getSequenceNumber());
+                }
+            }
+        } else {
+            // hls stream, liveStartIndex is segment index
+            uint64_t curNum;
+            if (liveStartIndex >= 0) {
+                curNum = std::min(getFirstSegNum() + liveStartIndex, getLastSegNum());
+            } else {
+                curNum = std::max(getLastSegNum() + liveStartIndex + 1, getFirstSegNum());
+            }
+            setCurSegNum(curNum);
+        }
     }
 
     int SegmentTracker::loadPlayList()
@@ -150,7 +212,8 @@ namespace Cicada {
                 Representation *rep = (*(*(*pPlayList->GetPeriods().begin())->GetAdaptSets().begin())->getRepresentations().begin());
                 SegmentList *sList = rep->GetSegmentList();
                 SegmentList *pList = mRep->GetSegmentList();
-                mTargetDuration = rep->targetDuration * 1000000;
+                mTargetDuration = rep->targetDuration;
+                mPartTargetDuration = rep->partTargetDuration;
 
                 //  sList->print();
                 //live stream should always keeps the new lists.
@@ -214,6 +277,10 @@ namespace Cicada {
                 playListOwnedByMe = false;
             }
 
+            if (mRep != nullptr && mRep->GetSegmentList() != nullptr) {
+                mRealtime = mRep->GetSegmentList()->hasLHLSSegments();
+            }
+            
             if (IS_LIVE) {
                 mThread->start();
             }
@@ -299,7 +366,15 @@ namespace Cicada {
             int64_t time = af_gettime_relative();
 
             //   AF_LOGD("mTargetDuration is %lld", (int64_t)mTargetDuration);
-            if (time - mLastLoadTime > (mTargetDuration / 2)) {
+            int64_t reloadInterval = 0;
+            if (mPartTargetDuration > 0) {
+                // lhls reload interval is 2 times part target duration
+                reloadInterval = mPartTargetDuration * 2;
+            } else {
+                // hls reload interval is half target dutaion
+                reloadInterval = mTargetDuration / 2;
+            }
+            if (time - mLastLoadTime > reloadInterval) {
                 std::unique_lock<std::mutex> locker(mSegMutex);
                 mNeedUpdate = true;
                 mSegCondition.notify_all();
@@ -331,6 +406,11 @@ namespace Cicada {
 
             if (!mStopLoading) {
                 mPlayListStatus = loadPlayList();
+                if (!mRealtime && mRep != nullptr && mRep->GetSegmentList() != nullptr)
+                {
+                    mRealtime = mRep->GetSegmentList()->hasLHLSSegments();
+                }
+                
                 mNeedUpdate = false;
             }
         }

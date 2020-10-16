@@ -3,8 +3,8 @@
 //
 #define LOG_TAG "SegmentList"
 
-#include <utils/frame_work_log.h>
 #include "SegmentList.h"
+#include <utils/frame_work_log.h>
 
 namespace Cicada {
 
@@ -105,8 +105,14 @@ namespace Cicada {
         int size = sList.size();
 
         for (auto i = sList.begin(); i != sList.end();) {
-            if ((*i)->sequence <= mLastSeqNum) {
+            if ((*i)->sequence < mLastSeqNum) {
                 (*i) = nullptr;
+            } else if ((*i)->sequence == mLastSeqNum) {
+                if ((*i)->mSegType == SEG_LHLS) {
+                    updateLastLHLSSegment((*i));
+                } else {
+                    (*i) = nullptr;
+                }
             } else {
                 AF_LOGI("xxxxxx add a new seg %llu", (*i)->sequence);
                 (*i)->startTime = UINT64_MAX;
@@ -135,4 +141,35 @@ namespace Cicada {
     {
         return static_cast<uint64_t>(mLastSeqNum);
     }
-}
+
+    void SegmentList::updateLastLHLSSegment(const std::shared_ptr<segment> &seg)
+    {
+        std::lock_guard<std::mutex> uMutex(segmetsMuxtex);
+
+        if (segments.size() > 0) {
+            std::shared_ptr<segment> old_seg = segments.back();
+            if (old_seg != nullptr && old_seg->sequence == mLastSeqNum && old_seg->mUri.empty()) {
+                if (old_seg != nullptr && seg != nullptr) {
+                    old_seg->updateParts(seg->getSegmentParts());
+                    if (!seg->mUri.empty()) {
+                        old_seg->setSourceUrl(seg->mUri);
+                    }
+                }
+            }
+        }
+    }
+
+    bool SegmentList::hasLHLSSegments()
+    {
+        bool ret = false;
+
+        for (auto seg : segments) {
+            if (seg->mSegType == SEG_LHLS) {
+                ret = true;
+                break;
+            }
+        }
+
+        return ret;
+    }
+}// namespace Cicada
