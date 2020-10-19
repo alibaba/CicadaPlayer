@@ -3499,6 +3499,10 @@ void SuperMediaPlayer::ProcessPrepareMsg()
             info->videoWidth = meta->width;
             info->videoHeight = meta->height;
             info->videoBandwidth = (int) meta->bandwidth;
+            info->HDRType = VideoHDRType_SDR;
+            if (meta->pixel_fmt == AF_PIX_FMT_YUV420P10BE || meta->pixel_fmt == AF_PIX_FMT_YUV420P10LE) {
+                info->HDRType = VideoHDRType_HDR10;
+            }
 
             if (meta->description) {
                 info->description = strdup((const char *) meta->description);

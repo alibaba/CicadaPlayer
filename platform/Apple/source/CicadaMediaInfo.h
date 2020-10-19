@@ -26,6 +26,11 @@ typedef enum CicadaTrackType: NSUInteger {
     CICADA_TRACK_SUBTITLE,
 } CicadaTrackType;
 
+typedef enum CicadaVideoHDRType : NSUInteger {
+    CICADA_VideoHDRType_SDR,
+    CICADA_VideoHDRType_HDR10,
+} CicadaVideoHDRType;
+
 OBJC_EXPORT
 @interface CicadaTrackInfo : NSObject
 
@@ -33,6 +38,8 @@ OBJC_EXPORT
  @brief track type @see CicadaTrackType
  */
 @property (nonatomic, assign) CicadaTrackType trackType;
+
+@property(nonatomic, assign) CicadaVideoHDRType HDRType;
 
 /**
  @brief vod format

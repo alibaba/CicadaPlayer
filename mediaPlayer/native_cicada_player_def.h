@@ -43,6 +43,11 @@ typedef enum _StreamType {
     ST_TYPE_SUB,
 } StreamType;
 
+typedef enum _VideoHDRType {
+    VideoHDRType_SDR,
+    VideoHDRType_HDR10,
+} VideoHDRType;
+
 typedef enum _IpResolveType { IpResolveWhatEver, IpResolveV4, IpResolveV6 } IpResolveType;
 
 #define VIDEO_FLAG 1 << ST_TYPE_VIDEO
@@ -58,6 +63,7 @@ typedef struct _StreamInfo {
     int videoBandwidth;
     int videoWidth;
     int videoHeight;
+    VideoHDRType HDRType;
 
     //audio
     char *audioLang;
