@@ -21,6 +21,7 @@ jfieldID gj_TrackInfo_Description = nullptr;
 jfieldID gj_TrackInfo_VideoBitrate = nullptr;
 jfieldID gj_TrackInfo_VideoWidth = nullptr;
 jfieldID gj_TrackInfo_VideoHeight = nullptr;
+jfieldID gj_TrackInfo_VideoHDRType = nullptr;
 
 jfieldID gj_TrackInfo_AudioLang = nullptr;
 jfieldID gj_TrackInfo_AudioChannels = nullptr;
@@ -49,6 +50,7 @@ void JavaTrackInfo::init(JNIEnv *env) {
         gj_TrackInfo_VideoBitrate = env->GetFieldID(gj_TrackInfoClass, "videoBitrate", "I");
         gj_TrackInfo_VideoWidth = env->GetFieldID(gj_TrackInfoClass, "videoWidth", "I");
         gj_TrackInfo_VideoHeight = env->GetFieldID(gj_TrackInfoClass, "videoHeight", "I");
+        gj_TrackInfo_VideoHDRType = env->GetFieldID(gj_TrackInfoClass, "videoHDRType", "I");
         gj_TrackInfo_AudioLang = env->GetFieldID(gj_TrackInfoClass, "audioLang",
                                                  "Ljava/lang/String;");
         gj_TrackInfo_AudioChannels = env->GetFieldID(gj_TrackInfoClass, "audioChannels", "I");
@@ -75,21 +77,34 @@ jobject JavaTrackInfo::getTrackInfo(JNIEnv *mEnv, const StreamInfo &streamInfo) 
     NewStringUTF tmpdesc(mEnv, streamInfo.description);
     jstring desc = tmpdesc.getString();
     mEnv->SetObjectField(jStreamInfo, gj_TrackInfo_Description, desc);
-    //video
-    mEnv->SetIntField(jStreamInfo, gj_TrackInfo_VideoBitrate, streamInfo.videoBandwidth);
-    mEnv->SetIntField(jStreamInfo, gj_TrackInfo_VideoHeight, streamInfo.videoHeight);
-    mEnv->SetIntField(jStreamInfo, gj_TrackInfo_VideoWidth, streamInfo.videoWidth);
-    //audio
-    mEnv->SetIntField(jStreamInfo, gj_TrackInfo_AudioChannels, streamInfo.nChannels);
-    mEnv->SetIntField(jStreamInfo, gj_TrackInfo_AudioSampleFormat, streamInfo.sampleFormat);
-    mEnv->SetIntField(jStreamInfo, gj_TrackInfo_AudioSampleRate, streamInfo.sampleRate);
-    NewStringUTF tmpaudioLang(mEnv, streamInfo.audioLang);
-    jstring audioLang = tmpaudioLang.getString();
-    mEnv->SetObjectField(jStreamInfo, gj_TrackInfo_AudioLang, audioLang);
-    //subtitle
-    NewStringUTF tmpsubtitleLang(mEnv, streamInfo.subtitleLang);
-    jstring subtitleLang = tmpsubtitleLang.getString();
-    mEnv->SetObjectField(jStreamInfo, gj_TrackInfo_SubtitleLang, subtitleLang);
+    switch (streamInfo.type) {
+        case ST_TYPE_VIDEO:
+            mEnv->SetIntField(jStreamInfo, gj_TrackInfo_VideoBitrate, streamInfo.videoBandwidth);
+            mEnv->SetIntField(jStreamInfo, gj_TrackInfo_VideoHeight, streamInfo.videoHeight);
+            mEnv->SetIntField(jStreamInfo, gj_TrackInfo_VideoWidth, streamInfo.videoWidth);
+            mEnv->SetIntField(jStreamInfo, gj_TrackInfo_VideoHDRType, streamInfo.HDRType);
+            break;
+        case ST_TYPE_AUDIO:
+            mEnv->SetIntField(jStreamInfo, gj_TrackInfo_AudioChannels, streamInfo.nChannels);
+            mEnv->SetIntField(jStreamInfo, gj_TrackInfo_AudioSampleFormat, streamInfo.sampleFormat);
+            mEnv->SetIntField(jStreamInfo, gj_TrackInfo_AudioSampleRate, streamInfo.sampleRate);
+
+            if (streamInfo.audioLang) {
+                NewStringUTF tmpaudioLang(mEnv, streamInfo.audioLang);
+                jstring audioLang = tmpaudioLang.getString();
+                mEnv->SetObjectField(jStreamInfo, gj_TrackInfo_AudioLang, audioLang);
+            }
+            break;
+        case ST_TYPE_SUB:
+            if (streamInfo.subtitleLang) {
+                NewStringUTF tmpsubtitleLang(mEnv, streamInfo.subtitleLang);
+                jstring subtitleLang = tmpsubtitleLang.getString();
+                mEnv->SetObjectField(jStreamInfo, gj_TrackInfo_SubtitleLang, subtitleLang);
+            }
+            break;
+        default:
+            break;
+    }
     return jStreamInfo;
 }
 

@@ -22,6 +22,7 @@ public class TrackInfo {
     public int videoBitrate;
     public int videoWidth;
     public int videoHeight;
+    public VideoHDRType videoHDRType;
 
     //audio
     public String audioLang;
@@ -77,6 +78,13 @@ public class TrackInfo {
          */
         TYPE_SUBTITLE,
     }
+
+
+    public enum VideoHDRType {
+        VideoHDRType_SDR,
+        VideoHDRType_HDR10
+      };
+
 
     /**
      * 获取流索引

@@ -95,21 +95,31 @@ CicadaTrackInfo* CicadaOCHelper::getCicadaTrackInfo(const StreamInfo *info)
 
     trackInfo.trackType = static_cast<CicadaTrackType>(info->type);
     trackInfo.trackIndex = info->streamIndex;
-    trackInfo.videoWidth = info->videoWidth;
-    trackInfo.videoHeight = info->videoHeight;
-    trackInfo.trackBitrate = info->videoBandwidth;
-    trackInfo.audioChannels = info->nChannels;
-    trackInfo.audioSamplerate = info->sampleRate;
-    trackInfo.audioSampleFormat = info->sampleFormat;
-
     if (info->description) {
         trackInfo.description = [NSString stringWithUTF8String:info->description];
     }
-    if (info->audioLang) {
-        trackInfo.audioLanguage = [NSString stringWithUTF8String:info->audioLang];
-    }
-    if (info->subtitleLang) {
-        trackInfo.subtitleLanguage = [NSString stringWithUTF8String:info->subtitleLang];
+    switch (trackInfo.trackType) {
+        case CICADA_TRACK_VIDEO:
+            trackInfo.videoWidth = info->videoWidth;
+            trackInfo.videoHeight = info->videoHeight;
+            trackInfo.trackBitrate = info->videoBandwidth;
+            trackInfo.HDRType = static_cast<CicadaVideoHDRType>(info->HDRType);
+            break;
+        case CICADA_TRACK_AUDIO:
+            trackInfo.audioChannels = info->nChannels;
+            trackInfo.audioSamplerate = info->sampleRate;
+            trackInfo.audioSampleFormat = info->sampleFormat;
+            if (info->audioLang) {
+                trackInfo.audioLanguage = [NSString stringWithUTF8String:info->audioLang];
+            }
+            break;
+        case CICADA_TRACK_SUBTITLE:
+            if (info->subtitleLang) {
+                trackInfo.subtitleLanguage = [NSString stringWithUTF8String:info->subtitleLang];
+            }
+            break;
+        default:
+            break;
     }
 
     return trackInfo;
