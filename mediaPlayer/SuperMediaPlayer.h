@@ -268,7 +268,7 @@ namespace Cicada {
 
         void SwitchVideo(int64_t startTime);
 
-        int64_t getPlayerBufferDuration(bool gotMax);
+        int64_t getPlayerBufferDuration(bool gotMax, bool internal);
 
         void ProcessOpenStreamInit(int streamIndex);
 
