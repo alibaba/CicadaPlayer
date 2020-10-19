@@ -1173,7 +1173,7 @@ void SuperMediaPlayer::ProcessVideoLoop()
 void SuperMediaPlayer::doReadPacket()
 {
     //check packet queue full
-    int64_t cur_buffer_duration = getPlayerBufferDuration(false);
+    int64_t cur_buffer_duration = getPlayerBufferDuration(false, false);
     //100s
     mUtil->notifyRead(MediaPlayerUtil::readEvent_Loop);
 
@@ -1199,7 +1199,9 @@ void SuperMediaPlayer::doReadPacket()
                 }
             }
 
-            if (cur_buffer_duration > mSet->maxBufferDuration) {
+            if (cur_buffer_duration > mSet->maxBufferDuration &&
+                getPlayerBufferDuration(false, true) > 0// we need readout the buffer in demuxer when no buffer in player
+            ) {
                 mBufferIsFull = true;
                 break;
             }
@@ -1285,7 +1287,7 @@ void SuperMediaPlayer::doReadPacket()
                 break;
             }
 
-            cur_buffer_duration = getPlayerBufferDuration(false);
+            cur_buffer_duration = getPlayerBufferDuration(false, false);
             //                if(getPlayerBufferDuration(true) > mSet->maxBufferDuration * 2){
             //                    AF_LOGE("buffer stuffed\n");
             //                    mPNotifier->NotifyError(MEDIA_PLAYER_ERROR_BUFFER_STUFFED,"buffer stuffed");
@@ -1300,7 +1302,7 @@ void SuperMediaPlayer::OnDemuxerCallback(const std::string &key, const std::stri
 
 bool SuperMediaPlayer::DoCheckBufferPass()
 {
-    int64_t cur_buffer_duration = getPlayerBufferDuration(false);
+    int64_t cur_buffer_duration = getPlayerBufferDuration(false, false);
     int64_t HighBufferDur = mSet->highLevelBufferDuration;
 
     if (mSet->bDisableBufferManager) {
@@ -1327,7 +1329,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
                     }
                 }
 
-                cur_buffer_duration = getPlayerBufferDuration(false);
+                cur_buffer_duration = getPlayerBufferDuration(false, false);
 
                 if (cur_buffer_duration < HighBufferDur) {
                     return false;
@@ -1341,7 +1343,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
              (!HAVE_VIDEO || videoDecoderFull || APP_BACKGROUND == mAppStatus || !mSet->mFastStart)) ||
             (mEof)) {
             //open stream failed
-            if (mEof && getPlayerBufferDuration(true) <= 0) {
+            if (mEof && getPlayerBufferDuration(true, false) <= 0) {
                 ChangePlayerStatus(PLAYER_ERROR);
                 mPNotifier->NotifyError(MEDIA_PLAYER_ERROR_DEMUXER_OPENSTREAM, "open stream failed");
             } else {
@@ -1373,7 +1375,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
     //	,mBufferController->GetPacketDuration(BUFFER_TYPE_VIDEO), mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO));
     while (IS_REAL_TIME_STREAM && mSet->RTMaxDelayTime > 0) {
         if (!HAVE_AUDIO) {
-            int64_t maxBufferDuration = getPlayerBufferDuration(true);
+            int64_t maxBufferDuration = getPlayerBufferDuration(true, false);
 
             if (maxBufferDuration > mSet->RTMaxDelayTime + 1000 * 1000 * 5) {
                 int64_t lastKeyPos = mBufferController->GetPacketLastKeyTimePos(BUFFER_TYPE_VIDEO);
@@ -1385,7 +1387,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
             break;
         }
 
-        int64_t maxBufferDuration = getPlayerBufferDuration(true);
+        int64_t maxBufferDuration = getPlayerBufferDuration(true, false);
 
         if (maxBufferDuration > mSet->RTMaxDelayTime + 1000 * 1000 * 5) {
             //drop frame
@@ -2785,7 +2787,7 @@ void SuperMediaPlayer::PostBufferPositionMsg()
         if (isSeeking()) {
             duration = 0;
         } else {
-            duration = getPlayerBufferDuration(false);
+            duration = getPlayerBufferDuration(false, false);
         }
 
         if (duration >= 0) {
@@ -2800,7 +2802,7 @@ void SuperMediaPlayer::PostBufferPositionMsg()
     }
 }
 
-int64_t SuperMediaPlayer::getPlayerBufferDuration(bool gotMax)
+int64_t SuperMediaPlayer::getPlayerBufferDuration(bool gotMax, bool internal)
 {
     int64_t durations[3] = {-1, -1, -1};
     int i = 0;
@@ -2818,7 +2820,7 @@ int64_t SuperMediaPlayer::getPlayerBufferDuration(bool gotMax)
                 duration_c = (int64_t) mBufferController->GetPacketSize(BUFFER_TYPE_VIDEO) * 40 * 1000;
             }
         }
-        if (mDemuxerService && mDemuxerService->getDemuxerHandle()) {
+        if (!internal && mDemuxerService && mDemuxerService->getDemuxerHandle()) {
             duration_c += mDemuxerService->getDemuxerHandle()->getBufferDuration(mCurrentVideoIndex);
         }
     }
@@ -2827,7 +2829,7 @@ int64_t SuperMediaPlayer::getPlayerBufferDuration(bool gotMax)
         int64_t &duration_c = durations[i++];
         duration_c = mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO);
         //            AF_LOGD("audioDuration is %lld\n",audioDuration);
-        if (mDemuxerService && mDemuxerService->getDemuxerHandle()) {
+        if (!internal && mDemuxerService && mDemuxerService->getDemuxerHandle()) {
             duration_c += mDemuxerService->getDemuxerHandle()->getBufferDuration(mCurrentAudioIndex);
         }
     }
@@ -2839,7 +2841,7 @@ int64_t SuperMediaPlayer::getPlayerBufferDuration(bool gotMax)
     if (HAVE_SUBTITLE && !mSubtitleEOS && mSubtitleChangedFirstPts == INT64_MIN) {
         int64_t &duration_c = durations[i++];
         duration_c = mBufferController->GetPacketDuration(BUFFER_TYPE_SUBTITLE);
-        if (mDemuxerService && mDemuxerService->getDemuxerHandle()) {
+        if (!internal && mDemuxerService && mDemuxerService->getDemuxerHandle()) {
             duration_c += mDemuxerService->getDemuxerHandle()->getBufferDuration(mCurrentSubtitleIndex);
         }
     }
