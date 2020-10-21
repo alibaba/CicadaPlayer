@@ -13,6 +13,7 @@ static const char *trackInfoPath = "com/cicada/player/nativeclass/TrackInfo";
 jclass gj_TrackInfoClass = nullptr;
 jmethodID gj_TrackInfo_init = nullptr;
 jmethodID gj_TrackInfo_setType = nullptr;
+jmethodID gj_TrackInfo_setVideoHDRType = nullptr;
 jmethodID gj_TrackInfo_nGetType = nullptr;
 
 jfieldID gj_TrackInfo_Index = nullptr;
@@ -21,7 +22,6 @@ jfieldID gj_TrackInfo_Description = nullptr;
 jfieldID gj_TrackInfo_VideoBitrate = nullptr;
 jfieldID gj_TrackInfo_VideoWidth = nullptr;
 jfieldID gj_TrackInfo_VideoHeight = nullptr;
-jfieldID gj_TrackInfo_VideoHDRType = nullptr;
 
 jfieldID gj_TrackInfo_AudioLang = nullptr;
 jfieldID gj_TrackInfo_AudioChannels = nullptr;
@@ -41,6 +41,8 @@ void JavaTrackInfo::init(JNIEnv *env) {
         gj_TrackInfo_setType = env->GetMethodID(gj_TrackInfoClass,
                                                 "setType",
                                                 "(I)V");
+
+        gj_TrackInfo_setVideoHDRType = env->GetMethodID(gj_TrackInfoClass, "setVideoHDRType", "(I)V");
         gj_TrackInfo_nGetType = env->GetMethodID(gj_TrackInfoClass,
                                                  "nGetType",
                                                  "()I");
@@ -50,7 +52,6 @@ void JavaTrackInfo::init(JNIEnv *env) {
         gj_TrackInfo_VideoBitrate = env->GetFieldID(gj_TrackInfoClass, "videoBitrate", "I");
         gj_TrackInfo_VideoWidth = env->GetFieldID(gj_TrackInfoClass, "videoWidth", "I");
         gj_TrackInfo_VideoHeight = env->GetFieldID(gj_TrackInfoClass, "videoHeight", "I");
-        gj_TrackInfo_VideoHDRType = env->GetFieldID(gj_TrackInfoClass, "videoHDRType", "I");
         gj_TrackInfo_AudioLang = env->GetFieldID(gj_TrackInfoClass, "audioLang",
                                                  "Ljava/lang/String;");
         gj_TrackInfo_AudioChannels = env->GetFieldID(gj_TrackInfoClass, "audioChannels", "I");
@@ -82,7 +83,7 @@ jobject JavaTrackInfo::getTrackInfo(JNIEnv *mEnv, const StreamInfo &streamInfo) 
             mEnv->SetIntField(jStreamInfo, gj_TrackInfo_VideoBitrate, streamInfo.videoBandwidth);
             mEnv->SetIntField(jStreamInfo, gj_TrackInfo_VideoHeight, streamInfo.videoHeight);
             mEnv->SetIntField(jStreamInfo, gj_TrackInfo_VideoWidth, streamInfo.videoWidth);
-            mEnv->SetIntField(jStreamInfo, gj_TrackInfo_VideoHDRType, streamInfo.HDRType);
+            mEnv->CallVoidMethod(jStreamInfo, gj_TrackInfo_setVideoHDRType, (int) streamInfo.HDRType);
             break;
         case ST_TYPE_AUDIO:
             mEnv->SetIntField(jStreamInfo, gj_TrackInfo_AudioChannels, streamInfo.nChannels);
