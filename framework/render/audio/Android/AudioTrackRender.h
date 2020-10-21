@@ -38,6 +38,10 @@ private:
 
     uint64_t device_get_que_duration() override;
 
+    void device_preClose() override
+    {
+        mRunning = false;
+    }
 private:
     AudioTrackRender(int dummy) : mFrameQueue(1)
     {
