@@ -347,7 +347,9 @@ void ActiveDecoder::flush()
     bInputEOS = false;
     bDecoderEOS = false;
     bSendEOS2Decoder = false;
-    mRunning = true;
+    if (running) {
+        mRunning = true;
+    }
     bNeedKeyFrame = true;
 #if AF_HAVE_PTHREAD
 
