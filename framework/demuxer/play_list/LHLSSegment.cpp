@@ -40,20 +40,30 @@ namespace Cicada {
         std::string uri = "";
 
         if (mUri.empty()) {
+            // has no complete segment, use part
             if (mParts.size() > 0 && mPartsNextIndex >= 0 && mPartsNextIndex < mParts.size()) {
                 uri = mParts[mPartsNextIndex].uri;
                 mOffset = extractOffsetFromURI(uri);
                 ++mPartsNextIndex;
             } else {
-                AF_LOGD("Not have enough segment parts [%d] [%d]", mPartsNextIndex, (int)mParts.size());
+                AF_LOGD("Not have enough segment parts [%d] [%d]", mPartsNextIndex, (int) mParts.size());
             }
-        } else if (mPartsNextIndex > 0 && mOffset > 0 && mFileSize > 0) {
-            uri = appendRangeToURI(mUri, mOffset, mFileSize - 1);
-            mPartsNextIndex = -1;
-            mOffset = 0;
         } else {
-            uri = mUri;
-            mPartsNextIndex = -1;
+            // has complete segment
+            if (mPartsNextIndex > 0) {
+                // has played part, use next part
+                if (mParts.size() > 0 && mPartsNextIndex >= 0 && mPartsNextIndex < mParts.size()) {
+                    uri = mParts[mPartsNextIndex].uri;
+                    mOffset = extractOffsetFromURI(uri);
+                    ++mPartsNextIndex;
+                } else {
+                    AF_LOGD("Not have enough segment parts [%d] [%d]", mPartsNextIndex, (int) mParts.size());
+                }
+            } else {
+                // has not been played, use complete segment
+                uri = mUri;
+                mPartsNextIndex = -1;
+            }
         }
 
         mDownloadUri = uri;
