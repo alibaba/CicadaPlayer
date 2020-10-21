@@ -43,6 +43,11 @@ private:
         return 0;
     }
 
+    void device_preClose() override
+    {
+        mRunning = false;
+    }
+
 private:
     AudioTrackRender(int dummy) : mFrameQueue(1)
     {

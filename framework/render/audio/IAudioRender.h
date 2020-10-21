@@ -176,6 +176,7 @@ namespace Cicada{
             mRenderingCb = cb;
             mRenderingCbUserData = userData;
         }
+        virtual void preClose() = 0;
 
     protected:
         IAudioRender *mExtFilter{};
