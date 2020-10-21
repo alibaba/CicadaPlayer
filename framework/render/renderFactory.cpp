@@ -60,8 +60,7 @@ std::unique_ptr<IAudioRender> AudioRenderFactory::create()
 #endif
 #ifdef __APPLE__
     return std::unique_ptr<IAudioRender>(new AFAudioQueueRender());
-#endif
-#ifdef ENABLE_SDL
+#elif defined(ENABLE_SDL)
     return std::unique_ptr<IAudioRender>(new SdlAFAudioRender());
 #endif
     return nullptr;
