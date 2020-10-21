@@ -366,4 +366,9 @@ namespace Cicada {
         device_setVolume(gain);
         return 0;
     }
+    void filterAudioRender::preClose()
+    {
+        mState = State::state_uninit;
+        device_preClose();
+    }
 }

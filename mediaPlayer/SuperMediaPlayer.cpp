@@ -350,6 +350,10 @@ int SuperMediaPlayer::Stop()
         mVideoDecoder->preClose();
     }
 
+    if (mAudioRender) {
+        mAudioRender->preClose();
+    }
+
     AF_TRACE;
 
     if (mAudioDecoder != nullptr) {
