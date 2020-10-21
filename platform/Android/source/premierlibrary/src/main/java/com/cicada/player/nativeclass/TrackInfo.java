@@ -44,6 +44,13 @@ public class TrackInfo {
             this.mType = Type.TYPE_SUBTITLE;
         }
     }
+    public void setVideoHDRType(int type) {
+        if (type == VideoHDRType.VideoHDRType_SDR.ordinal()) {
+            this.videoHDRType = VideoHDRType.VideoHDRType_SDR;
+        } else if (type == VideoHDRType.VideoHDRType_HDR10.ordinal()) {
+            this.videoHDRType = VideoHDRType.VideoHDRType_HDR10;
+        }
+    }
 
     private int nGetType(){
         return mType.ordinal();
