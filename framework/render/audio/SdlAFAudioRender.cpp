@@ -242,4 +242,9 @@ namespace Cicada {
     {
         mPlayedDuration = 0;
     }
+
+    void SdlAFAudioRender::preClose()
+    {
+        // do nothing
+    }
 }
