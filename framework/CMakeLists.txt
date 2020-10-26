@@ -43,6 +43,11 @@ if ($ENV{VERSION})
 endif ()
 
 include(module_config.cmake)
+message("CICADA_FRAMEWORK_MODULE_CONFIG_FILE is $ENV{CICADA_FRAMEWORK_MODULE_CONFIG_FILE}")
+if(DEFINED ENV{CICADA_FRAMEWORK_MODULE_CONFIG_FILE})
+    include($ENV{CICADA_FRAMEWORK_MODULE_CONFIG_FILE})
+endif()
+
 add_subdirectory(demuxer)
 add_subdirectory(codec)
 add_subdirectory(utils)

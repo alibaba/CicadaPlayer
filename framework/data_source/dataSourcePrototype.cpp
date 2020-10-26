@@ -3,7 +3,9 @@
 //
 
 #include "dataSourcePrototype.h"
+#ifdef ENABLE_CURL_SOURCE
 #include "data_source/curl/curl_data_source.h"
+#endif
 #include "../../plugin/BiDataSource.h"
 #include "ffmpeg_data_source.h"
 
