@@ -162,6 +162,9 @@ namespace Cicada {
 
                 rep->SetSegmentList(nullptr);
 
+                // update is live
+                mRep->b_live = rep->b_live;
+
                 if (pPlayList->getDuration() > 0) {
                     mPDataSource->Close();
                     delete mPDataSource;
