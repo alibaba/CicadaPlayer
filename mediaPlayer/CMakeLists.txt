@@ -35,12 +35,6 @@ include(${TOPDIR}/framework/${TARGET_PLATFORM}.cmake)
 
 set(CMAKE_CXX_STANDARD 11)
 
-include(../framework/module_config.cmake)
-
-if (ENABLE_CACHE_MODULE)
-    add_definitions(-DENABLE_CACHE_MODULE)
-endif ()
-
 message("COMMON_INC_DIR is ${COMMON_INC_DIR}")
 
 set(SOURCE_FILES
