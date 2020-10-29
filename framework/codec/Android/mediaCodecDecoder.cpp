@@ -11,6 +11,17 @@
 #define  MAX_INPUT_SIZE 4
 using namespace std;
 namespace Cicada {
+
+    typedef struct blackModelDevice {
+        AFCodecID codec;
+        string model;
+    } blackModelDevice;
+    blackModelDevice blackList[] = {
+            {AF_CODEC_ID_H264, "2014501"},
+            {AF_CODEC_ID_HEVC, "OPPO R9tm"},
+            {AF_CODEC_ID_HEVC, "OPPO A59s"},
+    };
+
     mediaCodecDecoder mediaCodecDecoder::se(0);
 
     mediaCodecDecoder::mediaCodecDecoder()
@@ -44,9 +55,11 @@ namespace Cicada {
             }
         }
         string model = get_android_property("ro.product.model");
-        AF_LOGI("phone model is %s\n", model.c_str());
-        if (model == "2014501") {
-            return false;
+        for (auto device : blackList) {
+            if (device.codec == codec && device.model == model) {
+                AF_LOGI("device %d@%s is in black list\n", device.codec, device.model.c_str());
+                return false;
+            }
         }
 
         return true;
