@@ -7,6 +7,7 @@
 
 #include "LHLSSegment.h"
 #include "Helper.h"
+#include <inttypes.h>
 #include <utils/frame_work_log.h>
 
 namespace Cicada {
@@ -156,9 +157,9 @@ namespace Cicada {
         char tempstr[256] = "";
 
         if (pos != ret.npos) {
-            sprintf(tempstr, "&lhs_range=%lld-%lld", from, to);
+            sprintf(tempstr, "&lhs_range=%" PRIu64 "-%" PRIu64 "", from, to);
         } else {
-            sprintf(tempstr, "?lhs_range=%lld-%lld", from, to);
+            sprintf(tempstr, "?lhs_range=%" PRIu64 "-%" PRIu64 "", from, to);
         }
 
         ret += tempstr;
