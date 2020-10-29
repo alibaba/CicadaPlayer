@@ -177,6 +177,15 @@ void afThread::stop()
     AF_TRACE;
 }
 
+void afThread::forceStop()
+{
+    if (mThreadPtr) {
+        mThreadPtr->detach();
+        delete mThreadPtr;
+        mThreadPtr = nullptr;
+    }
+}
+
 //void afThread::detach()
 //{
 //    std::unique_lock<std::mutex> uMutex(mMutex);
@@ -186,19 +195,22 @@ void afThread::stop()
 
 afThread::~afThread()
 {
-    std::lock_guard<std::mutex> guard(mMutex);
-    mTryPaused = false;
-    {
-        std::unique_lock<std::mutex> sleepMutex(mSleepMutex);
-        mThreadStatus = THREAD_STATUS_IDLE;
-    }
-    mSleepCondition.notify_one();
+    if (mThreadPtr) {
+        std::lock_guard<std::mutex> guard(mMutex);
+        mTryPaused = false;
+        {
+            std::unique_lock<std::mutex> sleepMutex(mSleepMutex);
+            mThreadStatus = THREAD_STATUS_IDLE;
+        }
+        mSleepCondition.notify_one();
 
-    if (mThreadPtr && mThreadPtr->joinable()) {
-        mThreadPtr->join();
-    }
+        if (mThreadPtr && mThreadPtr->joinable()) {
+            mThreadPtr->join();
+        }
 
-    delete mThreadPtr;
+        delete mThreadPtr;
+        mThreadPtr = nullptr;
+    }
 }
 
 void afThread::setBeginCallback(const thread_beginCallback &callback)

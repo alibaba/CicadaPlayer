@@ -25,6 +25,9 @@ namespace Cicada {
     AsyncJob::~AsyncJob()
     {
         AsyncJobLive = 0;
+#ifdef WIN32
+        mThread->forceStop();
+#endif
         delete mThread;
 
         while (0 < mFuncs.size()) {
