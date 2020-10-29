@@ -353,17 +353,14 @@ int SuperMediaPlayer::Stop()
     if (mAudioRender) {
         mAudioRender->preClose();
     }
+    if (mAudioDecoder) {
+        mAudioDecoder->preClose();
+    }
 
     AF_TRACE;
 
     if (mAudioDecoder != nullptr) {
-        //because FlushAudioPath call mAudioOutHandle flush, so stop should called first
-        if (mAudioRender) {
-            mAudioRender->pause(true);
-        }
-
         FlushAudioPath();
-        mAudioDecoder->preClose();
     }
 
     AF_TRACE;
