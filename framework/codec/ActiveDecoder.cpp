@@ -325,7 +325,9 @@ void ActiveDecoder::flush()
         running = mDecodeThread->getStatus() == afThread::THREAD_STATUS_RUNNING;
     }
     mRunning = false;
-    mDecodeThread->pause();
+    if (mDecodeThread) {
+        mDecodeThread->pause();
+    }
 
     while (!mInputQueue.empty()) {
         delete mInputQueue.front();
