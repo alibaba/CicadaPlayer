@@ -454,6 +454,10 @@ namespace Cicada {
 
     void AFAudioUnitRender::device_setVolume(float gain)
     {
+        /*
+         * workaround setting mVolume to 0 before start can't effect immediately
+         */
+        loopChecker();
         mVolume = gain;
 #if AF_USE_MIX
         //        AudioUnitSetParameter(mAudioUnit, kAUNBandEQParam_GlobalGain, kAudioUnitScope_Global, 0, mVolume, 0);
