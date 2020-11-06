@@ -1022,8 +1022,10 @@ int SuperMediaPlayer::updateLoopGap()
             if (!mFirstRendered) {
                 return 3;
             } else if (HAVE_VIDEO) {
-                if (mCurrentVideoMeta && mCurrentVideoMeta->operator Stream_meta *()->avg_fps > 0) {
-                    return 1000 / int(mCurrentVideoMeta->operator Stream_meta *()->avg_fps * mSet->rate * 1.5);
+                if (mCurrentVideoMeta) {
+                    // the loop gap can't too low
+                    int fps = std::max(25, (int) (mCurrentVideoMeta->operator Stream_meta *()->avg_fps));
+                    return 1000 / int(fps * mSet->rate * 1.5);
                 }
             }
             return 1000 / int(50 * mSet->rate);
