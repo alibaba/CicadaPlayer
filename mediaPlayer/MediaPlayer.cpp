@@ -8,6 +8,7 @@
 #include <utils/frame_work_log.h>
 #include <utils/file/FileUtils.h>
 #include <utils/af_string.h>
+#include <utils/uuid.h>
 #include "MediaPlayer.h"
 #include "media_player_api.h"
 #include "abr/AbrManager.h"
@@ -74,8 +75,24 @@ namespace Cicada {
         AbrBufferRefererData *pRefererData = new AbrBufferRefererData(handle);
         mAbrAlgo->SetRefererData(pRefererData);
         mAbrManager->SetAbrAlgoStrategy(mAbrAlgo);
+
+        refreshPlayerSessionId();
     }
 
+    void MediaPlayer::refreshPlayerSessionId() {
+        char signatureStr[100] = {0};
+        uuid id;
+        uuid4_generate( &id );
+        uuid_to_string( &id, signatureStr);
+        mPlayerSessionId = signatureStr;
+        if(mCollector != nullptr) {
+            mCollector->ReportUpdatePlaySession(mPlayerSessionId);
+        }
+    }
+
+    string MediaPlayer::GetPlayerSessionId() {
+        return mPlayerSessionId;
+    }
 
     void MediaPlayer::SetAnalyticsCollector(IAnalyticsCollector * collector) {
         if (mCollector && !bExternalCollector) {
@@ -86,6 +103,9 @@ namespace Cicada {
 
         bExternalCollector = true;
         mCollector = collector;
+        if(mCollector != nullptr) {
+            mCollector->ReportUpdatePlaySession(mPlayerSessionId);
+        }
     }
 
     void MediaPlayer::dummyFunction(bool dummy)
@@ -238,6 +258,12 @@ namespace Cicada {
 
     void MediaPlayer::Prepare()
     {
+        if(mFirstPrepared) {
+            refreshPlayerSessionId();
+        } else {
+            mFirstPrepared = true;
+        }
+
         if (mCollector) {
             mCollector->ReportBlackInfo();
             mCollector->ReportPrepare();

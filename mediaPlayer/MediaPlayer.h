@@ -343,6 +343,8 @@ namespace Cicada {
 
         int InvokeComponent(const char *content);
 
+        string GetPlayerSessionId();
+
     protected:
         static void preparedCallback(void *userData);
 
@@ -398,6 +400,8 @@ namespace Cicada {
     private:
         void configPlayer(const MediaPlayerConfig *config) const;
 
+        void refreshPlayerSessionId();
+
         void dummyFunction(bool dummy);
 
     protected:
@@ -426,6 +430,10 @@ namespace Cicada {
         void *mMediaFrameArg = nullptr;
 
         function<void(const string &)> mPlayUrlChangedCallback = nullptr;
+
+        std::string mPlayerSessionId{};
+        bool mFirstPrepared = false;
+
     };
 }// namespace Cicada
 
