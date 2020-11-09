@@ -123,7 +123,7 @@ namespace Cicada {
         if (bMute) {
             device_setVolume(0);
         } else {
-            device_setVolume(mVolume);
+            device_setVolume(mVolume * mVolume * mVolume);
         }
     }
 
