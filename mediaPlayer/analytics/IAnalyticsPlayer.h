@@ -45,6 +45,8 @@ namespace Cicada {
         virtual void
         ReportError(int errCode, const std::string &errMsg, const std::string &requestID) = 0;
 
+        virtual void ReportUpdatePlaySession(const std::string &sessionId) = 0;
+
     };
 
 }// namespace Cicada

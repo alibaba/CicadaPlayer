@@ -16,6 +16,9 @@
 namespace Cicada {
     class AnalyticsCollectorListener {
     public:
+
+        virtual void OnPlayerUpdateSessionId(const std::string& sessionId) {};
+
         virtual void OnSetLooping(bool looping) {};
 
         virtual void OnSetRenderMirrorMode(MirrorMode mode) {};
