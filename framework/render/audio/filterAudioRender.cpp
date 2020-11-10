@@ -160,11 +160,6 @@ namespace Cicada {
 
     int filterAudioRender::pauseThread()
     {
-        if (mState.load() != state_running) {
-            AF_LOGE("Pause occur error state %d", mState.load());
-            return -1;
-        }
-
         {
             unique_lock<mutex> lock(mFrameQueMutex);
             mState = state_pause;
@@ -193,9 +188,7 @@ namespace Cicada {
     {
         State currentState = mState;
 
-        if (currentState == state_running) {
-            pauseThread();
-        }
+        pauseThread();
 
         while (!mFrameQue.empty()) {
             mFrameQue.pop();
