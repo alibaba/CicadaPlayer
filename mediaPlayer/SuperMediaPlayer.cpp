@@ -1604,6 +1604,9 @@ void SuperMediaPlayer::doDeCode()
             int64_t videoEarlyUs = 0;
 
             do {
+                if (mCanceled) {
+                    break;
+                }
                 // if still in seeking, don't send data to decoder in background
                 // due to the playback position could be changed later.
                 if ((APP_BACKGROUND == mAppStatus) && isSeeking()) {
@@ -1650,7 +1653,7 @@ void SuperMediaPlayer::doDeCode()
     //get audio packet to decode
     if (HAVE_AUDIO && mAudioDecoder) {
 
-        while (mAudioFrameQue.size() < 2 && !audioDecoderEOS) {
+        while (mAudioFrameQue.size() < 2 && !audioDecoderEOS && !mCanceled) {
 
             if (mAudioPacket == nullptr) {
                 mAudioPacket = mBufferController->getPacket(BUFFER_TYPE_AUDIO);
