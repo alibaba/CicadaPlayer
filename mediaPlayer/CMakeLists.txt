@@ -37,6 +37,14 @@ set(CMAKE_CXX_STANDARD 11)
 
 message("COMMON_INC_DIR is ${COMMON_INC_DIR}")
 
+if (ENABLE_CACHE_MODULE)
+    add_definitions(-DENABLE_CACHE_MODULE)
+endif ()
+
+if (ENABLE_MUXER)
+    add_definitions(-DENABLE_MUXER)
+endif ()
+
 set(SOURCE_FILES
         analytics/IAnalyticsCollector.h
         analytics/IAnalyticsPlayer.h
