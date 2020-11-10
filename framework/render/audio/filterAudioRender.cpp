@@ -133,6 +133,7 @@ namespace Cicada {
 
     void filterAudioRender::mute(bool bMute)
     {
+        mMute = bMute;
         if (bMute) {
             device_setVolume(0);
         } else {
@@ -362,8 +363,10 @@ namespace Cicada {
             }
         }
 
-        float gain = volume * volume * volume;
-        device_setVolume(gain);
+        if(!mMute) {
+            float gain = volume * volume * volume;
+            device_setVolume(gain);
+        }
         return 0;
     }
     void filterAudioRender::preClose()
