@@ -473,5 +473,9 @@ int ActiveDecoder::getRecoverQueueSize()
     unique_lock<mutex> uMutex(mMutex);
     return int(mHoldingQueue.size() + get_decoder_recover_size());
 }
+uint32_t ActiveDecoder::getInputPaddingSize()
+{
+    return mInputQueue.size();
+}
 
 #endif

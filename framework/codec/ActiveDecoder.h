@@ -41,6 +41,8 @@ public:
 
     int getRecoverQueueSize() override;
 
+    uint32_t getInputPaddingSize() override;
+
 private:
 
     virtual int enqueue_decoder(std::unique_ptr<IAFPacket> &pPacket) = 0;
