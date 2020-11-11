@@ -166,6 +166,8 @@ namespace Cicada {
 
         virtual int getRecoverQueueSize() = 0;
 
+        virtual uint32_t getInputPaddingSize() = 0;
+
     protected:
         std::string mName;
         int mFlags = 0; // VFLAG_HW,VFLAG_OUT

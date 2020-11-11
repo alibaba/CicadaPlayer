@@ -2807,6 +2807,11 @@ int64_t SuperMediaPlayer::getPlayerBufferDuration(bool gotMax, bool internal)
         if (!internal && mDemuxerService && mDemuxerService->getDemuxerHandle()) {
             duration_c += mDemuxerService->getDemuxerHandle()->getBufferDuration(mCurrentVideoIndex);
         }
+
+        if (mVideoDecoder) {
+            // FIXME: get the accurate duration
+            duration_c += mVideoDecoder->getInputPaddingSize() * 40 * 1000;
+        }
     }
 
     if (HAVE_AUDIO) {
@@ -2815,6 +2820,11 @@ int64_t SuperMediaPlayer::getPlayerBufferDuration(bool gotMax, bool internal)
         //            AF_LOGD("audioDuration is %lld\n",audioDuration);
         if (!internal && mDemuxerService && mDemuxerService->getDemuxerHandle()) {
             duration_c += mDemuxerService->getDemuxerHandle()->getBufferDuration(mCurrentAudioIndex);
+        }
+
+        if (mAudioDecoder) {
+            // FIXME: get the accurate duration
+            duration_c += mAudioDecoder->getInputPaddingSize() * 23 * 1000;
         }
     }
 
