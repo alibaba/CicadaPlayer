@@ -347,12 +347,14 @@ int SuperMediaPlayer::Stop()
     if (mAudioDecoder) {
         mAudioDecoder->preClose();
     }
+    AF_TRACE;
     mApsaraThread->pause();
+    AF_TRACE;
     mPlayStatus = PLAYER_STOPPED;
     //        ChangePlayerStatus(PLAYER_STOPPED);
-    mBufferController->ClearPacket(BUFFER_TYPE_AV);
+    mBufferController->ClearPacket(BUFFER_TYPE_ALL);
     AF_TRACE;
-    mAudioRender = nullptr;
+    //  mAudioRender = nullptr;
     mBRendingStart = false;
     AF_TRACE;
     {
@@ -3395,6 +3397,7 @@ void SuperMediaPlayer::ProcessPrepareMsg()
     }
 
     mPlayStatus = PLAYER_PREPARINIT;
+    mAudioRender = nullptr;
     bool noFile = false;
 
     if (!(mBSReadCb != nullptr && mBSSeekCb != nullptr && mBSCbArg != nullptr)) {

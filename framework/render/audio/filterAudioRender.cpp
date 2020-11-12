@@ -188,7 +188,9 @@ namespace Cicada {
     void filterAudioRender::flush()
     {
         State currentState = mState;
-
+        if (mState == State::state_uninit) {
+            return;
+        }
         pauseThread();
 
         while (!mFrameQue.empty()) {
@@ -212,8 +214,12 @@ namespace Cicada {
 
     int filterAudioRender::renderLoop()
     {
-        if (mState != State::state_running) {
-            return 0;
+        if (mState != state_running) {
+
+            if (mState == state_pause) {
+                return 0;
+            }
+            return -1;
         }
 
         if (mRenderFrame == nullptr) {
@@ -222,7 +228,7 @@ namespace Cicada {
         int ret = 0;
 
         while (mRenderFrame != nullptr) {
-            if (mState != State::state_running) {
+            if (mState != state_running) {
                 return 0;
             }
             if (mSpeedChanged) {
