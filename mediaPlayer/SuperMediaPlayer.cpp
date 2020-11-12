@@ -340,29 +340,19 @@ int SuperMediaPlayer::Stop()
     mPNotifier->Enable(false);
     Interrupt(true);
     mPlayerCondition.notify_one();
-    mApsaraThread->pause();
-    mPlayStatus = PLAYER_STOPPED;
-    //        ChangePlayerStatus(PLAYER_STOPPED);
-    mBufferController->ClearPacket(BUFFER_TYPE_AV);
-    AF_TRACE;
-
     if (mVideoDecoder) {
         mVideoDecoder->preClose();
     }
-
     if (mAudioRender) {
         mAudioRender->preClose();
     }
     if (mAudioDecoder) {
         mAudioDecoder->preClose();
     }
-
-    AF_TRACE;
-
-    if (mAudioDecoder != nullptr) {
-        FlushAudioPath();
-    }
-
+    mApsaraThread->pause();
+    mPlayStatus = PLAYER_STOPPED;
+    //        ChangePlayerStatus(PLAYER_STOPPED);
+    mBufferController->ClearPacket(BUFFER_TYPE_AV);
     AF_TRACE;
     mAudioRender = nullptr;
     mBRendingStart = false;
@@ -375,12 +365,13 @@ int SuperMediaPlayer::Stop()
             mVideoDecoder->close();
             mVideoDecoder = nullptr;
         }
-
+        AF_TRACE;
         if (mAudioDecoder) {
-            FlushAudioPath();
             mAudioDecoder->close();
             mAudioDecoder = nullptr;
+            FlushAudioPath();
         }
+        AF_TRACE;
     }
     // clear the message queue after flash video render
     mMessageControl->clear();
