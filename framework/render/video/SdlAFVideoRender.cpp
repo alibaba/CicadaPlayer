@@ -484,6 +484,18 @@ int SdlAFVideoRender::setDisPlay(void *view)
     if (mVideoWindow) {
         mVideoRender = SDL_GetRenderer(mVideoWindow);
         if (mVideoRender == nullptr) {
+            // log all render name
+            int renderCount = SDL_GetNumRenderDrivers();
+            for (int i = 0; i < renderCount; i++) {
+                SDL_RendererInfo renderDriverInfo;
+                SDL_GetRenderDriverInfo(i, &renderDriverInfo);
+                std::string renderDriverName;
+                if (renderDriverInfo.name) {
+                    renderDriverName = renderDriverInfo.name;
+                }
+                AF_LOGI("sdl render%d: %s\n", i, renderDriverName.c_str());
+            }
+
             // add before renderer created, so this callback will be called before renderer's window size change callback
             SDL_AddEventWatch(SdlWindowSizeEventWatch, this);
             Uint32 renderFlags = 0;
@@ -492,6 +504,16 @@ int SdlAFVideoRender::setDisPlay(void *view)
             renderFlags = SDL_RENDERER_SOFTWARE;
 #endif
             mVideoRender = SDL_CreateRenderer(mVideoWindow, -1, renderFlags);
+
+            // log the render name
+            SDL_RendererInfo renderInfo;
+            SDL_GetRendererInfo(mVideoRender, &renderInfo);
+            std::string renderName;
+            if (renderInfo.name) {
+                renderName = renderInfo.name;
+            }
+            AF_LOGI("create sdl render: %s\n", renderName.c_str());
+
             mRenderNeedRelease = true;
         } else {
             mRenderNeedRelease = false;
