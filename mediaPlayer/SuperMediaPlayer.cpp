@@ -3242,6 +3242,11 @@ int SuperMediaPlayer::CreateVideoDecoder(bool bHW, Stream_meta &meta)
         decFlag |= DECFLAG_OUTPUT_FRAME_ASAP;
     }
 
+    {
+        std::lock_guard<std::mutex> lock(mAppStatusMutex);
+        ProcessVideoHoldMsg(mAppStatus == APP_BACKGROUND);
+    }
+    
     ret = mVideoDecoder->open(&meta, view, decFlag);
 
     if (ret < 0) {
