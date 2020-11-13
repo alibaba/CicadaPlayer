@@ -1530,29 +1530,6 @@ void SuperMediaPlayer::doRender()
     }
 
     if (mPlayStatus == PLAYER_PLAYING) {
-
-        if (mEof) {
-
-            if(mBufferingFlag){
-                mLoadingProcess = -1;
-                mPNotifier->NotifyLoading(loading_event_end, 0);
-            }
-
-            mBufferingFlag = false;
-
-            if (mSeekFlag && mDuration > 0 && mSeekPos >= mDuration) {
-                FlushVideoPath();
-                FlushAudioPath();
-                FlushSubtitleInfo();
-
-                mBufferController->ClearPacket(BUFFER_TYPE_VIDEO);
-                mBufferController->ClearPacket(BUFFER_TYPE_AUDIO);
-                mBufferController->ClearPacket(BUFFER_TYPE_SUBTITLE);
-
-                rendered = true;
-            }
-        }
-
         if (!mBufferingFlag) {
             rendered |= render();
         }
