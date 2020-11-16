@@ -151,13 +151,6 @@ CurlDataSource::~CurlDataSource()
     Close();
 }
 
-void CurlDataSource::setPost(bool post, int64_t size, const uint8_t *data)
-{
-    mBPost = post;
-    mPostSize = size;
-    mPostData = data;
-}
-
 int CurlDataSource::Open(int flags)
 {
     // TODO: deal with ret
