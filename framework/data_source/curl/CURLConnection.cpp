@@ -735,3 +735,12 @@ void CURLConnection::updateSource(const string &location)
     curl_easy_setopt(mHttp_handle, CURLOPT_URL, location.c_str());
     mFileSize = -1;
 }
+
+void CURLConnection::updateHeaderList(struct curl_slist *headerList)
+{
+    if (headerList) {
+        curl_easy_setopt(mHttp_handle, CURLOPT_HTTPHEADER, headerList);
+    } else {
+        curl_easy_setopt(mHttp_handle, CURLOPT_HTTPHEADER, NULL);
+    }
+}
