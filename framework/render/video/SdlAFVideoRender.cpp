@@ -95,6 +95,20 @@ int SdlAFVideoRender::refreshScreen()
     return 0;
 }
 
+void SdlAFVideoRender::delayRefreshScreen()
+{
+    std::thread thread([=]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        {
+            std::unique_lock<std::mutex> lock(mRenderMutex);
+            if (mLastVideoFrame == nullptr && mBackFrame != nullptr) {
+                mLastVideoFrame = mBackFrame->clone();
+            }
+        }
+    });
+    thread.detach();
+}
+
 
 int SdlAFVideoRender::clearScreen()
 {
@@ -249,12 +263,14 @@ int SdlAFVideoRender::onVSyncInner(int64_t tick)
 int SdlAFVideoRender::setRotate(Rotate rotate)
 {
     mRotate = rotate;
+    refreshScreen();
     return 0;
 }
 
 int SdlAFVideoRender::setFlip(Flip flip)
 {
     mFlip = flip;
+    refreshScreen();
     return 0;
 }
 
@@ -361,15 +377,6 @@ SDL_RendererFlip SdlAFVideoRender::convertFlip()
     }
 
     return flip;
-}
-
-void SdlAFVideoRender::setWindowSize(int windWith, int windHeight)
-{
-    if (mWindowWidth != windWith || mWindowHeight != windHeight) {
-        mWindowWidth = windWith;
-        mWindowHeight = windHeight;
-        refreshScreen();
-    }
 }
 
 void SdlAFVideoRender::captureScreen(std::function<void(uint8_t *data, int width, int height)> func)
@@ -536,7 +543,7 @@ int SDLCALL SdlWindowSizeEventWatch(void *userdata, SDL_Event *event)
             // after SDL_WINDOWEVENT_SIZE_CHANGED event, d3d11 recreate resource, then in this event refresh use new d3d11 resource
             SdlAFVideoRender *pSelf = (SdlAFVideoRender *) userdata;
             if (pSelf) {
-                pSelf->refreshScreen();
+                pSelf->delayRefreshScreen();
             }
         }
     }
