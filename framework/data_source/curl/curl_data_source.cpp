@@ -229,6 +229,22 @@ int CurlDataSource::Open(const string &url)
     // only change url, don,t change share and resolve
     mPConnection->updateSource(mLocation);
 
+    if (headerList) {
+        curl_slist_free_all(headerList);
+        headerList = nullptr;
+    }
+
+    std::vector<std::string> &customHeaders = mConfig.customHeaders;
+
+    for (string &item : customHeaders) {
+        if (!item.empty()) {
+            headerList = curl_slist_append(headerList, item.c_str());
+        }
+    }
+
+    mPConnection->updateHeaderList(headerList);
+    mPConnection->setPost(mBPost, mPostSize, mPostData);
+
     int ret = curl_connect(mPConnection, rangeStart != INT64_MIN ? rangeStart : 0);
     mOpenTimeMS = af_gettime_relative() / 1000 - mOpenTimeMS;
 
