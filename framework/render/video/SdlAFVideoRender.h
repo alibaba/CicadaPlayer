@@ -24,8 +24,6 @@ public:
 
     int init() override;
 
-    void setWindowSize(int windWith, int mWindHeight) override;
-
     int clearScreen() override;
 
     int renderFrame(std::unique_ptr<IAFFrame> &frame) override;
@@ -58,6 +56,8 @@ public:
     void onWindowSizeChange(SDL_Window *window);
 
     int refreshScreen();
+
+    void delayRefreshScreen();
 
 private:
     int VSyncOnInit() override
