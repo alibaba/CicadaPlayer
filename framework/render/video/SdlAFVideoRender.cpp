@@ -14,11 +14,18 @@
 
 static int SDLCALL SdlWindowSizeEventWatch(void *userdata, SDL_Event *event);
 
+static void sdlLogCb(void *userdata, int category, SDL_LogPriority priority, const char *message)
+{
+    AF_LOGI("sdl log: %d %d %s", category, priority, message);
+}
+
 SdlAFVideoRender::SdlAFVideoRender()
 {
     mVSync = VSyncFactory::create(*this, 60);
 //   mHz = 0;
     SDL_InitSubSystem(SDL_INIT_VIDEO);
+    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
+    SDL_LogSetOutputFunction(sdlLogCb, nullptr);
     mVSync->start();
 };
 
