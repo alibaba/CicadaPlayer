@@ -112,7 +112,9 @@ set(SOURCE_FILES
         playerOptions.cpp
         playerOptions.h
         SMP_DCAManager.cpp
-        CicadaPlayerPrototype.cpp)
+        CicadaPlayerPrototype.cpp
+        SMPAVDeviceManager.cpp
+        SMPAVDeviceManager.h)
 
 if(APPLE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fobjc-arc")

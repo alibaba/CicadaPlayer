@@ -26,7 +26,7 @@ namespace Cicada {
     filterAudioRender::~filterAudioRender()
     {
         unique_lock<mutex> lock(mFrameQueMutex);
-        mState = State::state_uninit;
+        mRunning = false;
         mFrameQueCondition.notify_one();
 
         if (mRenderThread) {
@@ -79,8 +79,6 @@ namespace Cicada {
                 return ret;
             }
         }
-
-        mState = State::state_init;
         mRenderThread = std::unique_ptr<afThread>(NEW_AF_THREAD(renderLoop));
         return 0;
     }
@@ -179,46 +177,28 @@ namespace Cicada {
 
     int filterAudioRender::pauseThread()
     {
-        if (mState.load() != state_running) {
-            AF_LOGE("Pause occur error state %d", mState.load());
-            return -1;
+        mRunning = false;
+        if (mRenderThread) {
+            mRenderThread->pause();
         }
-
-        {
-            unique_lock<mutex> lock(mFrameQueMutex);
-            mState = state_pause;
-            mFrameQueCondition.notify_all();
-        }
-
-        mRenderThread->pause();
         return 0;
     }
 
 
     int filterAudioRender::startThread()
     {
-        if (mState != State::state_init && mState != State::state_pause) {
-            AF_LOGE("Start occur error state %d", mState.load());
-            return -1;
+        mRunning = true;
+        if (mRenderThread) {
+            mRenderThread->start();
         }
-
-        mState = state_running;
-        mRenderThread->start();
         return 0;
     }
 
 
     void filterAudioRender::flush()
     {
-        State currentState = mState;
-
-        if (mState == State::state_uninit) {
-            return;
-        }
-
-        if (currentState == state_running) {
-            pauseThread();
-        }
+        bool running = mRunning;
+        pauseThread();
 
         while (!mFrameQue.empty()) {
             mFrameQue.pop();
@@ -234,19 +214,15 @@ namespace Cicada {
         mSpeedDeltaDuration = 0;
         mRenderFrame = nullptr;
 
-        if (currentState == state_running) {
+        if (running) {
             startThread();
         }
     }
 
     int filterAudioRender::renderLoop()
     {
-        if (mState != state_running) {
-
-            if (mState == state_pause) {
-                return 0;
-            }
-            return -1;
+        if (!mRunning) {
+            return 0;
         }
 
         if (mRenderFrame == nullptr) {
@@ -255,7 +231,7 @@ namespace Cicada {
         int ret = 0;
 
         while (mRenderFrame != nullptr) {
-            if (mState != state_running) {
+            if (!mRunning) {
                 return 0;
             }
             if (mSpeedChanged) {
@@ -377,9 +353,9 @@ namespace Cicada {
         }
         return 0;
     }
-    void filterAudioRender::preClose()
+    void filterAudioRender::prePause()
     {
-        mState = State::state_uninit;
+        mRenderThread->prePause();
         device_preClose();
     }
 }

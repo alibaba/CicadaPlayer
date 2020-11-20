@@ -180,16 +180,22 @@ public:
     }
 
 
-    virtual void *getSurface()
+    virtual void *getSurface(bool cached)
     {
         return nullptr;
     }
 
     virtual float getRenderFPS() = 0;
 
+    virtual void invalid(bool invalid)
+    {
+        mInvalid = invalid;
+    }
+
 
 protected:
     IVideoRenderFilter *mFilter{};
+    bool mInvalid{false};
 };
 
 

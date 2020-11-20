@@ -362,7 +362,7 @@ void ActiveDecoder::flush()
 #endif
 }
 
-void ActiveDecoder::preClose()
+void ActiveDecoder::prePause()
 {
 #if AF_HAVE_PTHREAD
     {
@@ -375,6 +375,29 @@ void ActiveDecoder::preClose()
         mDecodeThread->prePause();
     }
 
+#endif
+}
+
+void ActiveDecoder::pause(bool pause)
+{
+#if AF_HAVE_PTHREAD
+    if (pause) {
+        {
+            std::unique_lock<std::mutex> locker(mSleepMutex);
+            mRunning = false;
+        }
+        mSleepCondition.notify_one();
+
+        if (mDecodeThread) {
+            mDecodeThread->pause();
+        }
+        return;
+    } else {
+        mRunning = true;
+        if (mDecodeThread) {
+            mDecodeThread->start();
+        }
+    }
 #endif
 }
 

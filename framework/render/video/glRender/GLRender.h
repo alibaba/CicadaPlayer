@@ -59,7 +59,7 @@ public:
 
     void captureScreen(std::function<void(uint8_t *, int, int)> func) override;
 
-    void *getSurface() override;
+    void *getSurface(bool cached) override;
 
     float getRenderFPS() override;
 
