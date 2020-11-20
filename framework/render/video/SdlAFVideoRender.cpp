@@ -7,6 +7,7 @@
 #include "SdlAFVideoRender.h"
 #include <base/media/AVAFPacket.h>
 #include <render/video/vsync/VSyncFactory.h>
+#include <thread>
 #include <utils/frame_work_log.h>
 #ifdef __APPLE__
 #include <base/media/PBAFFrame.h>
