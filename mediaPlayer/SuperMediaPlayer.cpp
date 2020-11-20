@@ -63,6 +63,8 @@ SuperMediaPlayer::SuperMediaPlayer()
     mSourceListener = static_cast<unique_ptr<SuperMediaPlayerDataSourceListener>>(new SuperMediaPlayerDataSourceListener(*this));
     mDcaManager = static_cast<unique_ptr<SMP_DCAManager>>(new SMP_DCAManager(*this));
 
+    mAVDeviceManager = static_cast<unique_ptr<SMPAVDeviceManager>>(new SMPAVDeviceManager());
+
     mPNotifier = new PlayerNotifier();
     Reset();
     mTimerInterval = 500;
@@ -78,7 +80,6 @@ SuperMediaPlayer::~SuperMediaPlayer()
     mCanceled = true;
     mPlayerCondition.notify_one();
     mApsaraThread->stop();
-    mVideoRender = nullptr;
     mSubPlayer = nullptr;
     mSubListener = nullptr;
     // delete mPNotifier after mPMainThread, to avoid be using
@@ -133,8 +134,8 @@ void SuperMediaPlayer::CaptureScreen()
 {
     std::lock_guard<std::mutex> uMutex(mCreateMutex);
 
-    if (mVideoRender) {
-        mVideoRender->captureScreen([this](uint8_t *data, int width, int height) {
+    if (mAVDeviceManager->isVideoRenderValid()) {
+        mAVDeviceManager->getVideoRender()->captureScreen([this](uint8_t *data, int width, int height) {
             if (this->mPNotifier) {
                 this->mPNotifier->NotifyCaptureScreen(data, width, height);
             }
@@ -157,9 +158,7 @@ void SuperMediaPlayer::SetVolume(float volume)
         AF_LOGW("volume >1.0");
     }
 
-    if (mAudioRender != nullptr) {
-        mAudioRender->setVolume(mSet->mVolume);
-    }
+    mAVDeviceManager->setVolume(mSet->mVolume);
 }
 
 void SuperMediaPlayer::Start()
@@ -340,41 +339,19 @@ int SuperMediaPlayer::Stop()
     mPNotifier->Enable(false);
     Interrupt(true);
     mPlayerCondition.notify_one();
-    if (mVideoDecoder) {
-        mVideoDecoder->preClose();
-    }
-    if (mAudioRender) {
-        mAudioRender->preClose();
-    }
-    if (mAudioDecoder) {
-        mAudioDecoder->preClose();
-    }
-    AF_TRACE;
     mApsaraThread->pause();
-    AF_TRACE;
+    mAVDeviceManager->invalidDevices(SMPAVDeviceManager::DEVICE_TYPE_AUDIO | SMPAVDeviceManager::DEVICE_TYPE_VIDEO);
     mPlayStatus = PLAYER_STOPPED;
     //        ChangePlayerStatus(PLAYER_STOPPED);
-    mBufferController->ClearPacket(BUFFER_TYPE_ALL);
+    mBufferController->ClearPacket(BUFFER_TYPE_AV);
+
     AF_TRACE;
-    //  mAudioRender = nullptr;
+    FlushAudioPath();
+
+    AF_TRACE;
     mBRendingStart = false;
     AF_TRACE;
-    {
-        std::lock_guard<std::mutex> uMutex(mCreateMutex);
-
-        if (mVideoDecoder) {
-            FlushVideoPath();
-            mVideoDecoder->close();
-            mVideoDecoder = nullptr;
-        }
-        AF_TRACE;
-        if (mAudioDecoder) {
-            mAudioDecoder->close();
-            mAudioDecoder = nullptr;
-            FlushAudioPath();
-        }
-        AF_TRACE;
-    }
+    FlushVideoPath();
     // clear the message queue after flash video render
     mMessageControl->clear();
     AF_TRACE;
@@ -423,7 +400,7 @@ int SuperMediaPlayer::Stop()
         mDataSource = nullptr;
     }
 
-    if (mVideoRender) {
+    if (mAVDeviceManager->isVideoRenderValid()) {
         // lock mAppStatusMutex before mCreateMutex
         std::lock_guard<std::mutex> lock(mAppStatusMutex);
 
@@ -432,7 +409,7 @@ int SuperMediaPlayer::Stop()
             std::lock_guard<std::mutex> uMutex(mCreateMutex);
 
             if (mSet->clearShowWhenStop) {
-                mVideoRender->clearScreen();
+                mAVDeviceManager->getVideoRender()->clearScreen();
             }
         }
     }
@@ -572,8 +549,8 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
     } else if (theKey == "surfaceChanged") {
         std::lock_guard<std::mutex> uMutex(mCreateMutex);
 
-        if (mVideoRender != nullptr) {
-            mVideoRender->surfaceChanged();
+        if (mAVDeviceManager->isVideoRenderValid()) {
+            mAVDeviceManager->getVideoRender()->surfaceChanged();
         }
     } else if (theKey == "streamTypes") {
         uint64_t flags = atoll(value);
@@ -759,10 +736,8 @@ DecoderType SuperMediaPlayer::GetDecoderType()
 {
     std::lock_guard<std::mutex> uMutex(mCreateMutex);
 
-    if (mVideoDecoder) {
-        if (mVideoDecoder->getFlags() & DECFLAG_HW) {
-            return DT_HARDWARE;
-        }
+    if (mAVDeviceManager->getVideoDecoderFlags() & DECFLAG_HW) {
+        return DT_HARDWARE;
     }
 
     return DT_SOFTWARE;
@@ -958,8 +933,8 @@ IVideoRender::Flip SuperMediaPlayer::convertMirrorMode(MirrorMode mode)
 
 float SuperMediaPlayer::GetVideoRenderFps()
 {
-    if (mVideoRender) {
-        return mVideoRender->getRenderFPS();
+    if (mAVDeviceManager->isVideoRenderValid()) {
+        return mAVDeviceManager->getVideoRender()->getRenderFPS();
     }
 
     return mUtil->getVideoRenderFps();
@@ -1562,7 +1537,7 @@ void SuperMediaPlayer::doRender()
 void SuperMediaPlayer::doDeCode()
 {
     //get video packet to decode
-    if (HAVE_VIDEO && !videoDecoderEOS && mVideoDecoder) {
+    if (HAVE_VIDEO && !videoDecoderEOS && mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
         int max_cache_size = VIDEO_PICTURE_MAX_CACHE_SIZE;
 
         if (mPictureCacheType == picture_cache_type_cannot) {
@@ -1623,7 +1598,7 @@ void SuperMediaPlayer::doDeCode()
     }
 
     //get audio packet to decode
-    if (HAVE_AUDIO && mAudioDecoder) {
+    if (HAVE_AUDIO && mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)) {
 
         while (mAudioFrameQue.size() < 2 && !audioDecoderEOS && !mCanceled) {
 
@@ -1677,22 +1652,20 @@ void SuperMediaPlayer::checkEOS()
         return;
     }
 
-    if (mAudioRender != nullptr) {
-        uint64_t audioQueDuration = mAudioRender->getQueDuration();
+    uint64_t audioQueDuration = mAVDeviceManager->getAudioRenderQueDuration();
 
-        if (audioQueDuration != 0) {
-            AF_TRACE;
-            //work around: xiaomi 5X 7.1.2 audioTrack getPosition always is 0 when seek to end
-            int64_t now = af_getsteady_ms();
+    if (audioQueDuration != 0) {
+        AF_TRACE;
+        //work around: xiaomi 5X 7.1.2 audioTrack getPosition always is 0 when seek to end
+        int64_t now = af_getsteady_ms();
 
-            if (mCheckAudioQueEOSTime == INT64_MIN || mAudioQueDuration != audioQueDuration) {
-                mCheckAudioQueEOSTime = now;
-                mAudioQueDuration = audioQueDuration;
-            }
+        if (mCheckAudioQueEOSTime == INT64_MIN || mAudioQueDuration != audioQueDuration) {
+            mCheckAudioQueEOSTime = now;
+            mAudioQueDuration = audioQueDuration;
+        }
 
-            if ((now - mCheckAudioQueEOSTime) * 1000 <= audioQueDuration) {
-                return;
-            }
+        if ((now - mCheckAudioQueEOSTime) * 1000 <= audioQueDuration) {
+            return;
         }
     }
 
@@ -1737,17 +1710,15 @@ int SuperMediaPlayer::DecodeVideoPacket(unique_ptr<IAFPacket> &pVideoPacket)
                 pVideoPacket->setDiscard(true);
             }
         }
-
-        ret = mVideoDecoder->send_packet(pVideoPacket, 0);
-
+        ret = mAVDeviceManager->sendPacket(pVideoPacket, SMPAVDeviceManager::DEVICE_TYPE_VIDEO, 0);
         // don't need pop if need retry later
         if (!(ret & STATUS_RETRY_IN)) {
             //  mBufferController->PopFrontPacket(BUFFER_TYPE_VIDEO);
             assert(pVideoPacket == nullptr);
         }
     } else if (mEof) {
-        mVideoDecoder->setEOF();
-        mVideoDecoder->send_packet(pVideoPacket, 0);
+        //     mVideoDecoder->setEOF();
+        mAVDeviceManager->sendPacket(pVideoPacket, SMPAVDeviceManager::DEVICE_TYPE_VIDEO, 0);
         ret = 0;
     }
 
@@ -1755,7 +1726,7 @@ int SuperMediaPlayer::DecodeVideoPacket(unique_ptr<IAFPacket> &pVideoPacket)
         bool haveError = false;
 
         if (ret & STATUS_HAVE_ERROR) {
-            if (mVideoDecoder->get_error_frame_no() > MAX_DECODE_ERROR_FRAME) {
+            if (mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)->get_error_frame_no() > MAX_DECODE_ERROR_FRAME) {
                 haveError = true;
             }
         }
@@ -1777,14 +1748,14 @@ int SuperMediaPlayer::FillVideoFrame()
 {
     int64_t pos = getCurrentPosition();
     unique_ptr<IAFFrame> pFrame{};
-    int ret = mVideoDecoder->getFrame(pFrame, 0);
+    int ret = mAVDeviceManager->getFrame(pFrame, SMPAVDeviceManager::DEVICE_TYPE_VIDEO, 0);
 
     if (ret == STATUS_EOS) {
         videoDecoderEOS = true;
     }
 
     if (pFrame != nullptr) {
-        mVideoDecoder->clean_error();
+        mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)->clean_error();
 
         if (mSecretPlayBack) {
             pFrame->setProtect(true);
@@ -1867,7 +1838,7 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
 #endif
 
     if (mAudioFrameQue.empty()) {
-        if (audioDecoderEOS && mAudioRender->getQueDuration() == 0) {
+        if (audioDecoderEOS && mAVDeviceManager->getAudioRenderQueDuration() == 0) {
             mMasterClock.setReferenceClock(nullptr, nullptr);
         }
         return ret;
@@ -1890,21 +1861,20 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
         mFrameCb(mFrameCbUserData, avafFrame);
     }
 
-    render_ret = mAudioRender->renderFrame(mAudioFrameQue.front(), 0);
+    render_ret = mAVDeviceManager->renderAudioFrame(mAudioFrameQue.front(), 0);
 
     if (render_ret == IAudioRender::FORMAT_NOT_SUPPORT) {
-        if (mAudioRender->getQueDuration() == 0) {
+        if (mAVDeviceManager->getAudioRenderQueDuration() == 0) {
             std::lock_guard<std::mutex> uMutex(mCreateMutex);
-            mAudioRender = nullptr;
             mAudioTime.startTime = mAudioFrameQue.front()->getInfo().pts;
             mAudioTime.deltaTimeTmp = 0;
             mAudioTime.deltaTime = 0;
             mLastAudioFrameDuration = -1;
             setUpAudioRender(mAudioFrameQue.front()->getInfo().audio);
             if (mBRendingStart) {
-                mAudioRender->pause(false);
+                mAVDeviceManager->pauseAudioRender(false);
             }
-            mAudioRender->renderFrame(mAudioFrameQue.front(), 0);
+            mAVDeviceManager->renderAudioFrame(mAudioFrameQue.front(), 0);
         }
     } else if (render_ret == IAudioRender::OPEN_AUDIO_DEVICE_FAILED) {
         AF_LOGE("render audio failed due to can not open device, close audio stream");
@@ -2209,8 +2179,8 @@ void SuperMediaPlayer::SendVideoFrameToRender(unique_ptr<IAFFrame> frame, bool v
             return;
         }
     }
-    if (mVideoRender) {
-        int ret = mVideoRender->renderFrame(frame);
+    if (mAVDeviceManager->isVideoRenderValid()) {
+        int ret = mAVDeviceManager->renderVideoFrame(frame);
 
         if (ret < 0) {
             AF_LOGE("renderFrame error \n");
@@ -2222,10 +2192,6 @@ void SuperMediaPlayer::SendVideoFrameToRender(unique_ptr<IAFFrame> frame, bool v
 
 int SuperMediaPlayer::DecodeAudio(unique_ptr<IAFPacket> &pPacket)
 {
-    if (mAudioDecoder == nullptr) {
-        return -EINVAL;
-    }
-
     if (audioDecoderEOS) {
         return 0;
     }
@@ -2234,8 +2200,7 @@ int SuperMediaPlayer::DecodeAudio(unique_ptr<IAFPacket> &pPacket)
     int ret;
 
     do {
-        ret = mAudioDecoder->getFrame(frame, 0);
-
+        ret = mAVDeviceManager->getFrame(frame, SMPAVDeviceManager::DEVICE_TYPE_AUDIO, 0);
         if (ret == STATUS_EOS) {
             audioDecoderEOS = true;
             break;
@@ -2257,15 +2222,15 @@ int SuperMediaPlayer::DecodeAudio(unique_ptr<IAFPacket> &pPacket)
 
             mAudioFrameQue.push_back(move(frame));
         }
-    } while (ret != -EAGAIN);
+    } while (ret != -EAGAIN && ret != -EINVAL);
 
-    ret = mAudioDecoder->send_packet(pPacket, 0);
+    ret = mAVDeviceManager->sendPacket(pPacket, SMPAVDeviceManager::DEVICE_TYPE_AUDIO, 0);
 
     if (ret > 0) {
         bool haveError = false;
 
         if (ret & STATUS_HAVE_ERROR) {
-            if (mAudioDecoder->get_error_frame_no() > MAX_DECODE_ERROR_FRAME) {
+            if (mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)->get_error_frame_no() > MAX_DECODE_ERROR_FRAME) {
                 haveError = true;
             }
         }
@@ -2359,7 +2324,8 @@ void SuperMediaPlayer::setUpAVPath()
         return;
     }
 
-    if (mCurrentAudioIndex >= 0 && (mAudioDecoder == nullptr || mAudioRender == nullptr)) {
+    if (mCurrentAudioIndex >= 0 &&
+        (!mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_AUDIO) || !mAVDeviceManager->isAudioRenderValid())) {
         AF_LOGD("SetUpAudioPath start");
         int ret = SetUpAudioPath();
 
@@ -2545,7 +2511,7 @@ int SuperMediaPlayer::ReadPacket()
                  * seek would clean the packet which have ExtraData in decoder queue,
                  * so add the ExtraData after seek on key frame
                  */
-            if (mAdaptiveVideo && pFrame->getInfo().flags) {
+            if (/*mAdaptiveVideo &&*/ pFrame->getInfo().flags) {
                 unique_ptr<streamMeta> pMeta;
                 mDemuxerService->GetStreamMeta(pMeta, pFrame->getInfo().streamIndex, false);
                 pFrame->setExtraData(((Stream_meta *) (*pMeta))->extradata, ((Stream_meta *) (*pMeta))->extradata_size);
@@ -2668,13 +2634,7 @@ void SuperMediaPlayer::printTimePosition(int64_t time) const
 
 void SuperMediaPlayer::FlushAudioPath()
 {
-    if (mAudioRender) {
-        mAudioRender->flush();
-    }
-
-    if (mAudioDecoder != nullptr) {
-        mAudioDecoder->flush();
-    }
+    mAVDeviceManager->flushDevice(SMPAVDeviceManager::DEVICE_TYPE_AUDIO);
 
     audioDecoderEOS = false;
 
@@ -2693,19 +2653,13 @@ void SuperMediaPlayer::FlushAudioPath()
 
 void SuperMediaPlayer::FlushVideoPath()
 {
-    if (mVideoRender) {
-        unique_ptr<IAFFrame> frame{nullptr};
-        mVideoRender->renderFrame(frame);
-    }
-
-    if (mVideoDecoder) {
-        mVideoDecoder->flush();
-    }
+    mAVDeviceManager->flushDevice(SMPAVDeviceManager::DEVICE_TYPE_VIDEO);
 
     videoDecoderEOS = false;
     //flush frame queue
 
     while (!mVideoFrameQue.empty()) {
+        mVideoFrameQue.front()->setDiscard(true);
         ProcessVideoRenderedMsg(mVideoFrameQue.front()->getInfo().pts, af_getsteady_ms(), nullptr);
         mVideoFrameQue.pop();
     }
@@ -2781,9 +2735,9 @@ int64_t SuperMediaPlayer::getPlayerBufferDuration(bool gotMax, bool internal)
             duration_c += mDemuxerService->getDemuxerHandle()->getBufferDuration(mCurrentVideoIndex);
         }
 
-        if (mVideoDecoder) {
+        if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
             // FIXME: get the accurate duration
-            duration_c += mVideoDecoder->getInputPaddingSize() * 40 * 1000;
+            duration_c += mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)->getInputPaddingSize() * 40 * 1000;
         }
     }
 
@@ -2795,9 +2749,9 @@ int64_t SuperMediaPlayer::getPlayerBufferDuration(bool gotMax, bool internal)
             duration_c += mDemuxerService->getDemuxerHandle()->getBufferDuration(mCurrentAudioIndex);
         }
 
-        if (mAudioDecoder) {
+        if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)) {
             // FIXME: get the accurate duration
-            duration_c += mAudioDecoder->getInputPaddingSize() * 23 * 1000;
+            duration_c += mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)->getInputPaddingSize() * 23 * 1000;
         }
     }
 
@@ -2907,7 +2861,7 @@ int64_t SuperMediaPlayer::getAudioPlayTimeStampCB(void *arg)
 
 int64_t SuperMediaPlayer::getAudioPlayTimeStamp()
 {
-    if (mAudioRender == nullptr) {
+    if (!mAVDeviceManager->isAudioRenderValid()) {
         return INT64_MIN;
     }
 
@@ -2916,7 +2870,7 @@ int64_t SuperMediaPlayer::getAudioPlayTimeStamp()
     }
 
     int64_t aoutPos;
-    aoutPos = mAudioRender->getPosition();
+    aoutPos = mAVDeviceManager->getAudioRenderPosition();
     return mAudioTime.startTime + mAudioTime.deltaTime + aoutPos;
 }
 
@@ -2933,10 +2887,6 @@ void SuperMediaPlayer::GetVideoRotation(int &rotation)
 
 int SuperMediaPlayer::setUpAudioDecoder(const Stream_meta *meta)
 {
-    if (mAudioDecoder != nullptr) {
-        return 0;
-    }
-
     int ret = 0;
 
     if (meta->samplerate <= 0) {// meta.frame_size maybe 0 when playing artp
@@ -2955,20 +2905,14 @@ int SuperMediaPlayer::setUpAudioDecoder(const Stream_meta *meta)
         ProcessMuteMsg();
     }
 
-    mAudioDecoder = decoderFactory::create(meta->codec, DECFLAG_SW, 0);
-
-    if (mAudioDecoder == nullptr) {
-        ret = gen_framework_errno(error_class_codec, codec_error_audio_not_support);
-        mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_AUDIO_CODEC_NOT_SUPPORT, framework_err2_string(ret));
-        return ret;
-    }
-
-    ret = mAudioDecoder->open(meta, nullptr, 0);
-
+    ret = mAVDeviceManager->setUpDecoder(DECFLAG_SW, meta, nullptr, SMPAVDeviceManager::DEVICE_TYPE_AUDIO, 0);
     if (ret < 0) {
-        AF_LOGE("mAudioDecoder init error %d\n", ret);
-        mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_AUDIO_DECODER_DEVICE_ERROR, framework_err2_string(ret));
-        mAudioDecoder = nullptr;
+        MediaPlayerEventType type = MEDIA_PLAYER_EVENT_AUDIO_DECODER_DEVICE_ERROR;
+        if (ret == gen_framework_errno(error_class_codec, codec_error_audio_not_support)) {
+            type = MEDIA_PLAYER_EVENT_AUDIO_CODEC_NOT_SUPPORT;
+        }
+        AF_LOGE("setUpAudioDecoder error %d\n", ret);
+        mPNotifier->NotifyEvent(type, framework_err2_string(ret));
         return ret;
     }
 
@@ -2978,7 +2922,7 @@ int SuperMediaPlayer::setUpAudioDecoder(const Stream_meta *meta)
 int SuperMediaPlayer::SetUpAudioPath()
 {
     int ret = 0;
-    if (mAudioDecoder == nullptr) {
+    if (!mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)) {
 
         /*
          * make sure the audio stream is opened before get stream meta,
@@ -2998,7 +2942,7 @@ int SuperMediaPlayer::SetUpAudioPath()
         }
     }
 
-    if (mAudioFrameQue.empty() || mAudioRender != nullptr) {
+    if (mAudioFrameQue.empty() || mAVDeviceManager->isAudioRenderValid()) {
         return 0;
     }
 
@@ -3014,35 +2958,30 @@ int SuperMediaPlayer::SetUpAudioPath()
 
 int SuperMediaPlayer::setUpAudioRender(const IAFFrame::audioInfo &info)
 {
-    if (mAudioRender == nullptr) {
-        mAudioRender = AudioRenderFactory::create();
-        if (!mSecretPlayBack) {
-            mAudioRender->setRenderingCb(mAudioRenderingCb, mAudioRenderingCbUserData);
-        }
-    }
+    int ret = mAVDeviceManager->setUpAudioRender(info);
 
-    assert(mAudioRender);
-    mAudioRender->setListener(mAudioRenderCB.get());
-    int audioInitRet = mAudioRender->init(&info);
-
-    if (audioInitRet < 0) {
-        AF_LOGE("AudioOutHandle Init Error is %d", audioInitRet);
+    if (ret < 0) {
+        AF_LOGE("AudioOutHandle Init Error is %d", ret);
         // don't release audio handle because we only new it in constructor
         // PS: we should try to recover it later, or notify error
         //                    mAudioOutHandle = 0;
         mCurrentAudioIndex = -1;
         return -1;
-    } else {
-        mAudioRender->setSpeed(mSet->rate);
-        mAudioRender->mute(mSet->bMute);
-        mAudioRender->setVolume(mSet->mVolume);
-        return 0;
     }
+    mAVDeviceManager->setAudioRenderListener(mAudioRenderCB.get());
+    mAVDeviceManager->setSpeed(mSet->rate);
+    mAVDeviceManager->setMute(mSet->bMute);
+    mAVDeviceManager->setVolume(mSet->mVolume);
+
+    if (!mSecretPlayBack) {
+        mAVDeviceManager->setAudioRenderingCb(mAudioRenderingCb, mAudioRenderingCbUserData);
+    }
+    return 0;
 }
 
 int SuperMediaPlayer::SetUpVideoPath()
 {
-    if (mVideoDecoder && mVideoRender) {
+    if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO) && mAVDeviceManager->isVideoRenderValid()) {
         return 0;
     }
 
@@ -3061,7 +3000,7 @@ int SuperMediaPlayer::SetUpVideoPath()
 
     int ret = 0;
 
-    if (!mSet->bEnableTunnelRender && mSet->mView != nullptr && mVideoRender == nullptr) {
+    if (!mSet->bEnableTunnelRender && mSet->mView != nullptr && !mAVDeviceManager->isVideoRenderValid()) {
         if (mAppStatus == APP_BACKGROUND) {
             AF_LOGW("create video render in background");
         }
@@ -3071,12 +3010,12 @@ int SuperMediaPlayer::SetUpVideoPath()
 
     //re set view in case for not set view before
     if (mSet->mView) {
-        if (mVideoRender) {
-            mVideoRender->setDisPlay(mSet->mView);
+        if (mAVDeviceManager->isVideoRenderValid()) {
+            mAVDeviceManager->getVideoRender()->setDisPlay(mSet->mView);
         }
     }
 
-    if (mVideoDecoder != nullptr) {
+    if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
         return 0;
     }
 
@@ -3132,7 +3071,7 @@ int SuperMediaPlayer::SetUpVideoPath()
         return ret;
     }
 
-    if (mVideoDecoder->getFlags() & DECFLAG_HW) {
+    if (mAVDeviceManager->getVideoDecoderFlags() & DECFLAG_HW) {
     } else {
         if (mSet->bEnableHwVideoDecode) {
             mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_SW_VIDEO_DECODER, "Switch to software video decoder");
@@ -3161,27 +3100,28 @@ void SuperMediaPlayer::updateVideoMeta()
 
 bool SuperMediaPlayer::CreateVideoRender()
 {
-    if (nullptr != mVideoRender) {
+    if (mAVDeviceManager->isVideoRenderValid()) {
         return true;
     }
 
     // lock mAppStatusMutex before mCreateMutex
     std::lock_guard<std::mutex> uMutex(mCreateMutex);
-    mVideoRender = videoRenderFactory::create();
-    mVideoRender->setScale(convertScaleMode(mSet->scaleMode));
-    mVideoRender->setRotate(convertRotateMode(mSet->rotateMode));
-    mVideoRender->setBackgroundColor(mSet->mVideoBackgroundColor);
-    mVideoRender->setFlip(convertMirrorMode(mSet->mirrorMode));
-    mVideoRender->setDisPlay(mSet->mView);
-    mVideoRender->setRenderResultCallback([this](int64_t pts, bool rendered) -> void { VideoRenderCallback(this, pts, nullptr); });
-    int renderRet = mVideoRender->init();
+    mAVDeviceManager->createVideoRender();
+    mAVDeviceManager->getVideoRender()->setScale(convertScaleMode(mSet->scaleMode));
+    mAVDeviceManager->getVideoRender()->setRotate(convertRotateMode(mSet->rotateMode));
+    mAVDeviceManager->getVideoRender()->setBackgroundColor(mSet->mVideoBackgroundColor);
+    mAVDeviceManager->getVideoRender()->setFlip(convertMirrorMode(mSet->mirrorMode));
+    mAVDeviceManager->getVideoRender()->setDisPlay(mSet->mView);
+    mAVDeviceManager->getVideoRender()->setRenderResultCallback(
+            [this](int64_t pts, bool rendered) -> void { VideoRenderCallback(this, pts, nullptr); });
+    int renderRet = mAVDeviceManager->getVideoRender()->init();
 
     if (renderRet != 0) {
         // for windows init failed, which may need change render type in future.
         mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_VIDEO_RENDER_INIT_ERROR, "init video render failed");
     }
 
-    mVideoRender->setSpeed(mSet->rate);
+    mAVDeviceManager->setSpeed(mSet->rate);
     return true;
 }
 
@@ -3199,36 +3139,28 @@ int SuperMediaPlayer::CreateVideoDecoder(bool bHW, Stream_meta &meta)
     if (mAdaptiveVideo) {
         decFlag |= DECFLAG_ADAPTIVE;
     }
-
-    {
-        std::lock_guard<std::mutex> uMutex(mCreateMutex);
-        mVideoDecoder = decoderFactory::create(meta.codec, decFlag, max(meta.height, meta.width));
+    if (!mSet->bLowLatency) {
+        mSet->bLowLatency = mDemuxerService->getDemuxerHandle()->isLowLatency();
     }
 
-    if (mVideoDecoder == nullptr) {
-        return gen_framework_errno(error_class_codec, codec_error_video_not_support);
+    if (mSet->bLowLatency) {
+        decFlag |= DECFLAG_OUTPUT_FRAME_ASAP;
     }
-#ifdef __APPLE__
-    if (mFrameCb && mSet->pixelBufferOutputFormat) {
-        auto *vtbDecoder = dynamic_cast<AFVTBDecoder *>(mVideoDecoder.get());
-        if (vtbDecoder) {
-            int ret1 = vtbDecoder->setPixelBufferFormat(mSet->pixelBufferOutputFormat);
-            if (ret1 < 0) {
-                AF_LOGW("setPixelBufferFormat error\n");
-            }
-        }
-    }
-#endif
 
     void *view = nullptr;
+    mAVDeviceManager->flushVideoRender();
 
     if (bHW) {
         if (mSet->bEnableTunnelRender) {
             view = mSet->mView;
             decFlag |= DECFLAG_DIRECT;
         } else {
-            if (mVideoRender) {
-                view = mVideoRender->getSurface();
+            if (mAVDeviceManager->isVideoRenderValid()) {
+                /*
+                 * Get a cached surface, then the mediaCodec video decoder can be reuse,
+                 * otherwise the mediaCodec video decoder will be recreate on setUpDecoder.
+                 */
+                view = mAVDeviceManager->getVideoRender()->getSurface(false);
             }
         }
     }
@@ -3238,26 +3170,23 @@ int SuperMediaPlayer::CreateVideoDecoder(bool bHW, Stream_meta &meta)
     }
 
     if (mSet->bLowLatency) {
-        // artp disable b frame to reduce delay at present
         decFlag |= DECFLAG_OUTPUT_FRAME_ASAP;
     }
-
+    uint32_t dstFormat = 0;
+#ifdef __APPLE__
+    if (mFrameCb && mSet->pixelBufferOutputFormat) {
+        dstFormat = mSet->pixelBufferOutputFormat;
+    }
+#endif
+    ret = mAVDeviceManager->setUpDecoder(decFlag, (const Stream_meta *) (&meta), view, SMPAVDeviceManager::DEVICE_TYPE_VIDEO, dstFormat);
+    if (ret < 0) {
+        return ret;
+    }
     {
         std::lock_guard<std::mutex> lock(mAppStatusMutex);
         ProcessVideoHoldMsg(mAppStatus == APP_BACKGROUND);
     }
-    
-    ret = mVideoDecoder->open(&meta, view, decFlag);
-
-    if (ret < 0) {
-        AF_LOGE("config decoder error ret= %d \n", ret);
-        //TODO:PostErrorMsg
-        std::lock_guard<std::mutex> uMutex(mCreateMutex);
-        mVideoDecoder = nullptr;
-        return gen_framework_errno(error_class_codec, codec_error_video_device_error);
-    }
-
-    return 0;
+    return ret;
 }
 
 
@@ -3392,7 +3321,6 @@ void SuperMediaPlayer::ProcessPrepareMsg()
     }
 
     mPlayStatus = PLAYER_PREPARINIT;
-    mAudioRender = nullptr;
     bool noFile = false;
 
     if (!(mBSReadCb != nullptr && mBSSeekCb != nullptr && mBSCbArg != nullptr)) {
@@ -3911,30 +3839,30 @@ void SuperMediaPlayer::ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, void
 
 void SuperMediaPlayer::ProcessSetDisplayMode()
 {
-    if (mVideoRender) {
-        mVideoRender->setScale(convertScaleMode(mSet->scaleMode));
+    if (mAVDeviceManager->isVideoRenderValid()) {
+        mAVDeviceManager->getVideoRender()->setScale(convertScaleMode(mSet->scaleMode));
     }
 }
 
 
 void SuperMediaPlayer::ProcessSetRotationMode()
 {
-    if (mVideoRender) {
-        mVideoRender->setRotate(convertRotateMode(mSet->rotateMode));
+    if (mAVDeviceManager->isVideoRenderValid()) {
+        mAVDeviceManager->getVideoRender()->setRotate(convertRotateMode(mSet->rotateMode));
     }
 }
 
 void SuperMediaPlayer::ProcessSetMirrorMode()
 {
-    if (mVideoRender) {
-        mVideoRender->setFlip(convertMirrorMode(mSet->mirrorMode));
+    if (mAVDeviceManager->isVideoRenderValid()) {
+        mAVDeviceManager->getVideoRender()->setFlip(convertMirrorMode(mSet->mirrorMode));
     }
 }
 
 void SuperMediaPlayer::ProcessSetVideoBackgroundColor()
 {
-    if (mVideoRender) {
-        mVideoRender->setBackgroundColor(mSet->mVideoBackgroundColor);
+    if (mAVDeviceManager->isVideoRenderValid()) {
+        mAVDeviceManager->getVideoRender()->setBackgroundColor(mSet->mVideoBackgroundColor);
     }
 }
 
@@ -3947,8 +3875,8 @@ void SuperMediaPlayer::ProcessSetViewMsg(void *view)
     mSet->mView = view;
     std::unique_lock<std::mutex> uMutex(mCreateMutex);
 
-    if (mVideoRender) {
-        mVideoRender->setDisPlay(view);
+    if (mAVDeviceManager->isVideoRenderValid()) {
+        mAVDeviceManager->getVideoRender()->setDisPlay(view);
     }
 }
 
@@ -4058,11 +3986,7 @@ void SuperMediaPlayer::notifySeekEndCallback()
 
 void SuperMediaPlayer::ProcessMuteMsg()
 {
-    if (mAudioRender == nullptr) {
-        return;
-    }
-
-    mAudioRender->mute(mSet->bMute);
+    mAVDeviceManager->setMute(mSet->bMute);
 }
 
 bool SuperMediaPlayer::IsMute() const
@@ -4154,13 +4078,11 @@ void SuperMediaPlayer::ProcessVideoCleanFrameMsg()
     while (!mVideoFrameQue.empty()) {
         int64_t pts = mVideoFrameQue.front()->getInfo().pts;
         ProcessVideoRenderedMsg(pts, af_getsteady_ms(), nullptr);
+        mVideoFrameQue.front()->setDiscard(true);
         mVideoFrameQue.pop();
     }
 
-    if (mVideoRender) {
-        unique_ptr<IAFFrame> frame = nullptr;
-        mVideoRender->renderFrame(frame);
-    }
+    mAVDeviceManager->flushVideoRender();
 
     mPlayedVideoPts = INT64_MIN;
     mCurVideoPts = INT64_MIN;
@@ -4171,11 +4093,11 @@ void SuperMediaPlayer::ProcessVideoCleanFrameMsg()
 
 void SuperMediaPlayer::ProcessVideoHoldMsg(bool hold)
 {
-    if (mVideoDecoder) {
-        mVideoDecoder->holdOn(hold);
+    if (mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
+        mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)->holdOn(hold);
 
         if (!hold) {
-            int size = mVideoDecoder->getRecoverQueueSize();
+            int size = mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)->getRecoverQueueSize();
 
             if (size > mSet->maxVideoRecoverSize) {
                 string des = "video decoder recover size too large:" + AfString::to_string(size);
@@ -4188,16 +4110,7 @@ void SuperMediaPlayer::ProcessVideoHoldMsg(bool hold)
 void SuperMediaPlayer::ProcessSetSpeed(float speed)
 {
     if (!CicadaUtils::isEqual(mSet->rate, speed)) {
-        if (HAVE_AUDIO) {
-            if (mAudioRender != nullptr) {
-                mAudioRender->setSpeed(speed);
-            }
-        }
-
-        if (mVideoRender) {
-            mVideoRender->setSpeed(speed);
-        }
-
+        mAVDeviceManager->setSpeed(speed);
         mSet->rate = speed;
         mMasterClock.SetScale(speed);
     }
@@ -4216,10 +4129,7 @@ void SuperMediaPlayer::startRendering(bool start)
     } else {
         mMasterClock.pause();
     }
-
-    if (mAudioRender) {
-        mAudioRender->pause(!start);
-    }
+    mAVDeviceManager->pauseAudioRender(!start);
 }
 void SuperMediaPlayer::SetOnRenderCallBack(onRenderFrame cb, void *userData)
 {

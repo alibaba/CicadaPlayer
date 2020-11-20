@@ -16,6 +16,7 @@ using namespace std;
 #include <deque>
 #include "system_refer_clock.h"
 
+#include "SMPAVDeviceManager.h"
 #include "SMP_DCAManager.h"
 #include "SuperMediaPlayerDataSourceListener.h"
 #include "codec/videoDecoderFactory.h"
@@ -416,11 +417,7 @@ namespace Cicada {
         IDataSource *mDataSource{nullptr};
         std::atomic_bool mCanceled{false};
         demuxer_service *mDemuxerService{nullptr};
-
-        std::unique_ptr<IDecoder> mVideoDecoder{};
         std::queue<unique_ptr<IAFFrame>> mVideoFrameQue{};
-
-        std::unique_ptr<IDecoder> mAudioDecoder{};
         std::deque<unique_ptr<IAFFrame>> mAudioFrameQue{};
         unique_ptr<streamMeta> mCurrentVideoMeta{};
         bool videoDecoderEOS = false;
@@ -433,8 +430,6 @@ namespace Cicada {
 
         std::mutex mAppStatusMutex;
         std::atomic<APP_STATUS> mAppStatus{APP_FOREGROUND};
-        std::unique_ptr<IAudioRender> mAudioRender{};
-        std::unique_ptr<IVideoRender> mVideoRender{};
 //#ifdef WIN32
 //        AlivcDxva2Render m_dxva2Render;
 //#endif
@@ -514,6 +509,8 @@ namespace Cicada {
 
         std::unique_ptr<SuperMediaPlayerDataSourceListener> mSourceListener{nullptr};
         std::unique_ptr<SMP_DCAManager> mDcaManager{nullptr};
+
+        std::unique_ptr<SMPAVDeviceManager> mAVDeviceManager{nullptr};
 
         std::unique_ptr<IAFPacket> mVideoPacket{};
         std::unique_ptr<IAFPacket> mAudioPacket{};

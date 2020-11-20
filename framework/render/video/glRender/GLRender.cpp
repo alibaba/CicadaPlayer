@@ -278,7 +278,7 @@ bool GLRender::renderActually()
     }
 
     if (mInBackground) {
-//        AF_LOGD("renderActurally  .. InBackground ..");
+        //        AF_LOGD("renderActurally  .. InBackground ..");
         return false;
     }
 
@@ -296,6 +296,9 @@ bool GLRender::renderActually()
     }
 
 #endif
+    if (mInvalid) {
+        return false;
+    }
     bool displayViewChanged  = false;
     {
         unique_lock<mutex> viewLock(mViewMutex);
@@ -312,7 +315,7 @@ bool GLRender::renderActually()
     mWindowWidth = mContext->GetWidth();
     mWindowHeight = mContext->GetHeight();
 
-    if (mGLSurface == nullptr) {
+    if (mGLSurface == nullptr || mInvalid) {
 
         std::unique_lock<std::mutex> locker(mFrameMutex);
         if (!mInputQueue.empty()) {
@@ -503,23 +506,23 @@ void GLRender::captureScreen(std::function<void(uint8_t *, int, int)> func)
     }
 }
 
-void *GLRender::getSurface()
+void *GLRender::getSurface(bool cached)
 {
 #ifdef __ANDROID__
-    {
+    IProgramContext *programContext = getProgram(AF_PIX_FMT_CICADA_MEDIA_CODEC);
+
+    if (programContext == nullptr || programContext->getSurface() == nullptr || !cached) {
         std::unique_lock<std::mutex> locker(mCreateOutTextureMutex);
         needCreateOutTexture = true;
         mCreateOutTextureCondition.wait(locker, [this]() -> int {
             return !needCreateOutTexture;
         });
     }
-    IProgramContext *programContext = getProgram(AF_PIX_FMT_CICADA_MEDIA_CODEC);
 
-    if (programContext == nullptr) {
-        return nullptr;
+    programContext = getProgram(AF_PIX_FMT_CICADA_MEDIA_CODEC);
+    if (programContext) {
+        return programContext->getSurface();
     }
-
-    return programContext->getSurface();
 #endif
     return nullptr;
 }

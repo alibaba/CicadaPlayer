@@ -68,7 +68,9 @@ namespace Cicada {
 
         virtual void close() = 0;
 
-        virtual void preClose() = 0;
+        virtual void prePause() = 0;
+
+        virtual void pause(bool pause) = 0;
 
         virtual void setEOF()
         {

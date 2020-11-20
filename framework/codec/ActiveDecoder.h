@@ -33,9 +33,12 @@ public:
 
     int getFrame(std::unique_ptr<IAFFrame> &frame, uint64_t timeOut) override;
 
+
+    void pause(bool pause) override;
+
     void flush() override;
 
-    void preClose() override;
+    void prePause() override;
 
     int holdOn(bool hold) override;
 

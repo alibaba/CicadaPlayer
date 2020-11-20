@@ -244,7 +244,7 @@ namespace Cicada {
         mPlayedDuration = 0;
     }
 
-    void SdlAFAudioRender::preClose()
+    void SdlAFAudioRender::prePause()
     {
         // do nothing
     }
