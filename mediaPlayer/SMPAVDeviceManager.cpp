@@ -39,7 +39,7 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
         return 0;
     }
     if (decoderHandle->decoder) {
-        if (decoderHandle->match(meta, decFlag, device, dstFormat)) {// reuse decoder
+        if (decoderHandle->match(meta, decFlag, device, dstFormat) && decoderHandle->decoder->supportReuse()) {// reuse decoder
 
             AF_LOGI("reuse decoder %s\n", type == DEVICE_TYPE_VIDEO ? "video" : "audio ");
             decoderHandle->valid = true;

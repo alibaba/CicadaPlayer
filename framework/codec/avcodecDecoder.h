@@ -92,6 +92,7 @@ namespace Cicada{
         {
             return 0;
         };
+        virtual bool supportReuse() override;
 
     private:
         decoder_handle_v *mPDecoder = nullptr;

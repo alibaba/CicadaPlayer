@@ -286,6 +286,11 @@ namespace Cicada {
 
         return ret;
     }
-
-
+    bool avcodecDecoder::supportReuse()
+    {
+        if (mPDecoder->codecCont == nullptr) {
+            return true;
+        }
+        return mPDecoder->codecCont->extradata_size == 0;
+    }
 }

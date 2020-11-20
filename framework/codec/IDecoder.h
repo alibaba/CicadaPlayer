@@ -170,6 +170,11 @@ namespace Cicada {
 
         virtual uint32_t getInputPaddingSize() = 0;
 
+        virtual bool supportReuse()
+        {
+            return true;
+        }
+
     protected:
         std::string mName;
         int mFlags = 0; // VFLAG_HW,VFLAG_OUT
