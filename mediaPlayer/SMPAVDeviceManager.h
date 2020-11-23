@@ -9,6 +9,10 @@
 #include <render/audio/IAudioRender.h>
 #include <render/video/IVideoRender.h>
 
+#ifdef __APPLE__
+#include <codec/Apple/AppleVideoToolBox.h>
+#endif
+
 
 // TODO: add create lock
 namespace Cicada {
@@ -26,6 +30,14 @@ namespace Cicada {
 
             bool match(const Stream_meta *pMeta, uint64_t flag, void *pDevice, uint32_t dstFormat)
             {
+#ifdef __APPLE__
+                auto *vtbDecoder = dynamic_cast<AFVTBDecoder *>(decoder.get());
+                if (vtbDecoder) {
+                    if (pMeta->interlaced) {
+                        return false;
+                    }
+                }
+#endif
                 return (pDevice == device) && (flag == decFlag) && (pMeta->codec == meta.codec) && (dstFormat == mDstFormat);
             }
         };
