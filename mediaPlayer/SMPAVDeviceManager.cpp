@@ -183,6 +183,8 @@ int SMPAVDeviceManager::renderAudioFrame(std::unique_ptr<IAFFrame> &frame, int t
         int ret = mAudioRender->renderFrame(frame, timeOut);
         if (ret == IAudioRender::FORMAT_NOT_SUPPORT) {
             if (mAudioRender->getQueDuration() == 0) {
+                mAudioRender = nullptr;
+                mAudioRenderValid = false;
                 return ret;
             } else {
                 return -EAGAIN;
@@ -202,6 +204,7 @@ int SMPAVDeviceManager::setUpAudioRender(const IAFFrame::audioInfo &info)
 {
     std::lock_guard<std::mutex> uMutex(mMutex);
     if (mAudioRenderValid) {
+        assert(mAudioRender != nullptr);
         return 0;
     }
     if (mAudioRender) {
