@@ -36,6 +36,7 @@ ffmpeg_disable_all_config="--disable-everything \
   --disable-filters \
   --disable-avdevice \
   --disable-postproc \
+  --disable-hwaccels \
   --disable-bzlib    \
   --disable-videotoolbox"
 ffmpeg_config_default="--enable-avresample --enable-pic"
