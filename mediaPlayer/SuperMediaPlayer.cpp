@@ -2982,7 +2982,8 @@ int SuperMediaPlayer::setUpAudioRender(const IAFFrame::audioInfo &info)
 
 int SuperMediaPlayer::SetUpVideoPath()
 {
-    if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO) && mAVDeviceManager->isVideoRenderValid()) {
+    if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO) &&
+        (mAVDeviceManager->isVideoRenderValid() || !mNeedVideoRender)) {
         return 0;
     }
 
@@ -2998,15 +2999,41 @@ int SuperMediaPlayer::SetUpVideoPath()
         AF_LOGW("Wait for parser video interlaced Type");
         return 0;
     }
+    /*
+     * update the video meta after the first video packet was reached,
+     * otherwise the video meta is incomplete when playing a master hls playList.
+     */
+    updateVideoMeta();
+    auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
+    bool isHDRVideo = false;
+
+    //support Android only for now
+#ifdef ANDROID
+    if (meta->pixel_fmt == AF_PIX_FMT_YUV420P10BE || meta->pixel_fmt == AF_PIX_FMT_YUV420P10LE) {
+        AF_LOGI("HDR video\n");
+        isHDRVideo = true;
+    }
+#endif
+    /*
+     * HDR video, try use decoder to render first
+     */
+    if (mSet->bEnableTunnelRender || isHDRVideo) {
+        mAVDeviceManager->destroyVideoRender();
+        mNeedVideoRender = false;
+    }
 
     int ret = 0;
 
-    if (!mSet->bEnableTunnelRender && mSet->mView != nullptr && !mAVDeviceManager->isVideoRenderValid()) {
+    if (mNeedVideoRender && mSet->mView != nullptr && !mAVDeviceManager->isVideoRenderValid()) {
         if (mAppStatus == APP_BACKGROUND) {
             AF_LOGW("create video render in background");
         }
         AF_LOGD("SetUpVideoRender start");
         CreateVideoRender();
+        if (!mAVDeviceManager->isVideoRenderValid()) {
+            AF_LOGI("try use decoder to render video\n");
+            mNeedVideoRender = false;
+        }
     }
 
     //re set view in case for not set view before
@@ -3021,12 +3048,6 @@ int SuperMediaPlayer::SetUpVideoPath()
     }
 
     AF_LOGD("SetUpVideoDecoder start");
-    /*
-     * update the video meta after the first video packet was reached,
-     * otherwise the video meta is incomplete when playing a master hls playList.
-     */
-    updateVideoMeta();
-    auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
 
     if (meta->interlaced == InterlacedType_UNKNOWN) {
         meta->interlaced = mVideoInterlaced;
@@ -3152,7 +3173,7 @@ int SuperMediaPlayer::CreateVideoDecoder(bool bHW, Stream_meta &meta)
     mAVDeviceManager->flushVideoRender();
 
     if (bHW) {
-        if (mSet->bEnableTunnelRender) {
+        if (!mNeedVideoRender) {
             view = mSet->mView;
             decFlag |= DECFLAG_DIRECT;
         } else {
@@ -3255,6 +3276,7 @@ void SuperMediaPlayer::Reset()
     mPausedByAudioInterrupted = false;
     mSecretPlayBack = false;
     mDrmKeyValid = false;
+    mNeedVideoRender = true;
 }
 
 int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)

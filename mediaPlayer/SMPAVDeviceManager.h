@@ -104,6 +104,8 @@ namespace Cicada {
 
         int createVideoRender();
 
+        void destroyVideoRender();
+
         bool isVideoRenderValid()
         {
             return mVideoRenderValid;
