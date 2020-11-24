@@ -555,6 +555,7 @@ namespace Cicada {
         void *mAudioRenderingCbUserData{nullptr};
         bool mIsDummy{false};
         bool mPausedByAudioInterrupted{false};
+        bool mNeedVideoRender{true};
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H

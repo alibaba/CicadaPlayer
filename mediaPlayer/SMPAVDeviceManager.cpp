@@ -307,3 +307,8 @@ int SMPAVDeviceManager::renderVideoFrame(unique_ptr<IAFFrame> &frame)
     }
     return -EINVAL;
 }
+void SMPAVDeviceManager::destroyVideoRender()
+{
+    mVideoRender = nullptr;
+    mVideoRenderValid = false;
+}
