@@ -504,13 +504,12 @@ int CURLConnection::FillBuffer(uint32_t want)
             }
 
             // Don't retry when we didn't "see" any error
-#ifndef WIN32
-
             if (CURLResult == CURLE_OK) {
-                return FRAMEWORK_NET_ERR_UNKNOWN;
+                // we assume eof
+                AF_LOGW("assume a abnormal eos\n");
+                return 0;
             }
 
-#endif
             // Close handle
             disconnect();
 
