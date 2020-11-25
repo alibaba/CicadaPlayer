@@ -20,6 +20,9 @@
 #include <atomic>
 
 namespace Cicada {
+
+    enum MoveToNextPart { tryAgain = -11, segmentEnd = 0, moveSuccess = 1 };
+
     class HLSStream : public AbstractStream {
 
         class WebVttParser {
@@ -139,7 +142,7 @@ namespace Cicada {
 
         int readSegment(const uint8_t *buffer, int size);
 
-        int moveToNextPartialSegment();
+        MoveToNextPart moveToNextPartialSegment();
 
         int upDateInitSection();
 

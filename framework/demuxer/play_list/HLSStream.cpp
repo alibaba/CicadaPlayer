@@ -97,8 +97,8 @@ namespace Cicada {
         ret = pHandle->readSegment(buffer, size);
 
         if (ret == 0) {
-            int move_ret = pHandle->moveToNextPartialSegment();
-            if (move_ret == 1) {
+            MoveToNextPart move_ret = pHandle->moveToNextPartialSegment();
+            if (move_ret == MoveToNextPart::moveSuccess) {
                 return pHandle->readSegment(buffer, size);
             } else {
                 return move_ret;
@@ -129,30 +129,30 @@ namespace Cicada {
         } else {
             ret = mSegDecrypter->Read(const_cast<uint8_t *>(buffer), size);
         }
-        
+
         return ret;
     }
 
-    int HLSStream::moveToNextPartialSegment()
+    MoveToNextPart HLSStream::moveToNextPartialSegment()
     {
         auto curSeg = mPTracker->getCurSegment();
         if (curSeg && curSeg->mSegType == SEG_LHLS) {
             bool bHasUnusedParts = false;
             bool downloadComplete = curSeg->isDownloadComplete(bHasUnusedParts);
-            if (downloadComplete) {
-                if (bHasUnusedParts) {
-                    curSeg->moveToNextPart();
-                    string uri = Helper::combinePaths(mPTracker->getBaseUri(), curSeg->getDownloadUrl());
-                    tryOpenSegment(uri, curSeg->rangeStart, curSeg->rangeEnd);
-                    return 1;
-                } else {
-                    return 0;
-                }
+            if (bHasUnusedParts) {
+                curSeg->moveToNextPart();
+                string uri = Helper::combinePaths(mPTracker->getBaseUri(), curSeg->getDownloadUrl());
+                tryOpenSegment(uri, curSeg->rangeStart, curSeg->rangeEnd);
+                return MoveToNextPart::moveSuccess;
             } else {
-                return -EAGAIN;
+                if (downloadComplete) {
+                    return MoveToNextPart::segmentEnd;
+                } else {
+                    return MoveToNextPart::tryAgain;
+                }
             }
         }
-        return 0;
+        return MoveToNextPart::segmentEnd;
     }
 
     int64_t HLSStream::seekSegment(off_t offset, int whence)
@@ -1023,8 +1023,8 @@ namespace Cicada {
 
         if (ret == -EAGAIN && mPTracker->getDuration() == 0) {
 
-            ret = moveToNextPartialSegment();
-            if (ret == 0) {
+            MoveToNextPart move_ret = moveToNextPartialSegment();
+            if (move_ret == MoveToNextPart::segmentEnd) {
                 ret = updateSegment();
             } else {
                 return -EAGAIN;
