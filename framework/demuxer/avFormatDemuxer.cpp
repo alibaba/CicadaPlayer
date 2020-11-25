@@ -683,6 +683,24 @@ namespace Cicada {
         return "";
     }
 
+    bool avFormatDemuxer::isRealTimeStream(int index)
+    {
+#if AF_HAVE_PTHREAD
+        std::lock_guard<std::mutex> uLock(mCtxMutex);
+#endif
+        if (mCtx == nullptr) {
+            return false;
+        }
+        bool isLive = (mCtx->duration == AV_NOPTS_VALUE || mCtx->duration == 0);
+        bool isHls = false;
+        bool isDash = false;
+        if (mCtx->iformat) {
+            isHls = (strcmp(mCtx->iformat->name, "hls,applehttp") == 0);
+            isDash = (strcmp(mCtx->iformat->name, "dash") == 0);
+        }
+        return isLive && !(isHls || isDash);
+    }
+
     bool avFormatDemuxer::is_supported(const string &uri, const uint8_t *buffer, int64_t size, int *type, const Cicada::DemuxerMeta *meta,
                                        const Cicada::options *opts)
     {

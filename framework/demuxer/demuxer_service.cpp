@@ -293,7 +293,7 @@ namespace Cicada {
             return false;
         }
 
-        return (!mDemuxerPtr->isPlayList()) || mDemuxerPtr->isRealTimeStream(index);
+        return mDemuxerPtr->isRealTimeStream(index);
     }
 
     void demuxer_service::interrupt(int inter)

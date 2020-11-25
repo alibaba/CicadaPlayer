@@ -37,10 +37,6 @@
 
 static int MAX_DECODE_ERROR_FRAME = 100;
 
-//#define IS_REAL_TIME_STREAM (mSet->url.substr(0,7) == "rtmp://" || mSet->url.substr(0,7) == "artp://")
-#define IS_REAL_TIME_STREAM ((mDuration == 0) && !(mDemuxerService->isPlayList()))
-
-
 #define PTS_REVERTING (mVideoPtsRevert != mAudioPtsRevert)
 
 using namespace Cicada;
@@ -1306,16 +1302,10 @@ bool SuperMediaPlayer::DoCheckBufferPass()
     //AF_LOGD("current duration is %lld,video duration is %lld,audio duration is %lld", cur_buffer_duration
     //	,mBufferController->GetPacketDuration(BUFFER_TYPE_VIDEO), mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO));
     bool isRealTime = false;
-    if (mDemuxerService != nullptr && mDuration == 0) {
-        if (mDemuxerService->isPlayList()) {
-            if (mCurrentVideoIndex >= 0) {
-                isRealTime = mDemuxerService->isRealTimeStream(mCurrentVideoIndex);
-            }
-        } else {
-            isRealTime = true;
-        }
+    if (mDemuxerService != nullptr) {
+        isRealTime = mDemuxerService->isRealTimeStream(mCurrentVideoIndex);
     }
-    
+
     while (isRealTime && mSet->RTMaxDelayTime > 0) {
         if (!HAVE_AUDIO) {
             int64_t maxBufferDuration = getPlayerBufferDuration(true, false);

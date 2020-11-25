@@ -76,6 +76,8 @@ namespace Cicada {
 
         virtual const std::string GetProperty(int index, const string &key) const override;
 
+        bool isRealTimeStream(int index) override;
+
     protected:
         explicit avFormatDemuxer(int dummy);
 
