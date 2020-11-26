@@ -169,7 +169,7 @@ namespace Cicada {
         std::list<Tag *>::const_iterator it;
         std::shared_ptr<segment> curInitSegment = nullptr;
         std::vector<SegmentPart> segmentParts;
-        
+
         for (it = tagslist.begin(); it != tagslist.end(); ++it) {
             const Tag *tag = *it;
 
@@ -200,9 +200,9 @@ namespace Cicada {
                         pSegment->updateParts(segmentParts);
                         segmentParts.clear();
                     }
-                    
-//                    if ((unsigned) rep->getStreamFormat() == StreamFormat::UNKNOWN)
-//                        setFormatFromExtension(rep, uritag->getValue().value);
+
+                    //if ((unsigned) rep->getStreamFormat() == StreamFormat::UNKNOWN)
+                    //    setFormatFromExtension(rep, uritag->getValue().value);
                     /* Need to use EXTXTARGETDURATION as default as some can't properly set segment one */
                     int64_t nzDuration = rep->targetDuration;
 
@@ -221,10 +221,10 @@ namespace Cicada {
                     pSegment->startTime = static_cast<uint64_t>(nzStartTime);
                     nzStartTime += nzDuration;
                     totalduration += nzDuration;
-//                    if (absReferenceTime > VLC_TS_INVALID) {
-//                        segment->utcTime = absReferenceTime;
-//                        absReferenceTime += nzDuration;
-//                    }
+                    //if (absReferenceTime > VLC_TS_INVALID) {
+                    //    segment->utcTime = absReferenceTime;
+                    //    absReferenceTime += nzDuration;
+                    //}
                     pSegment->init_section = curInitSegment;
                     segmentList->addSegment(pSegment);
 
@@ -245,8 +245,7 @@ namespace Cicada {
                     if (encryption.method != SegmentEncryption::NONE) {
                         pSegment->setEncryption(encryption);
                     }
-                }
-                break;
+                } break;
 
                 case SingleValueTag::EXTXTARGETDURATION: {
                     int64_t duration = static_cast<const SingleValueTag *>(tag)->getValue().decimal();
