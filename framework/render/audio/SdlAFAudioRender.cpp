@@ -81,6 +81,7 @@ namespace Cicada {
                 AF_LOGE("SdlAFAudioRender could not openAudio! Error: %s\n", SDL_GetError());
                 return OPEN_AUDIO_DEVICE_FAILED;
             }
+            mInfo = frame->getInfo().audio;
             SDL_PauseAudioDevice(mDevID, 0); // start play audio
         }
         //        if (frame->getInfo().duration < 0 &&  frame->getInfo().audio.sample_rate > 0) {
@@ -90,6 +91,10 @@ namespace Cicada {
         //  mAudioFrames.push(std::move(frame));
         if (getQueDuration() > 500 * 1000) {
             return -EAGAIN;
+        }
+
+        if (frame->getInfo().audio != mInfo) {
+            return FORMAT_NOT_SUPPORT;
         }
 
         if (mFiler != nullptr) {
