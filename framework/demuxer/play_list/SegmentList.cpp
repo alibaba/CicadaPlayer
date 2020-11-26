@@ -61,8 +61,9 @@ namespace Cicada {
         if (seg->startTime == UINT64_MAX) {
             seg->startTime = mNextStartTime;
         }
-
-        mNextStartTime = seg->startTime + seg->duration;
+        if (!seg->mUri.empty()) {
+            mNextStartTime = seg->startTime + seg->duration;
+        }
         mLastSeqNum = seg->sequence;
         segments.push_back(seg);
     }
@@ -152,6 +153,8 @@ namespace Cicada {
                 if (old_seg != nullptr && seg != nullptr) {
                     old_seg->updateParts(seg->getSegmentParts());
                     if (!seg->mUri.empty()) {
+                        old_seg->duration = seg->duration;
+                        mNextStartTime += old_seg->duration;
                         old_seg->setSourceUrl(seg->mUri);
                     }
                 }
