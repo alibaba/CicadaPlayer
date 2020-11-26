@@ -142,7 +142,10 @@ namespace Cicada {
         }
 
         if (!mNoFile) {
-            if (mPDataSource == nullptr && mSeekCb == nullptr) {
+            /*
+             * demuxer will occurred an error when set seek callback but can't seek
+             */
+            if ((mPDataSource == nullptr || mPDataSource->Seek(0, SEEK_SIZE) <= 0) && (mSeekCb == nullptr)) {
                 AF_LOGD("not support seek\n");
                 mDemuxerPtr->SetDataCallBack(read_callback, nullptr, open_callback, interrupt_callback, this);
             } else {
