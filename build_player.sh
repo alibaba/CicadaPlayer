@@ -101,8 +101,8 @@ function build_Android(){
     mkdir -p output/armeabi-v7a/
     mkdir -p output/arm64-v8a/
 
-    cp  platform/Android/source/premierlibrary/build/intermediates/cmake/corePlayer/release/obj/armeabi-v7a/*.so output/armeabi-v7a/
-    cp  platform/Android/source/premierlibrary/build/intermediates/cmake/corePlayer/release/obj/arm64-v8a/*.so output/arm64-v8a/
+    cp  platform/Android/source/premierlibrary/build/intermediates/cmake/corePlayerRelease/obj/armeabi-v7a/*.so output/armeabi-v7a/
+    cp  platform/Android/source/premierlibrary/build/intermediates/cmake/corePlayerRelease/obj/arm64-v8a/*.so output/arm64-v8a/
 
     cp  external/install/ffmpeg/Android/armeabi-v7a/libalivcffmpeg.so   output/armeabi-v7a/
     cp  external/install/ffmpeg/Android/arm64-v8a/libalivcffmpeg.so     output/arm64-v8a/
