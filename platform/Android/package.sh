@@ -7,9 +7,6 @@ mkdir -p release/CicadaPlayerDemo
 file="source/releaseLibs/*.aar"
 cp $file release/saas_release_aar/
 
-file="source/premierlibrary/libs/*.jar"
-cp $file release/saas_release_aar/
-
 cd release
 zip -r saas_release_aar-$MUPP_BUILD_ID.zip saas_release_aar
 cd ..
