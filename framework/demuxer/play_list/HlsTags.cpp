@@ -301,6 +301,7 @@ namespace Cicada {
                 {"EXTINF",                       ValuesListTag::EXTINF},
                 {"",                             SingleValueTag::URI},
                 {"EXT-X-PART",                   AttributesTag::EXTXPART},
+                {"EXT-X-PART-INF",               AttributesTag::EXTXPARTINF},
                 // TODO: add other lhls tag
                 {NULL,                           0},
             };
@@ -334,6 +335,7 @@ namespace Cicada {
                     case AttributesTag::EXTXMEDIA:
                     case AttributesTag::EXTXSTREAMINF:
                     case AttributesTag::EXTXPART:
+                    case AttributesTag::EXTXPARTINF:
                         return new (std::nothrow) AttributesTag(exttagmapping[i].i, value);
                 }
             }

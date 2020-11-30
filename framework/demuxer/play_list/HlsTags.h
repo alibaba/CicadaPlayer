@@ -83,6 +83,7 @@ namespace Cicada{
                 EXTXMEDIA,
                 EXTXSTREAMINF,
                 EXTXPART,
+                EXTXPARTINF,
             };
 
             AttributesTag(int, const std::string &);
