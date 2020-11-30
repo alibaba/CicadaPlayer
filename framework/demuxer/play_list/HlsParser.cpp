@@ -339,7 +339,7 @@ namespace Cicada {
                     }
                 }
                 break;
-                    
+
                 case AttributesTag::EXTXPART: {
                     const auto *keytag = static_cast<const AttributesTag *>(tag);
                     SegmentPart part;
@@ -364,8 +364,19 @@ namespace Cicada {
                     }
 
                     segmentParts.push_back(part);
+                    break;
                 }
-                break;
+
+                case AttributesTag::EXTXPARTINF: {
+                    const AttributesTag *keytag = static_cast<const AttributesTag *>(tag);
+                    const Attribute *partTargetAttr;
+                    if (keytag && (partTargetAttr = keytag->getAttributeByName("PART-TARGET"))) {
+                        double duration = partTargetAttr->floatingPoint();
+                        const auto nzDuration = static_cast<const mtime_t>(CLOCK_FREQ * duration);
+                        rep->partTargetDuration = nzDuration;
+                    }
+                    break;
+                }
 
                 case Tag::EXTXDISCONTINUITY:
                     discontinuityNum++;
