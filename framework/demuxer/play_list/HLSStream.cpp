@@ -100,6 +100,20 @@ namespace Cicada {
             MoveToNextPart move_ret = pHandle->moveToNextPartialSegment();
             if (move_ret == MoveToNextPart::moveSuccess) {
                 return pHandle->readSegment(buffer, size);
+            } else if (move_ret == MoveToNextPart::tryAgain) {
+                int tryTimes = 150;
+                while (tryTimes > 0) {
+                    af_msleep(20);
+                    pHandle->mPTracker->reLoadPlayList();
+                    MoveToNextPart move_ret = pHandle->moveToNextPartialSegment();
+                    if (move_ret == MoveToNextPart::moveSuccess) {
+                        return pHandle->readSegment(buffer, size);
+                    } else if (move_ret == MoveToNextPart::segmentEnd) {
+                        return 0;
+                    }
+                    --tryTimes;
+                };
+                return 0;
             } else {
                 return move_ret;
             }
