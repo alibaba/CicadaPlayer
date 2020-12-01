@@ -41,6 +41,7 @@ namespace Cicada {
         }
 
         close();
+        CGColorSpaceRelease(m_ColorSpace);
 #if TARGET_OS_IPHONE
         RemoveIOSNotificationObserver(this);
 #endif
@@ -99,11 +100,11 @@ namespace Cicada {
 #endif
         }
 
-//        if (!VTIsHardwareDecodeSupported(mVideoCodecType))
-//            return ret;
-//        mGotFirstFrame = false;
+        //        if (!VTIsHardwareDecodeSupported(mVideoCodecType))
+        //            return ret;
+        //        mGotFirstFrame = false;
 
-        if (meta->extradata && meta->extradata_size > 0  && mActive) {
+        if (meta->extradata && meta->extradata_size > 0 && mActive) {
             ret = createDecompressionSession(meta->extradata, meta->extradata_size, meta->width, meta->height);
 
             if (ret < 0) {
@@ -186,11 +187,7 @@ namespace Cicada {
         VTDecompressionOutputCallbackRecord outputCallbackRecord;
         outputCallbackRecord.decompressionOutputCallback = Cicada::AFVTBDecoder::decompressionOutputCallback;
         outputCallbackRecord.decompressionOutputRefCon = this;
-        rv = VTDecompressionSessionCreate(kCFAllocatorDefault,
-                                          mVideoFormatDesRef,
-                                          mDecoder_spec,
-                                          buf_attr,
-                                          &outputCallbackRecord,
+        rv = VTDecompressionSessionCreate(kCFAllocatorDefault, mVideoFormatDesRef, mDecoder_spec, buf_attr, &outputCallbackRecord,
                                           &mVTDecompressSessionRef);
 
         if (rv != 0) {
@@ -240,8 +237,7 @@ namespace Cicada {
         CFDictionarySetValue(dict, key, value);
     }
 
-    static void dict_set_i32(CFMutableDictionaryRef dict, CFStringRef key,
-                             int32_t value)
+    static void dict_set_i32(CFMutableDictionaryRef dict, CFStringRef key, int32_t value)
     {
         CFNumberRef number;
         number = CFNumberCreate(nullptr, kCFNumberSInt32Type, &value);
@@ -259,12 +255,12 @@ namespace Cicada {
             return -EINVAL;
         }
 
-        CFMutableDictionaryRef par = CFDictionaryCreateMutable(nullptr, 0, &kCFTypeDictionaryKeyCallBacks,
-                                     &kCFTypeDictionaryValueCallBacks);
-        CFMutableDictionaryRef atoms = CFDictionaryCreateMutable(nullptr, 0, &kCFTypeDictionaryKeyCallBacks,
-                                       &kCFTypeDictionaryValueCallBacks);
-        CFMutableDictionaryRef extensions = CFDictionaryCreateMutable(nullptr, 0, &kCFTypeDictionaryKeyCallBacks,
-                                            &kCFTypeDictionaryValueCallBacks);
+        CFMutableDictionaryRef par =
+                CFDictionaryCreateMutable(nullptr, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        CFMutableDictionaryRef atoms =
+                CFDictionaryCreateMutable(nullptr, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        CFMutableDictionaryRef extensions =
+                CFDictionaryCreateMutable(nullptr, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
         /* CVPixelAspectRatio dict */
         Stream_meta *meta = ((Stream_meta *) (*(mPInMeta)));
 
@@ -279,18 +275,19 @@ namespace Cicada {
         dict_set_i32(par, CFSTR("HorizontalSpacing"), HSpacing);
         dict_set_i32(par, CFSTR("VerticalSpacing"), VSpacing);
 
+
         /* SampleDescriptionExtensionAtoms dict */
         switch (mVideoCodecType) {
             case kCMVideoCodecType_H264:
-                dict_set_data(atoms, CFSTR ("avcC"), (uint8_t *) pData, size);
+                dict_set_data(atoms, CFSTR("avcC"), (uint8_t *) pData, size);
                 break;
 
             case kCMVideoCodecType_HEVC:
-                dict_set_data(atoms, CFSTR ("hvcC"), (uint8_t *) pData, size);
+                dict_set_data(atoms, CFSTR("hvcC"), (uint8_t *) pData, size);
                 break;
 
             case kCMVideoCodecType_MPEG4Video:
-                dict_set_data(atoms, CFSTR ("esds"), (uint8_t *) pData, size);
+                dict_set_data(atoms, CFSTR("esds"), (uint8_t *) pData, size);
                 break;
 
             default:
@@ -298,11 +295,11 @@ namespace Cicada {
         }
 
         /* Extensions dict */
-        dict_set_string(extensions, CFSTR ("CVImageBufferChromaLocationBottomField"), "left");
-        dict_set_string(extensions, CFSTR ("CVImageBufferChromaLocationTopField"), "left");
+        dict_set_string(extensions, CFSTR("CVImageBufferChromaLocationBottomField"), "left");
+        dict_set_string(extensions, CFSTR("CVImageBufferChromaLocationTopField"), "left");
         dict_set_boolean(extensions, CFSTR("FullRangeVideo"), FALSE);
-        dict_set_object(extensions, CFSTR ("CVPixelAspectRatio"), (CFTypeRef *) par);
-        dict_set_object(extensions, CFSTR ("SampleDescriptionExtensionAtoms"), (CFTypeRef *) atoms);
+        dict_set_object(extensions, CFSTR("CVPixelAspectRatio"), (CFTypeRef *) par);
+        dict_set_object(extensions, CFSTR("SampleDescriptionExtensionAtoms"), (CFTypeRef *) atoms);
 
         if (width <= 0 || height <= 0) {
             parserInfo info{0};
@@ -492,10 +489,10 @@ namespace Cicada {
     int AFVTBDecoder::enqueue_decoder_internal(unique_ptr<IAFPacket> &pPacket)
     {
         //   AF_LOGD("mInputQueue size is %d\n", mInputQueue.size());
-//        if (mOutputQueue.size() > maxOutQueueSize) {
-//            //       AF_TRACE;
-//            return -EAGAIN;
-//        }
+        //        if (mOutputQueue.size() > maxOutQueueSize) {
+        //            //       AF_TRACE;
+        //            return -EAGAIN;
+        //        }
         if (pPacket->getInfo().flags & AF_PKT_FLAG_KEY) {
             mThrowPacket = false;
         }
@@ -520,8 +517,8 @@ namespace Cicada {
 
         CMBlockBufferRef newBuffer = nullptr;
 
-        if (CMBlockBufferCreateWithMemoryBlock(kCFAllocatorDefault, pPacket->getData(), pPacket->getSize(), kCFAllocatorNull,
-                                               nullptr, 0, pPacket->getSize(), 0, &newBuffer) != 0) {
+        if (CMBlockBufferCreateWithMemoryBlock(kCFAllocatorDefault, pPacket->getData(), pPacket->getSize(), kCFAllocatorNull, nullptr, 0,
+                                               pPacket->getSize(), 0, &newBuffer) != 0) {
             AF_LOGE("failed to create mblockbuffer");
             return -EINVAL;
         }
@@ -532,9 +529,9 @@ namespace Cicada {
         timeInfo.decodeTimeStamp = CMTimeMake(pPacket->getInfo().dts, 1000000);
         CMSampleBufferRef sampleBuffer = nullptr;
 
-        if (0 != CMSampleBufferCreate(kCFAllocatorDefault, newBuffer, TRUE, nullptr, nullptr, mVideoFormatDesRef,
-                                      1, 1, &timeInfo, 0, nullptr, &sampleBuffer)) {
-            CFRelease(newBuffer); // add by yager
+        if (0 != CMSampleBufferCreate(kCFAllocatorDefault, newBuffer, TRUE, nullptr, nullptr, mVideoFormatDesRef, 1, 1, &timeInfo, 0,
+                                      nullptr, &sampleBuffer)) {
+            CFRelease(newBuffer);// add by yager
             AF_LOGE("failed to CMSampleBufferCreate");
             return -EINVAL;
         }
@@ -653,15 +650,11 @@ namespace Cicada {
         push_to_recovery_queue(unique_ptr<IAFPacket>(packet));
     }
 
-    void AFVTBDecoder::decompressionOutputCallback(void *CM_NULLABLE decompressionOutputRefCon,
-            void *CM_NULLABLE sourceFrameRefCon,
-            OSStatus status,
-            VTDecodeInfoFlags infoFlags,
-            CM_NULLABLE CVImageBufferRef imageBuffer,
-            CMTime presentationTimeStamp,
-            CMTime presentationDuration)
+    void AFVTBDecoder::decompressionOutputCallback(void *CM_NULLABLE decompressionOutputRefCon, void *CM_NULLABLE sourceFrameRefCon,
+                                                   OSStatus status, VTDecodeInfoFlags infoFlags, CM_NULLABLE CVImageBufferRef imageBuffer,
+                                                   CMTime presentationTimeStamp, CMTime presentationDuration)
     {
-        auto *decoder = static_cast<AFVTBDecoder *> (decompressionOutputRefCon);
+        auto *decoder = static_cast<AFVTBDecoder *>(decompressionOutputRefCon);
         IAFPacket *packet = static_cast<IAFPacket *>(sourceFrameRefCon);
         unique_ptr<PBAFFrame> pbafFrame{};
 
@@ -676,10 +669,99 @@ namespace Cicada {
             return decoder->onDecoded(packet, nullptr, status);
         }
 
+        decoder->updatePixelBufferColorInfo(imageBuffer);
+
         int64_t duration = presentationDuration.value * (1000000.0 / presentationDuration.timescale);
         int64_t pts = presentationTimeStamp.value * (1000000.0 / presentationTimeStamp.timescale);
         pbafFrame = unique_ptr<PBAFFrame>(new PBAFFrame(imageBuffer, pts, duration));
         return decoder->onDecoded(packet, move(pbafFrame), status);
+    }
+    void AFVTBDecoder::updatePixelBufferColorInfo(CVImageBufferRef imageBuffer)
+    {
+        // Strip the attachments added by VT. They are likely wrong.
+        //           CVBufferRemoveAllAttachments(imageBuffer);
+        Stream_meta *meta = ((Stream_meta *) (*(mPInMeta)));
+        CFStringRef value = nullptr;
+        switch (meta->color_primaries) {
+            case AFCOL_PRI_BT709:
+                value = kCVImageBufferColorPrimaries_ITU_R_709_2;
+                break;
+            case AFCOL_PRI_SMPTE170M:
+                value = kCVImageBufferColorPrimaries_SMPTE_C;
+                break;
+            case AFCOL_PRI_BT2020:
+                value = kCVImageBufferColorPrimaries_ITU_R_2020;
+                break;
+            default:
+                value = nullptr;
+                break;
+        }
+        if (value) {
+            CVBufferSetAttachment(imageBuffer, kCVImageBufferColorPrimariesKey, value, kCVAttachmentMode_ShouldPropagate);
+        }
+
+        switch (meta->color_trc) {
+            case AFCOL_TRC_BT709:
+            case AFCOL_TRC_SMPTE170M:
+                value = kCVImageBufferTransferFunction_ITU_R_709_2;
+                break;
+            case AFCOL_TRC_BT2020_10:
+                value = kCVImageBufferTransferFunction_ITU_R_2020;
+                break;
+            case AFCOL_TRC_SMPTE2084:
+#if TARGET_OS_IPHONE
+                if (__builtin_available(iOS 11.0, *))
+#else
+                if (__builtin_available(macOS 10.13, *))
+#endif
+                {
+                    value = kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ;
+                }
+                break;
+            case AFCOL_TRC_SMPTE428:
+#if TARGET_OS_IPHONE
+                if (__builtin_available(iOS 10.0, *))
+#else
+                if (__builtin_available(macOS 10.12, *))
+#endif
+                {
+                    value = kCVImageBufferTransferFunction_SMPTE_ST_428_1;
+                }
+                break;
+            default:
+                value = nullptr;
+                break;
+        }
+        if (value) {
+            CVBufferSetAttachment(imageBuffer, kCVImageBufferTransferFunctionKey, value, kCVAttachmentMode_ShouldPropagate);
+        }
+
+        switch (meta->color_space) {
+            case AFCOL_SPC_BT709:
+                value = kCGColorSpaceITUR_709;
+                CVBufferSetAttachment(imageBuffer, kCVImageBufferYCbCrMatrixKey, kCVImageBufferYCbCrMatrix_ITU_R_709_2,
+                                      kCVAttachmentMode_ShouldPropagate);
+                break;
+            case AFCOL_SPC_BT2020_NCL:
+                value = kCGColorSpaceITUR_2020;
+                CVBufferSetAttachment(imageBuffer, kCVImageBufferYCbCrMatrixKey, kCVImageBufferYCbCrMatrix_ITU_R_2020,
+                                      kCVAttachmentMode_ShouldPropagate);
+                break;
+            case AFCOL_SPC_SMPTE170M:
+                value = kCGColorSpaceSRGB;
+                CVBufferSetAttachment(imageBuffer, kCVImageBufferYCbCrMatrixKey, kCVImageBufferYCbCrMatrix_ITU_R_601_4,
+                                      kCVAttachmentMode_ShouldPropagate);
+                break;
+            default:
+                value = nullptr;
+                break;
+        }
+        if (value && m_ColorSpace == nullptr) {
+            m_ColorSpace = CGColorSpaceCreateWithName(value);
+        }
+        if (m_ColorSpace != nullptr) {
+            CVBufferSetAttachment(imageBuffer, kCVImageBufferCGColorSpaceKey, m_ColorSpace, kCVAttachmentMode_ShouldPropagate);
+        }
     }
 
     int AFVTBDecoder::dequeue_decoder(unique_ptr<IAFFrame> &pFrame)
@@ -700,9 +782,8 @@ namespace Cicada {
 
             int64_t poc = (*mReorderFrameMap.begin()).first;
 
-            if (poc < 0 || mOutputPoc < 0
-                    || (mReorderFrameMap.size() >= IOS_OUTPUT_CACHE_FOR_B_FRAMES)
-                    || (poc - mOutputPoc == mPocDelta)) {
+            if (poc < 0 || mOutputPoc < 0 || (mReorderFrameMap.size() >= IOS_OUTPUT_CACHE_FOR_B_FRAMES) ||
+                (poc - mOutputPoc == mPocDelta)) {
                 mOutputPoc = poc;
             } else {
                 return -EAGAIN;
@@ -804,9 +885,9 @@ namespace Cicada {
         AF_LOGD("ios bg decoder appWillResignActive");
         mActive = false;
         mResignActive = true;
-//        if (mDecodedHandler) {
-//            mDecodedHandler->OnDecodedMsgHandle(CICADA_VDEC_WARNING_IOS_RESIGN_ACTIVE);
-//        }
+        //        if (mDecodedHandler) {
+        //            mDecodedHandler->OnDecodedMsgHandle(CICADA_VDEC_WARNING_IOS_RESIGN_ACTIVE);
+        //        }
     }
 
     void AFVTBDecoder::AppDidBecomeActive()
@@ -837,4 +918,4 @@ namespace Cicada {
         }
     }
 
-} // namespace
+}// namespace Cicada
