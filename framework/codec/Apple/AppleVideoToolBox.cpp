@@ -266,8 +266,18 @@ namespace Cicada {
         CFMutableDictionaryRef extensions = CFDictionaryCreateMutable(nullptr, 0, &kCFTypeDictionaryKeyCallBacks,
                                             &kCFTypeDictionaryValueCallBacks);
         /* CVPixelAspectRatio dict */
-        dict_set_i32(par, CFSTR ("HorizontalSpacing"), 0);
-        dict_set_i32(par, CFSTR ("VerticalSpacing"), 0);
+        Stream_meta *meta = ((Stream_meta *) (*(mPInMeta)));
+
+
+        float HSpacing = 1.0;
+        float VSpacing = 1.0;
+
+        if (meta->displayHeight && meta->displayWidth) {
+            VSpacing = (float) meta->displayHeight / height;
+            HSpacing = (float) meta->displayWidth / width;
+        }
+        dict_set_i32(par, CFSTR("HorizontalSpacing"), HSpacing);
+        dict_set_i32(par, CFSTR("VerticalSpacing"), VSpacing);
 
         /* SampleDescriptionExtensionAtoms dict */
         switch (mVideoCodecType) {
