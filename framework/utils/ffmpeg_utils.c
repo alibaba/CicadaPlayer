@@ -534,6 +534,11 @@ int get_stream_meta(const struct AVStream *pStream, Stream_meta *meta)
         meta->height = pStream->codecpar->height;
         meta->profile = pStream->codecpar->profile;
         meta->pixel_fmt = pStream->codecpar->format;
+        meta->color_range = (enum AFColorRange) pStream->codecpar->color_range;
+        meta->color_primaries = (enum AFColorPrimaries) pStream->codecpar->color_primaries;
+        meta->color_space = (enum AFColorSpace) pStream->codecpar->color_space;
+        meta->chroma_location = (enum AFChromaLocation) pStream->codecpar->chroma_location;
+        meta->color_trc = (enum AFColorTransferCharacteristic) pStream->codecpar->color_trc;
 
         if (meta->codec == AF_CODEC_ID_H264) {
             meta->interlaced = InterlacedType_UNKNOWN;
