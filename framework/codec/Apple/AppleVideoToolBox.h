@@ -96,6 +96,8 @@ namespace Cicada{
 
         void AppDidBecomeActive() override;
 
+        void updatePixelBufferColorInfo(CVImageBufferRef imageBuffer);
+
 #if 0
         void outputByPoc(VideoFrame *CM_NULLABLE beCachedFrame, int poc);
 #endif
@@ -125,6 +127,7 @@ namespace Cicada{
         bool mIsDummy = false;
         int mPocErrorCount{0};
         OSType outPutFormat{kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange};
+        _Nullable CGColorSpaceRef m_ColorSpace{nullptr};
     };
 
 }
