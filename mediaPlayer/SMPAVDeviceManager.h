@@ -102,7 +102,7 @@ namespace Cicada {
 
         uint64_t getVideoDecoderFlags();
 
-        int createVideoRender();
+        int createVideoRender(uint64_t flags);
 
         void destroyVideoRender();
 
@@ -134,6 +134,7 @@ namespace Cicada {
         bool mMute{false};
         std::unique_ptr<IVideoRender> mVideoRender{nullptr};
         bool mVideoRenderValid{false};
+        uint64_t mVideoRenderFlags{0};
     };
 }// namespace Cicada
 

@@ -295,7 +295,7 @@ namespace Cicada {
 
 //        void setRotationMode(RotateMode rotateMode, MirrorMode mirrorMode) const;
 
-        bool CreateVideoRender();
+        bool CreateVideoRender(uint64_t flags);
 
         int CreateVideoDecoder(bool bHW, Stream_meta &meta);
 

@@ -8,7 +8,8 @@
 #endif
 
 #ifdef __APPLE__
-    #include <render/audio/Apple/AFAudioQueueRender.h>
+#include <render/audio/Apple/AFAudioQueueRender.h>
+#include <render/video/AVFoundation/AVFoundationVideoRender.h>
 #endif
 
 
@@ -66,8 +67,15 @@ std::unique_ptr<IAudioRender> AudioRenderFactory::create()
     return nullptr;
 }
 
-std::unique_ptr<IVideoRender> videoRenderFactory::create()
+unique_ptr<IVideoRender> videoRenderFactory::create(uint64_t flags)
 {
+    if (flags & FLAG_HDR){
+#ifdef __APPLE__
+        return std::unique_ptr<IVideoRender>(new AVFoundationVideoRender());
+#endif
+        return nullptr;
+    }
+
 #if defined(GLRENDER)
     return std::unique_ptr<IVideoRender>(new GLRender());
 #elif defined(ENABLE_SDL)

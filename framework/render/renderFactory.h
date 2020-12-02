@@ -7,7 +7,7 @@
 
 #include "render/audio/IAudioRender.h"
 #include "render/video/IVideoRender.h"
-namespace Cicada{
+namespace Cicada {
     class AudioRenderFactory {
     public:
         static std::unique_ptr<IAudioRender> create();
@@ -15,8 +15,9 @@ namespace Cicada{
 
     class videoRenderFactory {
     public:
-        static std::unique_ptr<IVideoRender> create();
+        static const uint64_t FLAG_HDR = (1 << 0);
+        static std::unique_ptr<IVideoRender> create(uint64_t flags = 0);
     };
-}
+}// namespace Cicada
 
-#endif //CICADA_PLAYER_RENDERFACTORY_H
+#endif//CICADA_PLAYER_RENDERFACTORY_H
