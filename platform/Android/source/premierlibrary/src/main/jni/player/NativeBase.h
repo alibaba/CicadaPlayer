@@ -36,7 +36,6 @@ public:
 
     static int registerMethod(JNIEnv *pEnv);
 
-
 public:
     static void java_Construct(JNIEnv *env, jobject instance, jstring name);
 
@@ -149,6 +148,11 @@ public:
 
     static void java_SetDefaultBandWidth(JNIEnv *env , jobject instance , jint defaultBandWidth);
 public:
+
+    static void onRequestProvisionCallback(char**responseData, int* responseSize, const char* url, const char *data, int size , void *arg);
+
+    static void onRequestKeyCallback(char**responseData, int* responseSize, const char* url, const char *data, int size , void *arg);
+
     static void jni_onError(int64_t code, const void *msg, /*void *extra, */void *userData);
 
     static void jni_onEvent(int64_t code, const void *msg, /*void *extra, */void *userData);
@@ -197,6 +201,10 @@ public:
                         void *userData);
 
     static void jni_onSubTitleExtAdd(int64_t index, const void *url, void *userData);
+
+    static jbyteArray  jni_requestProvision(const std::string& url , void* data, int size, void *userData);
+
+    static jbyteArray  jni_requestKey(const std::string& url , void* data, int size , int type, void *userData);
 
 private:
     static int64_t mapStatus(int64_t status);

@@ -14,6 +14,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +36,7 @@ import com.cicada.player.demo.listener.LockPortraitListener;
 import com.cicada.player.demo.listener.ViewAction;
 import com.cicada.player.demo.util.BrightnessUtil;
 import com.cicada.player.demo.util.DensityUtils;
+import com.cicada.player.demo.util.HttpClientHelper;
 import com.cicada.player.demo.util.NetWatchdog;
 import com.cicada.player.demo.util.OrientationWatchDog;
 import com.cicada.player.demo.util.ScreenUtils;
@@ -51,8 +54,12 @@ import com.cicada.player.nativeclass.MediaInfo;
 import com.cicada.player.nativeclass.PlayerConfig;
 import com.cicada.player.nativeclass.TrackInfo;
 import com.cicada.player.utils.Logger;
+import com.cicada.player.utils.media.DrmCallback;
+
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.nio.charset.Charset;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -77,7 +84,7 @@ public class CicadaVodPlayerView extends FrameLayout {
     /**
      * 视频画面
      */
-    private TextureView mTextureView;
+    private SurfaceView mTextureView;
     /**
      * 手势操作view
      */
@@ -1053,18 +1060,17 @@ public class CicadaVodPlayerView extends FrameLayout {
      */
     private void initTextureView() {
         boolean selectedCicadaPlayer = SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.SELECTED_CICADA_PLAYER);
-        mTextureView = new ExternExoTextureView(getContext().getApplicationContext());
+        mTextureView = new SurfaceView(getContext().getApplicationContext());
         addTextureView(mTextureView);
-
-        mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+        mTextureView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
-            public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
+            public void surfaceCreated(SurfaceHolder surfaceHolder) {
                 if (mCicadaVodPlayer != null) {
-                    ExternExoSurface surface = new ExternExoSurface(surfaceTexture);
-                    if(!selectedCicadaPlayer){
-                        surface.setTextureView(mTextureView);
-                    }
-                    mCicadaVodPlayer.setSurface(surface);
+//                    ExternExoSurface surface = new ExternExoSurface(surfaceTexture);
+//                    if(!selectedCicadaPlayer){
+//                        surface.setTextureView(mTextureView);
+//                    }
+                    mCicadaVodPlayer.setSurface(surfaceHolder.getSurface());
 
                     //防止黑屏
                     mCicadaVodPlayer.redraw();
@@ -1072,27 +1078,18 @@ public class CicadaVodPlayerView extends FrameLayout {
             }
 
             @Override
-            public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
-                if (mCicadaVodPlayer != null) {
-                    mCicadaVodPlayer.redraw();
-                }
+            public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
+
             }
 
             @Override
-            public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+            public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
                 if (mCicadaVodPlayer != null) {
                     mCicadaVodPlayer.setSurface(null);
                 }
-                return false;
-            }
-
-            @Override
-            public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-
             }
         });
     }
-
 
     private boolean isPlaying() {
         return currentPlayState == CicadaPlayer.started ||
@@ -1105,13 +1102,35 @@ public class CicadaVodPlayerView extends FrameLayout {
      * 初始化播放器
      */
     private void initCicadaPlayer() {
-        Logger.enableConsoleLog(true);
+        Logger.getInstance(getContext()).enableConsoleLog(true);
+        Logger.getInstance(getContext()).setLogLevel(Logger.LogLevel.AF_LOG_LEVEL_TRACE);
         boolean selectedCicadaPlayer = SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.SELECTED_CICADA_PLAYER);
         if(selectedCicadaPlayer){
             mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext());
         }else{
             mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext(), "ExoPlayer");
         }
+
+        //设置drm的callback
+        mCicadaVodPlayer.setDrmCallback(new DrmCallback() {
+            @Override
+            public byte[] requestProvision(String defaultUrl, byte[] data) {
+                String requestUrl = defaultUrl + "&signedRequest=" + new String(data, Charset.forName("UTF-8"));
+                byte[] provisionData = HttpClientHelper.post(requestUrl, null);
+                return provisionData;
+            }
+
+            @Override
+            public byte[] requestKey(String defaultUrl, byte[] data) {
+                if (TextUtils.isEmpty(defaultUrl)) {
+                    defaultUrl = "https://proxy.uat.widevine.com/proxy?provider=widevine_test";
+                }
+
+                byte[] requestData = HttpClientHelper.post(defaultUrl, data);
+                Log.d(TAG , "requestKey data = " + requestData);
+                return requestData;
+            }
+        });
 
         mCicadaVodPlayer.enableHardwareDecoder(SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.CICADA_PLAYER_HARDWARE_DECODER));
 
@@ -1971,7 +1990,7 @@ public class CicadaVodPlayerView extends FrameLayout {
      * 开启底层日志
      */
     public void enableNativeLog() {
-       Logger.enableConsoleLog(true);
+        Logger.getInstance(getContext()).enableConsoleLog(true);
     }
 
 
@@ -1979,7 +1998,7 @@ public class CicadaVodPlayerView extends FrameLayout {
      * 关闭底层日志
      */
     public void disableNativeLog() {
-        Logger.enableConsoleLog(false);
+        Logger.getInstance(getContext()).enableConsoleLog(false);
     }
 
     /**
@@ -1996,9 +2015,9 @@ public class CicadaVodPlayerView extends FrameLayout {
      *
      * @return 播放surfaceView
      */
-    public TextureView getPlayerView() {
-        return mTextureView;
-    }
+//    public TextureView getPlayerView() {
+//        return mTextureView;
+//    }
 
     /**
      * 设置锁定竖屏监听

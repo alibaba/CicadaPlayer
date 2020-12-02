@@ -22,6 +22,7 @@ class AbrAlgoStrategy;
 #include <string>
 #include <utils/AFMediaType.h>
 #include <vector>
+#include <drm/DrmHandler.h>
 
 #ifdef ANDROID
 
@@ -102,6 +103,8 @@ namespace Cicada {
         * when play url not equals SetDataSource , will callback.
         */
         void SetDataSourceChangedCallback(function<void(const string &)> urlChangedCallbak);
+
+        void setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)> & drmCallback);
 
         /*
          *select specific track info

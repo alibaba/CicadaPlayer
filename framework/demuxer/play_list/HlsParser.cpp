@@ -164,11 +164,12 @@ namespace Cicada {
         uint64_t discontinuityNum = 0;
         std::size_t prevbyterangeoffset = 0;
         const SingleValueTag *ctx_byterange = nullptr;
-        SegmentEncryption encryption;
+        std::vector<SegmentEncryption> encryptionArray;
         const ValuesListTag *ctx_extinf = nullptr;
         std::list<Tag *>::const_iterator it;
         std::shared_ptr<segment> curInitSegment = nullptr;
         std::vector<SegmentPart> segmentParts;
+        bool clearKeyArray = true;
 
         for (it = tagslist.begin(); it != tagslist.end(); ++it) {
             const Tag *tag = *it;
@@ -242,8 +243,9 @@ namespace Cicada {
 
                     pSegment->discontinuityNum = discontinuityNum;
 
-                    if (encryption.method != SegmentEncryption::NONE) {
-                        pSegment->setEncryption(encryption);
+                    if(!encryptionArray.empty()) {
+                        pSegment->setEncryption(encryptionArray);
+                        clearKeyArray = true;
                     }
                 } break;
 
@@ -268,6 +270,13 @@ namespace Cicada {
                     break;
 
                 case AttributesTag::EXTXKEY: {
+
+                    if(clearKeyArray) {
+                        encryptionArray.clear();
+                        clearKeyArray = false;
+                    }
+
+                    SegmentEncryption encryption{};
                     const auto *keytag = static_cast<const AttributesTag *>(tag);
 
                     if (keytag->getAttributeByName("METHOD") &&
@@ -306,15 +315,20 @@ namespace Cicada {
                             encryption.ivStatic = true;
                         }
 
+                        string keyFormat;
                         if (keytag->getAttributeByName("KEYFORMAT")) {
-                            encryption.keyFormat = keytag->getAttributeByName("KEYFORMAT")->quotedString();
+                            keyFormat = keytag->getAttributeByName("KEYFORMAT")->quotedString();
                         }
+                        encryption.keyFormat = keyFormat;
+
                     } else {
                         /* unsupported or invalid */
                         encryption.method = SegmentEncryption::NONE;
                         encryption.keyUrl = "";
                         encryption.iv.clear();
                     }
+
+                    encryptionArray.push_back(encryption);
                 }
                 break;
 
@@ -417,8 +431,9 @@ namespace Cicada {
                 ctx_byterange = nullptr;
             }
 
-            if (encryption.method != SegmentEncryption::NONE) {
-                pSegment->setEncryption(encryption);
+            if(!encryptionArray.empty()) {
+                pSegment->setEncryption(encryptionArray);
+                clearKeyArray = true;
             }
     
             pSegment->init_section = curInitSegment;

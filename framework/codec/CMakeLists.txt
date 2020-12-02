@@ -10,7 +10,6 @@ target_sources(videodec PRIVATE
         IDecoder.h
         codecPrototype.cpp
         codecPrototype.h
-        videoDecoderFactory.cpp
         decoderFactory.cpp
         decoderFactory.h
         ActiveDecoder.cpp
@@ -28,12 +27,15 @@ endif ()
 if (ANDROID AND ENABLE_MEDIA_CODEC_DECODER)
     target_compile_definitions(videodec PRIVATE ENABLE_MEDIA_CODEC_DECODER)
     target_sources(videodec PRIVATE
-            Android/mediaCodec.h
-            Android/mediaCodec.cpp
-            Android/mediacodec_jni.h
-            Android/mediacodec_jni.cpp
             Android/mediaCodecDecoder.h
             Android/mediaCodecDecoder.cpp
+
+            Android/jni/MediaCodec_Decoder.h
+            Android/jni/MediaCodec_Decoder.cpp
+            Android/jni/OutputBufferInfo.h
+            Android/jni/OutputBufferInfo.cpp
+            Android/jni/JEncryptionInfo.h
+            Android/jni/JEncryptionInfo.cpp
             )
 endif ()
 

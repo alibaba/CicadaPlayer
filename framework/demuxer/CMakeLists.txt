@@ -24,6 +24,8 @@ target_sources(demuxer PRIVATE
         avFormatDemuxer.h
         AVBSF.cpp
         AVBSF.h
+        AdtsBSF.cpp
+        AdtsBSF.h
         sample_decrypt/HLSSampleAesDecrypter.h
         sample_decrypt/HLSSampleAesDecrypter.cpp
         demuxerPrototype.cpp

@@ -356,6 +356,11 @@ typedef struct {
     char *description;
 
     Source_meta *meta;
+
+    //add for stand drm(WideVine,FairPlay...)
+    char* keyUrl;
+    char* keyFormat;
+
 } Stream_meta;
 
 

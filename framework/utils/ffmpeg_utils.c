@@ -2,16 +2,22 @@
 // Created by moqi on 2019-07-08.
 //
 
+#include "ffmpeg_utils.h"
+#include <assert.h>
 #include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
+#include <libavcodec/h264_parse.h>
+#include <libavcodec/h264_ps.h>
+#include <libavcodec/hevc_parse.h>
+#include <libavcodec/hevc_ps.h>
+#include <libavcodec/hevc_sei.h>
 #include <libavformat/avc.h>
-#include <libavformat/hevc.h>
+#include <libavformat/avformat.h>
 #include <libavformat/avio_internal.h>
+#include <libavformat/hevc.h>
+#include <libavutil/avstring.h>
+#include <libavutil/intreadwrite.h>
 #include <pthread.h>
 #include <utils/frame_work_log.h>
-#include <libavutil/avstring.h>
-#include <assert.h>
-#include "ffmpeg_utils.h"
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -791,4 +797,192 @@ const char *getErrorString(int err)
 {
     av_strerror(err, errorBuff, sizeof(errorBuff));
     return errorBuff;
+}
+
+int h2645_ps_to_nalu(const uint8_t *src, int src_size, uint8_t **out, int *out_size)
+{
+    int i;
+    int ret = 0;
+    uint8_t *p = NULL;
+    static const uint8_t nalu_header[] = { 0x00, 0x00, 0x00, 0x01 };
+
+    if (!out || !out_size) {
+        return AVERROR(EINVAL);
+    }
+
+    p = av_malloc(sizeof(nalu_header) + src_size);
+    if (!p) {
+        return AVERROR(ENOMEM);
+    }
+
+    *out = p;
+    *out_size = sizeof(nalu_header) + src_size;
+
+    memcpy(p, nalu_header, sizeof(nalu_header));
+    memcpy(p + sizeof(nalu_header), src, src_size);
+
+    /* Escape 0x00, 0x00, 0x0{0-3} pattern */
+    for (i = 4; i < *out_size; i++) {
+        if (i < *out_size - 3 &&
+            p[i + 0] == 0 &&
+            p[i + 1] == 0 &&
+            p[i + 2] <= 3) {
+            uint8_t *new_data;
+
+            *out_size += 1;
+            new_data = av_realloc(*out, *out_size);
+            if (!new_data) {
+                ret = AVERROR(ENOMEM);
+                goto done;
+            }
+            *out = p = new_data;
+
+            i = i + 2;
+            memmove(p + i + 1, p + i, *out_size - (i + 1));
+            p[i] = 0x03;
+        }
+    }
+    done:
+    if (ret < 0) {
+        av_freep(out);
+        *out_size = 0;
+    }
+
+    return ret;
+}
+
+int parse_h264_extraData(enum AVCodecID codecId, const uint8_t* extraData,int extraData_size,
+                         uint8_t** sps_data ,int*sps_data_size,
+                         uint8_t** pps_data, int* pps_data_size,
+                         int* nal_length_size
+                         )
+{
+    AVCodec *codec = avcodec_find_decoder(codecId);
+    if (codec == NULL) {
+        return -1;
+    }
+
+    AVCodecContext *avctx = avcodec_alloc_context3((const AVCodec *) codec);
+    if (avctx == NULL) {
+        return -1;
+    }
+
+    int ret;
+
+    H264ParamSets ps;
+    const PPS *pps = NULL;
+    const SPS *sps = NULL;
+    int is_avc = 0;
+
+    memset(&ps, 0, sizeof(ps));
+
+    ret = ff_h264_decode_extradata((const uint8_t *) extraData, extraData_size, &ps, &is_avc, nal_length_size, 0, avctx);
+    if (ret < 0) {
+        goto done;
+    }
+
+    int i;
+    for (i = 0; i < MAX_PPS_COUNT; i++) {
+        if (ps.pps_list[i]) {
+            pps = (const PPS *) ps.pps_list[i]->data;
+            break;
+        }
+    }
+
+    if (pps) {
+        if (ps.sps_list[pps->sps_id]) {
+            sps = (const SPS *) ps.sps_list[pps->sps_id]->data;
+        }
+    }
+
+    if (pps && sps) {
+
+        if ((ret = h2645_ps_to_nalu(sps->data, sps->data_size, sps_data, sps_data_size)) < 0) {
+            goto done;
+        }
+
+        if ((ret = h2645_ps_to_nalu(pps->data, pps->data_size, pps_data, pps_data_size)) < 0) {
+            goto done;
+        }
+    } else {
+        av_log(avctx, AV_LOG_ERROR, "Could not extract PPS/SPS from extradata");
+        ret = AVERROR_INVALIDDATA;
+    }
+
+    done:
+    ff_h264_ps_uninit(&ps);
+    avcodec_free_context(&avctx);
+    return ret;
+}
+
+int parse_h265_extraData(enum AVCodecID codecId, const uint8_t* extradata,int extradata_size,
+                         uint8_t** vps_data ,int*vps_data_size,
+                         uint8_t** sps_data ,int*sps_data_size,
+                         uint8_t** pps_data, int* pps_data_size,
+                         int* nal_length_size)
+{
+    AVCodec *codec = avcodec_find_decoder(codecId);
+    if (codec == NULL) {
+        return -1;
+    }
+
+    AVCodecContext *avctx = avcodec_alloc_context3((const AVCodec *) codec);
+    if (avctx == NULL) {
+        return -1;
+    }
+
+    int i;
+    int ret;
+
+    HEVCParamSets ps;
+    HEVCSEI sei;
+
+    const HEVCVPS *vps = NULL;
+    const HEVCPPS *pps = NULL;
+    const HEVCSPS *sps = NULL;
+    int is_nalff = 0;
+
+    memset(&ps, 0, sizeof(ps));
+    memset(&sei, 0, sizeof(sei));
+
+    ret = ff_hevc_decode_extradata(extradata, extradata_size, &ps, &sei, &is_nalff, nal_length_size, 0, 1, avctx);
+    if (ret < 0) {
+        goto done;
+    }
+
+    for (i = 0; i < HEVC_MAX_VPS_COUNT; i++) {
+        if (ps.vps_list[i]) {
+            vps = (const HEVCVPS *) ps.vps_list[i]->data;
+            break;
+        }
+    }
+
+    for (i = 0; i < HEVC_MAX_PPS_COUNT; i++) {
+        if (ps.pps_list[i]) {
+            pps = (const HEVCPPS *) ps.pps_list[i]->data;
+            break;
+        }
+    }
+
+    if (pps) {
+        if (ps.sps_list[pps->sps_id]) {
+            sps = (const HEVCSPS *) ps.sps_list[pps->sps_id]->data;
+        }
+    }
+
+    if (vps && pps && sps) {
+        if ((ret = h2645_ps_to_nalu(vps->data, vps->data_size, vps_data, vps_data_size)) < 0 ||
+            (ret = h2645_ps_to_nalu(sps->data, sps->data_size, sps_data, sps_data_size)) < 0 ||
+            (ret = h2645_ps_to_nalu(pps->data, pps->data_size, pps_data, pps_data_size)) < 0) {
+            goto done;
+        }
+    } else {
+        av_log(avctx, AV_LOG_ERROR, "Could not extract VPS/PPS/SPS from extradata");
+        ret = AVERROR_INVALIDDATA;
+    }
+
+    done:
+    ff_hevc_ps_uninit(&ps);
+    avcodec_free_context(&avctx);
+    return ret;
 }

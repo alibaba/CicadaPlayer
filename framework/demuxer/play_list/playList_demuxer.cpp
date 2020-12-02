@@ -61,7 +61,7 @@ namespace Cicada {
         playlistManager->setOptions(mOpts);
         playlistManager->setExtDataSource(mProxySource);
         playlistManager->setDataSourceConfig(sourceConfig);
-        playlistManager->setBitStreamFormat(mMergeVideoHeader, mMergerAudioHeader);
+        playlistManager->setBitStreamFormat(mMergeVideoHeader, mMergeAudioHeader);
         mPPlaylistManager = playlistManager;
         ret = playlistManager->init();
 

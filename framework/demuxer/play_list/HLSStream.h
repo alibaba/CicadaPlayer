@@ -150,7 +150,7 @@ namespace Cicada {
 
         int updateSegment();
 
-        bool updateIV() const;
+        bool updateIV();
 
         enum OpenType {
             SegNum, SegPosition
@@ -226,7 +226,7 @@ namespace Cicada {
         int64_t mLiveStartIndex{-3};
 
         std::string mDRMMagicKey{};
-        
+        SegmentEncryption mCurrentEncryption{};
     };
 }
 
