@@ -40,13 +40,19 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
     if (decoderHandle->valid) {
         return 0;
     }
+
+    DrmInfo drmInfo{};
+    drmInfo.format = meta->keyFormat == nullptr ? "" : meta->keyFormat;
+    drmInfo.uri = meta->keyUrl == nullptr ? "" : meta->keyUrl;
+
     if (decoderHandle->decoder) {
-        if (decoderHandle->match(meta, decFlag, device, dstFormat) && decoderHandle->decoder->supportReuse()) {// reuse decoder
+        if (decoderHandle->match(meta, decFlag, device, dstFormat, drmInfo) && decoderHandle->decoder->supportReuse()) {// reuse decoder
 
             AF_LOGI("reuse decoder %s\n", type == DEVICE_TYPE_VIDEO ? "video" : "audio ");
             decoderHandle->valid = true;
             decoderHandle->meta = *meta;
             decoderHandle->mDstFormat = dstFormat;
+            decoderHandle->mDrmInfo = drmInfo;
             flushVideoRender();
             decoderHandle->decoder->flush();
             decoderHandle->decoder->pause(false);
@@ -63,10 +69,12 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
     decoderHandle->meta = *meta;
     decoderHandle->decFlag = decFlag;
     decoderHandle->device = device;
-    decoderHandle->decoder = decoderFactory::create(meta->codec, decFlag, std::max(meta->height, meta->width));
+    decoderHandle->mDrmInfo = drmInfo;
+    decoderHandle->decoder = decoderFactory::create(*meta, decFlag, std::max(meta->height, meta->width),drmInfo);
     if (decoderHandle->decoder == nullptr) {
         return gen_framework_errno(error_class_codec, codec_error_video_not_support);
     }
+    decoderHandle->decoder->setRequireDrmHandlerCallback(mRequireDrmHandlerCallback);
     int ret;
     if (dstFormat) {
 #ifdef __APPLE__
@@ -79,7 +87,7 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
         }
 #endif
     }
-    ret = decoderHandle->decoder->open(meta, device, decFlag);
+    ret = decoderHandle->decoder->open(meta, device, decFlag,drmInfo);
     if (ret < 0) {
         AF_LOGE("config decoder error ret= %d \n", ret);
         decoderHandle->decoder = nullptr;
@@ -316,4 +324,9 @@ void SMPAVDeviceManager::destroyVideoRender()
 {
     mVideoRender = nullptr;
     mVideoRenderValid = false;
+}
+
+void SMPAVDeviceManager::setRequireDrmHandlerCallback(
+       const std::function<DrmHandler *(const DrmInfo &)>& callback) {
+        mRequireDrmHandlerCallback  = callback;
 }

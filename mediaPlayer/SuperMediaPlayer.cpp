@@ -58,8 +58,11 @@ SuperMediaPlayer::SuperMediaPlayer()
     mApsaraThread = static_cast<unique_ptr<afThread>>(new afThread([this]() -> int { return this->mainService(); }, LOG_TAG));
     mSourceListener = static_cast<unique_ptr<SuperMediaPlayerDataSourceListener>>(new SuperMediaPlayerDataSourceListener(*this));
     mDcaManager = static_cast<unique_ptr<SMP_DCAManager>>(new SMP_DCAManager(*this));
-
+    mDrmManager = static_cast<std::unique_ptr<DrmManager>>(new DrmManager());
     mAVDeviceManager = static_cast<unique_ptr<SMPAVDeviceManager>>(new SMPAVDeviceManager());
+    mAVDeviceManager->setRequireDrmHandlerCallback([this](const DrmInfo& info) -> DrmHandler* {
+        return  mDrmManager->require(info);
+    });
 
     mPNotifier = new PlayerNotifier();
     Reset();
@@ -425,6 +428,9 @@ int SuperMediaPlayer::Stop()
     }
     mBufferController->ClearPacket(BUFFER_TYPE_SUBTITLE);
     Reset();
+
+    mDrmManager->clearErrorItems();
+
     AF_LOGD("stop spend time is %lld", af_gettime_ms() - t1);
     return 0;
 }
@@ -2906,7 +2912,18 @@ int SuperMediaPlayer::setUpAudioDecoder(const Stream_meta *meta)
         ProcessMuteMsg();
     }
 
-    ret = mAVDeviceManager->setUpDecoder(DECFLAG_SW, meta, nullptr, SMPAVDeviceManager::DEVICE_TYPE_AUDIO, 0);
+    uint64_t flags = DECFLAG_SW;
+
+#ifdef ANDROID
+    bool isWideVineVideo = (meta->keyFormat != nullptr
+            && strcmp(meta->keyFormat,"urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed") == 0);
+    if (isWideVineVideo) {
+        flags = DECFLAG_HW;
+    }
+#endif
+
+    ret = mAVDeviceManager->setUpDecoder(flags, meta, nullptr, SMPAVDeviceManager::DEVICE_TYPE_AUDIO, 0);
+
     if (ret < 0) {
         MediaPlayerEventType type = MEDIA_PLAYER_EVENT_AUDIO_DECODER_DEVICE_ERROR;
         if (ret == gen_framework_errno(error_class_codec, codec_error_audio_not_support)) {
@@ -3006,15 +3023,22 @@ int SuperMediaPlayer::SetUpVideoPath()
     updateVideoMeta();
     auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
     bool isHDRVideo = false;
-
+    //support Android only for now
+#ifdef ANDROID
     if (meta->pixel_fmt == AF_PIX_FMT_YUV420P10BE || meta->pixel_fmt == AF_PIX_FMT_YUV420P10LE) {
         AF_LOGI("HDR video\n");
         isHDRVideo = true;
     }
+    bool isWideVineVideo = (meta->keyFormat != nullptr && strcmp(meta->keyFormat, "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed") == 0);
+#endif
     /*
      * HDR video, try use decoder to render first
      */
-    if (mSet->bEnableTunnelRender) {
+    if (mSet->bEnableTunnelRender
+#ifdef ANDROID
+    || isWideVineVideo
+#endif
+    ) {
         mAVDeviceManager->destroyVideoRender();
         mNeedVideoRender = false;
     }
@@ -3406,9 +3430,9 @@ void SuperMediaPlayer::ProcessPrepareMsg()
     // TODO: video tool box HW decoder not merge the header
     if (mDemuxerService->getDemuxerHandle()) {
 #ifdef __APPLE__
-        mDemuxerService->getDemuxerHandle()->setBitStreamFormat(false, false);
+        mDemuxerService->getDemuxerHandle()->setBitStreamFormat(header_type::header_type_xVcc, header_type::header_type_xVcc);
 #else
-        mDemuxerService->getDemuxerHandle()->setBitStreamFormat(true, true);
+        mDemuxerService->getDemuxerHandle()->setBitStreamFormat(header_type::header_type_annexb, header_type::header_type_annexb);
 #endif
         if (noFile) {
             IDataSource::SourceConfig config;
@@ -4173,4 +4197,8 @@ void SuperMediaPlayer::SetAudioRenderingCallBack(onRenderFrame cb, void *userDat
 int SuperMediaPlayer::invokeComponent(std::string content)
 {
     return mDcaManager->invoke(content);
+}
+
+void SuperMediaPlayer::setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)>  &drmCallback) {
+    mDrmManager->setDrmCallback(drmCallback);
 }

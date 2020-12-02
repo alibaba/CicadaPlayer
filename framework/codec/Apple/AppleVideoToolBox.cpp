@@ -117,7 +117,7 @@ namespace Cicada {
         return 0;
     }
 
-    int AFVTBDecoder::init_decoder(const Stream_meta *meta, void *voutObsr, uint64_t flags)
+    int AFVTBDecoder::init_decoder(const Stream_meta *meta, void *voutObsr, uint64_t flags, const DrmInfo& drmInfo)
     {
         if (meta->pixel_fmt == AF_PIX_FMT_YUV422P || meta->pixel_fmt == AF_PIX_FMT_YUVJ422P || meta->interlaced == InterlacedType_YES) {
             return -ENOTSUP;
@@ -129,6 +129,21 @@ namespace Cicada {
         ((Stream_meta *) (*(mPInMeta)))->lang = nullptr;
         ((Stream_meta *) (*(mPInMeta)))->description = nullptr;
         ((Stream_meta *) (*(mPInMeta)))->meta = nullptr;
+
+        if(meta->keyUrl != nullptr) {
+            ((Stream_meta *) (*(mPInMeta)))->keyUrl = (char*)malloc(strlen(meta->keyUrl));
+            memcpy(((Stream_meta *) (*(mPInMeta)))->keyUrl, meta->keyUrl, strlen(meta->keyUrl));
+        }else{
+            ((Stream_meta *) (*(mPInMeta)))->keyUrl = nullptr;
+        }
+
+        if(meta->keyFormat != nullptr) {
+            ((Stream_meta *) (*(mPInMeta)))->keyFormat = (char*)malloc(strlen(meta->keyFormat));
+            memcpy(((Stream_meta *) (*(mPInMeta)))->keyFormat, meta->keyFormat, strlen(meta->keyFormat));
+        }else{
+            ((Stream_meta *) (*(mPInMeta)))->keyFormat = nullptr;
+        }
+        
         mInputCount = 0;
 
         if (meta->codec == AF_CODEC_ID_H264 /*|| meta->codec == AF_CODEC_ID_HEVC*/) {

@@ -14,7 +14,7 @@ android {
     compileSdkVersion 26
 
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 18
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -82,8 +82,6 @@ dependencies {
     } else {
         implementation fileTree(dir: 'libs', include: ['*.jar'])
     }
-
-    implementation 'com.android.support:appcompat-v7:26.1.0'
 }
 
 android {

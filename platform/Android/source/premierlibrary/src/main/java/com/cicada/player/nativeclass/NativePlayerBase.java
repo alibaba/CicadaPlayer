@@ -16,6 +16,8 @@ import com.cicada.player.bean.ErrorCode;
 import com.cicada.player.bean.ErrorInfo;
 import com.cicada.player.bean.InfoBean;
 import com.cicada.player.bean.InfoCode;
+import com.cicada.player.utils.NativeUsed;
+import com.cicada.player.utils.media.DrmCallback;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -48,7 +50,6 @@ public class NativePlayerBase {
         System.loadLibrary("alivcffmpeg");
         System.loadLibrary("CicadaPlayer");
     }
-
 
     private static class MainHandler extends Handler {
         private WeakReference<NativePlayerBase> playerWeakReference;
@@ -85,7 +86,6 @@ public class NativePlayerBase {
     }
 
 
-
     private static Context mContext = null;
     private long mNativeContext;
 
@@ -120,7 +120,7 @@ public class NativePlayerBase {
         //TODO Later : 线程的情况下回调的问题。
         mCurrentThreadHandler = new MainHandler(this, Looper.getMainLooper());
 
-        construct(context , name);
+        construct(context, name);
     }
 
     private static String getUserNativeLibPath(Context context) {
@@ -414,6 +414,7 @@ public class NativePlayerBase {
         }
         return optionValue;
     }
+
     public void setAutoPlay(boolean autoPlay) {
         log(TAG, "setAutoPlay = " + autoPlay);
         nSetAutoPlay(autoPlay);
@@ -431,14 +432,14 @@ public class NativePlayerBase {
         nSnapShot();
     }
 
-    public void addExtSubtitle(String url){
+    public void addExtSubtitle(String url) {
         log(TAG, "addExtSubtitle = " + url);
         nAddExtSubtitle(url);
     }
 
-    public void selectExtSubtitle(int index, boolean select){
+    public void selectExtSubtitle(int index, boolean select) {
         log(TAG, "selectExtSubtitle  index = " + index + " , select = " + select);
-        nSelectExtSubtitle(index,select);
+        nSelectExtSubtitle(index, select);
     }
 
     public void setIPResolveType(CicadaPlayer.IPResolveType type) {
@@ -461,8 +462,7 @@ public class NativePlayerBase {
         nSetBlackType(type);
     }
 
-    public int invokeComponent(String content)
-    {
+    public int invokeComponent(String content) {
         return nInvokeComponent(content);
     }
 
@@ -639,7 +639,7 @@ public class NativePlayerBase {
         mOnVideoSizeChangedListener = l;
     }
 
-    public void setOnVideoRenderedListener(CicadaPlayer.OnVideoRenderedListener l){
+    public void setOnVideoRenderedListener(CicadaPlayer.OnVideoRenderedListener l) {
         log(TAG, "setOnVideoRenderedListener = " + l);
         mOnVideoRenderedListener = l;
         nEnableVideoRenderedCallback(l != null);
@@ -998,7 +998,7 @@ public class NativePlayerBase {
             @Override
             public void run() {
                 if (mOnSubtitleDisplayListener != null) {
-                    mOnSubtitleDisplayListener.onSubtitleHide(trackIndex,id);
+                    mOnSubtitleDisplayListener.onSubtitleHide(trackIndex, id);
                 }
             }
         });
@@ -1038,8 +1038,31 @@ public class NativePlayerBase {
 
     }
 
+    @NativeUsed
+    protected byte[] requestProvision(String url , byte[] data ) {
+        if(mDrmCallback == null) {
+            return null;
+        }else{
+            return mDrmCallback.requestProvision(url,data);
+        }
+    }
+
+    @NativeUsed
+    protected byte[] requestKey(String url, byte[] data) {
+        if (mDrmCallback == null) {
+            return null;
+        } else {
+            return mDrmCallback.requestKey(url, data);
+        }
+    }
+
     public String getCacheFilePath(String URL) {
         return nGetCacheFilePath(URL);
     }
 
+    private DrmCallback mDrmCallback = null;
+
+    public void setDrmCallback(DrmCallback callback) {
+        mDrmCallback = callback;
+    }
 }

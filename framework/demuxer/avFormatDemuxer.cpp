@@ -213,6 +213,8 @@ namespace Cicada {
 
         mStreamCtxMap.clear();
         mPacketQueue.clear();
+        mLastAudioPacketPts = INT64_MIN;
+        mAudioPacketDuration = INT64_MIN;
         bOpened = false;
 
         if (mInputOpts) {
@@ -295,6 +297,20 @@ namespace Cicada {
             AF_LOGW("pkt dts error\n");
         }
 
+        int streamIndex = pkt->stream_index;
+
+        int encryption_info_size;
+        const uint8_t *new_encryption_info = av_packet_get_side_data(pkt,
+                                                                     AV_PKT_DATA_ENCRYPTION_INFO,
+                                                                     &encryption_info_size);
+        if (encryption_info_size > 0 && new_encryption_info != nullptr) {
+            mStreamCtxMap[streamIndex]->bsf = nullptr;
+        } else {
+            if (mStreamCtxMap[streamIndex]->bsf == nullptr) {
+                createBsf(streamIndex);
+            }
+        }
+
         bool needUpdateExtraData = false;
         int new_extradata_size;
         const uint8_t *new_extradata = av_packet_get_side_data(pkt,
@@ -303,7 +319,6 @@ namespace Cicada {
 
         if (new_extradata) {
             AF_LOGI("AV_PKT_DATA_NEW_EXTRADATA");
-            int streamIndex = pkt->stream_index;
             AVCodecParameters *codecpar = mCtx->streams[streamIndex]->codecpar;
             av_free(codecpar->extradata);
             codecpar->extradata = static_cast<uint8_t *>(av_malloc(new_extradata_size + AV_INPUT_BUFFER_PADDING_SIZE));
@@ -348,11 +363,23 @@ namespace Cicada {
         }
 
         if (pkt->duration > 0) {
-            pkt->duration = av_rescale_q(pkt->duration, mCtx->streams[pkt->stream_index]->time_base, av_get_time_base_q());
+            pkt->duration = av_rescale_q(pkt->duration, mCtx->streams[pkt->stream_index]->time_base,
+                                         av_get_time_base_q());
         } else if (mCtx->streams[pkt->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             AVCodecParameters *codecpar = mCtx->streams[pkt->stream_index]->codecpar;
-            if (codecpar->sample_rate > 0) {
+            if (codecpar->sample_rate > 0 && codecpar->frame_size > 0) {
                 pkt->duration = codecpar->frame_size * 1000000 / codecpar->sample_rate;
+            } else {
+                if (mAudioPacketDuration == INT64_MIN && mLastAudioPacketPts != INT64_MIN) {
+                    mAudioPacketDuration = pkt->pts - mLastAudioPacketPts;
+                    mLastAudioPacketPts = INT64_MIN;
+                }
+
+                if (mAudioPacketDuration == INT64_MIN) {
+                    mLastAudioPacketPts = pkt->pts;
+                } else {
+                    pkt->duration = mAudioPacketDuration;
+                }
             }
         }
 
@@ -394,7 +421,6 @@ namespace Cicada {
 
         mStreamCtxMap[index] = unique_ptr<AVStreamCtx>(new AVStreamCtx());
         mStreamCtxMap[index]->opened = true;
-        createBsf(index);
         return 0;
     }
 
@@ -418,7 +444,7 @@ namespace Cicada {
         int ret = 0;
         const AVCodecParameters *codecpar = mCtx->streams[index]->codecpar;
 
-        if (mMergeVideoHeader) {
+        if (mMergeVideoHeader == header_type::header_type_annexb) {
             if (codecpar->codec_id == AV_CODEC_ID_H264 && codecpar->extradata != nullptr && (codecpar->extradata[0] == 1)) {
                 bsfName = "h264_mp4toannexb";
             } else if (codecpar->codec_id == AV_CODEC_ID_HEVC && codecpar->extradata_size >= 5 &&
@@ -428,7 +454,7 @@ namespace Cicada {
             }
 
             // TODO: mpeg4 dump extra bsf
-        } else {
+        } else if (mMergeVideoHeader == header_type::header_type_xVcc) {
             if (codecpar->codec_id == AV_CODEC_ID_H264 && codecpar->extradata != nullptr && (codecpar->extradata[0] != 1)) {
                 bsfName = "h26xAnnexb2xVcc";
             } else if (codecpar->codec_id == AV_CODEC_ID_HEVC && codecpar->extradata_size >= 5 &&
@@ -436,6 +462,8 @@ namespace Cicada {
                          AV_RB24(codecpar->extradata) != 0x000001)) {
                 bsfName = "h26xAnnexb2xVcc";
             }
+        }else if (mMergeVideoHeader == header_type::header_type_no_change) {
+
         }
 
         if (!bsfName.empty()) {
@@ -499,6 +527,7 @@ namespace Cicada {
         }
 
         mPacketQueue.clear();
+        mLastAudioPacketPts = INT64_MIN;
         mError = 0;
         if (mCtx->start_time == INT64_MIN) {
             mCtx->start_time = 0;

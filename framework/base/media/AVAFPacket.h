@@ -10,7 +10,8 @@
 
 extern "C" {
 #include <libavcodec/avcodec.h>
-};
+#include <libavutil/encryption_info.h>
+}
 
 #ifdef __APPLE__
 class PBAFFrame;
@@ -60,10 +61,13 @@ public:
         return mMagicKey;
     }
 
+    bool getEncryptionInfo(EncryptionInfo* dst) override;
+
 private:
     AVPacket *mpkt{nullptr};
     bool mIsProtected;
     std::string mMagicKey{};
+    AVEncryptionInfo *mAVEncryptionInfo{nullptr};
 
     void copyInfo();
 };
@@ -71,6 +75,10 @@ private:
 
 class CICADA_CPLUS_EXTERN AVAFFrame : public IAFFrame {
 public:
+
+    explicit AVAFFrame(const AFFrameInfo &info, const uint8_t **data, const int *lineSize, int lineNums,
+                       IAFFrame::FrameType type = FrameTypeUnknown);
+
     explicit AVAFFrame(AVFrame *frame, FrameType type = FrameTypeUnknown);
 
     explicit AVAFFrame(AVFrame **frame, FrameType type = FrameTypeUnknown);

@@ -11,6 +11,7 @@ extern "C" {
 #include <utils/frame_work_log.h>
 #include "AVBSF.h"
 #include "utils/ffmpeg_utils.h"
+#include "AdtsBSF.h"
 
 namespace Cicada {
     AVBSF::AVBSF()
@@ -193,6 +194,8 @@ namespace Cicada {
     {
         if (name == "h26xAnnexb2xVcc") {
             return new AFAVBSF();
+        }else if(name == "latm2Adts") {
+            return new AdtsBSF();
         }
 
         return new AVBSF();

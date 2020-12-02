@@ -1074,6 +1074,11 @@ namespace Cicada {
         mPlayUrlChangedCallback = urlChangedCallbak;
     }
 
+    void MediaPlayer::setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)> & drmCallback){
+        GET_PLAYER_HANDLE;
+        CicadaSetDrmRequestCallback(handle, drmCallback);
+    }
+
     void MediaPlayer::onMediaFrameCallback(void *arg, const IAFPacket *frame, StreamType type)
     {
         MediaPlayer *player = (MediaPlayer *) arg;
