@@ -13,6 +13,7 @@ import com.cicada.player.nativeclass.MediaInfo;
 import com.cicada.player.nativeclass.NativePlayerBase;
 import com.cicada.player.nativeclass.PlayerConfig;
 import com.cicada.player.nativeclass.TrackInfo;
+import com.cicada.player.utils.media.DrmCallback;
 
 import java.lang.ref.WeakReference;
 
@@ -1064,6 +1065,11 @@ import java.lang.ref.WeakReference;
     public int invokeComponent(String content)
     {
         return mCorePlayer.invokeComponent(content);
+    }
+
+    @Override
+    public void setDrmCallback( DrmCallback callback){
+        mCorePlayer.setDrmCallback(callback);
     }
 }
 

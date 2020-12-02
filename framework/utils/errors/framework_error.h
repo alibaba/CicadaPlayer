@@ -18,6 +18,7 @@ enum error_class {
     error_class_network,
     error_class_codec,
     error_class_format,
+    error_class_drm,
 
     error_class_internal = 0x10,
 };
@@ -49,6 +50,19 @@ enum codec_error {
     codec_error_audio_not_support,
 
     codec_error_video_device_error,
+};
+
+enum drm_error {
+    drm_error_none = 0,
+    drm_error_unsupport_scheme,
+    drm_error_resource_busy,
+    drm_error_key_response_null,
+    drm_error_provision_response_null,
+    drm_error_denied_by_server,
+    drm_error_released,
+    drm_error_provision_fail,
+
+    drm_error_unknow = 99,
 };
 
 // TODO: SEGEND define here?

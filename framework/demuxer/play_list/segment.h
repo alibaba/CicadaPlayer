@@ -35,7 +35,7 @@ namespace Cicada{
 
         void print();
 
-        void setEncryption(SegmentEncryption enc);
+        void setEncryption(const std::vector<SegmentEncryption> &enc);
 
         void setByteRange(int64_t start, int64_t end);
 
@@ -56,7 +56,7 @@ namespace Cicada{
         uint64_t discontinuityNum = 0;
         static const int SEQUENCE_INVALID;
         static const int SEQUENCE_FIRST;
-        SegmentEncryption encryption;
+        std::vector<SegmentEncryption> encryptions;
         int64_t rangeStart {INT64_MIN};
         int64_t rangeEnd {INT64_MIN};
 

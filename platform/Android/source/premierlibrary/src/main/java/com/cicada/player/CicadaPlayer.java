@@ -10,6 +10,8 @@ import com.cicada.player.nativeclass.CacheConfig;
 import com.cicada.player.nativeclass.MediaInfo;
 import com.cicada.player.nativeclass.PlayerConfig;
 import com.cicada.player.nativeclass.TrackInfo;
+import com.cicada.player.utils.media.DrmCallback;
+
 /*
  * Copyright (C) 2010-2017 Alibaba Group Holding Limited.
  */
@@ -1391,4 +1393,9 @@ public interface CicadaPlayer {
     abstract public void setFastStart(boolean open);
 
     abstract public int invokeComponent(String content);
+
+    /**
+     * 设置drm请求。比如播放WideVine时。
+     */
+    abstract public void setDrmCallback(DrmCallback callback);
 }

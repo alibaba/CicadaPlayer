@@ -42,9 +42,9 @@ namespace Cicada {
                 sequence, mUri.c_str(), duration, startTime);
     }
 
-    void segment::setEncryption(SegmentEncryption enc)
+    void segment::setEncryption(const std::vector<SegmentEncryption> &enc)
     {
-        encryption = enc;
+        encryptions = enc;
     }
 
     void segment::setByteRange(int64_t start, int64_t end)

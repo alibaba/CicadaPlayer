@@ -14,9 +14,8 @@
 char *JniUtils::jByteArrayToChars(JNIEnv *env, jbyteArray bytearray) {
     jbyte *bytes = env->GetByteArrayElements(bytearray, 0);
     int chars_len = env->GetArrayLength(bytearray);
-    char *chars = static_cast<char *>(malloc(chars_len + 1));
+    char *chars = static_cast<char *>(malloc(chars_len));
     memcpy(chars, bytes, chars_len);
-    chars[chars_len] = 0;
     env->ReleaseByteArrayElements(bytearray, bytes, 0);
     JniException::clearException(env);
     return chars;
@@ -25,9 +24,8 @@ char *JniUtils::jByteArrayToChars(JNIEnv *env, jbyteArray bytearray) {
 char *JniUtils::jByteArrayToChars_New(JNIEnv *env, jbyteArray bytearray) {
     jbyte *bytes = env->GetByteArrayElements(bytearray, 0);
     int chars_len = env->GetArrayLength(bytearray);
-    char *chars = new char[chars_len + 1]();
+    char *chars = new char[chars_len]();
     memcpy(chars, bytes, chars_len);
-    chars[chars_len] = 0;
     env->ReleaseByteArrayElements(bytearray, bytes, 0);
     JniException::clearException(env);
     return chars;

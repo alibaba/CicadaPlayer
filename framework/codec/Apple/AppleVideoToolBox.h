@@ -30,7 +30,7 @@ namespace Cicada{
         int setPixelBufferFormat(OSType format);
 
     private:
-        int init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags) override;
+        int init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags , const DrmInfo& drmInfo) override;
 
         void close_decoder() override;
 
@@ -56,12 +56,18 @@ namespace Cicada{
             return new AFVTBDecoder();
         };
 
-        bool is_supported(enum AFCodecID codec, uint64_t flags, int maxSize) override
+        bool is_supported(const Stream_meta &meta, uint64_t flags, int maxSize) override
         {
             if (!(flags & DECFLAG_HW))
                 return false;
-            return is_supported(codec);
+            return is_supported(meta.codec);
         };
+        
+        bool is_drmSupport(const DrmInfo& drmInfo) override
+        {
+            return drmInfo.format.empty();
+        }
+        
         static AFVTBDecoder se;
 
     private:

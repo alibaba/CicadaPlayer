@@ -55,6 +55,8 @@ set(SOURCE_FILES
         ../base/options.h
         UrlUtils.cpp
         UrlUtils.h
+        DrmUtils.cpp
+        DrmUtils.h
         )
 
 list(APPEND SOURCE_FILES
@@ -113,6 +115,12 @@ if (ANDROID)
             Android/GetObjectField.h
             Android/JniUtils.cpp
             Android/JniUtils.h
+            Android/NewByteArray.cpp
+            Android/NewByteArray.h
+            Android/NewLinkedList.cpp
+            Android/NewLinkedList.h
+            Android/NewHashMap.cpp
+            Android/NewHashMap.h
             )
 elseif (IOS)
     set(SOURCE_FILES ${SOURCE_FILES}

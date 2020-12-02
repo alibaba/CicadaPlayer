@@ -28,6 +28,15 @@ namespace Cicada {
         if (frame->getInfo().duration > 0) {
             if (mPacketDuration == 0) {
                 mPacketDuration = frame->getInfo().duration;
+
+                int64_t missedDuration = 0;
+                for(mediaPacket& item : mQueue) {
+                    if(item.get()->getInfo().duration <= 0) {
+                        item.get()->getInfo().duration = mPacketDuration;
+                        missedDuration += mPacketDuration;
+                    }
+                }
+                mDuration += missedDuration;
             }
 
             mDuration += frame->getInfo().duration;

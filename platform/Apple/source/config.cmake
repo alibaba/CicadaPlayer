@@ -35,6 +35,7 @@ set(ALI_SRC_LIBRARIES
         data_source
         framework_filter
         framework_utils
+        framework_drm
         cacheModule
         videodec
         muxer

@@ -54,6 +54,7 @@ target_link_libraries(CicadaPlayer
         videodec
         framework_filter
         framework_utils
+        framework_drm
         alivcffmpeg
         GLESv2
         EGL
