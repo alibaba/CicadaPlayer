@@ -126,7 +126,7 @@ namespace Cicada{
         bool mResignActive{false};
         bool mIsDummy = false;
         int mPocErrorCount{0};
-        OSType outPutFormat{kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange};
+        OSType outPutFormat{0};
         _Nullable CGColorSpaceRef m_ColorSpace{nullptr};
     };
 
