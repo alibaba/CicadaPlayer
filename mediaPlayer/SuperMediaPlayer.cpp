@@ -3007,17 +3007,14 @@ int SuperMediaPlayer::SetUpVideoPath()
     auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
     bool isHDRVideo = false;
 
-    //support Android only for now
-#ifdef ANDROID
     if (meta->pixel_fmt == AF_PIX_FMT_YUV420P10BE || meta->pixel_fmt == AF_PIX_FMT_YUV420P10LE) {
         AF_LOGI("HDR video\n");
         isHDRVideo = true;
     }
-#endif
     /*
      * HDR video, try use decoder to render first
      */
-    if (mSet->bEnableTunnelRender || isHDRVideo) {
+    if (mSet->bEnableTunnelRender) {
         mAVDeviceManager->destroyVideoRender();
         mNeedVideoRender = false;
     }
@@ -3029,7 +3026,11 @@ int SuperMediaPlayer::SetUpVideoPath()
             AF_LOGW("create video render in background");
         }
         AF_LOGD("SetUpVideoRender start");
-        CreateVideoRender();
+        uint64_t flags = 0;
+        if (isHDRVideo){
+            flags |= videoRenderFactory::FLAG_HDR;
+        }
+        CreateVideoRender(flags);
         if (!mAVDeviceManager->isVideoRenderValid()) {
             AF_LOGI("try use decoder to render video\n");
             mNeedVideoRender = false;
@@ -3120,7 +3121,7 @@ void SuperMediaPlayer::updateVideoMeta()
     }
 }
 
-bool SuperMediaPlayer::CreateVideoRender()
+bool SuperMediaPlayer::CreateVideoRender(uint64_t flags)
 {
     if (mAVDeviceManager->isVideoRenderValid()) {
         return true;
@@ -3128,7 +3129,10 @@ bool SuperMediaPlayer::CreateVideoRender()
 
     // lock mAppStatusMutex before mCreateMutex
     std::lock_guard<std::mutex> uMutex(mCreateMutex);
-    mAVDeviceManager->createVideoRender();
+    mAVDeviceManager->createVideoRender(flags);
+    if (!mAVDeviceManager->getVideoRender()) {
+        return false;
+    }
     mAVDeviceManager->getVideoRender()->setScale(convertScaleMode(mSet->scaleMode));
     mAVDeviceManager->getVideoRender()->setRotate(convertRotateMode(mSet->rotateMode));
     mAVDeviceManager->getVideoRender()->setBackgroundColor(mSet->mVideoBackgroundColor);
