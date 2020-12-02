@@ -60,6 +60,11 @@ if (APPLE)
             audio/Apple/AudioRenderType.h
             audio/Apple/AFAudioQueueRender.cpp
             audio/Apple/AFAudioQueueRender.h
+            video/AVFoundation/AVFoundationVideoRender.mm
+            video/AVFoundation/AVFoundationVideoRender.h
+            video/AVFoundation/SampleDisplayLayerRender.mm
+            video/AVFoundation/SampleDisplayLayerRender.h
+            video/AVFoundation/DisplayLayerImpl-interface.h
             )
 endif ()
 
