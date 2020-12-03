@@ -295,7 +295,6 @@ namespace Cicada {
             AF_LOGW("pkt dts error\n");
         }
 
-        bool needUpdateExtraData = false;
         int new_extradata_size;
         const uint8_t *new_extradata = av_packet_get_side_data(pkt,
                                        AV_PKT_DATA_NEW_EXTRADATA,
@@ -312,8 +311,6 @@ namespace Cicada {
 
             if (mStreamCtxMap[streamIndex]->bsf) {
                 createBsf(streamIndex);
-            } else {
-                needUpdateExtraData = true;
             }
         }
         /*
@@ -360,10 +357,6 @@ namespace Cicada {
 
         if (mSecretDemxuer){
             packet->setMagicKey(mDrmMagicKey);
-        }
-
-        if (needUpdateExtraData) {
-            packet->setExtraData(new_extradata, new_extradata_size);
         }
 
         if (packet->getInfo().pts != INT64_MIN) {

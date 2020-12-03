@@ -61,11 +61,13 @@ public:
     }
 
 private:
+    void copyInfo();
+    void updateExtraData();
+
+private:
     AVPacket *mpkt{nullptr};
     bool mIsProtected;
     std::string mMagicKey{};
-
-    void copyInfo();
 };
 
 

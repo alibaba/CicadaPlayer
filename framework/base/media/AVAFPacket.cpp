@@ -41,6 +41,7 @@ AVAFPacket::AVAFPacket(AVPacket &pkt, bool isProtected) : mIsProtected(isProtect
     av_init_packet(mpkt);
     av_packet_ref(mpkt, &pkt);
     copyInfo();
+    updateExtraData();
 }
 
 AVAFPacket::AVAFPacket(AVPacket *pkt, bool isProtected) : mIsProtected(isProtected)
@@ -49,6 +50,7 @@ AVAFPacket::AVAFPacket(AVPacket *pkt, bool isProtected) : mIsProtected(isProtect
     av_init_packet(mpkt);
     av_packet_ref(mpkt, pkt);
     copyInfo();
+    updateExtraData();
 }
 
 AVAFPacket::AVAFPacket(AVPacket **pkt, bool isProtected) : mIsProtected(isProtected)
@@ -56,6 +58,15 @@ AVAFPacket::AVAFPacket(AVPacket **pkt, bool isProtected) : mIsProtected(isProtec
     mpkt = *pkt;
     *pkt = nullptr;
     copyInfo();
+    updateExtraData();
+}
+void AVAFPacket::updateExtraData()
+{
+    int new_extradata_size;
+    const uint8_t *new_extradata = av_packet_get_side_data(mpkt, AV_PKT_DATA_NEW_EXTRADATA, &new_extradata_size);
+    if (new_extradata && new_extradata_size) {
+        setExtraData(new_extradata, new_extradata_size);
+    }
 }
 
 AVAFPacket::~AVAFPacket()
