@@ -140,9 +140,6 @@ namespace Cicada {
         std::atomic_bool bEOS{false};
         std::atomic_bool bPaused{false};
 
-        int64_t mLastAudioPacketPts{INT64_MIN};
-        int64_t mAudioPacketDuration{INT64_MIN};
-
 #if AF_HAVE_PTHREAD
         afThread *mPthread{nullptr};
         std::mutex mMutex{};

@@ -15,6 +15,10 @@ namespace Cicada {
 
         typedef std::unique_ptr<IAFPacket> mediaPacket;
 
+        void SetOnePacketDuration(int64_t duration);
+
+        int64_t GetOnePacketDuration();
+
     public:
         void ClearQueue();
 

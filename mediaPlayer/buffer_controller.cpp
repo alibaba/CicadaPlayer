@@ -41,6 +41,39 @@ namespace Cicada {
         }
     }
 
+    void BufferController::SetOnePacketDuration(BUFFER_TYPE type, int64_t duration) {
+        switch (type) {
+            case BUFFER_TYPE_AUDIO:
+                mAudioPacketQueue.SetOnePacketDuration(duration);
+                break;
+            case BUFFER_TYPE_VIDEO:
+                mVideoPacketQueue.SetOnePacketDuration(duration);
+                break;
+            case BUFFER_TYPE_SUBTITLE:
+                break;
+            default:
+                AF_LOGE("error media type");
+                break;
+        }
+    }
+
+
+    int64_t BufferController::GetOnePacketDuration(BUFFER_TYPE type) {
+        switch (type) {
+            case BUFFER_TYPE_AUDIO:
+                return mAudioPacketQueue.GetOnePacketDuration();
+            case BUFFER_TYPE_VIDEO:
+                return mVideoPacketQueue.GetOnePacketDuration();
+            case BUFFER_TYPE_SUBTITLE:
+                break;
+            default:
+                AF_LOGE("error media type");
+                break;
+        }
+        return INT64_MIN;
+    }
+
+
     int64_t BufferController::GetPacketPts(BUFFER_TYPE type)
     {
         switch (type) {
@@ -321,5 +354,6 @@ namespace Cicada {
             mSubtitlePacketQueue.ClearQueue();
         }
     }
+
 
 }//namespace Cicada

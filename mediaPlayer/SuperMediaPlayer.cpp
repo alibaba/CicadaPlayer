@@ -1629,6 +1629,14 @@ void SuperMediaPlayer::doDeCode()
                 DecodeAudio(packet);
             } else
                 break;
+
+            int64_t duration = mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO);
+            if (duration < 0 && !mAudioFrameQue.empty()) {
+                //If audio duration is unknow when demux , update duration after decode one frame.
+                IAFFrame::AFFrameInfo frameInfo = mAudioFrameQue.front()->getInfo();
+                int64_t packetDuration = frameInfo.audio.nb_samples * 1000000 / frameInfo.audio.sample_rate;
+                mBufferController->SetOnePacketDuration(BUFFER_TYPE_AUDIO, packetDuration);
+            }
         }
 
         //            AF_LOGD("mAudioFrameQue.size is %d\n", mAudioFrameQue.size());
@@ -2757,8 +2765,11 @@ int64_t SuperMediaPlayer::getPlayerBufferDuration(bool gotMax, bool internal)
         }
 
         if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)) {
-            // FIXME: get the accurate duration
-            duration_c += mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)->getInputPaddingSize() * 23 * 1000;
+            int64_t audioPacketDuration = mBufferController->GetOnePacketDuration(BUFFER_TYPE_AUDIO);
+            if (audioPacketDuration <= 0) {
+                audioPacketDuration = 23 * 1000;
+            }
+            duration_c += mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)->getInputPaddingSize() * audioPacketDuration;
         }
     }
 
