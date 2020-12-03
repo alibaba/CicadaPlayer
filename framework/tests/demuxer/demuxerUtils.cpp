@@ -7,7 +7,6 @@
 #include <demuxer/demuxerPrototype.h>
 #include <demuxer/demuxer_service.h>
 #include <utils/frame_work_log.h>
-#include <utils/VideoExtraDataParser.h>
 
 extern "C" {
 #include <framework/utils/ffmpeg_utils.h>
@@ -184,20 +183,39 @@ void test_csd( const std::string& url , header_type merge) {
         auto *meta = (Stream_meta *) (mCurrentStreamMeta.get());
 
         if (meta->codec == AF_CODEC_ID_H264) {
-            auto *parser = new VideoExtraDataParser(AV_CODEC_ID_H264, meta->extradata, meta->extradata_size);
-            int ret = parser->parser();
+
+            uint8_t *sps_data = nullptr;
+            uint8_t *pps_data = nullptr;
+            int sps_data_size = 0;
+            int pps_data_size = 0;
+            int naluLengthSize = 0;
+
+            int ret = parse_h264_extraData(CodecID2AVCodecID(AF_CODEC_ID_H264),meta->extradata, meta->extradata_size,
+                                           &sps_data,&sps_data_size,
+                                           &pps_data,&pps_data_size,
+                                           &naluLengthSize);
             ASSERT_GE(ret, 0);
-            ASSERT_NE(parser->sps_data, nullptr);
-            ASSERT_NE(parser->pps_data, nullptr);
-            delete parser;
+            ASSERT_NE(sps_data, nullptr);
+            ASSERT_NE(pps_data, nullptr);
         }else if(meta->codec == AF_CODEC_ID_HEVC){
-            auto *parser = new VideoExtraDataParser(AV_CODEC_ID_HEVC, meta->extradata, meta->extradata_size);
-            int ret = parser->parser();
+
+            uint8_t *vps_data = nullptr;
+            uint8_t *sps_data = nullptr;
+            uint8_t *pps_data = nullptr;
+            int vps_data_size = 0;
+            int sps_data_size = 0;
+            int pps_data_size = 0;
+            int naluLengthSize = 0;
+
+            int ret = parse_h265_extraData(CodecID2AVCodecID(AF_CODEC_ID_HEVC),meta->extradata, meta->extradata_size,
+                                           &vps_data,&vps_data_size,
+                                           &sps_data,&sps_data_size,
+                                           &pps_data,&pps_data_size,
+                                           &naluLengthSize);
             ASSERT_GE(ret, 0);
-            ASSERT_NE(parser->vps_data, nullptr);
-            ASSERT_NE(parser->sps_data, nullptr);
-            ASSERT_NE(parser->pps_data, nullptr);
-            delete parser;
+            ASSERT_NE(vps_data, nullptr);
+            ASSERT_NE(sps_data, nullptr);
+            ASSERT_NE(pps_data, nullptr);
         }
     });
 }

@@ -34,6 +34,7 @@ target_link_libraries(
         data_source
         #       plugin
         framework_utils
+        framework_drm
         avformat
         avcodec
         swresample

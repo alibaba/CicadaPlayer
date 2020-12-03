@@ -31,6 +31,7 @@ target_link_libraries(
         videodec
         data_source
         framework_utils
+        framework_drm
         avformat
         avcodec
         swresample
