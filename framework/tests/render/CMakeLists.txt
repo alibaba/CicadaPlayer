@@ -32,6 +32,7 @@ target_link_libraries(renderTest PRIVATE
         render
         framework_utils
         framework_filter
+        framework_drm
         avformat
         avfilter
         avcodec
