@@ -213,8 +213,6 @@ namespace Cicada {
 
         mStreamCtxMap.clear();
         mPacketQueue.clear();
-        mLastAudioPacketPts = INT64_MIN;
-        mAudioPacketDuration = INT64_MIN;
         bOpened = false;
 
         if (mInputOpts) {
@@ -369,17 +367,6 @@ namespace Cicada {
             AVCodecParameters *codecpar = mCtx->streams[pkt->stream_index]->codecpar;
             if (codecpar->sample_rate > 0 && codecpar->frame_size > 0) {
                 pkt->duration = codecpar->frame_size * 1000000 / codecpar->sample_rate;
-            } else {
-                if (mAudioPacketDuration == INT64_MIN && mLastAudioPacketPts != INT64_MIN) {
-                    mAudioPacketDuration = pkt->pts - mLastAudioPacketPts;
-                    mLastAudioPacketPts = INT64_MIN;
-                }
-
-                if (mAudioPacketDuration == INT64_MIN) {
-                    mLastAudioPacketPts = pkt->pts;
-                } else {
-                    pkt->duration = mAudioPacketDuration;
-                }
             }
         }
 
@@ -527,7 +514,6 @@ namespace Cicada {
         }
 
         mPacketQueue.clear();
-        mLastAudioPacketPts = INT64_MIN;
         mError = 0;
         if (mCtx->start_time == INT64_MIN) {
             mCtx->start_time = 0;
