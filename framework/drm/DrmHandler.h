@@ -39,10 +39,10 @@ namespace Cicada {
             }
         };
 
-        int getData(char** data) {
-            *data = mData;
-            return mSize;
-        };
+        const char* getData(int* size){
+            *size = mSize;
+            return mData;
+        }
 
     private:
         int mSize{0};
