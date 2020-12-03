@@ -29,7 +29,8 @@ namespace Cicada {
         mVTOutFmt = AF_PIX_FMT_YUV420P;
 #endif
 #elif TARGET_OS_OSX
-        //       mVTOutFmt = AF_PIX_FMT_YUV420P;
+        mVTOutFmt = AF_PIX_FMT_YUV420P;
+        outPutFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
 #endif
         mName = "VideoToolBox";
     }
