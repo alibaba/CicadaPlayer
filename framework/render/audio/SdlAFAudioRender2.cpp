@@ -16,7 +16,20 @@ namespace Cicada {
     {}
 
     SdlAFAudioRender2::~SdlAFAudioRender2()
-    {}
+    {
+        if (mDevID > 0) {
+            SDL_CloseAudioDevice(mDevID);
+            mDevID = 0;
+        }
+        SDL_QuitSubSystem(SDL_INIT_AUDIO);
+
+        if (mPcmBuffer) {
+            free(mPcmBuffer);
+        }
+        if (mMixedBuffer) {
+            free(mMixedBuffer);
+        }
+    }
 
     int SdlAFAudioRender2::init_device()
     {
@@ -99,6 +112,7 @@ namespace Cicada {
             memset(muteAudioBuffer, 0, queuedAudioSize);
             SDL_ClearQueuedAudio(mDevID);
             SDL_QueueAudio(mDevID, muteAudioBuffer, queuedAudioSize);
+            free(muteAudioBuffer);
         }
     }
 
