@@ -30,7 +30,7 @@ namespace Cicada{
         int setPixelBufferFormat(OSType format);
 
     private:
-        int init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags , const DrmInfo& drmInfo) override;
+        int init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags , const DrmInfo* drmInfo) override;
 
         void close_decoder() override;
 
@@ -63,9 +63,9 @@ namespace Cicada{
             return is_supported(meta.codec);
         };
         
-        bool is_drmSupport(const DrmInfo& drmInfo) override
+        bool is_drmSupport(const DrmInfo* drmInfo) override
         {
-            return drmInfo.format.empty();
+            return false;
         }
         
         static AFVTBDecoder se;

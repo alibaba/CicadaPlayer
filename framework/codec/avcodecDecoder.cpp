@@ -97,7 +97,7 @@ namespace Cicada {
     }
 
     int avcodecDecoder::init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags,
-                                     const DrmInfo &drmInfo)
+                                     const DrmInfo *drmInfo)
     {
         auto codecId = (enum AVCodecID) CodecID2AVCodecID(meta->codec);
         mPDecoder->codec = avcodec_find_decoder(codecId);

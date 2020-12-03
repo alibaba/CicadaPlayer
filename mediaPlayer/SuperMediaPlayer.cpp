@@ -2912,15 +2912,7 @@ int SuperMediaPlayer::setUpAudioDecoder(const Stream_meta *meta)
         ProcessMuteMsg();
     }
 
-    uint64_t flags = DECFLAG_SW;
-
-#ifdef ANDROID
-    bool isWideVineVideo = (meta->keyFormat != nullptr
-            && strcmp(meta->keyFormat,"urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed") == 0);
-    if (isWideVineVideo) {
-        flags = DECFLAG_HW;
-    }
-#endif
+    uint64_t flags = DECFLAG_SW | DECFLAG_HW;
 
     ret = mAVDeviceManager->setUpDecoder(flags, meta, nullptr, SMPAVDeviceManager::DEVICE_TYPE_AUDIO, 0);
 
@@ -3023,12 +3015,13 @@ int SuperMediaPlayer::SetUpVideoPath()
     updateVideoMeta();
     auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
     bool isHDRVideo = false;
-    //support Android only for now
-#ifdef ANDROID
+
     if (meta->pixel_fmt == AF_PIX_FMT_YUV420P10BE || meta->pixel_fmt == AF_PIX_FMT_YUV420P10LE) {
         AF_LOGI("HDR video\n");
         isHDRVideo = true;
     }
+
+#ifdef ANDROID
     bool isWideVineVideo = (meta->keyFormat != nullptr && strcmp(meta->keyFormat, "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed") == 0);
 #endif
     /*

@@ -22,7 +22,7 @@ namespace Cicada {
 
         static void addPrototype(DrmHandlerPrototype *se);
 
-        static bool isSupport(const DrmInfo& drmInfo);
+        static bool isSupport(const DrmInfo *drmInfo);
 
         static Cicada::DrmHandler *create(const DrmInfo &drmInfo);
     };
