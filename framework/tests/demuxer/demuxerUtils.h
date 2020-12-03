@@ -9,7 +9,7 @@
 #include <framework/utils/AFMediaType.h>
 #include <framework/demuxer/IDemuxer.h>
 
-void test_mergeHeader(std::string url, bool merge);
+void test_mergeHeader(std::string url, Cicada::header_type merge);
 
 void test_mergeAudioHeader(const std::string& url , Cicada::header_type  merge);
 
