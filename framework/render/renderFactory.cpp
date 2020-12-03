@@ -18,7 +18,7 @@
 #endif
 #ifdef ENABLE_SDL
 
-#include "audio/SdlAFAudioRender.h"
+#include "audio/SdlAFAudioRender2.h"
 #include "video/SdlAFVideoRender.h"
 
 #endif
@@ -62,7 +62,7 @@ std::unique_ptr<IAudioRender> AudioRenderFactory::create()
 #ifdef __APPLE__
     return std::unique_ptr<IAudioRender>(new AFAudioQueueRender());
 #elif defined(ENABLE_SDL)
-    return std::unique_ptr<IAudioRender>(new SdlAFAudioRender());
+    return std::unique_ptr<IAudioRender>(new SdlAFAudioRender2());
 #endif
     return nullptr;
 }
