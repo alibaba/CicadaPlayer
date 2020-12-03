@@ -75,8 +75,8 @@ namespace Cicada{
             return false;
         };
 
-        bool is_drmSupport(const DrmInfo& drmInfo) override {
-            return drmInfo.format.empty();
+        bool is_drmSupport(const DrmInfo *drmInfo) override {
+            return false;
         }
 
         static avcodecDecoder se;
@@ -87,7 +87,7 @@ namespace Cicada{
 
         int dequeue_decoder(std::unique_ptr<IAFFrame> &pFrame) override;
 
-        int init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags, const DrmInfo &drmInfo) override;
+        int init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags, const DrmInfo *drmInfo) override;
 
         void close_decoder() override;
 

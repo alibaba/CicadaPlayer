@@ -16,7 +16,7 @@ void codecPrototype::addPrototype(codecPrototype *se)
 }
 
 Cicada::IDecoder *codecPrototype::create(const Stream_meta &meta, uint64_t flags, int maxSize,
-                                         const Cicada::DrmInfo &drmInfo)
+                                         const Cicada::DrmInfo *drmInfo)
 {
     bool bHW = static_cast<bool>(flags & DECFLAG_HW);
 
@@ -26,7 +26,7 @@ Cicada::IDecoder *codecPrototype::create(const Stream_meta &meta, uint64_t flags
 
         for (int i = 0; i < _nextSlot; ++i) {
             if (codecQueue[i]->is_supported(meta, decFlags, maxSize) &&
-            codecQueue[i]->is_drmSupport(drmInfo)) {
+                (drmInfo == nullptr || codecQueue[i]->is_drmSupport(drmInfo))) {
                 return codecQueue[i]->clone();
             }
         }
@@ -34,19 +34,10 @@ Cicada::IDecoder *codecPrototype::create(const Stream_meta &meta, uint64_t flags
 
     for (int i = 0; i < _nextSlot; ++i) {
         if (codecQueue[i]->is_supported(meta, flags, maxSize) &&
-            codecQueue[i]->is_drmSupport(drmInfo)) {
+            (drmInfo == nullptr || codecQueue[i]->is_drmSupport(drmInfo))) {
             return codecQueue[i]->clone();
         }
     }
 
     return nullptr;
-}
-
-bool codecPrototype::isDrmSupport(const Cicada::DrmInfo &drmInfo) {
-    for (int i = 0; i < _nextSlot; ++i) {
-        if (codecQueue[i]->is_drmSupport(drmInfo)) {
-            return true;
-        }
-    }
-    return false;
 }

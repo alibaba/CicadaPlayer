@@ -19,13 +19,11 @@ public:
 
     virtual bool is_supported(const Stream_meta &meta, uint64_t flags, int maxSize) = 0;
 
-    virtual bool is_drmSupport(const Cicada::DrmInfo &drmInfo) = 0;
+    virtual bool is_drmSupport(const Cicada::DrmInfo *drmInfo) = 0;
 
     static void addPrototype(codecPrototype *se);
 
-    static Cicada::IDecoder *create(const Stream_meta &meta, uint64_t flags, int maxSize, const Cicada::DrmInfo &drmInfo);
-
-    static bool isDrmSupport(const Cicada::DrmInfo &drmInfo);
+    static Cicada::IDecoder *create(const Stream_meta &meta, uint64_t flags, int maxSize, const Cicada::DrmInfo *drmInfo);
 
 };
 

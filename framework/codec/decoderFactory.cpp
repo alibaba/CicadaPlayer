@@ -23,7 +23,7 @@ using namespace Cicada;
 using namespace std;
 
 unique_ptr<Cicada::IDecoder> decoderFactory::create(const Stream_meta& meta, uint64_t flags, int maxSize,
-                                                    const DrmInfo &drmInfo)
+                                                    const DrmInfo *drmInfo)
 {
     IDecoder *decoder = codecPrototype::create(meta, flags, maxSize, drmInfo);
 
@@ -35,7 +35,7 @@ unique_ptr<Cicada::IDecoder> decoderFactory::create(const Stream_meta& meta, uin
 }
 
 unique_ptr<IDecoder> decoderFactory::createBuildIn(const AFCodecID &codec, uint64_t flags,
-                                                   const DrmInfo &drmInfo)
+                                                   const DrmInfo *drmInfo)
 {
     if (flags & DECFLAG_HW) {
 #ifdef ANDROID

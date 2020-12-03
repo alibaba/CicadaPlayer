@@ -31,7 +31,7 @@ namespace Cicada{
 
     private:
 
-        int init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags, const Cicada::DrmInfo &drmInfo) override;
+        int init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags, const DrmInfo *drmInfo) override;
 
         void close_decoder() override;
 
@@ -75,10 +75,13 @@ namespace Cicada{
             return false;
         };
 
-        bool is_drmSupport(const Cicada::DrmInfo &drmInfo) override {
-            bool drmSupport = drmInfo.format.empty() ||
-                              (drmInfo.format == "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed"
-                               && DrmHandlerPrototype::isSupport(drmInfo));
+        bool is_drmSupport(const DrmInfo *drmInfo) override {
+            if(drmInfo == nullptr){
+                return false;
+            }
+
+            bool drmSupport = drmInfo->format == "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed"
+                               && DrmHandlerPrototype::isSupport(drmInfo);
             return drmSupport;
         }
 
