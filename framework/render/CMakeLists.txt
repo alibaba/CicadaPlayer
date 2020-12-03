@@ -33,6 +33,8 @@ if (ENABLE_SDL)
     list(APPEND SRC_FILES
             audio/SdlAFAudioRender.h
             audio/SdlAFAudioRender.cpp
+            audio/SdlAFAudioRender2.h
+            audio/SdlAFAudioRender2.cpp
             video/SdlAFVideoRender.cpp
             video/SdlAFVideoRender.h
             )
