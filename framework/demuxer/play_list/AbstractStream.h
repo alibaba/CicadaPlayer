@@ -76,8 +76,8 @@ namespace Cicada{
     protected:
         IDataSource *mExtDataSource = nullptr;
         IDataSource::SourceConfig mSourceConfig{};
-        header_type mMergeVideoHeader = header_type::header_type_no_change;
-        header_type mMergerAudioHeader = header_type::header_type_no_change;
+        header_type mMergeVideoHeader = header_type::header_type_no_touch;
+        header_type mMergerAudioHeader = header_type::header_type_no_touch;
     };
 }
 
