@@ -385,14 +385,9 @@ void WideVineDrmHandler::convertData(int naluLengthSize, uint8_t **new_data, int
             }
 
             //put start code
-            *new_data_ptr = 0;
-            new_data_ptr++;
-            *new_data_ptr = 0;
-            new_data_ptr++;
-            *new_data_ptr = 0;
-            new_data_ptr++;
-            *new_data_ptr = 1;
-            new_data_ptr++;
+            static uint8_t START_CODE[4] = {0, 0, 0, 1};
+            memcpy(new_data_ptr, START_CODE, 4);
+            new_data_ptr += 4;
             //nal type
             *new_data_ptr = nalPrefixData[4];
             new_data_ptr++;
