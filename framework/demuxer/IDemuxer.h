@@ -29,9 +29,9 @@ namespace Cicada {
     } demuxer_type;
 
     typedef enum header_type {
-        header_type_no_change,
-        header_type_annexb,
-        header_type_xVcc,
+        header_type_no_touch,
+        header_type_merge,
+        header_type_extract,
     } header_type;
 
     class CICADA_CPLUS_EXTERN IDemuxer : public OptionOwner, public IDCA {
@@ -196,8 +196,8 @@ namespace Cicada {
         string mPath{};
         IDataSource::SourceConfig sourceConfig{};
 
-        header_type mMergeVideoHeader = header_type ::header_type_no_change;
-        header_type mMergeAudioHeader = header_type ::header_type_no_change;
+        header_type mMergeVideoHeader = header_type ::header_type_no_touch;
+        header_type mMergeAudioHeader = header_type ::header_type_no_touch;
 
         DemuxerMetaInfo *mMetaInfo = nullptr;
         std::string mName = "IDemuxer";
