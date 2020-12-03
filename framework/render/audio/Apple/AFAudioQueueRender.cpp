@@ -41,10 +41,10 @@ size_t AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer)
         }
         mReadOffset = 0;
         mNeedFlush = false;
+
         return 0;
     }
     size_t copySize = 0;
-    int retryCont = 0;
     while (copySize < inBuffer->mAudioDataByteSize) {
         if (mInPut.size() > 0) {
             bool frameClear = false;
@@ -144,7 +144,7 @@ void AFAudioQueueRender::fillAudioFormat()
     mAudioFormat.mBytesPerPacket = mAudioFormat.mBytesPerFrame * mAudioFormat.mFramesPerPacket;
     mAudioFormat.mReserved = 0;
 
-    mAudioDataByteSize = (mAudioFormat.mBytesPerFrame * mAudioFormat.mSampleRate) / 100;
+    mAudioDataByteSize = (mAudioFormat.mBytesPerFrame * mAudioFormat.mSampleRate) / 50;
 }
 
 int AFAudioQueueRender::setSpeed(float speed)
