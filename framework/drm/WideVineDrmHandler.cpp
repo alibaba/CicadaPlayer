@@ -249,8 +249,8 @@ WideVineDrmHandler::requestProvision(JNIEnv *env, jobject instance, jlong native
         return nullptr;
     }
 
-    char *responseData = nullptr;
-    int responseDataSize = drmResponseData->getData(&responseData);
+    int responseDataSize = 0;
+    const char *responseData = drmResponseData->getData(&responseDataSize);
 
     jbyteArray mResult = nullptr;
     if (responseData != nullptr && responseDataSize > 0) {
@@ -298,8 +298,8 @@ WideVineDrmHandler::requestKey(JNIEnv *env, jobject instance, jlong nativeIntanc
         return nullptr;
     }
 
-    char *responseData = nullptr;
-    int responseDataSize = drmResponseData->getData(&responseData);
+    int responseDataSize = 0;
+    const char *responseData = drmResponseData->getData(&responseDataSize);
 
     jbyteArray mResult = nullptr;
     if (responseData != nullptr && responseDataSize > 0) {
