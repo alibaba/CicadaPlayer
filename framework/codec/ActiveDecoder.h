@@ -27,7 +27,7 @@ public:
 
     virtual ~ActiveDecoder() override;
 
-    int open(const Stream_meta *meta, void *voutObsr, uint64_t flags, const Cicada::DrmInfo& drmInfo) override;
+    int open(const Stream_meta *meta, void *voutObsr, uint64_t flags, const Cicada::DrmInfo *drmInfo) override;
 
     void close() override;
 
@@ -54,7 +54,7 @@ private:
 
     virtual int dequeue_decoder(std::unique_ptr<IAFFrame> &pFrame) = 0;
 
-    virtual int init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags, const Cicada::DrmInfo &drmInfo) = 0;
+    virtual int init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags, const Cicada::DrmInfo *drmInfo) = 0;
 
     virtual void close_decoder() = 0;
 

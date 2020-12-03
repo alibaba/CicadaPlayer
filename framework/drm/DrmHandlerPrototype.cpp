@@ -22,9 +22,13 @@ DrmHandler *DrmHandlerPrototype::create(const DrmInfo &drmInfo) {
     return nullptr;
 }
 
-bool DrmHandlerPrototype::isSupport(const DrmInfo &drmInfo) {
+bool DrmHandlerPrototype::isSupport(const DrmInfo *drmInfo) {
+    if (drmInfo == nullptr) {
+        return false;
+    }
+
     for (int i = 0; i < _nextSlot; ++i) {
-        if (drmHandlerQueue[i]->is_supported(drmInfo)) {
+        if (drmHandlerQueue[i]->is_supported(*drmInfo)) {
             return true;
         }
     }

@@ -15,24 +15,21 @@ using namespace std;
 
 static void test_codec(const string &url, AFCodecID codec, int flags)
 {
-
     auto source = dataSourcePrototype::create(url);
     source->Open(0);
     auto *demuxer = new demuxer_service(source);
     int ret = demuxer->initOpen();
     Stream_meta smeta{};
     unique_ptr<streamMeta> meta = unique_ptr<streamMeta>(new streamMeta(&smeta));
-    DrmInfo drmInfo{};
-    drmInfo.format = smeta.keyFormat;
-    drmInfo.uri = smeta.keyUrl;
-    unique_ptr<IDecoder> decoder = decoderFactory::create(smeta, flags, 0 , drmInfo);
-    ASSERT_TRUE(decoder);
+    unique_ptr<IDecoder> decoder{nullptr};
     for (int i = 0; i < demuxer->GetNbStreams(); ++i) {
         demuxer->GetStreamMeta(meta, i, false);
 
         if (((Stream_meta *) (*meta))->codec == codec) {
+            decoder = decoderFactory::create(*((Stream_meta *) (*meta)), flags, 0 , nullptr);
+            ASSERT_TRUE(decoder);
             demuxer->OpenStream(i);
-            ret = decoder->open(((Stream_meta *) (*meta)), nullptr, 0,DrmInfo{});
+            ret = decoder->open(((Stream_meta *) (*meta)), nullptr, 0, nullptr);
             ASSERT_TRUE(ret >= 0);
             break;
         }

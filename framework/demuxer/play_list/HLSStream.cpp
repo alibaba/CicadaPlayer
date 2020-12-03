@@ -1191,8 +1191,8 @@ namespace Cicada {
             meta->description = strdup(mPTracker->getDescriptionInfo().c_str());
         }
 
-        meta->keyUrl = strdup(mCurrentEncryption.keyUrl.c_str());
-        meta->keyFormat = strdup(mCurrentEncryption.keyFormat.c_str());
+        meta->keyUrl = mCurrentEncryption.keyUrl.empty() ? nullptr : strdup(mCurrentEncryption.keyUrl.c_str());
+        meta->keyFormat = mCurrentEncryption.keyFormat.empty() ? nullptr : strdup(mCurrentEncryption.keyFormat.c_str());
 
         return 0;
     }

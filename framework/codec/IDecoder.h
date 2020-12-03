@@ -64,7 +64,7 @@ namespace Cicada {
             clean_error();
         }
 
-        virtual int open(const Stream_meta *meta, void *voutObsr, uint64_t flags , const DrmInfo& drmInfo ) = 0;
+        virtual int open(const Stream_meta *meta, void *voutObsr, uint64_t flags , const DrmInfo *drmInfo ) = 0;
 
         virtual void flush() = 0;
 

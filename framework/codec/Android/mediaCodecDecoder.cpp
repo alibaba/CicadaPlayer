@@ -71,13 +71,13 @@ namespace Cicada {
     }
 
     int mediaCodecDecoder::init_decoder(const Stream_meta *meta, void *voutObsr, uint64_t flags,
-                                        const Cicada::DrmInfo &drmInfo) {
+                                        const DrmInfo *drmInfo) {
         if (meta->pixel_fmt == AF_PIX_FMT_YUV422P || meta->pixel_fmt == AF_PIX_FMT_YUVJ422P) {
             return -ENOSPC;
         }
 
         if (!checkSupport(*meta, flags, max(meta->height, meta->width)) ||
-             !is_drmSupport(drmInfo)) {
+                (drmInfo != nullptr && !is_drmSupport(drmInfo))) {
             return -ENOSPC;
         }
 
@@ -105,10 +105,10 @@ namespace Cicada {
         lock_guard<recursive_mutex> func_entry_lock(mFuncEntryMutex);
         setCSD(meta);
 
-        if (!drmInfo.format.empty()) {
+        if (drmInfo != nullptr) {
             if (mRequireDrmHandlerCallback != nullptr) {
                 mDrmHandler = dynamic_cast<WideVineDrmHandler *>(mRequireDrmHandlerCallback(
-                        drmInfo));
+                        *drmInfo));
                 assert(mDrmHandler != nullptr);
             }
 

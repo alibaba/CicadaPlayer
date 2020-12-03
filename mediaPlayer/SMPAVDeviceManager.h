@@ -27,10 +27,10 @@ namespace Cicada {
             uint64_t decFlag;
             void *device;
             uint32_t mDstFormat{0};
-            DrmInfo mDrmInfo{};
+            std::unique_ptr<DrmInfo> mDrmInfo{nullptr};
 
             bool match(const Stream_meta *pMeta, uint64_t flag, void *pDevice, uint32_t dstFormat,
-                       const DrmInfo& info)
+                       const DrmInfo *info)
             {
 #ifdef __APPLE__
                 auto *vtbDecoder = dynamic_cast<AFVTBDecoder *>(decoder.get());
@@ -41,7 +41,7 @@ namespace Cicada {
                 }
 #endif
                 return (pDevice == device) && (flag == decFlag) && (pMeta->codec == meta.codec) && (dstFormat == mDstFormat)
-                 && (mDrmInfo == info);
+                 && ((mDrmInfo == nullptr && info == nullptr ) || (info!= nullptr && mDrmInfo.get()!= nullptr && *info == *mDrmInfo.get()));
             }
         };
 
