@@ -152,6 +152,8 @@ typedef enum PropertyKey {
     PROPERTY_KEY_DELAY_INFO       = 5,
     PROPERTY_KEY_REMAIN_LIVE_SEG  = 6,
     PROPERTY_KEY_NETWORK_IS_CONNECTED = 7,
+    PROPERTY_KEY_PLAY_CONFIG = 8,
+    PROPERTY_KEY_DECODE_INFO = 9,
 } PropertyKey;
 
 class AMediaFrame;

@@ -41,6 +41,7 @@ using namespace std;
 #endif
 
 #include "mediaPlayerSubTitleListener.h"
+#include "SMPRecorderSet.h"
 
 namespace Cicada {
     using namespace Cicada;
@@ -526,6 +527,8 @@ namespace Cicada {
         bool mBRendingStart {false};
         bool mSecretPlayBack{false};
         bool mDrmKeyValid{false};
+
+        std::unique_ptr<SMPRecorderSet> mRecorderSet{nullptr};
 
     private:
 

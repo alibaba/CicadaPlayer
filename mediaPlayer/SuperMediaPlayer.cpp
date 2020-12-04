@@ -63,6 +63,7 @@ SuperMediaPlayer::SuperMediaPlayer()
     mAVDeviceManager->setRequireDrmHandlerCallback([this](const DrmInfo& info) -> DrmHandler* {
         return  mDrmManager->require(info);
     });
+    mRecorderSet = static_cast<unique_ptr<SMPRecorderSet>>(new SMPRecorderSet());
 
     mPNotifier = new PlayerNotifier();
     Reset();
@@ -429,6 +430,7 @@ int SuperMediaPlayer::Stop()
     mBufferController->ClearPacket(BUFFER_TYPE_SUBTITLE);
     Reset();
 
+    mRecorderSet->reset();
     mDrmManager->clearErrorItems();
 
     AF_LOGD("stop spend time is %lld", af_gettime_ms() - t1);
@@ -845,6 +847,48 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key)
             }
 
             return "";
+        }
+        case PROPERTY_KEY_PLAY_CONFIG: {
+            CicadaJSONItem item{};
+            item.addValue("http_proxy" , mSet->http_proxy);
+            item.addValue("refer" , mSet->refer);
+            item.addValue("timeout_ms" , (int)mSet->timeout_ms);
+            item.addValue("RTMaxDelayTime" , (int)mSet->RTMaxDelayTime);
+            item.addValue("startBufferDuration" , (int)mSet->startBufferDuration);
+            item.addValue("highLevelBufferDuration" , (int)mSet->highLevelBufferDuration);
+            item.addValue("maxBufferDuration" , (int)mSet->maxBufferDuration);
+            return item.printJSON();
+        }
+        case PROPERTY_KEY_DECODE_INFO: {
+            CicadaJSONArray decodeInfos{};
+            if (HAVE_AUDIO) {
+                CicadaJSONItem audioDecodeInfo{};
+                audioDecodeInfo.addValue("type", "audio");
+                audioDecodeInfo.addValue("createDecodeCost",
+                                         (int)mRecorderSet->createAudioDecoderCostMs);
+                audioDecodeInfo.addValue("decodeFirstCost",
+                                         (int)mRecorderSet->decodeFirstAudioFrameInfo.getDecodeFirstFrameCost());
+                audioDecodeInfo.addValue("firstSize",
+                                         (int)mRecorderSet->decodeFirstAudioFrameInfo.firstPacketSize);
+                audioDecodeInfo.addValue("firstPts",
+                                         (double)mRecorderSet->decodeFirstAudioFrameInfo.firstPacketPts);
+                decodeInfos.addJSON(audioDecodeInfo);
+            }
+            if (HAVE_VIDEO) {
+                CicadaJSONItem videoDecodeInfo{};
+                videoDecodeInfo.addValue("type", "video");
+                videoDecodeInfo.addValue("createDecodeCost",
+                                         (int)mRecorderSet->createVideoDecoderCostMs);
+                videoDecodeInfo.addValue("decodeFirstCost",
+                                         (int)mRecorderSet->decodeFirstVideoFrameInfo.getDecodeFirstFrameCost());
+                videoDecodeInfo.addValue("firstSize",
+                                         (int)mRecorderSet->decodeFirstVideoFrameInfo.firstPacketSize);
+                videoDecodeInfo.addValue("firstPts",
+                                         (double)mRecorderSet->decodeFirstVideoFrameInfo.firstPacketPts);
+                decodeInfos.addJSON(videoDecodeInfo);
+            }
+
+            return decodeInfos.printJSON();
         }
 
         default:
@@ -1725,6 +1769,16 @@ int SuperMediaPlayer::DecodeVideoPacket(unique_ptr<IAFPacket> &pVideoPacket)
                 pVideoPacket->setDiscard(true);
             }
         }
+
+        if (!mRecorderSet->decodeFirstVideoFrameInfo.isFirstPacketSendToDecoder) {
+            DecodeFirstFrameInfo& info = mRecorderSet->decodeFirstVideoFrameInfo;
+            info.isFirstPacketSendToDecoder = true;
+            info.firstPacketSize = pVideoPacket->getSize();
+            info.firstPacketPts = pVideoPacket->getInfo().pts;
+            info.waitFirstFrame = true;
+            info.sendFirstPacketTimeMs = af_getsteady_ms();
+        }
+
         ret = mAVDeviceManager->sendPacket(pVideoPacket, SMPAVDeviceManager::DEVICE_TYPE_VIDEO, 0);
         // don't need pop if need retry later
         if (!(ret & STATUS_RETRY_IN)) {
@@ -1770,6 +1824,13 @@ int SuperMediaPlayer::FillVideoFrame()
     }
 
     if (pFrame != nullptr) {
+
+        if(mRecorderSet->decodeFirstVideoFrameInfo.waitFirstFrame) {
+            DecodeFirstFrameInfo& info = mRecorderSet->decodeFirstVideoFrameInfo;
+            info.getFirstFrameTimeMs = af_getsteady_ms();
+            info.waitFirstFrame = false;
+        }
+
         mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)->clean_error();
 
         if (mSecretPlayBack) {
@@ -2222,6 +2283,13 @@ int SuperMediaPlayer::DecodeAudio(unique_ptr<IAFPacket> &pPacket)
         }
 
         if (frame != nullptr) {
+
+            if(mRecorderSet->decodeFirstAudioFrameInfo.waitFirstFrame) {
+                DecodeFirstFrameInfo &info = mRecorderSet->decodeFirstAudioFrameInfo;
+                info.getFirstFrameTimeMs = af_getsteady_ms();
+                info.waitFirstFrame = false;
+            }
+
             if (mSecretPlayBack) {
                 frame->setProtect(true);
             }
@@ -2238,6 +2306,15 @@ int SuperMediaPlayer::DecodeAudio(unique_ptr<IAFPacket> &pPacket)
             mAudioFrameQue.push_back(move(frame));
         }
     } while (ret != -EAGAIN && ret != -EINVAL);
+
+    if (!mRecorderSet->decodeFirstAudioFrameInfo.isFirstPacketSendToDecoder) {
+        DecodeFirstFrameInfo& info = mRecorderSet->decodeFirstAudioFrameInfo;
+        info.isFirstPacketSendToDecoder = true;
+        info.waitFirstFrame = true;
+        info.firstPacketSize = pPacket->getSize();
+        info.firstPacketPts = pPacket->getInfo().pts;
+        info.sendFirstPacketTimeMs = af_getsteady_ms();
+    }
 
     ret = mAVDeviceManager->sendPacket(pPacket, SMPAVDeviceManager::DEVICE_TYPE_AUDIO, 0);
 
@@ -2956,7 +3033,13 @@ int SuperMediaPlayer::SetUpAudioPath()
         unique_ptr<streamMeta> pMeta{};
         mDemuxerService->GetStreamMeta(pMeta, mCurrentAudioIndex, false);
         Stream_meta *meta = (Stream_meta *) (pMeta.get());
+
+        int64_t startTimeMs  = af_getsteady_ms();
+
         ret = setUpAudioDecoder(meta);
+
+        int64_t costTimeMs = af_getsteady_ms() - startTimeMs;
+        mRecorderSet->createAudioDecoderCostMs = costTimeMs;
 
         if (ret < 0) {
             return ret;
@@ -3102,6 +3185,7 @@ int SuperMediaPlayer::SetUpVideoPath()
         }
     }
 
+    int64_t startTimeMs = af_getsteady_ms();
     ret = CreateVideoDecoder(bHW, *meta);
 
     if (ret < 0) {
@@ -3109,6 +3193,9 @@ int SuperMediaPlayer::SetUpVideoPath()
             ret = CreateVideoDecoder(false, *meta);
         }
     }
+
+    int64_t costTimeMs = af_getsteady_ms() - startTimeMs;
+    mRecorderSet->createVideoDecoderCostMs = costTimeMs;
 
     if (ret < 0) {
         AF_LOGE("%s CreateVideoDecoder failed, error msg is  %s", __FUNCTION__, framework_err2_string(ret));
