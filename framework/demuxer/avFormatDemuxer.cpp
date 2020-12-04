@@ -144,6 +144,10 @@ namespace Cicada {
             return ret;
         }
 
+        int64_t probeHeader_pos = mCtx->pb->bytes_read;
+        int probeHeader_seekCount = mCtx->pb->seek_count;
+        int probeHeader_nbStreams = mCtx->nb_streams;
+
         mCtx->flags |= AVFMT_FLAG_GENPTS;
         // TODO: add a opt to set fps probe
         mCtx->fps_probe_size = 0;
@@ -176,6 +180,13 @@ namespace Cicada {
             return ret;
         }
 
+        int64_t probeStream_pos = mCtx->pb->bytes_read;
+        int probeStream_seekCount = mCtx->pb->seek_count;
+        int probeStream_nbFrames = 0;
+        for(int i = 0 ; i < mCtx->nb_streams; i++) {
+            probeStream_nbFrames += mCtx->streams[i]->codec_info_nb_frames;
+        }
+
         /*
          * this flag is only affect on mp3 and flac
          */
@@ -188,6 +199,12 @@ namespace Cicada {
         CicadaJSONItem json;
         json.addValue("cost", (int) used);
         json.addValue("time", (double) af_getsteady_ms());
+        json.addValue("headerPos" , (double) probeHeader_pos);
+        json.addValue("headerSeekCount" , (int) probeHeader_seekCount);
+        json.addValue("headerNbStreams" , (int) probeHeader_nbStreams);
+        json.addValue("streamPos" , (double)probeStream_pos);
+        json.addValue("streamSeekCount" , (int)probeStream_seekCount);
+        json.addValue("streamNbFrames" , (int)probeStream_nbFrames);
         mProbeString = json.printJSON();
 
         if (mStartTime > 0 && mStartTime < mCtx->duration) {
