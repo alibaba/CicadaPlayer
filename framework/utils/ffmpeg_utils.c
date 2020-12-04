@@ -716,7 +716,7 @@ size_t copyPCMDataWithOffset(const AVFrame *frame, int frameOffset, uint8_t *out
         *frameClear = true;
         return totalWriteSize;
     } else {
-        if (outSize > (sampleSize * frame->nb_samples * frame->channels - frameOffset)) {
+        if (outSize >= (sampleSize * frame->nb_samples * frame->channels - frameOffset)) {
             totalWriteSize = (sampleSize * frame->nb_samples * frame->channels - frameOffset);
             *frameClear = true;
         } else {
