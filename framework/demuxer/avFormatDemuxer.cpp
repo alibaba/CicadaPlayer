@@ -342,9 +342,8 @@ namespace Cicada {
 
             if (mStreamCtxMap[streamIndex]->bsf) {
                 createBsf(streamIndex);
-            } else {
-                needUpdateExtraData = true;
             }
+            needUpdateExtraData = true;
         }
         /*
          * TODO: can't support this for now, audio render only support fixed sample size
@@ -394,7 +393,7 @@ namespace Cicada {
         }
 
         if (needUpdateExtraData) {
-            packet->setExtraData(new_extradata, new_extradata_size);
+            packet->setExtraData(mCtx->streams[streamIndex]->codecpar->extradata, mCtx->streams[streamIndex]->codecpar->extradata_size);
         }
 
         if (packet->getInfo().pts != INT64_MIN) {
