@@ -33,6 +33,7 @@ namespace Cicada {
 
     mediaCodecDecoder::mediaCodecDecoder() {
         AF_LOGD("android decoder use jni");
+        mName = "VD.mediaCodec";
         mFlags |= DECFLAG_HW;
         mDecoder = new MediaCodec_Decoder();
     }
