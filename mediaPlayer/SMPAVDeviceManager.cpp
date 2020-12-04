@@ -143,9 +143,17 @@ void SMPAVDeviceManager::flushDevice(uint64_t deviceTypes)
      */
     if (deviceTypes & DEVICE_TYPE_AUDIO) {
         if (mAudioDecoder.valid) {
+            assert(mAudioDecoder.decoder != nullptr);
             mAudioDecoder.decoder->flush();
         }
-        if (mAudioRenderValid) {
+        if (mAudioRenderValid
+        /*
+              flush the Audio render on APPLE platform, otherwise it will output nise on reuse, but I don't know the reason.
+             */
+#if __APPLE__
+            || true
+#endif
+        ) {
             mAudioRender->flush();
         }
     }
