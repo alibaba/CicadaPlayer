@@ -64,7 +64,9 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
         /*
          *  must flush decoder before close on android mediacodec decoder
          */
-        flushVideoRender();
+        if (meta->type == STREAM_TYPE_VIDEO && decoderHandle->decoder->getName() == "VD.mediaCodec") {
+            flushVideoRender();
+        }
         decoderHandle->decoder->flush();
         decoderHandle->decoder->close();
     }
