@@ -75,6 +75,8 @@ namespace Cicada {
 
         static void OutputCallback(void *inUserData, AudioQueueRef inAQ, AudioQueueBufferRef inBuffer);
 
+        size_t copyAudioData(const AudioQueueBuffer *inBuffer);
+
 #if TARGET_OS_IPHONE
         void onInterrupted(Cicada::AF_AUDIO_SESSION_STATUS status) override;
 
@@ -90,6 +92,8 @@ namespace Cicada {
         bool mRunning{true};
         bool mPlaying{false};
         OSStatus mStartStatus{AVAudioSessionErrorCodeNone};
+        unsigned int mReadOffset{0};
+        uint32_t mAudioDataByteSize{0};
     };
 }// namespace Cicada
 

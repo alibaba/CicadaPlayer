@@ -22,26 +22,48 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
     auto *pThis = (AFAudioQueueRender *) inUserData;
 
     assert(pThis);
-    if (!pThis->mRunning) return;
-    if (pThis->mNeedFlush) {
-        while (pThis->mInPut.size() > 0) {
-            delete pThis->mInPut.front();
-            pThis->mInPut.pop();
-        }
-        pThis->mNeedFlush = false;
+    if (!pThis->mRunning) {
+        return;
     }
-    if (pThis->mInPut.size() > 0) {
-        copyPCMData(getAVFrame(pThis->mInPut.front()), (uint8_t *) inBuffer->mAudioData);
-        pThis->mQueuedSamples += pThis->mInPut.front()->getInfo().audio.nb_samples;
-        inBuffer->mAudioDataByteSize = static_cast<UInt32>(getPCMFrameLen(getAVFrame(pThis->mInPut.front())));
-        delete pThis->mInPut.front();
-        pThis->mInPut.pop();
-    } else {
-        memset(inBuffer->mAudioData, 0, inBuffer->mAudioDataByteSize);
-        //    inBuffer->mAudioDataByteSize = 0;
+    size_t copySize = pThis->copyAudioData(inBuffer);
+    if (copySize < inBuffer->mAudioDataByteSize) {
+        memset((uint8_t *) inBuffer->mAudioData + copySize, 0, inBuffer->mAudioDataByteSize - copySize);
+        AF_LOGW("no audio data\n");
     }
-
     AudioQueueEnqueueBuffer(inAQ, inBuffer, 0, nullptr);
+}
+size_t AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer)
+{
+    if (mNeedFlush) {
+        while (mInPut.size() > 0) {
+            delete mInPut.front();
+            mInPut.pop();
+        }
+        mReadOffset = 0;
+        mNeedFlush = false;
+        return 0;
+    }
+    size_t copySize = 0;
+    int retryCont = 0;
+    while (copySize < inBuffer->mAudioDataByteSize) {
+        if (mInPut.size() > 0) {
+            bool frameClear = false;
+            size_t len = copyPCMDataWithOffset(getAVFrame(mInPut.front()), mReadOffset, (uint8_t *) inBuffer->mAudioData + copySize,
+                                               inBuffer->mAudioDataByteSize - copySize, &frameClear);
+            assert(len > 0);
+            mReadOffset += len;
+            copySize += len;
+            if (frameClear) {
+                mQueuedSamples += mInPut.front()->getInfo().audio.nb_samples;
+                delete mInPut.front();
+                mInPut.pop();
+                mReadOffset = 0;
+            }
+        } else {
+            break;
+        }
+    }
+    return copySize;
 }
 
 AFAudioQueueRender::AFAudioQueueRender()
@@ -121,6 +143,8 @@ void AFAudioQueueRender::fillAudioFormat()
     mAudioFormat.mFormatID = kAudioFormatLinearPCM;
     mAudioFormat.mBytesPerPacket = mAudioFormat.mBytesPerFrame * mAudioFormat.mFramesPerPacket;
     mAudioFormat.mReserved = 0;
+
+    mAudioDataByteSize = (mAudioFormat.mBytesPerFrame * mAudioFormat.mSampleRate) / 100;
 }
 
 int AFAudioQueueRender::setSpeed(float speed)
@@ -206,23 +230,19 @@ int64_t AFAudioQueueRender::device_get_position()
 
 int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
 {
-    if (mBufferAllocatedCount < QUEUE_SIZE) {
-        int nb_samples = frame->getInfo().audio.nb_samples;
-        UInt32 size = frame->getInfo().audio.nb_samples * mAudioFormat.mBytesPerFrame;
-        AudioQueueAllocateBuffer(_audioQueueRef, size, &_audioQueueBufferRefArray[mBufferAllocatedCount]);
-        copyPCMData(getAVFrame(frame.get()), (uint8_t *) _audioQueueBufferRefArray[mBufferAllocatedCount]->mAudioData);
-        _audioQueueBufferRefArray[mBufferAllocatedCount]->mAudioDataByteSize = static_cast<UInt32>(size);
+    while (mBufferAllocatedCount < QUEUE_SIZE) {
+        assert(mAudioDataByteSize > 0);
+        AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &_audioQueueBufferRefArray[mBufferAllocatedCount]);
+        memset(_audioQueueBufferRefArray[mBufferAllocatedCount]->mAudioData, 0, mAudioDataByteSize);
+        _audioQueueBufferRefArray[mBufferAllocatedCount]->mAudioDataByteSize = mAudioDataByteSize;
         AudioQueueEnqueueBuffer(_audioQueueRef, _audioQueueBufferRefArray[mBufferAllocatedCount], 0, nullptr);
-        mQueuedSamples += nb_samples;
         mBufferAllocatedCount++;
-        frame = nullptr;
-        return 0;
     }
-    if (mInPut.write_available() > 0) {
-        mInPut.push(frame.release());
-        return 0;
+    if (mNeedFlush || mInPut.write_available() <= 0) {
+        return -EAGAIN;
     }
-    return -EAGAIN;
+    mInPut.push(frame.release());
+    return 0;
 }
 
 uint64_t AFAudioQueueRender::device_get_que_duration()
