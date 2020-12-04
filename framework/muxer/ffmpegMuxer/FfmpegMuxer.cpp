@@ -52,7 +52,7 @@ int FfmpegMuxer::open()
         for (Stream_meta *item : *mStreamMetas) {
             AVStream *stream = nullptr;
 
-            if (item->type == Stream_type::STREAM_TYPE_VIDEO) {
+            if (item->type == Stream_type::STREAM_TYPE_VIDEO && item->attached_pic == 0) {
                 stream = avformat_new_stream(mDestFormatContext, nullptr);
                 MetaToCodec::videoMetaToStream(stream, item);
                 check_codec_tag(stream);
