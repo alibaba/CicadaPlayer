@@ -9,6 +9,7 @@
 #include <map>
 #include "DrmHandler.h"
 #include "DrmInfo.h"
+#include <memory>
 
 namespace Cicada {
 

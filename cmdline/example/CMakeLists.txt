@@ -50,6 +50,7 @@ endif ()
 target_link_libraries(syncPlayer PRIVATE
         framework_filter
         framework_utils
+        framework_drm
         avfilter
         avformat
         avcodec

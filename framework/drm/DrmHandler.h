@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <string>
+#include <cstring>
 #include <functional>
 #include <map>
 #include "DrmInfo.h"
