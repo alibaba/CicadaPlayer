@@ -231,36 +231,36 @@ TEST(mergeHeader, hls_multi)
 //}
 
 
-TEST(enctryptionInfo, hls_wideWine)
-{
-    std::string url =
-            "http://30.26.143.3:8080/MultiDRM/master.m3u8";
-    test_encryptionInfo(url, Stream_type::STREAM_TYPE_VIDEO , header_type_extract);
-    test_encryptionInfo(url, Stream_type::STREAM_TYPE_VIDEO , header_type_merge);
-}
-
-
-TEST(enctryptionInfoAudio, hls_wideWine)
-{
-    std::string url =
-            "http://30.26.143.3:8080/MultiDRM/master.m3u8";
-    test_encryptionInfo(url,Stream_type::STREAM_TYPE_AUDIO , header_type_merge);
-    test_encryptionInfo(url,Stream_type::STREAM_TYPE_AUDIO , header_type_extract);
-}
-
-TEST(metaKeyInfo, hls_wideWine)
-{
-    std::string url =
-            "http://30.26.143.3:8080/MultiDRM/master.m3u8";
-    test_metaKeyInfo(url,Stream_type::STREAM_TYPE_VIDEO);
-}
-
-TEST(metaKeyInfoAudio, hls_wideWine)
-{
-    std::string url =
-            "http://30.26.143.3:8080/MultiDRM/master.m3u8";
-    test_metaKeyInfo(url,Stream_type::STREAM_TYPE_AUDIO);
-}
+//TEST(enctryptionInfo, hls_wideWine)
+//{
+//    std::string url =
+//            "http://30.26.143.3:8080/MultiDRM/master.m3u8";
+//    test_encryptionInfo(url, Stream_type::STREAM_TYPE_VIDEO , header_type_extract);
+//    test_encryptionInfo(url, Stream_type::STREAM_TYPE_VIDEO , header_type_merge);
+//}
+//
+//
+//TEST(enctryptionInfoAudio, hls_wideWine)
+//{
+//    std::string url =
+//            "http://30.26.143.3:8080/MultiDRM/master.m3u8";
+//    test_encryptionInfo(url,Stream_type::STREAM_TYPE_AUDIO , header_type_merge);
+//    test_encryptionInfo(url,Stream_type::STREAM_TYPE_AUDIO , header_type_extract);
+//}
+//
+//TEST(metaKeyInfo, hls_wideWine)
+//{
+//    std::string url =
+//            "http://30.26.143.3:8080/MultiDRM/master.m3u8";
+//    test_metaKeyInfo(url,Stream_type::STREAM_TYPE_VIDEO);
+//}
+//
+//TEST(metaKeyInfoAudio, hls_wideWine)
+//{
+//    std::string url =
+//            "http://30.26.143.3:8080/MultiDRM/master.m3u8";
+//    test_metaKeyInfo(url,Stream_type::STREAM_TYPE_AUDIO);
+//}
 
 TEST(scd_h264 , mp4)
 {std::string url =
