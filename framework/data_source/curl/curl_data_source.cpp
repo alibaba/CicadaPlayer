@@ -325,8 +325,13 @@ if (!mPConnection) {
         return offset;
     }
 
-    if (offset > mFileSize) {
-        return -1;
+    /* do not try to make a new connection if seeking past the end of the file */
+    if (rangeEnd != INT64_MIN || mFileSize > 0) {
+        uint64_t end_pos = rangeEnd != INT64_MIN ? rangeEnd : mFileSize;
+        if (offset >= end_pos) {
+            mPConnection->SetResume(offset);
+            return offset;
+        }
     }
 
     if (offset == mFileSize) {
@@ -408,10 +413,14 @@ int CurlDataSource::Read(void *buf, size_t size)
 {
     int ret = 0;
 
-    if (rangeEnd != INT64_MIN) {
-        size = std::min(size, (size_t) (rangeEnd - mPConnection->tell()));
+    if (rangeEnd != INT64_MIN || mFileSize > 0) {
+        /*
+        * avoid read after seek to end
+        */
+        int64_t end = std::min(mFileSize, rangeEnd);
+        size = std::min(size, (size_t)(end - mPConnection->tell()));
 
-        if (size == 0) {
+        if (size <= 0) {
             return 0;
         }
     }
