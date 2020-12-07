@@ -153,7 +153,7 @@ void SMPAVDeviceManager::flushDevice(uint64_t deviceTypes)
               flush the Audio render on APPLE platform, otherwise it will output nise on reuse, but I don't know the reason.
              */
 #if __APPLE__
-            || true
+            || mAudioRender
 #endif
         ) {
             mAudioRender->flush();
