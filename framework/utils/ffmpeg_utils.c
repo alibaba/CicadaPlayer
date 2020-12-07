@@ -296,14 +296,14 @@ enum AFCodecID AVCodec2CicadaCodec(enum AVCodecID codec)
             return AF_CODEC_ID_AV1;
 
         /* subtitle */
-//        case AV_CODEC_ID_TEXT:
-//            return AF_CODEC_ID_TEXT;
-//
-//        case AV_CODEC_ID_SSA:
-//            return AF_CODEC_ID_SSA;
-//
-//        case AV_CODEC_ID_SRT:
-//            return AF_CODEC_ID_SRT;
+        case AV_CODEC_ID_WEBVTT:
+            return AF_CODEC_ID_WEBVTT;
+            //
+            //        case AV_CODEC_ID_SSA:
+            //            return AF_CODEC_ID_SSA;
+            //
+            //        case AV_CODEC_ID_SRT:
+            //            return AF_CODEC_ID_SRT;
 
         default:
 //            if (codec->codec_id == AV_CODEC_ID_NONE && (!av_strcasecmp((char *) &codec->codec_tag, "dtse")))
