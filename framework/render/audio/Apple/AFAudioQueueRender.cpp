@@ -28,7 +28,7 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
     size_t copySize = pThis->copyAudioData(inBuffer);
     if (copySize < inBuffer->mAudioDataByteSize) {
         memset((uint8_t *) inBuffer->mAudioData + copySize, 0, inBuffer->mAudioDataByteSize - copySize);
-        AF_LOGW("no audio data\n");
+        //  AF_LOGW("no audio data\n");
     }
     AudioQueueEnqueueBuffer(inAQ, inBuffer, 0, nullptr);
 }
