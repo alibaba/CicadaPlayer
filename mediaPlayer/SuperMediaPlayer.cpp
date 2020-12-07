@@ -3641,7 +3641,11 @@ void SuperMediaPlayer::ProcessPrepareMsg()
 
             mStreamInfoQueue.push_back(info);
 
-            if (mCurrentSubtitleIndex < 0) {
+            if (mCurrentSubtitleIndex < 0 &&
+                /*
+                 * The codec of the subtitle stream can't be detected in HLS master play list
+                 */
+                (meta->codec != AF_CODEC_ID_NONE || mDemuxerService->isPlayList())) {
                 AF_LOGD("get a subtitle stream\n");
                 openStreamRet = mDemuxerService->OpenStream(i);
                 mCurrentSubtitleIndex = i;
