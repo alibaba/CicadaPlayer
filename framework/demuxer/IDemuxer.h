@@ -137,12 +137,12 @@ namespace Cicada {
         virtual const std::string GetProperty(int index, const string &key) const
         { return ""; }
 
-        virtual void SetOption(const options *opts)
-        {
-            mOpts = opts;
-        };
-
         virtual int SetOption(const std::string &key, const int64_t value)
+        {
+            return 0;
+        }
+
+        virtual int SetOption(const std::string &key, const std::string& value)
         {
             return 0;
         }
