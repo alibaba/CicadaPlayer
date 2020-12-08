@@ -593,6 +593,12 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
         mSet->mOptions.set(theKey, value, options::REPLACE);
     } else if (theKey == "DRMMagicKey") {
         mSet->drmMagicKey = value;
+    } else if (theKey == "sessionId") {
+        mSet->sessionId = value;
+
+        if( mDemuxerService != nullptr && mDemuxerService->getDemuxerHandle()) {
+            mDemuxerService->getDemuxerHandle()->SetOption("sessionId" , mSet->sessionId);
+        }
     }
 
     return 0;
@@ -3442,6 +3448,9 @@ void SuperMediaPlayer::ProcessPrepareMsg()
             mDataSource->Get_config(config);
             mDemuxerService->getDemuxerHandle()->setDataSourceConfig(config);
         }
+
+        mDemuxerService->getDemuxerHandle()->SetOption("sessionId" , mSet->sessionId);
+
         mDcaManager->createObservers();
         sendDCAMessage();
     }
