@@ -532,6 +532,10 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
         mSet->clearShowWhenStop = (bool) clearShowWhenStop;
     } else if (theKey == "enableVideoTunnelRender") {
         mSet->bEnableTunnelRender = (atoi(value) != 0);
+    } else if (theKey == "disableAudio") {
+        mSet->bDisableAudio = (atoi(value) != 0);
+    } else if (theKey == "disableVideo") {
+        mSet->bDisableVideo = (atoi(value) != 0);
     } else if (theKey == "Analytics.ReportID") {
         if (nullptr == value) {
             return -1;

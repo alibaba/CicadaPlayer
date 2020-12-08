@@ -22,6 +22,8 @@
 @synthesize networkRetryCount;
 @synthesize httpHeaders;
 @synthesize liveStartIndex;
+@synthesize disableAudio;
+@synthesize disableVideo;
 
 - (instancetype)init{
     if (self = [super init]) {
@@ -37,6 +39,8 @@
         networkRetryCount = 2;
         httpHeaders = [[NSMutableArray alloc] init];
         liveStartIndex = -3;
+        disableAudio = NO;
+        disableVideo = NO;
     }
     return self;
 }

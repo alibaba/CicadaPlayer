@@ -32,6 +32,9 @@ jfieldID  gj_playerconfig_EnableTunnelRender        = nullptr;
 jfieldID  gj_playerconfig_UserAgent                 = nullptr;
 jfieldID  gj_playerconfig_NetworkRetryCount         = nullptr;
 jfieldID  gj_playerconfig_LiveStartIndex            = nullptr;
+jfieldID  gj_playerconfig_DisableAudio              = nullptr;
+jfieldID  gj_playerconfig_DisableVideo              = nullptr;
+
 
 
 void JavaPlayerConfig::init(JNIEnv *env)
@@ -88,6 +91,12 @@ void JavaPlayerConfig::init(JNIEnv *env)
         gj_playerconfig_LiveStartIndex            = env->GetFieldID(gj_PlayerConfig_class,
                 "mLiveStartIndex",
                 "I");
+        gj_playerconfig_DisableAudio = env->GetFieldID(gj_PlayerConfig_class,
+                                                       "mDisableAudio",
+                                                       "Z");
+        gj_playerconfig_DisableVideo = env->GetFieldID(gj_PlayerConfig_class,
+                                                       "mDisableVideo",
+                                                       "Z");
     }
 }
 
@@ -123,6 +132,8 @@ jobject JavaPlayerConfig::getJPlayerConfig(JNIEnv *mEnv, const MediaPlayerConfig
                       playerConfig->networkRetryCount);
     mEnv->SetIntField(jPlayerConfig, gj_playerconfig_LiveStartIndex,
                       playerConfig->liveStartIndex);
+    mEnv->SetBooleanField(jPlayerConfig, gj_playerconfig_DisableAudio,  (jboolean)playerConfig->mDisableAudio);
+    mEnv->SetBooleanField(jPlayerConfig, gj_playerconfig_DisableVideo,  (jboolean)playerConfig->mDisableVideo);
     NewStringUTF tmpreferrer(mEnv, playerConfig->referer.c_str());
     jstring      referrer  = tmpreferrer.getString();
     mEnv->SetObjectField(jPlayerConfig, gj_playerconfig_Referrer, referrer);
@@ -187,6 +198,10 @@ MediaPlayerConfig JavaPlayerConfig::convertTo(JNIEnv *env, jobject playerConfig)
             gj_playerconfig_NetworkRetryCount);
     jint              liveStartIndex            = env->GetIntField(playerConfig,
                       gj_playerconfig_LiveStartIndex);
+    jboolean          disableAudio              = env->GetBooleanField(playerConfig,
+                                                                       gj_playerconfig_DisableAudio);
+    jboolean          disableVideo              = env->GetBooleanField(playerConfig,
+                                                                       gj_playerconfig_DisableVideo);
     GetStringUTFChars tmpHttpProxy(env, httpProxyStr);
     char              *httpProxy                = tmpHttpProxy.getChars();
     GetStringUTFChars tmpreferrer(env, referrerStr);
@@ -205,6 +220,8 @@ MediaPlayerConfig JavaPlayerConfig::convertTo(JNIEnv *env, jobject playerConfig)
     config.bEnableTunnelRender    = enableTunnelRender;
     config.networkRetryCount      = networkRetryCount;
     config.liveStartIndex         = liveStartIndex;
+    config.mDisableVideo          = disableVideo;
+    config.mDisableAudio          = disableAudio;
     CallObjectMethod getHeaderMethod(env, playerConfig, gj_playerconfig_getCustomHeaders);
     jobjectArray     headersArray = (jobjectArray) getHeaderMethod.getValue();
 

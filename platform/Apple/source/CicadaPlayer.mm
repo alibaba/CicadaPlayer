@@ -181,6 +181,8 @@ static int logOutput = 1;
         alivcConfig.startBufferDuration = config.startBufferDuration;
         alivcConfig.networkRetryCount = config.networkRetryCount;
         alivcConfig.liveStartIndex = config.liveStartIndex;
+        alivcConfig.mDisableVideo = config.disableVideo;
+        alivcConfig.mDisableAudio = config.disableAudio;
 
         if (nil != config.httpProxy) {
             alivcConfig.httpProxy = [config.httpProxy UTF8String];
@@ -235,6 +237,8 @@ static int logOutput = 1;
             mConfig.clearShowWhenStop = config->bClearShowWhenStop;
             mConfig.networkRetryCount = config->networkRetryCount;
             mConfig.liveStartIndex = config->liveStartIndex;
+            mConfig.disableAudio = config->mDisableAudio;
+            mConfig.disableVideo = config->mDisableVideo;
 
             [mConfig.httpHeaders removeAllObjects];
             for (int i=0;i<config->customHeaders.size();i++) {

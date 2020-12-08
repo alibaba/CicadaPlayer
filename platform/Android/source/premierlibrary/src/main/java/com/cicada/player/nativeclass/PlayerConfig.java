@@ -111,6 +111,22 @@ public class PlayerConfig {
      */
     public int mLiveStartIndex = -3;
 
+    /**
+     * 禁用Audio。
+     */
+    /****
+     * Disable audio track.
+     */
+    public boolean mDisableAudio = false;
+
+    /**
+     * 禁用Video。
+     */
+    /****
+     * Disable video track.
+     */
+    public boolean mDisableVideo = false;
+
     private String[] mCustomHeaders = null;
 
     public String[] getCustomHeaders() {

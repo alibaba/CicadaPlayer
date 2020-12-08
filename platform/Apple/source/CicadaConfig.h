@@ -104,6 +104,22 @@ OBJC_EXPORT
 
 @property(nonatomic, assign) int liveStartIndex;
 
+/**
+ @brief 禁用Audio.
+ */
+/****
+ @brief Disable audio track.
+ */
+@property (nonatomic, assign) BOOL disableAudio;
+
+/**
+ @brief 禁用Video
+ */
+/****
+ @brief Disable video track.
+ */
+@property (nonatomic, assign) BOOL disableVideo;
+
 @end
 
 #endif /* CicadaConfig_h */
