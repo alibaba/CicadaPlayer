@@ -362,7 +362,8 @@ namespace Cicada {
         }
 
         if (needUpdateExtraData) {
-            packet->setExtraData(mCtx->streams[streamIndex]->codecpar->extradata, mCtx->streams[streamIndex]->codecpar->extradata_size);
+            packet->setExtraData(mCtx->streams[packet->getInfo().streamIndex]->codecpar->extradata,
+                                 mCtx->streams[packet->getInfo().streamIndex]->codecpar->extradata_size);
         }
 
         if (packet->getInfo().pts != INT64_MIN) {

@@ -10,6 +10,7 @@
 #ifdef __APPLE__
 #include <base/media/PBAFFrame.h>
 #endif
+#include <thread>
 
 static int SDLCALL SdlWindowSizeEventWatch(void *userdata, SDL_Event *event);
 
