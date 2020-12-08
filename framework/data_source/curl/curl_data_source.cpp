@@ -408,11 +408,19 @@ int CurlDataSource::Read(void *buf, size_t size)
         /*
         * avoid read after seek to end
         */
-        int64_t end = std::min(mFileSize, rangeEnd);
-        size = std::min(size, (size_t)(end - mPConnection->tell()));
 
-        if (size <= 0) {
-            return 0;
+        int64_t end = mFileSize;
+        if (rangeEnd > 0) {
+            end = rangeEnd;
+        }
+        end = std::min(mFileSize, end);
+
+        if (end > 0) {
+            size = std::min(size, (size_t)(end - mPConnection->tell()));
+
+            if (size <= 0) {
+                return 0;
+            }
         }
     }
 
