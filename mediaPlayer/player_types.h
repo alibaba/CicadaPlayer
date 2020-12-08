@@ -65,6 +65,7 @@ namespace Cicada {
         bool mFastStart{true};
         uint32_t pixelBufferOutputFormat;
         string drmMagicKey;
+        string sessionId{};
     };
 }
 
