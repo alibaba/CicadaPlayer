@@ -88,6 +88,9 @@ namespace Cicada {
         if(mCollector != nullptr) {
             mCollector->ReportUpdatePlaySession(mPlayerSessionId);
         }
+        
+        GET_PLAYER_HANDLE;
+        CicadaSetOption(handle, "sessionId" , mPlayerSessionId.c_str());
     }
 
     string MediaPlayer::GetPlayerSessionId() {
