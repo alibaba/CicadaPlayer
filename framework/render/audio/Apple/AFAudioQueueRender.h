@@ -10,7 +10,7 @@
 #include <base/media/spsc_queue.h>
 #include <render/audio/audioRenderPrototype.h>
 
-#define QUEUE_SIZE (3)
+#define QUEUE_SIZE (4)
 
 #if TARGET_OS_IPHONE
 
