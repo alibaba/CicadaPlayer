@@ -46,6 +46,15 @@ void DisplayLayerImpl::setDisplay(void *display)
 {
     return [(__bridge id) self setDisplay:display];
 }
+void DisplayLayerImpl::clearScreen()
+{
+    [(__bridge id) self clearScreen];
+}
+
+void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
+{
+    [(__bridge id) self setVideoScale:scale];
+}
 
 - (void)setDisplay:(void *)layer
 {
@@ -60,6 +69,28 @@ void DisplayLayerImpl::setDisplay(void *display)
           [self._layer addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:nil];
         });
     }
+}
+
+- (void)setVideoScale:(IVideoRender::Scale)scale
+{
+    switch (scale) {
+        case IVideoRender::Scale_AspectFit:
+            self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspect;
+            break;
+        case IVideoRender::Scale_AspectFill:
+            self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+            break;
+        case IVideoRender::Scale_Fill:
+            self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+            break;
+        default:
+            break;
+    }
+}
+
+- (void)clearScreen
+{
+    [self.displayLayer flushAndRemoveImage];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *, id> *)change context:(void *)context
