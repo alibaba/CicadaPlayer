@@ -19,7 +19,7 @@ public:
     void setScale(IVideoRender::Scale scale);
 
 private:
-    void *self;
+    void *renderHandle{nullptr};
 };
 
 #endif//CICADAMEDIA_DISPLAYLAYERIMPL_H
