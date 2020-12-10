@@ -583,6 +583,7 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
     } else if (theKey == "sessionId") {
         mSet->sessionId = value;
 
+        std::lock_guard<std::mutex> uMutex(mCreateMutex);
         if( mDemuxerService != nullptr && mDemuxerService->getDemuxerHandle()) {
             mDemuxerService->getDemuxerHandle()->SetOption("sessionId" , mSet->sessionId);
         }
