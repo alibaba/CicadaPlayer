@@ -33,6 +33,9 @@ public:
 
 private:
     std::unique_ptr<DisplayLayerImpl> mRender;
+    uint32_t mStatisticsFrameCount{0};
+    int64_t mStatisticsFrameTime{0};
+    float mFPS{0};
 };
 
 
