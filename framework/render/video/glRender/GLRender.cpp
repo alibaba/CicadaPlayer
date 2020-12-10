@@ -606,11 +606,6 @@ float GLRender::getRenderFPS()
     return mFps;
 }
 
-void GLRender::setRenderResultCallback(function<void(int64_t, bool)> renderResultCallback)
-{
-    mRenderResultCallback = renderResultCallback;
-}
-
 void GLRender::surfaceChanged()
 {
 #ifdef __ANDROID__

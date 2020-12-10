@@ -47,8 +47,6 @@ public:
 
     int renderFrame(std::unique_ptr<IAFFrame> &frame) override;
 
-    void setRenderResultCallback(std::function<void(int64_t, bool)> renderResultCallback) override;
-
     int setRotate(Rotate rotate) override;
 
     int setFlip(Flip flip) override;
@@ -140,8 +138,6 @@ private:
     int mProgramFormat = -1;
 
     bool mClearScreenOn = false;
-
-    std::function<void(int64_t,bool)> mRenderResultCallback = nullptr;
 
 #ifdef __ANDROID__
     std::mutex mRenderCallbackMutex{};

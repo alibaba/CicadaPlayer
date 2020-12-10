@@ -25,10 +25,18 @@ int AVFoundationVideoRender::clearScreen()
 }
 int AVFoundationVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
 {
-    return mRender->renderFrame(frame);
+    int64_t pts = INT64_MIN;
+    bool rendered = false;
+    if (frame) {
+        pts = frame->getInfo().pts;
+        rendered = true;
+    }
+    mRender->renderFrame(frame);
+    if (rendered && mRenderResultCallback) {
+        mRenderResultCallback(pts, true);
+    }
+    return 0;
 }
-void AVFoundationVideoRender::setRenderResultCallback(std::function<void(int64_t, bool)> renderedCallback)
-{}
 int AVFoundationVideoRender::setRotate(IVideoRender::Rotate rotate)
 {
     return 0;
