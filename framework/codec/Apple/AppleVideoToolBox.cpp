@@ -914,6 +914,7 @@ namespace Cicada {
             case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
             case kCVPixelFormatType_420YpCbCr8Planar:
             case kCVPixelFormatType_32BGRA:
+            case kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange:
                 outPutFormat = format;
                 return 0;
             default:
