@@ -1331,10 +1331,16 @@ bool SuperMediaPlayer::DoCheckBufferPass()
         if ((cur_buffer_duration >= HighBufferDur &&
              (!HAVE_VIDEO || videoDecoderFull || APP_BACKGROUND == mAppStatus || !mSet->mFastStart)) ||
             (mEof)) {
-            //open stream failed
             if (mEof && getPlayerBufferDuration(true, false) <= 0) {
-                ChangePlayerStatus(PLAYER_ERROR);
-                mPNotifier->NotifyError(MEDIA_PLAYER_ERROR_DEMUXER_OPENSTREAM, "open stream failed");
+                // If player don`t get any packets when read eof
+                if (mSeekPos > 0) {
+                    //If caused by before prepare seeked, treat as play completed.
+                    mPNotifier->NotifyLoading(loading_event_end, 0);
+                    playCompleted();
+                } else {
+                    ChangePlayerStatus(PLAYER_ERROR);
+                    mPNotifier->NotifyError(MEDIA_PLAYER_ERROR_DEMUXER_OPENSTREAM, "open stream failed");
+                }
             } else {
                 ChangePlayerStatus(PLAYER_PREPARED);
                 AF_LOGD("PLAYER_PREPARED");
@@ -1740,7 +1746,11 @@ void SuperMediaPlayer::checkEOS()
     }
 
     NotifyPosition(mDuration);
+    playCompleted();
+}
 
+void SuperMediaPlayer::playCompleted()
+{
     if (mSet->bLooping && mDuration > 0) {
         mSeekPos = 0;//19644161: need reset seek position
         ProcessSeekToMsg(0, false);
