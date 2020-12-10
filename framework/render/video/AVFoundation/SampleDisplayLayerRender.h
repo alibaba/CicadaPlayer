@@ -12,7 +12,6 @@
     //  AVSampleBufferDisplayLayer* displayLayer;
 }
 @property(nonatomic, strong) AVSampleBufferDisplayLayer *displayLayer;
-@property(nonatomic, strong) CALayer *_layer;
 
 - (int)createLayer;
 

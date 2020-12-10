@@ -9,34 +9,32 @@
 #import <UIKit/UIKit.h>
 #endif
 
-typedef void (^RetainSelfBlock)(void);
 @implementation SampleDisplayLayerRender {
-    RetainSelfBlock _retainBlock;
+    CALayer *parentLayer;
 }
-DisplayLayerImpl::DisplayLayerImpl() : self(NULL)
+DisplayLayerImpl::DisplayLayerImpl()
 {}
 DisplayLayerImpl::~DisplayLayerImpl()
 {
-    [(__bridge id) self breakRetainCycly];
+    if (renderHandle) {
+        CFRelease(renderHandle);
+    }
 }
 void DisplayLayerImpl::init()
 {
     SampleDisplayLayerRender *object = [[SampleDisplayLayerRender alloc] init];
-    object->_retainBlock = ^{
-      [object class];
-    };
-    self = (__bridge void *) object;
+    renderHandle = (__bridge_retained void *) object;
 }
 int DisplayLayerImpl::createLayer()
 {
-    return [(__bridge id) self createLayer];
+    return [(__bridge id) renderHandle createLayer];
 }
 
 int DisplayLayerImpl::renderFrame(std::unique_ptr<IAFFrame> &frame)
 {
     auto *pbafFrame = dynamic_cast<PBAFFrame *>(frame.get());
     if (pbafFrame) {
-        [(__bridge id) self displayPixelBuffer:pbafFrame->getPixelBuffer()];
+        [(__bridge id) renderHandle displayPixelBuffer:pbafFrame->getPixelBuffer()];
     }
     frame = NULL;
 
@@ -44,29 +42,29 @@ int DisplayLayerImpl::renderFrame(std::unique_ptr<IAFFrame> &frame)
 }
 void DisplayLayerImpl::setDisplay(void *display)
 {
-    return [(__bridge id) self setDisplay:display];
+    return [(__bridge id) renderHandle setDisplay:display];
 }
 void DisplayLayerImpl::clearScreen()
 {
-    [(__bridge id) self clearScreen];
+    [(__bridge id) renderHandle clearScreen];
 }
 
 void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
 {
-    [(__bridge id) self setVideoScale:scale];
+    [(__bridge id) renderHandle setVideoScale:scale];
 }
 
 - (void)setDisplay:(void *)layer
 {
-    if (layer != self._layer) {
+    if (layer != (__bridge void *) parentLayer) {
+        parentLayer = (__bridge CALayer *) layer;
         dispatch_async(dispatch_get_main_queue(), ^{
-          self._layer = static_cast<CALayer *>(layer);
           self.displayLayer = [AVSampleBufferDisplayLayer layer];
           self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspect;
-          [self._layer addSublayer:self.displayLayer];
-          self._layer.masksToBounds = YES;
-          self.displayLayer.frame = self._layer.bounds;
-          [self._layer addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:nil];
+          [parentLayer addSublayer:self.displayLayer];
+          parentLayer.masksToBounds = YES;
+          self.displayLayer.frame = parentLayer.bounds;
+          [parentLayer addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:nil];
         });
     }
 }
@@ -176,14 +174,11 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
     [self.displayLayer enqueueSampleBuffer:sampleBuffer];
     CFRelease(sampleBuffer);
 }
-- (void)breakRetainCycly
-{
-    _retainBlock = nil;
-}
 
 - (void)dealloc
 {
-    [super dealloc];
+    [self.displayLayer removeFromSuperlayer];
+    [parentLayer removeObserver:self forKeyPath:@"bounds" context:nil];
 }
 
 @end

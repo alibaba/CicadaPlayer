@@ -58,6 +58,8 @@ endif ()
 
 
 if (APPLE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fobjc-arc")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fobjc-arc")
     list(APPEND SRC_FILES
             audio/Apple/AudioRenderType.h
             audio/Apple/AFAudioQueueRender.cpp
