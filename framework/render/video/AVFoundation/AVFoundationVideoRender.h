@@ -19,8 +19,6 @@ public:
 
     int renderFrame(std::unique_ptr<IAFFrame> &frame) override;
 
-    void setRenderResultCallback(std::function<void(int64_t, bool)> renderedCallback) override;
-
     int setRotate(Rotate rotate) override;
 
     int setFlip(Flip flip) override;

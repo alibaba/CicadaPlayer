@@ -112,7 +112,10 @@ public:
      * NOTE: will callback in render thread.
      * @param renderedCallback
      */
-    virtual void setRenderResultCallback(std::function<void(int64_t, bool)> renderedCallback) = 0;
+    virtual void setRenderResultCallback(std::function<void(int64_t, bool)> renderedCallback)
+    {
+        mRenderResultCallback = renderedCallback;
+    }
 
     /**
      * set render rotate.
@@ -196,6 +199,7 @@ public:
 protected:
     IVideoRenderFilter *mFilter{};
     bool mInvalid{false};
+    std::function<void(int64_t, bool)> mRenderResultCallback = nullptr;
 };
 
 
