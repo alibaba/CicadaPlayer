@@ -3326,8 +3326,18 @@ int SuperMediaPlayer::CreateVideoDecoder(bool bHW, Stream_meta &meta)
     }
     uint32_t dstFormat = 0;
 #ifdef __APPLE__
+    dstFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
     if (mFrameCb && mSet->pixelBufferOutputFormat) {
         dstFormat = mSet->pixelBufferOutputFormat;
+    } else {
+        // TODO: move to VTB decoder
+        /*
+         *  must set hdr video to output x420, otherwise vtb will output a p420 format
+         *  if iOS version little than 14 that can't be displayed by AVSampleBufferDisplayLayer
+         */
+        if (meta.pixel_fmt == AF_PIX_FMT_YUV420P10BE || meta.pixel_fmt == AF_PIX_FMT_YUV420P10LE) {
+            dstFormat = kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange;
+        }
     }
 #endif
     ret = mAVDeviceManager->setUpDecoder(decFlag, (const Stream_meta *) (&meta), view, SMPAVDeviceManager::DEVICE_TYPE_VIDEO, dstFormat);
