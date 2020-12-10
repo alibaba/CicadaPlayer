@@ -313,6 +313,8 @@ namespace Cicada {
 
         void checkEOS();
 
+        void playCompleted();
+
         void notifySeekEndCallback();
 
         void notifyPreparedCallback();
