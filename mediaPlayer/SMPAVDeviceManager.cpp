@@ -310,6 +310,10 @@ int SMPAVDeviceManager::createVideoRender(uint64_t flags)
         return 0;
     }
 
+    if (mVideoRender) {
+        mVideoRender->clearScreen();
+    }
+
     mVideoRender = videoRenderFactory::create(flags);
 //    assert(mVideoRender != nullptr);
     if (mVideoRender){
