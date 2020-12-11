@@ -59,8 +59,10 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
     if (layer != (__bridge void *) parentLayer) {
         parentLayer = (__bridge CALayer *) layer;
         dispatch_async(dispatch_get_main_queue(), ^{
-          self.displayLayer = [AVSampleBufferDisplayLayer layer];
-          self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspect;
+          if (!self.displayLayer) {
+              self.displayLayer = [AVSampleBufferDisplayLayer layer];
+              self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspect;
+          }
           [parentLayer addSublayer:self.displayLayer];
           parentLayer.masksToBounds = YES;
           self.displayLayer.frame = parentLayer.bounds;
@@ -177,8 +179,13 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
 
 - (void)dealloc
 {
-    [self.displayLayer removeFromSuperlayer];
-    [parentLayer removeObserver:self forKeyPath:@"bounds" context:nil];
+    // FIXME: use async
+    dispatch_sync(dispatch_get_main_queue(), ^{
+      if (self.displayLayer) {
+          [self.displayLayer removeFromSuperlayer];
+          [parentLayer removeObserver:self forKeyPath:@"bounds" context:nil];
+      }
+    });
 }
 
 @end
