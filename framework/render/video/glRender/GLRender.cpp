@@ -262,6 +262,9 @@ void GLRender::VSyncOnDestroy()
     if (mContext == nullptr) {
         return;
     }
+    if (mClearScreenOn) {
+        glClearScreen();
+    }
 
     mContext->DestroyView();
     mContext->DestroySurface(mGLSurface);
@@ -269,6 +272,17 @@ void GLRender::VSyncOnDestroy()
     mContext->Destroy();
     delete mContext;
     mContext = nullptr;
+}
+
+void GLRender::glClearScreen()
+{
+    glViewport(0, 0, mWindowWidth, mWindowHeight);
+    unsigned int backgroundColor = mBackgroundColor;
+    float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    cicada::convertToGLColor(backgroundColor, color);
+    glClearColor(color[0], color[1], color[2], color[3]);
+    glClear(GL_COLOR_BUFFER_BIT);
+    mContext->Present(mGLSurface);
 }
 
 bool GLRender::renderActually()
@@ -413,19 +427,7 @@ bool GLRender::renderActually()
     }
 
     if (mClearScreenOn) {
-        glViewport(0, 0, mWindowWidth, mWindowHeight);
-        unsigned int backgroundColor = mBackgroundColor;
-        float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-        cicada::convertToGLColor(backgroundColor, color);
-        glClearColor(color[0], color[1], color[2], color[3]);
-        glClear(GL_COLOR_BUFFER_BIT);
-        mContext->Present(mGLSurface);
-
-        if (mProgramContext != nullptr) {
-            mProgramFormat = -1;
-            mProgramContext = nullptr;
-        }
-
+        glClearScreen();
         mClearScreenOn = false;
     }
 
