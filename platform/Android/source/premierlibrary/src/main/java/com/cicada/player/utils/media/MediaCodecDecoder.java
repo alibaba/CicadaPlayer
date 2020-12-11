@@ -399,9 +399,6 @@ public class MediaCodecDecoder {
                     mMediaCodec.queueInputBuffer(index, 0, inputBuffer.limit(), pts, flags);
                 }
             }
-        } catch (MediaCodec.CodecException e) {
-            Logger.e(TAG, "queueInputBufferInner  fail codecType : " + mCodecCateGory + " , msg : " + e.getLocalizedMessage());
-            return ERROR;
         } catch (Exception e) {
             Logger.e(TAG, "queueInputBufferInner  fail " + e.getLocalizedMessage());
             return ERROR;
@@ -456,7 +453,9 @@ public class MediaCodecDecoder {
             int index = mMediaCodec.dequeueOutputBuffer(mBufferInfo, timeoutUs);
             if (index >= 0) {
                 return index;
-            } else if (index == INFO_TRY_AGAIN_LATER || index == INFO_OUTPUT_FORMAT_CHANGED) {
+            } else if (index == INFO_TRY_AGAIN_LATER) {
+                return TRY_AGAIN;
+            }else if(index == INFO_OUTPUT_FORMAT_CHANGED) {
                 return index;
             } else if (index == INFO_OUTPUT_BUFFERS_CHANGED) {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {

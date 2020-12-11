@@ -312,11 +312,7 @@ int MediaCodec_Decoder::dequeueOutputBufferIndex(int64_t timeoutUs) {
     int ret = env->CallIntMethod(mMediaCodec, jMediaCodec_dequeueOutputBufferIndex,
                                  (jlong) timeoutUs);
 
-    if (ret == -1 /* MediaCodec $ INFO_TRY_AGAIN_LATER */) {
-        return MC_INFO_TRYAGAIN;
-    } else {
-        return ret;
-    }
+    return ret;
 }
 
 int MediaCodec_Decoder::queueInputBuffer(int index, void *buffer, size_t size, int64_t pts,
