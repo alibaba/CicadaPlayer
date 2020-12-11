@@ -34,8 +34,9 @@ export CURL_GIT=https://gitee.com/mirrors/curl.git
 - [2. compile Android](doc/compile_Android.md)
 - [3. compile_Linux](doc/compile_Linux.md)
 - [4. compile_Windows (cross compile)](doc/compile_Windows.md)
-- [5. compile_MacOS](doc/compile_mac.md)
-- 6.webAssembly coming soon
+- [5.compile_Windows(msvc)](doc/compile_Windows_msvc.md)
+- [6. compile_MacOS](doc/compile_mac.md)
+- 7.webAssembly coming soon
 
 
 ## How to use
