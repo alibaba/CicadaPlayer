@@ -89,6 +89,8 @@ private:
 
     void captureScreen();
 
+    void glClearScreen();
+
     void calculateFPS(int64_t tick);
 
     IProgramContext *getProgram(int frameFormat, IAFFrame *frame = nullptr);
