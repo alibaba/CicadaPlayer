@@ -36,14 +36,16 @@ namespace Cicada {
         }
 
     private:
+        void enableRetry_l();
+
+    private:
         SuperMediaPlayer &mPlayer;
         NetWorkRetryStatus mStatus = NetWorkRetryStatusRetry;
         bool bWaitingForRet = false;
         int64_t mEffectiveRetryTime = 0;
         std::mutex mMutex;
         std::atomic_bool mNetworkConnected{false};
-
-        void enableRetry_l();
+        int mRetryCount{0};
     };
 }
 
