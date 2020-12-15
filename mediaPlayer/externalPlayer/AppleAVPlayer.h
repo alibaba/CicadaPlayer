@@ -6,6 +6,7 @@
 #define CICADAMEDIA_APPLE_AVPLAYER_H
 
 #include "native_cicada_player_def.h"
+#import <mutex>
 
 #include "../CicadaPlayerPrototype.h"
 namespace Cicada {
@@ -181,9 +182,13 @@ namespace Cicada {
         }
 
         static AppleAVPlayer se;
+
         void recheckHander();
 
+        void UpdatePlayerStatus(PlayerStatus status);
+
     private:
+        mutable std::recursive_mutex mCreateMutex{};
         void *avPlayer{nullptr};
         void *playerHandler{nullptr};
         playerListener mListener{nullptr};
@@ -199,7 +204,6 @@ namespace Cicada {
         bool mIsDummy{false};
         PlayerStatus mStatus{PLAYER_IDLE};
 
-        void UpdatePlayerStatus(PlayerStatus status);
     };
 }// namespace Cicada
 
