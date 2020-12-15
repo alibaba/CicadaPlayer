@@ -587,6 +587,8 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
         if( mDemuxerService != nullptr && mDemuxerService->getDemuxerHandle()) {
             mDemuxerService->getDemuxerHandle()->SetOption("sessionId" , mSet->sessionId);
         }
+    } else if (theKey == "networkRetryCount") {
+        mSet->netWorkRetryCount = (int) atol(value);
     }
 
     return 0;

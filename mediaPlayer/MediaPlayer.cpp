@@ -479,6 +479,7 @@ namespace Cicada {
         CicadaSetOption(handle, "enableVideoTunnelRender", playerConfig.bEnableTunnelRender ? "1" : "0");
         CicadaSetOption(handle, "disableAudio", playerConfig.mDisableAudio ? "1" : "0");
         CicadaSetOption(handle, "disableVideo", playerConfig.mDisableVideo ? "1" : "0");
+        CicadaSetOption(handle, "networkRetryCount", to_string(playerConfig.networkRetryCount).c_str());
         if (playerConfig.pixelBufferOutputFormat != 0) {
             CicadaSetOption(handle, "pixelBufferOutputFormat", to_string(playerConfig.pixelBufferOutputFormat).c_str());
         }

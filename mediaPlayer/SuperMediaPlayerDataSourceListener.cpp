@@ -4,11 +4,12 @@
 
 
 #define LOG_TAG "apsaraDataSourceListener"
-#include <utils/timer.h>
-#include <utils/frame_work_log.h>
 #include "SuperMediaPlayerDataSourceListener.h"
-#include "media_player_error_def.h"
 #include "SuperMediaPlayer.h"
+#include "media_player_error_def.h"
+#include <utils/af_string.h>
+#include <utils/frame_work_log.h>
+#include <utils/timer.h>
 using namespace Cicada;
 
 namespace Cicada {
@@ -29,6 +30,18 @@ namespace Cicada {
 
         if (af_getsteady_ms() <= mEffectiveRetryTime) {
             return NetWorkRetryStatusRetry;
+        }
+
+        if (mPlayer.mSet->netWorkRetryCount > 0) {
+            if (mRetryCount < mPlayer.mSet->netWorkRetryCount) {
+                enableRetry_l();
+                mRetryCount++;
+                return NetWorkRetryStatusRetry;
+            } else {
+                string err = "network retry timeout for " + AfString::to_string(mPlayer.mSet->netWorkRetryCount) + " times";
+                mPlayer.mPNotifier->NotifyError(MEDIA_PLAYER_ERROR_LOADING_TIMEOUT, err.c_str());
+                return NetWorkRetryStatusPending;
+            }
         }
 
         if (!bWaitingForRet) {
@@ -57,7 +70,11 @@ namespace Cicada {
         if (!mNetworkConnected) {
             AF_LOGD("onNetWorkRetry successful\n");
             mNetworkConnected = true;
-            mPlayer.mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_NETWORK_RETRY_SUCCESS, "");
+            mRetryCount = 0;
+
+            if (mPlayer.mSet->netWorkRetryCount <= 0) {
+                mPlayer.mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_NETWORK_RETRY_SUCCESS, "");
+            }
         }
     }
 

@@ -67,6 +67,7 @@ namespace Cicada {
         pixelBufferOutputFormat = 0;
         drmMagicKey = "";
         sessionId = "";
+        netWorkRetryCount = 0;
     }
 }
 
