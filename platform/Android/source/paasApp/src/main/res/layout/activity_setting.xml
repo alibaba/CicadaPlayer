@@ -87,6 +87,15 @@
                     android:text="@string/title_exo_player"
                     android:textSize="16sp" />
 
+                <RadioButton
+                    android:id="@+id/radio_btn_media"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/title_media_player"
+                    android:textSize="16sp" />
+
             </RadioGroup>
             <!-- 选择播放器 end -->
 

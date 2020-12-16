@@ -48,7 +48,7 @@ public class SettingActivity extends BaseActivity {
         initListener();
     }
 
-    private void initView(){
+    private void initView() {
         TextView tvTitle = findViewById(R.id.tv_title);
         tvTitle.setText(R.string.title_setting);
 
@@ -59,23 +59,32 @@ public class SettingActivity extends BaseActivity {
         mPlayerSelectRadioGroup = findViewById(R.id.radio_group_player);
     }
 
-    private void initData(){
+    private void initData() {
         mVersionTextView.setText(CicadaPlayerFactory.getSdkVersion());
         mHardwareDecoderCheckBox.setChecked(SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.CICADA_PLAYER_HARDWARE_DECODER));
-        boolean selectedCicadaPlayer = SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.SELECTED_CICADA_PLAYER);
-        mPlayerSelectRadioGroup.check(selectedCicadaPlayer ? R.id.radio_btn_cicada : R.id.radio_btn_exo);
+        String playerName = SharedPreferenceUtils.getStringExtra(SharedPreferenceUtils.SELECTED_PLAYER_NAME);
+        if ("CicadaPlayer".equals(playerName)) {
+            mPlayerSelectRadioGroup.check(R.id.radio_btn_cicada);
+        } else if ("ExoPlayer".equals(playerName)) {
+            mPlayerSelectRadioGroup.check(R.id.radio_btn_exo);
+        } else if ("MediaPlayer".equals(playerName)) {
+            mPlayerSelectRadioGroup.check(R.id.radio_btn_media);
+        } else {
+            boolean selectedCicadaPlayer = SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.SELECTED_CICADA_PLAYER);
+            mPlayerSelectRadioGroup.check(selectedCicadaPlayer ? R.id.radio_btn_cicada : R.id.radio_btn_exo);
+        }
         mModelTextView.setText(Build.MODEL);
     }
 
-    private void initListener(){
+    private void initListener() {
         mHardwareDecoderCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if(Common.HAS_ADD_BLACKLIST && b){
+                if (Common.HAS_ADD_BLACKLIST && b) {
                     Toast.makeText(SettingActivity.this, getString(R.string.cicada_unable_start_hardware_decoder), Toast.LENGTH_SHORT).show();
                     mHardwareDecoderCheckBox.setChecked(false);
-                }else{
-                    SharedPreferenceUtils.putBooleanExtra(SharedPreferenceUtils.CICADA_PLAYER_HARDWARE_DECODER,b);
+                } else {
+                    SharedPreferenceUtils.putBooleanExtra(SharedPreferenceUtils.CICADA_PLAYER_HARDWARE_DECODER, b);
                 }
 
             }
@@ -84,21 +93,27 @@ public class SettingActivity extends BaseActivity {
         mBlackListButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mHardwareDecoderCheckBox != null){
+                if (mHardwareDecoderCheckBox != null) {
                     mHardwareDecoderCheckBox.setChecked(false);
                 }
                 Toast.makeText(SettingActivity.this, getString(R.string.cicada_success), Toast.LENGTH_SHORT).show();
                 Common.HAS_ADD_BLACKLIST = true;
                 CicadaPlayerFactory.DeviceInfo deviceInfo = new CicadaPlayerFactory.DeviceInfo();
                 deviceInfo.model = Build.MODEL;
-                CicadaPlayerFactory.addBlackDevice(CicadaPlayerFactory.BlackType.HW_Decode_H264,deviceInfo);
+                CicadaPlayerFactory.addBlackDevice(CicadaPlayerFactory.BlackType.HW_Decode_H264, deviceInfo);
             }
         });
 
         mPlayerSelectRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int checkedId) {
-                SharedPreferenceUtils.putBooleanExtra(SharedPreferenceUtils.SELECTED_CICADA_PLAYER,checkedId == R.id.radio_btn_cicada);
+                if (checkedId == R.id.radio_btn_cicada) {
+                    SharedPreferenceUtils.putStringExtra(SharedPreferenceUtils.SELECTED_PLAYER_NAME, "CicadaPlayer");
+                } else if (checkedId == R.id.radio_btn_exo) {
+                    SharedPreferenceUtils.putStringExtra(SharedPreferenceUtils.SELECTED_PLAYER_NAME, "ExoPlayer");
+                } else if (checkedId == R.id.radio_btn_media) {
+                    SharedPreferenceUtils.putStringExtra(SharedPreferenceUtils.SELECTED_PLAYER_NAME, "MediaPlayer");
+                }
             }
         });
     }
