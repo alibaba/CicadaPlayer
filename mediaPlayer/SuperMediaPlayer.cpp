@@ -343,6 +343,7 @@ int SuperMediaPlayer::Stop()
     }
     if (mAudioRender) {
         mAudioRender->preClose();
+        mAudioRender->mute(true);
     }
     if (mAudioDecoder) {
         mAudioDecoder->preClose();
