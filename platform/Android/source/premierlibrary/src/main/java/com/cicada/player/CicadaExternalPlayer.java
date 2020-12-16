@@ -12,6 +12,7 @@ import java.util.List;
 
 public abstract class CicadaExternalPlayer {
 
+
     public enum StreamType {
         ST_TYPE_UNKNOWN(-1),
         ST_TYPE_VIDEO(0),
@@ -159,6 +160,11 @@ public abstract class CicadaExternalPlayer {
         void onSubtitleHide(int trackIndex, long id);
     }
 
+    public interface OnDRMCallback {
+        byte[] onRequestProvision(String provisionUrl , byte[] data);
+
+        byte[] onRequestKey(String licenseUrl , byte[] data);
+    }
 
     private static List<CicadaExternalPlayer> externalPlayerList = new ArrayList<>();
 
@@ -332,4 +338,5 @@ public abstract class CicadaExternalPlayer {
 
     public abstract void setOnSubtitleListener(OnSubtitleListener onSubtitleListener);
 
+    public abstract void setOnDrmCallback(OnDRMCallback onDRMCallback);
 }

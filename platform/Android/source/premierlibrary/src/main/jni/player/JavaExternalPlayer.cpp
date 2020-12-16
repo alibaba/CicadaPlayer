@@ -9,6 +9,8 @@
 #include <utils/Android/GetStringUTFChars.h>
 #include <base/media/subTitlePacket.h>
 #include <utils/Android/JniUtils.h>
+#include <utils/CicadaJSON.h>
+#include <utils/CicadaUtils.h>
 #include "JavaExternalPlayer.h"
 #include "JavaOptions.h"
 #include "JavaMediaInfo.h"
@@ -129,6 +131,9 @@ static JNINativeMethod nativePlayer_method_table[] = {
         {"nativeOnSubtitleHide",         "(JJ[B)V",                                        (void *) JavaExternalPlayer::java_OnSubtitleHide},
         {"nativeOnSubtitleShow",         "(JJ[B)V",                                        (void *) JavaExternalPlayer::java_OnSubtitleShow},
         {"nativeOnSubtitleExtAdd",       "(JJLjava/lang/String;)V",                        (void *) JavaExternalPlayer::java_OnSubtitleExtAdd},
+
+        {"nativeOnRequestProvision",     "(JLjava/lang/String;[B)[B",                      (void *) JavaExternalPlayer::java_OnRequestProvision},
+        {"nativeOnRequestKey",           "(JLjava/lang/String;[B)[B",                      (void *) JavaExternalPlayer::java_OnRequestKey},
 
 };
 
@@ -361,6 +366,92 @@ void JavaExternalPlayer::java_OnSubtitleExtAdd(JNIEnv *pEnv, jobject object, jlo
     //TODO
 }
 
+jbyteArray
+JavaExternalPlayer::java_OnRequestProvision(JNIEnv *pEnv, jobject object, jlong nativeInstance,
+                                            jstring provisionUrl, jbyteArray data) {
+    auto *player = reinterpret_cast<JavaExternalPlayer *>((long) nativeInstance);
+    if (player != nullptr && player->mDrmCallback != nullptr) {
+        GetStringUTFChars cUrl(pEnv, provisionUrl);
+        char *cData = JniUtils::jByteArrayToChars(pEnv, data);
+        int dataLen = pEnv->GetArrayLength(data);
+
+        Cicada::DrmRequestParam drmRequestParam{};
+        drmRequestParam.mDrmType = "WideVine";
+
+        CicadaJSONItem param{};
+        param.addValue("requestType", "provision");
+        param.addValue("url", std::string(cUrl.getChars()));
+        param.addValue("data", CicadaUtils::base64enc(cData, dataLen));
+        drmRequestParam.mParam = &param;
+
+        free(cData);
+
+        Cicada::DrmResponseData *drmResponseData = player->mDrmCallback(drmRequestParam);
+
+        if (drmResponseData == nullptr) {
+            return nullptr;
+        }
+
+        int responseDataSize = 0;
+        const char *responseData = drmResponseData->getData(&responseDataSize);
+
+        jbyteArray mResult = nullptr;
+        if (responseData != nullptr && responseDataSize > 0) {
+            mResult = pEnv->NewByteArray(responseDataSize);
+            pEnv->SetByteArrayRegion(mResult, 0, responseDataSize, (jbyte *) (responseData));
+        }
+
+        delete drmResponseData;
+
+        return mResult;
+    }
+    return nullptr;
+}
+
+jbyteArray JavaExternalPlayer::java_OnRequestKey(JNIEnv *pEnv, jobject object, jlong nativeInstance,
+                                                 jstring licenseUrl, jbyteArray data) {
+    auto *player = reinterpret_cast<JavaExternalPlayer *>((long) nativeInstance);
+    if (player != nullptr && player->mDrmCallback != nullptr) {
+        GetStringUTFChars cUrl(pEnv, licenseUrl);
+        char *cData = JniUtils::jByteArrayToChars(pEnv, data);
+        int dataLen = pEnv->GetArrayLength(data);
+
+        Cicada::DrmRequestParam drmRequestParam{};
+        drmRequestParam.mDrmType = "WideVine";
+
+        CicadaJSONItem param{};
+        param.addValue("requestType", "key");
+        param.addValue("url", std::string(cUrl.getChars()));
+        param.addValue("data", CicadaUtils::base64enc(cData, dataLen));
+        drmRequestParam.mParam = &param;
+
+        free(cData);
+
+        Cicada::DrmResponseData *drmResponseData = player->mDrmCallback(drmRequestParam);
+
+        if (drmResponseData == nullptr) {
+            return nullptr;
+        }
+
+        int responseDataSize = 0;
+        const char *responseData = drmResponseData->getData(&responseDataSize);
+
+        jbyteArray mResult = nullptr;
+        if (responseData != nullptr && responseDataSize > 0) {
+            mResult = pEnv->NewByteArray(responseDataSize);
+            pEnv->SetByteArrayRegion(mResult, 0, responseDataSize, (jbyte *) (responseData));
+        }
+
+        delete drmResponseData;
+
+        return mResult;
+    }
+    return nullptr;
+}
+
+
+
+
 // ----------------call from c++ ----------
 
 
@@ -374,13 +465,13 @@ bool JavaExternalPlayer::is_supported(const Cicada::options *opts) {
     jobject jOption = JavaOptions::convertTo(mEnv, const_cast<Cicada::options *>(opts));
     jboolean ret = mEnv->CallStaticBooleanMethod(gj_NativeExternalPlayer_Class,
                                                  gj_NativeExternalPlayer_isSupport, jOption);
-    if(jOption != nullptr) {
+    if (jOption != nullptr) {
         mEnv->DeleteLocalRef(jOption);
     }
     return (bool) ret;
 }
 
-JavaExternalPlayer::JavaExternalPlayer(const Cicada::options * opts) {
+JavaExternalPlayer::JavaExternalPlayer(const Cicada::options *opts) {
     JniEnv Jenv;
     JNIEnv *mEnv = Jenv.getEnv();
 
@@ -393,9 +484,9 @@ JavaExternalPlayer::JavaExternalPlayer(const Cicada::options * opts) {
     jExternalPlayer = mEnv->NewGlobalRef(tmpPlayer);
     mEnv->DeleteLocalRef(tmpPlayer);
 
-    jobject jOption = JavaOptions::convertTo(mEnv , const_cast<Cicada::options *>(opts));
+    jobject jOption = JavaOptions::convertTo(mEnv, const_cast<Cicada::options *>(opts));
     mEnv->CallVoidMethod(jExternalPlayer, gj_NativeExternalPlayer_create, (long) this, jOption);
-    if(jOption != nullptr) {
+    if (jOption != nullptr) {
         mEnv->DeleteLocalRef(jOption);
     }
 }
@@ -683,7 +774,7 @@ void JavaExternalPlayer::addExtSubtitle(const char *uri) {
 }
 
 int JavaExternalPlayer::selectExtSubtitle(int index, bool bSelect) {
-    jCallRvPlb("selectExtSubtitle" , index , bSelect);
+    jCallRvPlb("selectExtSubtitle", index, bSelect);
     return 0;
 }
 
