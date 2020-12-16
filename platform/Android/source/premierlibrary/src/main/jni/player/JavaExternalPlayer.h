@@ -85,6 +85,9 @@ public :
     java_OnSubtitleExtAdd(JNIEnv *pEnv, jobject object, jlong nativeInstance, jlong index,
                           jstring url);
 
+    static jbyteArray java_OnRequestProvision(JNIEnv *pEnv, jobject object, jlong nativeInstance, jstring provisionUrl , jbyteArray data);
+
+    static jbyteArray java_OnRequestKey(JNIEnv *pEnv, jobject object, jlong nativeInstance, jstring licenseUrl , jbyteArray data);
 
 public:
     JavaExternalPlayer(const Cicada::options * opts);
@@ -220,7 +223,7 @@ public:
     void SetAudioRenderingCallBack(onRenderFrame cb, void *userData) override ;
 
     void setDrmRequestCallback(const std::function<Cicada::DrmResponseData*(const Cicada::DrmRequestParam& drmRequestParam)> &drmCallback) override{
-		//
+        mDrmCallback = drmCallback;
     };
 public:
     static bool is_supported(const Cicada::options *opts);
@@ -280,6 +283,7 @@ private:
     StreamInfo ** mStreamInfos{nullptr};
     int mStreamCount{0};
     const Cicada::options *options{nullptr};
+    std::function<Cicada::DrmResponseData*(const Cicada::DrmRequestParam& drmRequestParam)> mDrmCallback = nullptr;
 private:
     void releaseStreamInfo(StreamInfo *pInfo);
 

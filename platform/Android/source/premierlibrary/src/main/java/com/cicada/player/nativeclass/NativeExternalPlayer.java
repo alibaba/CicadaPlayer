@@ -196,7 +196,18 @@ public class NativeExternalPlayer {
                 nativeOnSubtitleHide(mNativeInstance, trackIndex, null);
             }
         });
+        mExternPlayer.setOnDrmCallback(new CicadaExternalPlayer.OnDRMCallback() {
 
+            @Override
+            public byte[] onRequestProvision(String provisionUrl, byte[] data) {
+                return nativeOnRequestProvision(mNativeInstance ,provisionUrl , data);
+            }
+
+            @Override
+            public byte[] onRequestKey(String licenseUrl, byte[] data) {
+                return nativeOnRequestKey(mNativeInstance , licenseUrl , data);
+            }
+        });
     }
 
 
@@ -623,5 +634,7 @@ public class NativeExternalPlayer {
 
     private native void nativeOnSubtitleExtAdd(long mNativeInstance, long index, String url);
 
+    private native byte[] nativeOnRequestProvision(long mNativeInstance , String provisionUrl , byte[] data);
 
+    private native byte[] nativeOnRequestKey(long mNativeInstance , String licenseUrl , byte[] data);
 }

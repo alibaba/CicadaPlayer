@@ -77,6 +77,8 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
     private OnStreamSwitchSucListener mOutOnStreamSwitchSucListener;
     private OnCaptureScreenListener mOutOnCaptureScreenListener;
     private OnSubtitleListener mOutOnSubtitleListener;
+    private OnDRMCallback mOutOnDRMCallback;
+
     private List<ExoTrackInfo> mExoTrackInfoList = new ArrayList<>();
     private DefaultTrackSelector mTrackSelector;
     private Handler timer = null;
@@ -402,7 +404,7 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
         } else {
             mExoPlayer.setVideoSurface(surface);
         }
-        if(surface instanceof ExternExoSurface){
+        if (surface instanceof ExternExoSurface) {
             mTextureView = ((ExternExoSurface) surface).getTextureView();
         }
     }
@@ -426,7 +428,7 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
 
     private void initPlayer() {
         //TODO 判断是否是WideVine的流
-        boolean isWideVine = false;
+        boolean isWideVine = true;
         DrmSessionManager<FrameworkMediaCrypto> drmSessionManager = null;
 
         if (isWideVine) {
@@ -448,8 +450,8 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
                 public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
                     mVideoWith = width;
                     mVideoHeight = height;
-                    if(mTextureView instanceof ExternExoTextureView){
-                        ((ExternExoTextureView) mTextureView).setVideoSize(mVideoWith,mVideoHeight);
+                    if (mTextureView instanceof ExternExoTextureView) {
+                        ((ExternExoTextureView) mTextureView).setVideoSize(mVideoWith, mVideoHeight);
                         mTextureView.requestLayout();
                     }
                     if (mOutOnVideoSizeChangedListener != null) {
@@ -756,11 +758,11 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
             return;
         }
 
-        if(mTextureView == null){
-            return ;
+        if (mTextureView == null) {
+            return;
         }
 
-        ((ExternExoTextureView)mTextureView).setScaleType(scaleMode);
+        ((ExternExoTextureView) mTextureView).setScaleType(scaleMode);
 
         this.mScaleMode = scaleMode;
 
@@ -781,17 +783,17 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
             return;
         }
 
-        if(mTextureView == null){
-            return ;
+        if (mTextureView == null) {
+            return;
         }
 
-        if(rotateMode == CicadaPlayer.RotateMode.ROTATE_0){
+        if (rotateMode == CicadaPlayer.RotateMode.ROTATE_0) {
             mTextureView.setRotation(0f);
-        }else if(rotateMode == CicadaPlayer.RotateMode.ROTATE_90){
+        } else if (rotateMode == CicadaPlayer.RotateMode.ROTATE_90) {
             mTextureView.setRotation(90f);
-        }else if(rotateMode == CicadaPlayer.RotateMode.ROTATE_180){
+        } else if (rotateMode == CicadaPlayer.RotateMode.ROTATE_180) {
             mTextureView.setRotation(180f);
-        }else{
+        } else {
             mTextureView.setRotation(270f);
         }
         mTextureView.requestLayout();
@@ -812,16 +814,16 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
         if (mExoPlayer == null) {
             return;
         }
-        if(mTextureView == null){
-            return ;
+        if (mTextureView == null) {
+            return;
         }
-        if(mirrorMode == CicadaPlayer.MirrorMode.MIRROR_MODE_NONE){
+        if (mirrorMode == CicadaPlayer.MirrorMode.MIRROR_MODE_NONE) {
             mTextureView.setScaleX(1f);
             mTextureView.setScaleY(1f);
-        }else if(mirrorMode == CicadaPlayer.MirrorMode.MIRROR_MODE_VERTICAL){
+        } else if (mirrorMode == CicadaPlayer.MirrorMode.MIRROR_MODE_VERTICAL) {
             mTextureView.setScaleX(1f);
             mTextureView.setScaleY(-1f);
-        }else{
+        } else {
             mTextureView.setScaleX(-1f);
             mTextureView.setScaleY(1f);
         }
@@ -1230,9 +1232,31 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
         mOutOnSubtitleListener = onSubtitleListener;
     }
 
+    @Override
+    public void setOnDrmCallback(OnDRMCallback onDRMCallback) {
+        mOutOnDRMCallback = onDRMCallback;
+    }
+
     private DefaultDrmSessionManager<FrameworkMediaCrypto> buildDrmSessionManagerV18() {
         MediaDrmCallback drmCallback =
-                new WideVineDrmCallback();
+                new WideVineDrmCallback(new OnDRMCallback() {
+
+                    @Override
+                    public byte[] onRequestProvision(String provisionUrl, byte[] data) {
+                        if (mOutOnDRMCallback != null) {
+                            return mOutOnDRMCallback.onRequestProvision(provisionUrl, data);
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    public byte[] onRequestKey(String licenseUrl, byte[] data) {
+                        if (mOutOnDRMCallback != null) {
+                            return mOutOnDRMCallback.onRequestKey(licenseUrl, data);
+                        }
+                        return null;
+                    }
+                });
 
         releaseMediaDrm();
         try {
