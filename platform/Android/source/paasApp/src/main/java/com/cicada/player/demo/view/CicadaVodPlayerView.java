@@ -1,14 +1,10 @@
 package com.cicada.player.demo.view;
 
-import static com.cicada.player.demo.view.subtitle.LocationStyle.Location_CenterH;
-import static com.cicada.player.demo.view.subtitle.LocationStyle.Location_Top;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.SurfaceTexture;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -16,15 +12,12 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.aliyun.externalplayer.exo.ExternExoSurface;
-import com.aliyun.externalplayer.exo.ExternExoTextureView;
 import com.cicada.player.CicadaPlayer;
 import com.cicada.player.CicadaPlayerFactory;
 import com.cicada.player.bean.ErrorInfo;
@@ -56,12 +49,15 @@ import com.cicada.player.nativeclass.TrackInfo;
 import com.cicada.player.utils.Logger;
 import com.cicada.player.utils.media.DrmCallback;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import static com.cicada.player.demo.view.subtitle.LocationStyle.Location_CenterH;
+import static com.cicada.player.demo.view.subtitle.LocationStyle.Location_Top;
 
 /**
  * UI播放器的主要实现类。
@@ -1104,15 +1100,18 @@ public class CicadaVodPlayerView extends FrameLayout {
     private void initCicadaPlayer() {
         Logger.getInstance(getContext()).enableConsoleLog(true);
         Logger.getInstance(getContext()).setLogLevel(Logger.LogLevel.AF_LOG_LEVEL_TRACE);
-//        boolean selectedCicadaPlayer = SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.SELECTED_CICADA_PLAYER);
-//        if(selectedCicadaPlayer){
-//            mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext());
-//        }else{
-//            mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext(), "ExoPlayer");
-//        }
 
-        mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext(), "MediaPlayer");
-
+        String playerName = SharedPreferenceUtils.getStringExtra(SharedPreferenceUtils.SELECTED_PLAYER_NAME);
+        if (TextUtils.isEmpty(playerName)) {
+            boolean selectedCicadaPlayer = SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.SELECTED_CICADA_PLAYER);
+            if (selectedCicadaPlayer) {
+                mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext());
+            } else {
+                mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext(), "ExoPlayer");
+            }
+        } else {
+            mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext(), playerName);
+        }
 
         //设置drm的callback
         mCicadaVodPlayer.setDrmCallback(new DrmCallback() {

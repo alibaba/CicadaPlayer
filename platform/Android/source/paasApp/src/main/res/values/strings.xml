@@ -12,6 +12,7 @@
     <string name="title_select_player">Select Player</string>
     <string name="title_cicada_player">CicadaPlayer</string>
     <string name="title_exo_player">ExoPlayer</string>
+    <string name="title_media_player">MediaPlayer</string>
 
     <!--setting-->
     <string name="setting_version">VersionCode : </string>
