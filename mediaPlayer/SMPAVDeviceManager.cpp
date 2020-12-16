@@ -48,10 +48,6 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
         drmInfo->uri = meta->keyUrl == nullptr ? "" : meta->keyUrl;
     }
 
-    if (type == DEVICE_TYPE_AUDIO && drmInfo == nullptr) {
-        decFlag &= ~DECFLAG_HW;
-    }
-
     if (decoderHandle->decoder) {
         if (decoderHandle->match(meta, decFlag, device, dstFormat, drmInfo) && decoderHandle->decoder->supportReuse()) {// reuse decoder
 
