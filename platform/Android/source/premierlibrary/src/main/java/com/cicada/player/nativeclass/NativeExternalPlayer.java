@@ -1,5 +1,6 @@
 package com.cicada.player.nativeclass;
 
+import android.content.Context;
 import android.view.Surface;
 
 import com.cicada.player.CicadaExternalPlayer;
@@ -28,11 +29,19 @@ public class NativeExternalPlayer {
         }
     }
 
+    private static Context sContext = null;
+
+    public static void setContext(Context context) {
+        if(sContext == null && context != null) {
+            sContext = context.getApplicationContext();
+        }
+    }
+
     @NativeUsed
     public void create(long nativeAddr, Options options) {
         CicadaExternalPlayer dummyPlayer = CicadaExternalPlayer.isSupportExternal(options);
         if (dummyPlayer != null) {
-            mExternPlayer = dummyPlayer.create(options);
+            mExternPlayer = dummyPlayer.create(sContext, options);
         }
 
         if (mExternPlayer == null) {
@@ -361,6 +370,8 @@ public class NativeExternalPlayer {
 
         if ("Release".equals(name)) {
             mExternPlayer.release();
+            mNativeInstance = 0;
+            mExternPlayer = null;
         } else if ("Prepare".equals(name)) {
             mExternPlayer.prepare();
         } else if ("Start".equals(name)) {

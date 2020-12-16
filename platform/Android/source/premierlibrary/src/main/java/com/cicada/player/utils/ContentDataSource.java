@@ -5,8 +5,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import com.cicada.player.nativeclass.NativePlayerBase;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,9 +25,16 @@ public class ContentDataSource {
     private InputStream mStream = null;
     private int mStreamSize = -1;
     private long mOffset = 0;
+    private static Context sContext = null;
 
     public ContentDataSource() {
 
+    }
+
+    public static void setContext(Context context) {
+        if (context != null && sContext == null) {
+            sContext = context.getApplicationContext();
+        }
     }
 
     public void setUri(String uri) {
@@ -41,12 +46,12 @@ public class ContentDataSource {
         if (TextUtils.isEmpty(mUri)) {
             return -EINVAL;
         }
-        Context context = NativePlayerBase.getContext();
-        if (context == null) {
+
+        if (sContext == null) {
             return -EINVAL;
         }
 
-        ContentResolver contentResolver = context.getContentResolver();
+        ContentResolver contentResolver = sContext.getContentResolver();
         Uri uri = Uri.parse(mUri);
 
         try {

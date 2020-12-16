@@ -1,5 +1,6 @@
 package com.cicada.player;
 
+import android.content.Context;
 import android.view.Surface;
 
 import com.cicada.player.nativeclass.MediaInfo;
@@ -179,7 +180,7 @@ public abstract class CicadaExternalPlayer {
 
     public abstract boolean isSupport(Options options);
 
-    public abstract CicadaExternalPlayer create(Options options);
+    public abstract CicadaExternalPlayer create(Context context , Options options);
 
     public abstract void setDataSource(String url);
 
@@ -194,7 +195,6 @@ public abstract class CicadaExternalPlayer {
     public abstract void stop();
 
     public abstract void release();
-
 
     public abstract StreamType switchStream(int index);
 
@@ -295,7 +295,6 @@ public abstract class CicadaExternalPlayer {
     public abstract boolean isAutoPlay();
 
     public abstract int invokeComponent(String content);
-
 
     public abstract void setOnPreparedListener(OnPreparedListener onPreparedListener);
 

@@ -14,6 +14,6 @@ public class PlayerApplication extends MultiDexApplication{
         super.onCreate();
         SharedPreferenceUtils.init(getApplicationContext());
 
-        CicadaExternalPlayer.registerExternalPlayer(new ExternPlayerExo(getApplicationContext()));
+        CicadaExternalPlayer.registerExternalPlayer(new ExternPlayerExo());
     }
 }
