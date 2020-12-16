@@ -179,13 +179,20 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
 
 - (void)dealloc
 {
-    // FIXME: use async
-    dispatch_sync(dispatch_get_main_queue(), ^{
-      if (self.displayLayer) {
-          [self.displayLayer removeFromSuperlayer];
-          [parentLayer removeObserver:self forKeyPath:@"bounds" context:nil];
-      }
-    });
+    if (strcmp(dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL), dispatch_queue_get_label(dispatch_get_main_queue())) == 0) {
+        if (self.displayLayer) {
+            [self.displayLayer removeFromSuperlayer];
+            [parentLayer removeObserver:self forKeyPath:@"bounds" context:nil];
+        }
+    } else {
+        // FIXME: use async
+        dispatch_sync(dispatch_get_main_queue(), ^{
+          if (self.displayLayer) {
+              [self.displayLayer removeFromSuperlayer];
+              [parentLayer removeObserver:self forKeyPath:@"bounds" context:nil];
+          }
+        });
+    }
 }
 
 @end
