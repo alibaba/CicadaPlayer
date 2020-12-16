@@ -3,6 +3,9 @@ package com.cicada.player;
 import android.content.Context;
 import android.os.Build;
 
+import com.cicada.player.nativeclass.NativeExternalPlayer;
+import com.cicada.player.utils.ContentDataSource;
+import com.cicada.player.externalplayer.MediaPlayer;
 import com.cicada.player.nativeclass.NativePlayerBase;
 
 import java.util.ArrayList;
@@ -21,6 +24,7 @@ public class CicadaPlayerFactory {
     static {
         initInnerBlackList();
         addBlackList(BlackType.HW_Decode_H264, sInnerBlackList);
+        CicadaExternalPlayer.registerExternalPlayer(new MediaPlayer());
     }
 
     private static void initInnerBlackList() {
@@ -78,6 +82,8 @@ public class CicadaPlayerFactory {
      * @return The player object.
      */
     public static CicadaPlayerImpl createCicadaPlayer(Context context, String name, String traceId) {
+        ContentDataSource.setContext(context);
+        NativeExternalPlayer.setContext(context);
         return new CicadaPlayerImpl(context, name , traceId);
     }
 

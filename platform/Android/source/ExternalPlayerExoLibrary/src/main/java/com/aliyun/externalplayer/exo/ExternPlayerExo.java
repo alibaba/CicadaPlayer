@@ -52,8 +52,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ExternPlayerExo extends CicadaExternalPlayer {
+    private static final String PLAYER_NAME = "ExoPlayer";
+    private static final String TAG = PLAYER_NAME;
 
-    private static String TAG = ExternPlayerExo.class.getSimpleName();
     PlayerStatus mLastPlayState = PlayerStatus.PLAYER_IDLE;
     private Context mContext = null;
     private SimpleExoPlayer mExoPlayer = null;
@@ -129,8 +130,8 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
 
     }
 
-    public ExternPlayerExo(Context context) {
-        mContext = context;
+    public ExternPlayerExo() {
+
     }
 
     private static boolean isSupportRender(MappingTrackSelector.MappedTrackInfo mappedTrackInfo, int rendererIndex) {
@@ -223,7 +224,7 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
         timer.removeMessages(TIMER_WHAT_HALF_SECOND);
         if (mLastPlayState.getValue() >= PlayerStatus.PLAYER_PREPARED.getValue()
                 && mLastPlayState.getValue() <= PlayerStatus.PLAYER_COMPLETION.getValue()) {
-            timer.sendEmptyMessage(TIMER_WHAT_HALF_SECOND);
+            timer.sendEmptyMessageDelayed(TIMER_WHAT_HALF_SECOND, 500);
         }
     }
 
@@ -327,7 +328,7 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
         }
 
         String name = options.get("name");
-        if ("ExoPlayer".equals(name)) {
+        if (PLAYER_NAME.equals(name)) {
             return true;
         }
 
@@ -335,8 +336,8 @@ public class ExternPlayerExo extends CicadaExternalPlayer {
     }
 
     @Override
-    public CicadaExternalPlayer create(Options options) {
-        return new ExternPlayerExo(mContext, options);
+    public CicadaExternalPlayer create(Context context, Options options) {
+        return new ExternPlayerExo(context, options);
     }
 
     @Override

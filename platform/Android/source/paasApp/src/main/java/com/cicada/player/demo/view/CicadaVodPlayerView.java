@@ -1104,12 +1104,15 @@ public class CicadaVodPlayerView extends FrameLayout {
     private void initCicadaPlayer() {
         Logger.getInstance(getContext()).enableConsoleLog(true);
         Logger.getInstance(getContext()).setLogLevel(Logger.LogLevel.AF_LOG_LEVEL_TRACE);
-        boolean selectedCicadaPlayer = SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.SELECTED_CICADA_PLAYER);
-        if(selectedCicadaPlayer){
-            mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext());
-        }else{
-            mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext(), "ExoPlayer");
-        }
+//        boolean selectedCicadaPlayer = SharedPreferenceUtils.getBooleanExtra(SharedPreferenceUtils.SELECTED_CICADA_PLAYER);
+//        if(selectedCicadaPlayer){
+//            mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext());
+//        }else{
+//            mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext(), "ExoPlayer");
+//        }
+
+        mCicadaVodPlayer = CicadaPlayerFactory.createCicadaPlayer(getContext().getApplicationContext(), "MediaPlayer");
+
 
         //设置drm的callback
         mCicadaVodPlayer.setDrmCallback(new DrmCallback() {
@@ -1301,13 +1304,9 @@ public class CicadaVodPlayerView extends FrameLayout {
                 inSeek = false;
 
                 boolean changed = generateMediaInfo();
-//                if (changed && mAliyunMediaInfo != null) {
-//                    TrackInfo trackInfo = mCicadaVodPlayer.currentTrack(TrackInfo.Type.TYPE_VOD.ordinal());
-//                    if (trackInfo != null) {
-//                        mControlView.setMediaInfo(mAliyunMediaInfo, trackInfo.getVodDefinition());
-//                    }
-//
-//                }
+                if (changed && mAliyunMediaInfo != null) {
+                    mControlView.setMediaInfo(mAliyunMediaInfo, "OD");
+                }
                 mCoverView.setVisibility(GONE);
                 mTipsView.hideAll();
                 updateViewState(ControlView.PlayState.Playing);
