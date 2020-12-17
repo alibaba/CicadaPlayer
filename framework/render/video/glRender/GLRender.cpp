@@ -386,7 +386,12 @@ bool GLRender::renderActually()
     mProgramContext->updateWindowSize(mWindowWidth, mWindowHeight, displayViewChanged);
     mProgramContext->updateFlip(mFlip);
     mProgramContext->updateBackgroundColor(mBackgroundColor);
-    int ret = mProgramContext->updateFrame(frame);
+    int ret = -1;
+    if (mClearScreenOn && frame == nullptr) {
+        //do not draw last frame when need clear screen.
+    } else {
+        ret = mProgramContext->updateFrame(frame);
+    }
     //work around for glReadPixels is upside-down.
     {
         std::unique_lock<std::mutex> locker(mCaptureMutex);
