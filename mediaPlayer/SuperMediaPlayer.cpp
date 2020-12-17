@@ -612,6 +612,8 @@ void SuperMediaPlayer::GetOption(const char *key, char *value)
             if (!mDemuxerService->isPlayList()) {
                 size = mDataSource->Seek(0, SEEK_SIZE);
             }
+        } else if (mBSSeekCb) {
+            size = mBSSeekCb(mBSCbArg, 0, SEEK_SIZE);
         }
 
         snprintf(value, MAX_OPT_VALUE_LENGTH, "%" PRId64 "", size);
