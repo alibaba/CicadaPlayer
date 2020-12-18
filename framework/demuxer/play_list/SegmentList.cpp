@@ -88,7 +88,7 @@ namespace Cicada {
         for (auto &i : segments) {
             duration += i->duration;
 
-            if ((duration / 1000 * 1000) > time) {
+            if (duration > time) {
                 num = i->sequence;
                 time = duration - i->duration;
                 return true;
