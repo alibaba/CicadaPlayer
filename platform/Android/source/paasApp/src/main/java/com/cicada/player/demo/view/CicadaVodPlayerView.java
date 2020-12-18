@@ -1099,7 +1099,7 @@ public class CicadaVodPlayerView extends FrameLayout {
      */
     private void initCicadaPlayer() {
         Logger.getInstance(getContext()).enableConsoleLog(true);
-        Logger.getInstance(getContext()).setLogLevel(Logger.LogLevel.AF_LOG_LEVEL_TRACE);
+        Logger.getInstance(getContext()).setLogLevel(Logger.LogLevel.AF_LOG_LEVEL_DEBUG);
 
         String playerName = SharedPreferenceUtils.getStringExtra(SharedPreferenceUtils.SELECTED_PLAYER_NAME);
         if (TextUtils.isEmpty(playerName)) {
