@@ -163,7 +163,6 @@ public class MediaCodecDecoder {
         return codecName;
     }
 
-
     @NativeUsed
     public int configureAudio(String mime, int sampleRate, int channelCount, int isADTS) {
         Logger.d(TAG, "--> configureAudio start " + mime + sampleRate + " , " + channelCount);
@@ -306,7 +305,6 @@ public class MediaCodecDecoder {
 
     @NativeUsed
     public int releaseOutputBuffer(int index, boolean render) {
-        Logger.d(TAG, "--> releaseOutputBuffer index " + index + " ,render =  " + render);
 
         if (mMediaCodec == null) {
             return ERROR;
@@ -323,7 +321,6 @@ public class MediaCodecDecoder {
 
     @NativeUsed
     public int dequeueInputBufferIndex(long timeoutUs) {
-        Logger.d(TAG, "--> dequeueInputBufferIndex " + timeoutUs);
 
         if (mMediaCodec == null) {
             return ERROR;
@@ -345,13 +342,11 @@ public class MediaCodecDecoder {
 
     @NativeUsed
     public int queueInputBuffer(int index, byte[] buffer, long pts, boolean isConfig) {
-        Logger.d(TAG, "--> queueInputBuffer " + index + " , buffer =" + buffer + ", pts = " + pts);
         return queueInputBufferInner(index, buffer, pts, isConfig, false, null);
     }
 
     @NativeUsed
     public int queueSecureInputBuffer(int index, byte[] buffer, Object encryptionInfo, long pts, boolean isConfig) {
-        Logger.d(TAG, "--> queueSecureInputBuffer " + index + " , buffer =" + buffer + ", pts = " + pts);
         return queueInputBufferInner(index, buffer, pts, isConfig, true, encryptionInfo);
     }
 
@@ -444,7 +439,6 @@ public class MediaCodecDecoder {
 
     @NativeUsed
     public int dequeueOutputBufferIndex(long timeoutUs) {
-        Logger.d(TAG, "--> dequeueOutputBufferIndex " + timeoutUs);
         if (mMediaCodec == null) {
             return ERROR;
         }
@@ -473,7 +467,6 @@ public class MediaCodecDecoder {
 
     @NativeUsed
     public Object getOutputBufferInfo(int index) {
-        Logger.d(TAG, "--> getOutputBufferInfo " + index);
         if (index == INFO_OUTPUT_FORMAT_CHANGED) {
             OutputBufferInfo outputBufferInfo = fillFormatOutputBufferInfo();
             return outputBufferInfo;
@@ -486,7 +479,6 @@ public class MediaCodecDecoder {
 
     @NativeUsed
     public Object getOutBuffer(int index) {
-        Logger.d(TAG, "--> getOutBuffer " + index);
         if (index >= 0) {
             ByteBuffer outputBuffer = null;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
