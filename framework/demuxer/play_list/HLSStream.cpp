@@ -1220,8 +1220,8 @@ namespace Cicada {
         if (!b_ret) {
             AF_LOGE("(%d)getSegmentNumberByTime error us is %lld\n", mPTracker->getStreamType(),
                     us);
-
-            if (us == mPTracker->getDuration()) {
+            // us's accuracy is ms, so change duration's accuracy to ms
+            if (us == (mPTracker->getDuration() / 1000 * 1000)) {
                 mIsEOS = true;
                 mPTracker->setCurSegNum(mPTracker->getLastSegNum());
                 return 0;
