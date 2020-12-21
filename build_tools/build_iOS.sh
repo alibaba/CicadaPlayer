@@ -116,8 +116,8 @@ function build_shared_framework(){
 
     create_cmake_config
 
-#    cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
-#    sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
+    cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
+    sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
 #    rm -rf Xcode/
 #    mkdir -p Xcode/OS
 #    cd Xcode/OS
