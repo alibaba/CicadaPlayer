@@ -563,4 +563,20 @@ namespace Cicada {
             i->mPStream->interrupt(inter);
         }
     }
+
+    int64_t HLSManager::getTargetDuration()
+    {
+        if (mMuxedStream) {
+            return mMuxedStream->getTargetDuration();
+        }
+
+        int64_t targetDuration = INT64_MAX;
+        for (auto &i : mStreamInfoList) {
+            if (i->mPStream->isOpened() && i->selected) {
+                targetDuration = std::min(i->mPStream->getTargetDuration(), targetDuration);
+            }
+        }
+
+        return targetDuration;
+    }
 }

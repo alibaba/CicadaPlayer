@@ -94,6 +94,8 @@ namespace Cicada {
         std::string GetProperty(const string &key);
 
 
+        int64_t getTargetDuration();
+
     private:
 
         static const char *hls_id3;

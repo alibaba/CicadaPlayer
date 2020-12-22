@@ -85,6 +85,8 @@ namespace Cicada {
             return mSeeked.load();
         }
 
+        int64_t getTargetDuration();
+
     private:
         int loadPlayList();
 

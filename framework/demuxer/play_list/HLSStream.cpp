@@ -1142,6 +1142,14 @@ namespace Cicada {
         return mIsOpened;
     }
 
+    int64_t HLSStream::getTargetDuration()
+    {
+        if (mPTracker) {
+            return mPTracker->getTargetDuration();
+        }
+        return INT64_MAX;
+    }
+
     int HLSStream::start()
     {
 //        demuxer_msg::StartReq start;
