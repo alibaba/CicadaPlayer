@@ -733,6 +733,20 @@ void CURLConnection::updateSource(const string &location)
 {
     curl_easy_setopt(mHttp_handle, CURLOPT_URL, location.c_str());
     mFileSize = -1;
+
+    uri = location;
+    if (reSolveList) {
+        curl_slist_free_all(reSolveList);
+    }
+
+    CURLSH *sh = nullptr;
+    reSolveList = CURLShareInstance::Instance()->getHosts(uri, &sh);
+    assert(sh != nullptr);
+    curl_easy_setopt(mHttp_handle, CURLOPT_SHARE, sh);
+
+    if (reSolveList != nullptr) {
+        curl_easy_setopt(mHttp_handle, CURLOPT_RESOLVE, reSolveList);
+    }
 }
 
 void CURLConnection::updateHeaderList(struct curl_slist *headerList)
