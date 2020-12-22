@@ -129,6 +129,11 @@ namespace Cicada {
             return false;
         }
 
+        virtual int64_t getMaxGopTimeUs()
+        {
+            return INT64_MAX;
+        }
+
         virtual void setDataSourceIO()
         {
 

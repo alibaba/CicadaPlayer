@@ -204,4 +204,12 @@ namespace Cicada {
 
         return false;
     }
+
+    int64_t playList_demuxer::getMaxGopTimeUs()
+    {
+        if (mPPlaylistManager) {
+            return mPPlaylistManager->getTargetDuration();
+        }
+        return INT64_MAX;
+    }
 }

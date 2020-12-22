@@ -99,6 +99,8 @@ namespace Cicada {
         bool isRealTimeStream();
 
 
+        int64_t getTargetDuration();
+
     private:
 
         static const char *hls_id3;

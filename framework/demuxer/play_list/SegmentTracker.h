@@ -89,6 +89,8 @@ namespace Cicada {
 
         void MoveToLiveStartSegment(const int64_t liveStartIndex);
 
+        int64_t getTargetDuration();
+
     private:
         int loadPlayList();
 
