@@ -57,6 +57,8 @@ namespace Cicada{
         
         bool isRealTimeStream(int index) override;
 
+        int64_t getTargetDuration() override;
+
     private:
         std::list<HLSStreamInfo*> mStreamInfoList{};
         HLSStream *mMuxedStream = nullptr;
