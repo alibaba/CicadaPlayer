@@ -490,6 +490,8 @@ namespace Cicada {
 
             pFrame->getInfo().pts = out.buf.pts != -1 ? out.buf.pts : INT64_MIN;
 
+            // TODO: get the timePosition form input packet
+            pFrame->getInfo().timePosition = INT64_MIN;
             return 0;
         } else {
             AF_LOGE("unknown error %d\n", index);

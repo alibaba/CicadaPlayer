@@ -22,7 +22,7 @@ using namespace std;
 
 ActiveDecoder::ActiveDecoder() : mInputQueue(MAX_INPUT_SIZE), mOutputQueue(MAX_OUTPUT_SIZE)
 {
-    mFlags = 0;
+    mFlags = DECFLAG_PASSTHROUGH_INFO;
 }
 
 int ActiveDecoder::open(const Stream_meta *meta, void *voutObsr, uint64_t flags , const Cicada::DrmInfo *drmInfo)

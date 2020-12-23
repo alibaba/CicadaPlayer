@@ -191,6 +191,7 @@ public:
         int64_t pkt_dts;
         int64_t duration;
         bool key;
+        int64_t timePosition;
         union {
             videoInfo video;
             audioInfo audio;
