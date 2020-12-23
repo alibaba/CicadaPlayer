@@ -55,6 +55,9 @@ size_t AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer)
             copySize += len;
             if (frameClear) {
                 mQueuedSamples += mInPut.front()->getInfo().audio.nb_samples;
+                if (mListener) {
+                    mListener->onUpdateTimePosition(mInPut.front()->getInfo().timePosition);
+                }
                 delete mInPut.front();
                 mInPut.pop();
                 mReadOffset = 0;

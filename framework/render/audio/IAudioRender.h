@@ -36,6 +36,9 @@ namespace Cicada{
         {
             return false;
         };
+
+        virtual void onUpdateTimePosition(int64_t pos)
+        {}
     };
 
     class IAudioRender {

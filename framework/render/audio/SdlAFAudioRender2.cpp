@@ -153,6 +153,9 @@ namespace Cicada {
             SDL_QueueAudio(mDevID, mPcmBuffer, pcmDataLength);
         }
         assert(frame->getInfo().duration > 0);
+        if (mListener) {
+            mListener->onUpdateTimePosition(frame->getInfo().timePosition);
+        }
         mPlayedDuration += (uint64_t) frame->getInfo().audio.nb_samples * 1000000 / frame->getInfo().audio.sample_rate;
         //AF_LOGD("queued duration is %llu\n", getQueDuration());
         frame = nullptr;
