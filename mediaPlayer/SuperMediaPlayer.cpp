@@ -1413,7 +1413,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
     if ((mBufferingFlag || mFirstBufferFlag) && !mSet->bDisableBufferManager) {
         if ((cur_buffer_duration > HighBufferDur && (!HAVE_VIDEO || videoDecoderFull || APP_BACKGROUND == mAppStatus)) || mEof) {
             // if still in seek, wait for seek status be changed.
-            if (!mSeekFlag) {
+            if (!mSeekFlag || mEof) {
                 if (mBufferingFlag) {
                     mLoadingProcess = -1;
                     mPNotifier->NotifyLoading(loading_event_end, 0);
