@@ -344,6 +344,18 @@ namespace Cicada {
 
                 return true;
             }
+            void onUpdateTimePosition(int64_t pos) override;
+
+        private:
+            SuperMediaPlayer &mPlayer;
+        };
+
+        class ApsaraVideoRenderListener : public IVideoRender::IVideoRenderListener {
+
+        public:
+            explicit ApsaraVideoRenderListener(SuperMediaPlayer &player) : mPlayer(player)
+            {}
+            void onFrameInfoUpdate(IAFFrame::AFFrameInfo &info) override;
 
         private:
             SuperMediaPlayer &mPlayer;
@@ -433,6 +445,7 @@ namespace Cicada {
         bool videoDecoderFull = false;
         std::unique_ptr<PlayerMessageControl> mMessageControl{nullptr};
         std::unique_ptr<ApsaraAudioRenderCallback> mAudioRenderCB{nullptr};
+        std::unique_ptr<ApsaraVideoRenderListener> mVideoRenderListener{nullptr};
         std::unique_ptr<BufferController> mBufferController{nullptr};
 
         std::mutex mAppStatusMutex;
@@ -546,7 +559,7 @@ namespace Cicada {
 
         int setUpAudioRender(const IAFFrame::audioInfo &info);
 
-        int64_t mCurrentPos = 0;
+        std::atomic<int64_t> mCurrentPos{};
 
         void printTimePosition(int64_t time) const;
 

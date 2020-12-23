@@ -278,6 +278,12 @@ void SMPAVDeviceManager::setAudioRenderListener(IAudioRenderListener *listener)
         mAudioRender->setListener(listener);
     }
 }
+void SMPAVDeviceManager::setVideoRenderListener(IVideoRender::IVideoRenderListener *listener)
+{
+    if (mVideoRender) {
+        mVideoRender->setListener(listener);
+    }
+}
 void SMPAVDeviceManager::setMute(bool mute)
 {
     if (mAudioRender) {

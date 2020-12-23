@@ -99,6 +99,8 @@ namespace Cicada {
 
         void setAudioRenderListener(IAudioRenderListener *listener);
 
+        void setVideoRenderListener(IVideoRender::IVideoRenderListener *listener);
+
         void setAudioRenderingCb(renderingFrameCB cb, void *userData);
 
         int setUpDecoder(uint64_t decFlag, const Stream_meta *meta, void *device, deviceType type, uint32_t dstFormat);
