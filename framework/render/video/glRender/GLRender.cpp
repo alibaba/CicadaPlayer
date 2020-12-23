@@ -365,6 +365,7 @@ bool GLRender::renderActually()
 
     if (frame != nullptr) {
         framePts = frame->getInfo().pts;
+        mVideoInfo = frame->getInfo();
         mVideoRotate = getRotate(frame->getInfo().video.rotate);
     }
 
@@ -428,6 +429,10 @@ bool GLRender::renderActually()
 
         if ((INT64_MIN != framePts) && (mRenderResultCallback != nullptr)) {
             mRenderResultCallback(framePts, true);
+        }
+
+        if (mListener) {
+            mListener->onFrameInfoUpdate(mVideoInfo);
         }
     }
 

@@ -36,6 +36,7 @@ private:
     uint32_t mStatisticsFrameCount{0};
     int64_t mStatisticsFrameTime{0};
     float mFPS{0};
+    IAFFrame::AFFrameInfo mFrameInfo;
 };
 
 
