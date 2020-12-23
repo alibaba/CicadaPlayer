@@ -193,6 +193,7 @@ namespace Cicada {
         mPDecoder->hwDeviceType_set = CICADA_HWDEVICE_TYPE_UNKNOWN;
 #endif
         avcodec_register_all();
+        mFlags |= DECFLAG_PASSTHROUGH_INFO;
     }
 
     avcodecDecoder::~avcodecDecoder()
