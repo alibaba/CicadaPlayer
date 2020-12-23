@@ -512,7 +512,7 @@ namespace Cicada {
         InterlacedType mVideoInterlaced = InterlacedType_UNKNOWN;
         bitStreamParser *mVideoParser = nullptr;
 
-        uint64_t mPtsDiscontinueDelta{0};
+        int64_t mPtsDiscontinueDelta{0};
 
         std::unique_ptr<MediaPlayerUtil> mUtil{};
 
