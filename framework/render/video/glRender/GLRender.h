@@ -140,6 +140,7 @@ private:
     int mProgramFormat = -1;
 
     bool mClearScreenOn = false;
+    IAFFrame::AFFrameInfo mVideoInfo{};
 
 #ifdef __ANDROID__
     std::mutex mRenderCallbackMutex{};

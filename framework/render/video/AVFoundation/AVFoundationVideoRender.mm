@@ -33,6 +33,7 @@ int AVFoundationVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
     bool rendered = false;
     if (frame) {
         pts = frame->getInfo().pts;
+        mFrameInfo = frame->getInfo();
         rendered = true;
     }
     mRender->renderFrame(frame);
@@ -48,6 +49,10 @@ int AVFoundationVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
         }
         if (mRenderResultCallback) {
             mRenderResultCallback(pts, true);
+        }
+
+        if (mListener) {
+            mListener->onFrameInfoUpdate(mFrameInfo);
         }
     }
     return 0;

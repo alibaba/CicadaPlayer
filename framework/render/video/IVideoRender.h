@@ -70,7 +70,6 @@ public:
         }
     };
 
-public:
     class IVideoRenderFilter {
     public:
         virtual ~IVideoRenderFilter() = default;
@@ -82,6 +81,13 @@ public:
 
     };
 
+    class IVideoRenderListener {
+    public:
+        virtual void onFrameInfoUpdate(IAFFrame::AFFrameInfo &info) = 0;
+        virtual ~IVideoRenderListener() = default;
+    };
+
+public:
     virtual ~IVideoRender() = default;
 
     /**
@@ -115,6 +121,11 @@ public:
     virtual void setRenderResultCallback(std::function<void(int64_t, bool)> renderedCallback)
     {
         mRenderResultCallback = renderedCallback;
+    }
+
+    virtual void setListener(IVideoRenderListener *listener)
+    {
+        mListener = listener;
     }
 
     /**
@@ -200,6 +211,7 @@ protected:
     IVideoRenderFilter *mFilter{};
     bool mInvalid{false};
     std::function<void(int64_t, bool)> mRenderResultCallback = nullptr;
+    IVideoRenderListener *mListener{nullptr};
 };
 
 
