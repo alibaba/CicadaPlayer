@@ -395,6 +395,7 @@ enum dec_flag {
     dec_flag_out,
     dec_flag_direct,
     dec_flag_adaptive,
+    dec_flag_passthrough_info,
     // adjust setting to output frames as soon as possiable.
     dec_flag_output_frame_asap,
 };
@@ -404,6 +405,7 @@ enum dec_flag {
 #define DECFLAG_OUT    (1u << dec_flag_out)
 #define DECFLAG_DIRECT (1u << dec_flag_direct)
 #define DECFLAG_ADAPTIVE (1u << dec_flag_adaptive)
+#define DECFLAG_PASSTHROUGH_INFO (1 << dec_flag_passthrough_info)
 #define DECFLAG_OUTPUT_FRAME_ASAP (1u << dec_flag_output_frame_asap)
 
 typedef struct mediaFrame_t mediaFrame;

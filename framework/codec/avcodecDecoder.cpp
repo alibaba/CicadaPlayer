@@ -246,7 +246,15 @@ namespace Cicada {
         }
 
 #endif
+        int64_t timePosition = INT64_MIN;
+        if (mPDecoder->avFrame->metadata){
+            AVDictionaryEntry *t = av_dict_get(mPDecoder->avFrame->metadata,"timePosition", nullptr,AV_DICT_IGNORE_SUFFIX);
+            if (t){
+                timePosition = atoi(t->value);
+            }
+        }
         pFrame = unique_ptr<IAFFrame>(new AVAFFrame(mPDecoder->avFrame));
+        pFrame->getInfo().timePosition = timePosition;
         return ret;
     };
 
@@ -271,6 +279,15 @@ namespace Cicada {
 
         if (pkt == nullptr) {
             AF_LOGD("send null to decoder\n");
+        }
+
+        if (pkt){
+            AVDictionary *dict = nullptr;
+            int size = 0;
+            av_dict_set_int(&dict,"timePosition",pPacket->getInfo().timePosition,0);
+            uint8_t *metadata = av_packet_pack_dictionary(dict, &size);
+            assert(metadata);
+            assert(av_packet_add_side_data(pkt, AV_PKT_DATA_STRINGS_METADATA, metadata, size)>=0);
         }
 
         ret = avcodec_send_packet(mPDecoder->codecCont, pkt);

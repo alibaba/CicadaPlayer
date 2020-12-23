@@ -33,6 +33,7 @@ namespace Cicada {
         outPutFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
 #endif
         mName = "VideoToolBox";
+        mFlags = DECFLAG_PASSTHROUGH_INFO | DECFLAG_HW;
     }
 
     AFVTBDecoder::~AFVTBDecoder()
@@ -150,8 +151,6 @@ namespace Cicada {
         if (ret < 0) {
             return ret;
         }
-
-        mFlags |= DECFLAG_HW;
         return 0;
     }
 
@@ -632,12 +631,14 @@ namespace Cicada {
 
             return;
         }
+        frame->getInfo().timePosition = packet->getInfo().timePosition;
 
         if (mVideoCodecType != kCMVideoCodecType_HEVC && keyFrame && mPocErrorCount < MAX_POC_ERROR) {
             flushReorderQueue();
 
             if (mVTOutFmt == AF_PIX_FMT_YUV420P) {
                 auto *avframe = (AVAFFrame *) (*frame);
+                avframe->getInfo().timePosition = packet->getInfo().timePosition;
                 std::unique_lock<std::mutex> uMutex(mReorderMutex);
                 mReorderedQueue.push(unique_ptr<IAFFrame>(avframe));
             } else {
@@ -846,6 +847,7 @@ namespace Cicada {
             if (mVTOutFmt == AF_PIX_FMT_YUV420P) {
                 PBAFFrame *pbafFrame = (*(mReorderFrameMap.begin())).second.get();
                 auto *frame = (AVAFFrame *) (*pbafFrame);
+                frame->getInfo().timePosition = pbafFrame->getInfo().timePosition;
                 mReorderedQueue.push(unique_ptr<IAFFrame>(frame));
             } else {
                 mReorderedQueue.push(move(*(mReorderFrameMap.begin())).second);
