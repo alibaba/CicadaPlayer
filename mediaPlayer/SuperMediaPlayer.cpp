@@ -55,6 +55,7 @@ SuperMediaPlayer::SuperMediaPlayer()
     mUtil = static_cast<unique_ptr<MediaPlayerUtil>>(new MediaPlayerUtil());
     mMessageControl = static_cast<unique_ptr<PlayerMessageControl>>(new PlayerMessageControl(*this));
     mAudioRenderCB = static_cast<unique_ptr<ApsaraAudioRenderCallback>>(new ApsaraAudioRenderCallback(*this));
+    mVideoRenderListener = static_cast<unique_ptr<ApsaraVideoRenderListener>>(new ApsaraVideoRenderListener(*this));
     mApsaraThread = static_cast<unique_ptr<afThread>>(new afThread([this]() -> int { return this->mainService(); }, LOG_TAG));
     mSourceListener = static_cast<unique_ptr<SuperMediaPlayerDataSourceListener>>(new SuperMediaPlayerDataSourceListener(*this));
     mDcaManager = static_cast<unique_ptr<SMP_DCAManager>>(new SMP_DCAManager(*this));
@@ -640,10 +641,10 @@ int64_t SuperMediaPlayer::getCurrentPosition()
         return mSeekPos;
     }
 
-    mCurrentPos = mCurrentPos < 0 ? 0 : mCurrentPos;
+    mCurrentPos = mCurrentPos.load() < 0 ? 0 : mCurrentPos.load();
 
     if (mDuration > 0) {
-        mCurrentPos = mCurrentPos <= mDuration ? mCurrentPos : mDuration;
+        mCurrentPos = mCurrentPos.load() <= mDuration ? mCurrentPos.load() : mDuration;
     }
 
     return mCurrentPos;
@@ -1651,7 +1652,8 @@ void SuperMediaPlayer::doDeCode()
                 }
 
                 if (mVideoPacket && (!HAVE_AUDIO || audioDecoderEOS)) {
-                    if (mVideoPacket->getInfo().timePosition >= 0) {
+                    if (!(mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)->getFlags() & DECFLAG_PASSTHROUGH_INFO) &&
+                        mVideoPacket->getInfo().timePosition >= 0) {
                         mCurrentPos = mVideoPacket->getInfo().timePosition;
                         //printTimePosition(mCurrentPos);
                     }
@@ -1682,8 +1684,8 @@ void SuperMediaPlayer::doDeCode()
             if (mAudioPacket) {
                 int64_t timePosition = mAudioPacket->getInfo().timePosition;
                 int ret = DecodeAudio(mAudioPacket);
-
-                if (mAudioPacket == nullptr && timePosition >= 0) {
+                if (mAudioPacket == nullptr && timePosition >= 0 &&
+                    !(mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)->getFlags() & DECFLAG_PASSTHROUGH_INFO)) {
                     mCurrentPos = timePosition;
                     //printTimePosition(mCurrentPos);
                 }
@@ -3289,6 +3291,7 @@ bool SuperMediaPlayer::CreateVideoRender(uint64_t flags)
     mAVDeviceManager->getVideoRender()->setBackgroundColor(mSet->mVideoBackgroundColor);
     mAVDeviceManager->getVideoRender()->setFlip(convertMirrorMode(mSet->mirrorMode));
     mAVDeviceManager->getVideoRender()->setDisPlay(mSet->mView);
+    mAVDeviceManager->setVideoRenderListener(mVideoRenderListener.get());
     mAVDeviceManager->getVideoRender()->setRenderResultCallback(
             [this](int64_t pts, bool rendered) -> void { VideoRenderCallback(this, pts, nullptr); });
     int renderRet = mAVDeviceManager->getVideoRender()->init();
@@ -3443,6 +3446,7 @@ void SuperMediaPlayer::Reset()
     mDrmKeyValid = false;
     mNeedVideoRender = true;
     mPtsDiscontinueDelta = PTS_DISCONTINUE_DELTA;
+    mCurrentPos = 0;
 }
 
 int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)
@@ -4353,4 +4357,17 @@ int SuperMediaPlayer::invokeComponent(std::string content)
 
 void SuperMediaPlayer::setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)>  &drmCallback) {
     mDrmManager->setDrmCallback(drmCallback);
+}
+void SuperMediaPlayer::ApsaraAudioRenderCallback::onUpdateTimePosition(int64_t pos)
+{
+    if (pos >= 0) {
+        mPlayer.mCurrentPos = pos;
+    }
+}
+void SuperMediaPlayer::ApsaraVideoRenderListener::onFrameInfoUpdate(IAFFrame::AFFrameInfo &info)
+{
+    if (mPlayer.mCurrentAudioIndex < 0 && info.timePosition >= 0) {
+        mPlayer.mCurrentPos = info.timePosition;
+        // AF_LOGD("timePosition %lld\n", info.timePosition);
+    }
 }
