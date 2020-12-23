@@ -306,6 +306,8 @@ namespace Cicada {
 
             int64_t pts = dynamic_cast<AVAFFrame *>(frame)->getInfo().pts;
 
+            int64_t timePosition = frame->getInfo().timePosition;
+
             if (mFirstPts == INT64_MIN) {
                 mFirstPts = pts;
             }
@@ -378,6 +380,7 @@ namespace Cicada {
                 // int plane_size = bps * filt_frame->nb_samples * (planar ? 1 : channels);
                 // write(fd, filt_frame->extended_data[0], plane_size);
 #endif
+                frame->getInfo().timePosition = timePosition;
                 mOutPut.push(frame);
                 frame = nullptr;
             }
