@@ -491,6 +491,7 @@ namespace Cicada {
 
         if (mThrowPacket) {
             AF_LOGE("IOS8VT: throw frame");
+            enqueueError(-1, pPacket->getInfo().pts);
             return 0;
         }
 
