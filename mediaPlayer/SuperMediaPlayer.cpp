@@ -1357,6 +1357,34 @@ bool SuperMediaPlayer::DoCheckBufferPass()
                     mFirstBufferFlag = false;
                 }
             }
+        } else {
+
+            int64_t duration_v = -1;
+            int64_t duration_a = -1;
+
+            if (HAVE_VIDEO) {
+                duration_v = mBufferController->GetPacketDuration(BUFFER_TYPE_VIDEO);
+            }
+            if (HAVE_AUDIO) {
+                duration_a = mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO);
+            }
+
+            if (std::min(duration_v, duration_a) >= 0 && std::max(duration_v, duration_a) > mSet->maxBufferDuration) {
+                if (duration_v > duration_a) {
+                    mDemuxerService->CloseStream(mCurrentAudioIndex);
+                    mCurrentAudioIndex = -1;
+                    mMasterClock.setReferenceClock(nullptr, nullptr);
+                    mAudioFrameQue.clear();
+                    mBufferController->ClearPacket(BUFFER_TYPE_AUDIO);
+                    AF_LOGW("close audio stream");
+                } else {
+                    mDemuxerService->CloseStream(mCurrentVideoIndex);
+                    mCurrentVideoIndex = -1;
+                    //  mVideoFrameQue.clear();
+                    mBufferController->ClearPacket(BUFFER_TYPE_VIDEO);
+                    AF_LOGW("close video stream");
+                }
+            }
         }
     }
 
