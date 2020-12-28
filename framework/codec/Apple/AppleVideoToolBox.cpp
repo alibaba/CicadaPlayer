@@ -589,7 +589,7 @@ namespace Cicada {
             return;
         }
 
-        if (status != noErr || !frame) {
+        if (status != noErr || (!frame && !packet->getDiscard())) {
             AF_LOGW("AFVTBDecoder decoder error %d\n", status);
             if (status == kVTVideoDecoderBadDataErr) {
                 mThrowPacket = true;
