@@ -712,7 +712,10 @@ int64_t SuperMediaPlayer::GetBufferPosition()
 
 int64_t SuperMediaPlayer::GetDuration() const
 {
-    return mDuration / 1000;
+    if (mDuration != INT64_MIN) {
+        return mDuration / 1000;
+    }
+    return -1;
 }
 
 // TODO: change name to EnableHwDecode
