@@ -289,7 +289,7 @@ int64_t CicadaGetDuration(playerHandle *pHandle)
         return player->GetDuration();
     }
 
-    return 0;
+    return -1;
 }
 
 int64_t CicadaGetCurrentPosition(playerHandle *pHandle)
