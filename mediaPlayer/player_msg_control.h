@@ -38,57 +38,57 @@ namespace Cicada {
     } PlayMsgType;
 
 
-    typedef struct _DisplayModeParam {
+    typedef struct DisplayModeParam {
         int mode;
     } DisplayModeParam;
 
 
-    typedef struct _RotateModeParam {
+    typedef struct RotateModeParam {
         int mode;
     } RotateModeParam;
 
-    typedef struct _MirrorModeParam {
+    typedef struct MirrorModeParam {
         int mode;
     } MirrorModeParam;
 
-    typedef struct _MsgViewParam {
+    typedef struct MsgViewParam {
         void *view;
     } MsgViewParam;
 
-    typedef struct _MsgDataSourceParam {
+    typedef struct MsgDataSourceParam {
         std::string *url;
     } MsgDataSourceParam;
 
-    typedef struct _MsgSeekParam {
+    typedef struct MsgSeekParam {
         int64_t seekPos;
         bool bAccurate;
     } MsgSeekParam;
 
-    typedef struct _MsgSpeedParam {
+    typedef struct MsgSpeedParam {
         float speed;
     } MsgSpeedParam;
 
-    typedef struct _MsgHoldOnVideoParam {
+    typedef struct MsgHoldOnVideoParam {
 
         bool hold;
     } MsgHoldOnVideoParam;
 
-    typedef struct _MsgChangeStreamParam {
+    typedef struct MsgChangeStreamParam {
         int index;
     } MsgChangeStreamParam;
 
-    typedef struct _MsgVideoRenderedParam {
+    typedef struct MsgVideoRenderedParam {
         int64_t pts;
         int64_t timeMs;
         void *userData;
     } MsgVideoRenderedParam;
 
-    typedef struct _MsgSelectExtSubtitleParam {
+    typedef struct MsgSelectExtSubtitleParam {
         int index;
         bool bSelect;
     } MsgSelectExtSubtitleParam;
 
-    typedef union _MsgParam {
+    typedef union MsgParam {
         MsgViewParam viewParam;
         MsgDataSourceParam dataSourceParam;
         MsgSeekParam seekParam;
@@ -99,13 +99,11 @@ namespace Cicada {
         MsgSpeedParam msgSpeedParam;
     } MsgParam;
 
-    typedef struct _QueueMsgStruct {
+    typedef struct QueueMsgStruct {
         PlayMsgType msgType;
         MsgParam msgParam;
         int64_t msgTime;
     } QueueMsgStruct;
-
-    typedef bool (*OnMsgProcesser)(PlayMsgType msg, MsgParam msgConent, void *userData);
 
     class PlayerMessageControllerListener {
     public:

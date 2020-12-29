@@ -17,6 +17,7 @@ using namespace std;
 #include "system_refer_clock.h"
 
 #include "SMPAVDeviceManager.h"
+#include "SMPMessageControllerListener.h"
 #include "SMP_DCAManager.h"
 #include "SuperMediaPlayerDataSourceListener.h"
 #include "hls_adaptive_manager.h"
@@ -44,11 +45,6 @@ using namespace std;
 #include "SMPRecorderSet.h"
 
 namespace Cicada {
-    using namespace Cicada;
-#define HAVE_VIDEO (mCurrentVideoIndex >= 0)
-#define HAVE_AUDIO (mCurrentAudioIndex >= 0)
-#define HAVE_SUBTITLE (mCurrentSubtitleIndex >= 0)
-
     typedef struct streamTime_t {
         int64_t startTime;
         int64_t deltaTime;
@@ -68,10 +64,11 @@ namespace Cicada {
     } APP_STATUS;
 
 
-    class SuperMediaPlayer : public ICicadaPlayer, private PlayerMessageControllerListener, private CicadaPlayerPrototype {
+    class SuperMediaPlayer : public ICicadaPlayer, private CicadaPlayerPrototype {
 
         friend class SuperMediaPlayerDataSourceListener;
         friend class SMP_DCAManager;
+        friend class SMPMessageControllerListener;
 
     public:
 
@@ -289,8 +286,6 @@ namespace Cicada {
 
         void releaseStreamInfo(const StreamInfo *info) const;
 
-        int openUrl();
-
         // mSeekFlag will be set when processing (after remove from mMessageControl), it have gap
         bool isSeeking()
         {
@@ -304,12 +299,6 @@ namespace Cicada {
         int CreateVideoDecoder(bool bHW, Stream_meta &meta);
 
         int64_t getCurrentPosition();
-
-        void switchSubTitle(int index);
-
-        void switchAudio(int index);
-
-        void switchVideoStream(int index, Stream_type type);
 
         void checkEOS();
 
@@ -363,46 +352,6 @@ namespace Cicada {
 
     private:
         void checkFirstRender();
-
-        bool OnPlayerMsgIsPadding(PlayMsgType msg, MsgParam msgContent) final;
-
-        void ProcessPrepareMsg() final;
-
-        void ProcessStartMsg() final;
-
-        void ProcessSetDisplayMode() final;
-
-        void ProcessSetRotationMode() final;
-
-        void ProcessSetMirrorMode() final;
-
-        void ProcessSetVideoBackgroundColor() final;
-
-        void ProcessSetViewMsg(void *view) final;
-
-        void ProcessSetDataSourceMsg(const std::string &url) final;
-
-        void ProcessPauseMsg() final;
-
-        void ProcessSeekToMsg(int64_t seekPos, bool bAccurate) final;
-
-        void ProcessMuteMsg() final;
-
-        void ProcessSwitchStreamMsg(int index) final;
-
-        void ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, void *picUserData) final;
-
-        void ProcessVideoCleanFrameMsg() final;
-
-        void ProcessVideoHoldMsg(bool hold) final;
-
-        void ProcessAddExtSubtitleMsg(const std::string &url) final;
-
-        void ProcessSelectExtSubtitleMsg(int index, bool select) final;
-
-        void ProcessSetSpeed(float speed) final;
-
-
     private:
         static IVideoRender::Scale convertScaleMode(ScaleMode mode);
 
@@ -443,6 +392,7 @@ namespace Cicada {
         bool audioDecoderEOS = false;
         picture_cache_type mPictureCacheType = picture_cache_type_cannot;
         bool videoDecoderFull = false;
+        std::unique_ptr<SMPMessageControllerListener> mMsgCtrlListener{nullptr};
         std::unique_ptr<PlayerMessageControl> mMessageControl{nullptr};
         std::unique_ptr<ApsaraAudioRenderCallback> mAudioRenderCB{nullptr};
         std::unique_ptr<ApsaraVideoRenderListener> mVideoRenderListener{nullptr};
