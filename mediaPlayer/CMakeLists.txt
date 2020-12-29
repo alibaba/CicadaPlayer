@@ -116,7 +116,9 @@ set(SOURCE_FILES
         SMPAVDeviceManager.cpp
         SMPAVDeviceManager.h
         SMPRecorderSet.cpp
-        SMPRecorderSet.h)
+        SMPRecorderSet.h
+        SMPMessageControllerListener.cpp
+        SMPMessageControllerListener.h)
 
 if(APPLE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fobjc-arc")

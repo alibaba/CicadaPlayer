@@ -46,6 +46,10 @@ static MsgParam dummyMsg{{nullptr}};
 
 const int64_t SuperMediaPlayer::SEEK_ACCURATE_MAX = 11 * 1000 * 1000;
 
+#define HAVE_VIDEO (mCurrentVideoIndex >= 0)
+#define HAVE_AUDIO (mCurrentAudioIndex >= 0)
+#define HAVE_SUBTITLE (mCurrentSubtitleIndex >= 0)
+
 SuperMediaPlayer::SuperMediaPlayer()
 {
     AF_LOGD("SuperMediaPlayer()");
@@ -53,7 +57,8 @@ SuperMediaPlayer::SuperMediaPlayer()
     mSet = static_cast<unique_ptr<player_type_set>>(new player_type_set());
     mBufferController = static_cast<unique_ptr<BufferController>>(new BufferController());
     mUtil = static_cast<unique_ptr<MediaPlayerUtil>>(new MediaPlayerUtil());
-    mMessageControl = static_cast<unique_ptr<PlayerMessageControl>>(new PlayerMessageControl(*this));
+    mMsgCtrlListener = static_cast<unique_ptr<SMPMessageControllerListener>>(new SMPMessageControllerListener(*this));
+    mMessageControl = static_cast<unique_ptr<PlayerMessageControl>>(new PlayerMessageControl(*mMsgCtrlListener));
     mAudioRenderCB = static_cast<unique_ptr<ApsaraAudioRenderCallback>>(new ApsaraAudioRenderCallback(*this));
     mVideoRenderListener = static_cast<unique_ptr<ApsaraVideoRenderListener>>(new ApsaraVideoRenderListener(*this));
     mApsaraThread = static_cast<unique_ptr<afThread>>(new afThread([this]() -> int { return this->mainService(); }, LOG_TAG));
@@ -86,6 +91,7 @@ SuperMediaPlayer::~SuperMediaPlayer()
     // delete mPNotifier after mPMainThread, to avoid be using
     delete mPNotifier;
     mPNotifier = nullptr;
+    mMessageControl = nullptr;
 }
 
 void SuperMediaPlayer::putMsg(PlayMsgType type, const MsgParam &param, bool trigger)
@@ -99,7 +105,7 @@ void SuperMediaPlayer::putMsg(PlayMsgType type, const MsgParam &param, bool trig
 
 void SuperMediaPlayer::SetView(void *view)
 {
-    ProcessSetViewMsg(view);
+    mMsgCtrlListener->ProcessSetViewMsg(view);
 }
 
 int64_t SuperMediaPlayer::GetMasterClockPts()
@@ -192,38 +198,6 @@ void SuperMediaPlayer::SeekTo(int64_t pos, bool bAccurate)
     mSeekPos = pos * 1000;
     mSeekNeedCatch = bAccurate;
 }
-
-bool SuperMediaPlayer::OnPlayerMsgIsPadding(PlayMsgType msg, MsgParam msgContent)
-{
-    bool padding = false;
-
-    switch (msg) {
-        case MSG_CHANGE_VIDEO_STREAM:
-            padding = mVideoChangedFirstPts != INT64_MIN;
-            break;
-
-        case MSG_CHANGE_AUDIO_STREAM:
-            padding = mAudioChangedFirstPts != INT64_MIN;
-            break;
-
-        case MSG_CHANGE_SUBTITLE_STREAM:
-            padding = mSubtitleChangedFirstPts != INT64_MIN;
-            break;
-
-        case MSG_SEEKTO:
-            if (mSeekFlag) {
-                padding = true;
-            }
-
-            break;
-
-        default:
-            padding = false;
-    }
-
-    return padding;
-}
-
 void SuperMediaPlayer::Mute(bool bMute)
 {
     if (bMute == mSet->bMute) {
@@ -1445,7 +1419,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
             int64_t lastVideoKeyTimePos = mBufferController->GetKeyTimePositionBefore(BUFFER_TYPE_VIDEO, lastPos);
             if (lastVideoKeyTimePos != INT64_MIN) {
                 AF_LOGD("drop left lastPts %lld, lastVideoKeyPts %lld", lastPos, lastVideoKeyTimePos);
-                ProcessSetSpeed(1.0);
+                mMsgCtrlListener->ProcessSetSpeed(1.0);
                 int64_t dropVideoCount = mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_VIDEO, lastVideoKeyTimePos);
                 int64_t dropAudioCount = mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_AUDIO, lastVideoKeyTimePos);
 
@@ -1543,9 +1517,9 @@ void SuperMediaPlayer::LiveCatchUp(int64_t delayTime)
     }
 
     if ((delayTime > mSet->RTMaxDelayTime) && (150 * 1000 < delayTime)) {
-        ProcessSetSpeed(1.2);
+        mMsgCtrlListener->ProcessSetSpeed(1.2);
     } else if ((delayTime < mSet->RTMaxDelayTime - recoverGap) || (100 * 1000 > delayTime)) {
-        ProcessSetSpeed(1.0);
+        mMsgCtrlListener->ProcessSetSpeed(1.0);
     }
 }
 
@@ -1791,7 +1765,7 @@ void SuperMediaPlayer::playCompleted()
 {
     if (mSet->bLooping && mDuration > 0) {
         mSeekPos = 0;//19644161: need reset seek position
-        ProcessSeekToMsg(0, false);
+        mMsgCtrlListener->ProcessSeekToMsg(0, false);
         mPNotifier->NotifyLoopStart();
         NotifyPosition(0);
     } else {
@@ -2814,7 +2788,7 @@ void SuperMediaPlayer::FlushVideoPath()
 
     while (!mVideoFrameQue.empty()) {
         mVideoFrameQue.front()->setDiscard(true);
-        ProcessVideoRenderedMsg(mVideoFrameQue.front()->getInfo().pts, af_getsteady_ms(), nullptr);
+        mMsgCtrlListener->ProcessVideoRenderedMsg(mVideoFrameQue.front()->getInfo().pts, af_getsteady_ms(), nullptr);
         mVideoFrameQue.pop();
     }
 
@@ -3059,7 +3033,7 @@ int SuperMediaPlayer::setUpAudioDecoder(const Stream_meta *meta)
     SetVolume(mSet->mVolume);
 
     if (mSet->bMute) {
-        ProcessMuteMsg();
+        mMsgCtrlListener->ProcessMuteMsg();
     }
 
     uint64_t flags = DECFLAG_SW;
@@ -3405,7 +3379,7 @@ int SuperMediaPlayer::CreateVideoDecoder(bool bHW, Stream_meta &meta)
     }
     {
         std::lock_guard<std::mutex> lock(mAppStatusMutex);
-        ProcessVideoHoldMsg(mAppStatus == APP_BACKGROUND);
+        mMsgCtrlListener->ProcessVideoHoldMsg(mAppStatus == APP_BACKGROUND);
     }
     return ret;
 }
@@ -3527,496 +3501,6 @@ StreamInfo *SuperMediaPlayer::GetCurrentStreamInfo(StreamType type)
     return nullptr;
 }
 
-void SuperMediaPlayer::ProcessPrepareMsg()
-{
-    AF_LOGD("ProcessPrepareMsg start");
-    int ret;
-
-    if (mSet->url.empty() && mBSReadCb == nullptr) {
-        AF_LOGD("ProcessPrepareMsg url is empty");
-        ChangePlayerStatus(PLAYER_ERROR);
-        mPNotifier->NotifyError(MEDIA_PLAYER_ERROR_DATASOURCE_EMPTYURL, "Prepare url is empty");
-        return;
-    }
-
-    if (mPlayStatus != PLAYER_INITIALZED && mPlayStatus != PLAYER_STOPPED) {
-        AF_LOGD("ProcessPrepareMsg status is %d", mPlayStatus.load());
-        return;
-    }
-
-    mPlayStatus = PLAYER_PREPARINIT;
-    bool noFile = false;
-
-    if (!(mBSReadCb != nullptr && mBSSeekCb != nullptr && mBSCbArg != nullptr)) {
-        if (!mSet->url.empty()) {
-            ret = openUrl();
-
-            if (ret < 0) {
-                AF_LOGD("%s mDataSource open failed,url is %s %s", __FUNCTION__, mSet->url.c_str(), framework_err2_string(ret));
-
-                if (ret == FRAMEWORK_ERR_EXIT) {
-                    // stop by user.
-                    //ChangePlayerStatus(PLAYER_STOPPED);
-                    return;
-                } else if (ret == FRAMEWORK_ERR_PROTOCOL_NOT_SUPPORT) {
-                    noFile = true;
-                } else {
-                    NotifyError(ret);
-                    return;
-                }
-            }
-        }
-    }
-
-    if (mCanceled) {
-        return;
-    }
-
-    {
-        std::lock_guard<std::mutex> locker(mCreateMutex);
-        mDemuxerService = new demuxer_service(mDataSource);
-        mDemuxerService->setOptions(&mSet->mOptions);
-    }
-
-    std::function<void(std::string, std::string)> demuxerCB = [this](const std::string &key, const std::string &value) -> void {
-        this->OnDemuxerCallback(key, value);
-    };
-    mDemuxerService->setDemuxerCb(demuxerCB);
-    mDemuxerService->setNoFile(noFile);
-
-    if (!noFile) {
-        mDemuxerService->SetDataCallBack(mBSReadCb, mBSCbArg, mBSSeekCb, mBSCbArg, nullptr);
-    }
-
-
-    //prepare之前seek
-    if (mSeekPos > 0) {
-        mDemuxerService->Seek(mSeekPos, 0, -1);
-        mSeekFlag = true;
-    } else {
-        ResetSeekStatus();
-    }
-
-    AF_LOGD("initOpen start");
-    ret = mDemuxerService->createDemuxer((mBSReadCb || noFile) ? demuxer_type_bit_stream : demuxer_type_unknown);
-
-    // TODO: video tool box HW decoder not merge the header
-    if (mDemuxerService->getDemuxerHandle()) {
-#ifdef __APPLE__
-        mDemuxerService->getDemuxerHandle()->setBitStreamFormat(header_type::header_type_extract, header_type::header_type_extract);
-#else
-        mDemuxerService->getDemuxerHandle()->setBitStreamFormat(header_type::header_type_merge, header_type::header_type_merge);
-#endif
-        if (noFile) {
-            IDataSource::SourceConfig config;
-            mDataSource->Get_config(config);
-            mDemuxerService->getDemuxerHandle()->setDataSourceConfig(config);
-        }
-
-        mDemuxerService->getDemuxerHandle()->SetOption("sessionId" , mSet->sessionId);
-
-        mDcaManager->createObservers();
-        sendDCAMessage();
-    }
-
-    //step2: Demuxer init and getstream index
-    ret = mDemuxerService->initOpen((mBSReadCb || noFile) ? demuxer_type_bit_stream : demuxer_type_unknown);
-
-    if (ret < 0) {
-        if (ret != FRAMEWORK_ERR_EXIT && !mCanceled) {
-            NotifyError(ret);
-        }
-
-        return;
-    }
-
-    int nbStream = mDemuxerService->GetNbStreams();
-    AF_LOGD("Demuxer service get nubmer streams is %d", nbStream);
-    unique_ptr<streamMeta> pMeta;
-    int bandWidthNearStreamIndex = -1;
-    int minBandWidthDelta = INT_MAX;
-    int mDefaultBandWidth = mSet->mDefaultBandWidth;
-
-    for (int i = 0; i < nbStream; ++i) {
-        mDemuxerService->GetStreamMeta(pMeta, i, false);
-        auto *meta = (Stream_meta *) (pMeta.get());
-
-        if (meta->type == STREAM_TYPE_MIXED) {
-            mMixMode = true;
-        }
-
-        if (meta->type == STREAM_TYPE_MIXED || meta->type == STREAM_TYPE_VIDEO) {
-            int metaBandWidth = (int) meta->bandwidth;
-
-            if (abs(mDefaultBandWidth - metaBandWidth) < minBandWidthDelta) {
-                bandWidthNearStreamIndex = i;
-                minBandWidthDelta = abs(mDefaultBandWidth - metaBandWidth);
-            }
-        }
-    }
-
-    for (int i = 0; i < nbStream; ++i) {
-        int openStreamRet = 0;
-        mDemuxerService->GetStreamMeta(pMeta, i, false);
-        auto *meta = (Stream_meta *) (pMeta.get());
-        auto *info = new StreamInfo();
-        info->streamIndex = i;
-        info->subtitleLang = nullptr;
-        info->audioLang = nullptr;
-        info->description = nullptr;
-        AF_LOGD("get a stream %d\n", meta->type);
-
-        if (!mSet->bDisableVideo && meta->type == STREAM_TYPE_VIDEO) {
-            info->type = ST_TYPE_VIDEO;
-            info->videoWidth = meta->width;
-            info->videoHeight = meta->height;
-            info->videoBandwidth = (int) meta->bandwidth;
-            info->HDRType = VideoHDRType_SDR;
-            if (meta->pixel_fmt == AF_PIX_FMT_YUV420P10BE || meta->pixel_fmt == AF_PIX_FMT_YUV420P10LE) {
-                info->HDRType = VideoHDRType_HDR10;
-            }
-
-            if (meta->description) {
-                info->description = strdup((const char *) meta->description);
-            }
-
-            mStreamInfoQueue.push_back(info);
-            mVideoInterlaced = meta->interlaced;
-
-            if (mCurrentVideoIndex < 0 && !mMixMode && meta->attached_pic == 0) {
-                if (bandWidthNearStreamIndex == i) {
-                    AF_LOGD("get a video stream\n");
-                    openStreamRet = mDemuxerService->OpenStream(i);
-                    mCurrentVideoIndex = i;
-                    updateVideoMeta();
-                    mDemuxerService->GetStreamMeta(mCurrentVideoMeta, i, false);
-                }
-            }
-        } else if (!mSet->bDisableAudio && meta->type == STREAM_TYPE_AUDIO) {
-            info->type = ST_TYPE_AUDIO;
-
-            if (meta->lang) {
-                info->audioLang = strdup((const char *) meta->lang);
-            }
-
-            if (meta->description) {
-                info->description = strdup((const char *) meta->description);
-            }
-
-            info->nChannels = meta->channels;
-            info->sampleFormat = meta->sample_fmt;
-            info->sampleRate = meta->samplerate;
-            mStreamInfoQueue.push_back(info);
-
-            if (mCurrentAudioIndex < 0 && !mMixMode) {
-                AF_LOGD("get a audio stream\n");
-                openStreamRet = mDemuxerService->OpenStream(i);
-                mCurrentAudioIndex = i;
-            }
-        } else if (meta->type == STREAM_TYPE_SUB) {
-            info->type = ST_TYPE_SUB;
-
-            if (meta->lang) {
-                info->subtitleLang = strdup((const char *) meta->lang);
-            }
-
-            if (meta->description) {
-                info->description = strdup((const char *) meta->description);
-            }
-
-            mStreamInfoQueue.push_back(info);
-
-            if (mCurrentSubtitleIndex < 0 &&
-                /*
-                 * The codec of the subtitle stream can't be detected in HLS master play list
-                 */
-                (meta->codec != AF_CODEC_ID_NONE || mDemuxerService->isPlayList())) {
-                AF_LOGD("get a subtitle stream\n");
-                openStreamRet = mDemuxerService->OpenStream(i);
-                mCurrentSubtitleIndex = i;
-            }
-        } else if (meta->type == STREAM_TYPE_MIXED) {
-            info->type = ST_TYPE_VIDEO;
-            info->streamIndex = i;
-            info->videoBandwidth = (int) meta->bandwidth;
-            info->videoWidth = meta->width;
-            info->videoHeight = meta->height;
-            AF_LOGD("STREAM_TYPE_MIXED bandwidth is %llu", meta->bandwidth);
-
-            if (mMainStreamId >= 0) {
-                AF_LOGD("already readed stream");
-            } else if (bandWidthNearStreamIndex == i) {
-                mMixMode = true;
-                openStreamRet = mDemuxerService->OpenStream(i);
-                mMainStreamId = i;
-            }
-
-            mStreamInfoQueue.push_back(info);
-        } else {
-            delete info;
-        }
-
-        if (openStreamRet < 0) {
-            ChangePlayerStatus(PLAYER_ERROR);
-            mPNotifier->NotifyError(MEDIA_PLAYER_ERROR_DEMUXER_OPENSTREAM, "open stream failed");
-            return;
-        }
-    }
-
-    if (!HAVE_VIDEO) {
-        mSeekNeedCatch = false;
-    }
-
-    int64_t maxGopTimeUs = mDemuxerService->getDemuxerHandle()->getMaxGopTimeUs();
-    if (maxGopTimeUs != INT64_MAX) {
-        mPtsDiscontinueDelta = maxGopTimeUs;
-    } else {
-        mPtsDiscontinueDelta = PTS_DISCONTINUE_DELTA;
-    }
-
-    AF_LOGD("initOpen end");
-    mDemuxerService->start();
-    ChangePlayerStatus(PLAYER_PREPARING);
-    mTimeoutStartTime = INT64_MIN;
-}
-
-int SuperMediaPlayer::openUrl()
-{
-    IDataSource::SourceConfig config{};
-    config.low_speed_time_ms = mSet->timeout_ms;
-    config.low_speed_limit = 1;
-
-    switch (mSet->mIpType) {
-        case IpResolveWhatEver:
-            config.resolveType = IDataSource::SourceConfig::IpResolveWhatEver;
-            break;
-        case IpResolveV4:
-            config.resolveType = IDataSource::SourceConfig::IpResolveV4;
-            break;
-        case IpResolveV6:
-            config.resolveType = IDataSource::SourceConfig::IpResolveV6;
-            break;
-    }
-    //   config.max_time_ms = mSet->timeout;
-    config.connect_time_out_ms = mSet->timeout_ms;
-    config.http_proxy = mSet->http_proxy;
-    config.refer = mSet->refer;
-    config.userAgent = mSet->userAgent;
-    config.customHeaders = mSet->customHeaders;
-    config.listener = mSourceListener.get();
-    mSourceListener->enableRetry();
-
-    if (mCanceled) {
-        return FRAMEWORK_ERR_EXIT;
-    }
-
-    {
-        std::lock_guard<std::mutex> locker(mCreateMutex);
-        mDataSource = dataSourcePrototype::create(mSet->url, &mSet->mOptions);
-    }
-
-    if (mDataSource) {
-        mDataSource->Set_config(config);
-        int ret = mDataSource->Open(0);
-        return ret;
-    }
-
-    return -1;
-}
-
-void SuperMediaPlayer::ProcessSwitchStreamMsg(int index)
-{
-    if (mDemuxerService == nullptr) {
-        return;
-    }
-
-    Stream_type type = STREAM_TYPE_UNKNOWN;
-    int i;
-    int number = mDemuxerService->GetNbStreams();
-
-    for (i = 0; i < number; i++) {
-        if (index == i) {
-            unique_ptr<streamMeta> pMeta;
-            mDemuxerService->GetStreamMeta(pMeta, i, false);
-            auto *meta = (Stream_meta *) (pMeta.get());
-            type = meta->type;
-            break;
-        }
-    }
-
-    if (i >= number) {
-        AF_LOGW("no such stream\n");
-        return;
-    }
-
-    if (mDuration == 0) {
-        int id = GEN_STREAM_INDEX(index);
-
-        if (mMainStreamId == -1 || mMainStreamId == id) {
-            AF_LOGD("current stream index is the same");
-            return;
-        }
-
-        mVideoChangedFirstPts = INT64_MAX;
-        mAudioChangedFirstPts = INT64_MAX;
-        mEof = false;
-        mDemuxerService->SwitchStreamAligned(mMainStreamId, id);
-        return;
-    }
-
-    if (type == STREAM_TYPE_MIXED) {
-        int id = GEN_STREAM_INDEX(index);
-
-        if (mMainStreamId == -1 || mMainStreamId == id) {
-            AF_LOGD("current stream index is the same");
-            return;
-        }
-
-        mVideoChangedFirstPts = INT64_MAX;
-        mAudioChangedFirstPts = INT64_MAX;
-        mEof = false;
-        switchVideoStream(id, type);
-        return;
-    }
-
-    if (type == STREAM_TYPE_SUB && mCurrentSubtitleIndex >= 0 && mCurrentSubtitleIndex != index) {
-        return switchSubTitle(index);
-    } else if (type == STREAM_TYPE_AUDIO && mCurrentAudioIndex >= 0 && mCurrentAudioIndex != index) {
-        return switchAudio(index);
-    } else if (type == STREAM_TYPE_VIDEO && mCurrentVideoIndex >= 0 && mCurrentVideoIndex != index) {
-        return switchVideoStream(index, type);
-    }
-}
-
-void SuperMediaPlayer::switchVideoStream(int index, Stream_type type)
-{
-    int count = (int) mStreamInfoQueue.size();
-    StreamInfo *currentInfo = nullptr;
-    StreamInfo *willChangeInfo = nullptr;
-    int i;
-    int currentId = mCurrentVideoIndex;
-
-    if (type == STREAM_TYPE_MIXED) {
-        currentId = GEN_STREAM_INDEX(mCurrentVideoIndex);
-    }
-
-    for (i = 0; i < count; i++) {
-        StreamInfo *info = mStreamInfoQueue[i];
-
-        if (info->streamIndex == index) {
-            willChangeInfo = info;
-        }
-
-        if (currentId == info->streamIndex) {
-            currentInfo = info;
-        }
-    }
-
-    if (!willChangeInfo || !currentInfo) {
-        return;
-    }
-
-    AF_LOGD("video change video bitrate before is %d,after is %d", currentInfo->videoBandwidth, willChangeInfo->videoBandwidth);
-    //TODO: different strategy
-    mWillChangedVideoStreamIndex = index;
-    mVideoChangedFirstPts = INT64_MAX;
-
-    if (willChangeInfo->videoBandwidth < currentInfo->videoBandwidth) {
-        mDemuxerService->SwitchStreamAligned(currentId, index);
-    } else {
-        mMixMode = (type == STREAM_TYPE_MIXED);
-        int videoCount = 0;
-        int64_t startTime = mBufferController->FindSeamlessPointTimePosition(BUFFER_TYPE_VIDEO, videoCount);
-
-        if (startTime == 0 || videoCount < 40) {
-            mWillSwitchVideo = true;
-            return;
-        }
-
-        if (mMixMode) {
-            int64_t startTimeA = mBufferController->FindSeamlessPointTimePosition(BUFFER_TYPE_AUDIO, videoCount);
-
-            if (startTimeA == 0 || videoCount < 40) {
-                mWillSwitchVideo = true;
-                return;
-            }
-
-            startTime = std::max(startTime, startTimeA);
-        }
-
-        SwitchVideo(startTime);
-    }
-}
-
-void SuperMediaPlayer::switchAudio(int index)
-{
-    // TODO: use position to seek demuxer ,and drop the late packet
-    int ret = mDemuxerService->OpenStream(index);
-
-    if (ret < 0) {
-        AF_LOGD("subtitle", "switch audio open stream failed,stream index %d\n", index);
-        return;
-    }
-
-    mDemuxerService->CloseStream(mCurrentAudioIndex);
-    mAudioChangedFirstPts = INT64_MAX;
-    mCurrentAudioIndex = index;
-    int64_t playTime = mMasterClock.GetTime();
-    int64_t pts = playTime - mFirstAudioPts;
-    mMasterClock.setReferenceClock(nullptr, nullptr);
-    mBufferController->ClearPacket(BUFFER_TYPE_AUDIO);
-    mEof = false;
-    FlushAudioPath();
-    mDemuxerService->Seek(pts, 0, index);
-    mPlayedAudioPts = INT64_MIN;
-}
-
-void SuperMediaPlayer::switchSubTitle(int index)
-{
-    int ret = mDemuxerService->OpenStream(index);
-
-    if (ret < 0) {
-        AF_LOGD("subtitle", "switch subtitle open stream failed,stream index %d\n", index);
-        return;
-    }
-
-    mSubtitleChangedFirstPts = INT64_MAX;
-    mDemuxerService->CloseStream(mCurrentSubtitleIndex);
-    mCurrentSubtitleIndex = index;
-    mBufferController->ClearPacket(BUFFER_TYPE_SUBTITLE);
-    mEof = false;
-    mSubtitleEOS = false;
-    FlushSubtitleInfo();
-    mDemuxerService->Seek(getCurrentPosition(), 0, index);
-}
-
-void SuperMediaPlayer::ProcessStartMsg()
-{
-    if (mPlayStatus == PLAYER_PAUSED || mPlayStatus == PLAYER_PREPARED || mPlayStatus == PLAYER_COMPLETION) {
-        mUtil->reset();
-
-        if (mPlayStatus != PLAYER_PAUSED) {
-            if (HAVE_AUDIO) {
-                mMasterClock.setTime(mFirstAudioPts);
-            } else {
-                mMasterClock.setTime(mFirstVideoPts);
-            }
-        }
-
-        ChangePlayerStatus(PLAYER_PLAYING);
-    }
-}
-
-void SuperMediaPlayer::ProcessPauseMsg()
-{
-    if (mPlayStatus != PLAYER_PLAYING) {
-        return;
-    }
-
-    ChangePlayerStatus(PLAYER_PAUSED);
-    startRendering(false);
-}
-
 void SuperMediaPlayer::VideoRenderCallback(void *arg, int64_t pts, void *userData)
 {
     //   AF_LOGD("video stream render pts is %lld", pts);
@@ -4046,86 +3530,6 @@ void SuperMediaPlayer::checkFirstRender()
     }
 }
 
-void SuperMediaPlayer::ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, void *picUserData)
-{
-    mUtil->render(pts);
-    checkFirstRender();
-
-    if (!mSeekFlag) {
-        mCurVideoPts = pts;
-    }
-
-    //AF_LOGD("video stream render pts is %lld ， mVideoChangedFirstPts = %lld ", pts, mVideoChangedFirstPts);
-
-    if ((INT64_MIN != mVideoChangedFirstPts) && (pts >= mVideoChangedFirstPts)) {
-        AF_LOGD("video stream changed");
-        StreamInfo *info = GetCurrentStreamInfo(ST_TYPE_VIDEO);
-        mPNotifier->NotifyStreamChanged(info, ST_TYPE_VIDEO);
-        mVideoChangedFirstPts = INT64_MIN;
-    }
-
-    mDemuxerService->SetOption("FRAME_RENDERED", pts);
-
-    if (mSet->bEnableVRC) {
-        mPNotifier->NotifyVideoRendered(timeMs, pts);
-    }
-
-    //TODO packetGotTime
-}
-
-// TODO: set layout when init videoRender?
-
-void SuperMediaPlayer::ProcessSetDisplayMode()
-{
-    if (mAVDeviceManager->isVideoRenderValid()) {
-        mAVDeviceManager->getVideoRender()->setScale(convertScaleMode(mSet->scaleMode));
-    }
-}
-
-
-void SuperMediaPlayer::ProcessSetRotationMode()
-{
-    if (mAVDeviceManager->isVideoRenderValid()) {
-        mAVDeviceManager->getVideoRender()->setRotate(convertRotateMode(mSet->rotateMode));
-    }
-}
-
-void SuperMediaPlayer::ProcessSetMirrorMode()
-{
-    if (mAVDeviceManager->isVideoRenderValid()) {
-        mAVDeviceManager->getVideoRender()->setFlip(convertMirrorMode(mSet->mirrorMode));
-    }
-}
-
-void SuperMediaPlayer::ProcessSetVideoBackgroundColor()
-{
-    if (mAVDeviceManager->isVideoRenderValid()) {
-        mAVDeviceManager->getVideoRender()->setBackgroundColor(mSet->mVideoBackgroundColor);
-    }
-}
-
-void SuperMediaPlayer::ProcessSetViewMsg(void *view)
-{
-    if (view == mSet->mView) {
-        return;
-    }
-
-    mSet->mView = view;
-    std::unique_lock<std::mutex> uMutex(mCreateMutex);
-
-    if (mAVDeviceManager->isVideoRenderValid()) {
-        mAVDeviceManager->getVideoRender()->setDisPlay(view);
-    }
-}
-
-void SuperMediaPlayer::ProcessSetDataSourceMsg(const std::string &url)
-{
-    if (mPlayStatus == PLAYER_IDLE || mPlayStatus == PLAYER_STOPPED) {
-        mSet->url = url;
-        ChangePlayerStatus(PLAYER_INITIALZED);
-    }
-}
-
 void SuperMediaPlayer::ChangePlayerStatus(PlayerStatus newStatus)
 {
     mOldPlayStatus = mPlayStatus;
@@ -4142,89 +3546,9 @@ void SuperMediaPlayer::ResetSeekStatus()
     mSeekNeedCatch = false;
 }
 
-void SuperMediaPlayer::ProcessSeekToMsg(int64_t seekPos, bool bAccurate)
-{
-    // seek before prepare, should keep mSeekPos
-    if (mPlayStatus < PLAYER_PREPARING ||
-        // if reuse player..
-        mPlayStatus == PLAYER_STOPPED) {
-        return;
-    }
-
-    //can seek when finished
-    if ((0 >= mDuration) || (mPlayStatus >= PLAYER_STOPPED && mPlayStatus != PLAYER_COMPLETION)) {
-        ResetSeekStatus();
-        return;
-    }
-    //checkPosInPackQueue cache in seek
-    //TODO: seek sync
-    mSeekFlag = true;
-    mPlayedVideoPts = INT64_MIN;
-    mPlayedAudioPts = INT64_MIN;
-    mSoughtVideoPos = INT64_MIN;
-    mCurVideoPts = INT64_MIN;
-    //flush packet queue
-    mSeekInCache = SeekInCache(seekPos);
-
-    mPNotifier->NotifySeeking(mSeekInCache);
-
-    if (mSeekNeedCatch && !HAVE_VIDEO) {
-        mSeekNeedCatch = false;
-    }
-
-    if (!mSeekInCache) {
-        mBufferController->ClearPacket(BUFFER_TYPE_ALL);
-        int64_t ret = mDemuxerService->Seek(seekPos, 0, -1);
-
-        if (ret < 0) {
-            NotifyError(ret);
-        }
-        //in case of seekpos larger than duration.
-        mPNotifier->NotifyBufferPosition((seekPos <= mDuration ? seekPos : mDuration) / 1000);
-        mEof = false;
-
-        if ((mVideoChangedFirstPts != INT64_MAX) && (INT64_MIN != mVideoChangedFirstPts)) {
-            mVideoChangedFirstPts = seekPos;
-        }
-    } else {
-        AF_LOGI("sought in cache");
-
-        if (mSeekNeedCatch) {
-            int64_t videoPos = mBufferController->GetKeyTimePositionBefore(BUFFER_TYPE_VIDEO, mSeekPos);
-
-            if (videoPos < (mSeekPos - mSet->maxASeekDelta)) {
-                // first frame is far away from seek position, don't suppport accurate seek
-                mSeekNeedCatch = false;
-            } else {
-                mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_AUDIO, mSeekPos);
-            }
-        }
-
-        if ((mVideoChangedFirstPts != INT64_MAX) && (INT64_MIN != mVideoChangedFirstPts) && (seekPos > mVideoChangedFirstPts)) {
-            mVideoChangedFirstPts = seekPos;
-        }
-    }
-
-    FlushVideoPath();
-    FlushAudioPath();
-    FlushSubtitleInfo();
-
-    if (mSubPlayer) {
-        mSubPlayer->seek(seekPos);
-    }
-
-    mFirstBufferFlag = true;
-    mMasterClock.setTime(seekPos);
-}
-
 void SuperMediaPlayer::notifySeekEndCallback()
 {
     mPNotifier->NotifySeekEnd(mSeekInCache);
-}
-
-void SuperMediaPlayer::ProcessMuteMsg()
-{
-    mAVDeviceManager->setMute(mSet->bMute);
 }
 
 bool SuperMediaPlayer::IsMute() const
@@ -4275,83 +3599,6 @@ int SuperMediaPlayer::selectExtSubtitle(int index, bool bSelect)
     param.msgSelectExtSubtitleParam = track;
     putMsg(MSG_SELECT_EXT_SUBTITLE, param);
     return 0;
-}
-
-void SuperMediaPlayer::ProcessAddExtSubtitleMsg(const std::string &url)
-{
-    lock_guard<mutex> uMutex(mCreateMutex);
-
-    if (mSubPlayer == nullptr) {
-        mSubListener = unique_ptr<mediaPlayerSubTitleListener>(new mediaPlayerSubTitleListener(*mPNotifier));
-        mSubPlayer = unique_ptr<subTitlePlayer>(new subTitlePlayer(*mSubListener));
-    }
-
-    mSubPlayer->add(url);
-}
-
-void SuperMediaPlayer::ProcessSelectExtSubtitleMsg(int index, bool select)
-{
-    lock_guard<mutex> uMutex(mCreateMutex);
-
-    if (mSubPlayer == nullptr) {
-        AF_LOGE("select ext subtitle error\n");
-        mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_SUBTITLE_SELECT_ERROR, "No such subtitle stream");
-        return;
-    }
-
-    int ret = mSubPlayer->select(index, select);
-
-    if (ret < 0) {
-        AF_LOGE("select ext subtitle error\n");
-        mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_SUBTITLE_SELECT_ERROR, "No such subtitle stream");
-    }
-
-    if (select) {
-        mSubPlayer->seek(getCurrentPosition());
-    }
-}
-
-void SuperMediaPlayer::ProcessVideoCleanFrameMsg()
-{
-    while (!mVideoFrameQue.empty()) {
-        int64_t pts = mVideoFrameQue.front()->getInfo().pts;
-        ProcessVideoRenderedMsg(pts, af_getsteady_ms(), nullptr);
-        mVideoFrameQue.front()->setDiscard(true);
-        mVideoFrameQue.pop();
-    }
-
-    mAVDeviceManager->flushVideoRender();
-
-    mPlayedVideoPts = INT64_MIN;
-    mCurVideoPts = INT64_MIN;
-    videoDecoderFull = false;
-    mVideoPtsRevert = false;
-    dropLateVideoFrames = true;
-}
-
-void SuperMediaPlayer::ProcessVideoHoldMsg(bool hold)
-{
-    if (mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
-        mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)->holdOn(hold);
-
-        if (!hold) {
-            int size = mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)->getRecoverQueueSize();
-
-            if (size > mSet->maxVideoRecoverSize) {
-                string des = "video decoder recover size too large:" + AfString::to_string(size);
-                mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_DECODER_RECOVER_SIZE, des.c_str());
-            }
-        }
-    }
-}
-
-void SuperMediaPlayer::ProcessSetSpeed(float speed)
-{
-    if (!CicadaUtils::isEqual(mSet->rate, speed)) {
-        mAVDeviceManager->setSpeed(speed);
-        mSet->rate = speed;
-        mMasterClock.SetScale(speed);
-    }
 }
 
 void SuperMediaPlayer::startRendering(bool start)
