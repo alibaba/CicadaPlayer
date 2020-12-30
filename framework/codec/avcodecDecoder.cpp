@@ -288,8 +288,9 @@ namespace Cicada {
             av_dict_set_int(&dict,"timePosition",pPacket->getInfo().timePosition,0);
             uint8_t *metadata = av_packet_pack_dictionary(dict, &size);
             av_dict_free(&dict);
+            int addRet = av_packet_add_side_data(pkt, AV_PKT_DATA_STRINGS_METADATA, metadata, size);
             assert(metadata);
-            assert(av_packet_add_side_data(pkt, AV_PKT_DATA_STRINGS_METADATA, metadata, size)>=0);
+            assert(addRet >= 0);
         }
 
         ret = avcodec_send_packet(mPDecoder->codecCont, pkt);
