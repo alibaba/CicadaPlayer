@@ -394,8 +394,4 @@ namespace Cicada {
         mSeeked = true;
     }
 
-    int64_t SegmentTracker::getTargetDuration()
-    {
-        return mRep->targetDuration;
-    }
 }

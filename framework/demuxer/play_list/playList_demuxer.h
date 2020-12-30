@@ -68,8 +68,6 @@ namespace Cicada{
 
         int SwitchStreamAligned(int from, int to) override;
 
-        int64_t getMaxGopTimeUs() override;
-
         void flush() override
         {
             // TODO:

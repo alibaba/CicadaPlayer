@@ -2004,7 +2004,7 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
     }
 
     if (!mAudioPtsRevert) {
-        mAudioPtsRevert = mPlayedAudioPts != INT64_MIN && pts < mPlayedAudioPts - mPtsDiscontinueDelta;
+        mAudioPtsRevert = mPlayedAudioPts != INT64_MIN && pts < mPlayedAudioPts - PTS_DISCONTINUE_DELTA;
 
         if (mAudioPtsRevert) {
             AF_LOGI("PTS_REVERTING audio start\n");
@@ -2049,7 +2049,7 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
     videoFrame->getInfo().video.rotate = mVideoRotation;
 
     if (!mVideoPtsRevert) {
-        mVideoPtsRevert = mPlayedVideoPts != INT64_MIN && videoPts < mPlayedVideoPts - mPtsDiscontinueDelta;
+        mVideoPtsRevert = mPlayedVideoPts != INT64_MIN && videoPts < mPlayedVideoPts - PTS_DISCONTINUE_DELTA;
 
         if (mVideoPtsRevert) {
             AF_LOGI("PTS_REVERTING video start\n");
@@ -2057,11 +2057,11 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
     }
 
     // audio pts first revert to small, force render the old video frame
-    if (PTS_REVERTING && mAudioPtsRevert && videoPts - mPtsDiscontinueDelta > mPlayedAudioPts) {
+    if (PTS_REVERTING && mAudioPtsRevert && videoPts - PTS_DISCONTINUE_DELTA > mPlayedAudioPts) {
         AF_LOGI("PTS_REVERTING force render the old video frame");
         force_render = true;
         // video pts first revert to small,the new video data wait audio pts to revert
-    } else if (PTS_REVERTING && mVideoPtsRevert && videoPts + mPtsDiscontinueDelta < mPlayedAudioPts) {
+    } else if (PTS_REVERTING && mVideoPtsRevert && videoPts + PTS_DISCONTINUE_DELTA < mPlayedAudioPts) {
         AF_LOGI("PTS_REVERTING wait audio to revert");
         return false;
     }
@@ -2095,7 +2095,7 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
     bool render = force_render;
 
     if (!force_render) {
-        if (videoLateUs < -10 * 1000 && videoLateUs > -mPtsDiscontinueDelta) {
+        if (videoLateUs < -10 * 1000 && videoLateUs > -PTS_DISCONTINUE_DELTA) {
             return false;
         }
 
@@ -3351,7 +3351,6 @@ void SuperMediaPlayer::Reset()
     mSubtitleEOS = false;
     mSecretPlayBack = false;
     mDrmKeyValid = false;
-    mPtsDiscontinueDelta = PTS_DISCONTINUE_DELTA;
 }
 
 int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)
@@ -3637,13 +3636,6 @@ void SuperMediaPlayer::ProcessPrepareMsg()
 
     if (!HAVE_VIDEO) {
         mSeekNeedCatch = false;
-    }
-
-    int64_t maxGopTimeUs = mDemuxerService->getDemuxerHandle()->getMaxGopTimeUs();
-    if (maxGopTimeUs != INT64_MAX) {
-        mPtsDiscontinueDelta = maxGopTimeUs;
-    } else {
-        mPtsDiscontinueDelta = PTS_DISCONTINUE_DELTA;
     }
 
     AF_LOGD("initOpen end");

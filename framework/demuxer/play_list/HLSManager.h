@@ -55,8 +55,6 @@ namespace Cicada{
 
         int GetRemainSegmentCount(int index) override;
 
-        int64_t getTargetDuration() override;
-
     private:
         std::list<HLSStreamInfo*> mStreamInfoList{};
         HLSStream *mMuxedStream = nullptr;

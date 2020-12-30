@@ -62,8 +62,6 @@ namespace Cicada{
             mMergerAudioHeader = aMergeHeader;
         }
 
-        virtual int64_t getTargetDuration() = 0;
-
     protected:
         playList *mPList = nullptr;
         IDataSource *mExtDataSource = nullptr;
