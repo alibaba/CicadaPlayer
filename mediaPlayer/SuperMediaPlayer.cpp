@@ -598,7 +598,8 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
         mSet->sessionId = value;
 
         if( mDemuxerService != nullptr && mDemuxerService->getDemuxerHandle()) {
-            mDemuxerService->getDemuxerHandle()->SetOption("sessionId" , mSet->sessionId);
+            int64_t sessionIdPtr = (int64_t) mSet->sessionId.c_str();
+            mDemuxerService->getDemuxerHandle()->SetOption("sessionId" , sessionIdPtr);
         }
     }
 
@@ -3487,7 +3488,8 @@ void SuperMediaPlayer::ProcessPrepareMsg()
             mDemuxerService->getDemuxerHandle()->setDataSourceConfig(config);
         }
 
-        mDemuxerService->getDemuxerHandle()->SetOption("sessionId" , mSet->sessionId);
+        int64_t sessionIdPtr = (int64_t)mSet->sessionId.c_str();
+        mDemuxerService->getDemuxerHandle()->SetOption("sessionId" , sessionIdPtr);
 
         mDcaManager->createObservers();
         sendDCAMessage();
