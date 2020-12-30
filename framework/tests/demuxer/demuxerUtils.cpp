@@ -197,6 +197,9 @@ void test_csd( const std::string& url , header_type merge) {
             ASSERT_GE(ret, 0);
             ASSERT_NE(sps_data, nullptr);
             ASSERT_NE(pps_data, nullptr);
+
+            free(sps_data);
+            free(pps_data);
         }else if(meta->codec == AF_CODEC_ID_HEVC){
 
             uint8_t *vps_data = nullptr;
@@ -216,6 +219,10 @@ void test_csd( const std::string& url , header_type merge) {
             ASSERT_NE(vps_data, nullptr);
             ASSERT_NE(sps_data, nullptr);
             ASSERT_NE(pps_data, nullptr);
+
+            free(sps_data);
+            free(pps_data);
+            free(vps_data);
         }
     });
 }
