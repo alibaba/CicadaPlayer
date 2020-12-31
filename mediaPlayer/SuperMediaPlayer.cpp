@@ -1312,7 +1312,8 @@ bool SuperMediaPlayer::DoCheckBufferPass()
 
     if (mPlayStatus == PLAYER_PREPARING) {
         if ((cur_buffer_duration >= HighBufferDur &&
-             (!HAVE_VIDEO || videoDecoderFull || APP_BACKGROUND == mAppStatus || !mSet->mFastStart)) ||
+             (!HAVE_VIDEO || !mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO) || videoDecoderFull ||
+              APP_BACKGROUND == mAppStatus || !mSet->mFastStart)) ||
             (mEof)) {
             if (mEof && getPlayerBufferDuration(true, false) <= 0) {
                 // If player don`t get any packets when read eof
@@ -1723,14 +1724,16 @@ void SuperMediaPlayer::checkEOS()
     }
 
     //in case of ONLY AUDIO stream.
-    if ((HAVE_VIDEO && !videoDecoderEOS && (APP_BACKGROUND != mAppStatus)) || (HAVE_AUDIO && !audioDecoderEOS)) {
+    if ((HAVE_VIDEO && mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO) && !videoDecoderEOS &&
+         (APP_BACKGROUND != mAppStatus)) ||
+        (HAVE_AUDIO && !audioDecoderEOS)) {
         return;
     }
 
     int packetSize = mBufferController->GetPacketSize(BUFFER_TYPE_AUDIO);
     int frameSize = static_cast<int>(mAudioFrameQue.size());
 
-    if ((APP_BACKGROUND != mAppStatus)) {
+    if ((APP_BACKGROUND != mAppStatus) && mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
         frameSize += mVideoFrameQue.size();
         packetSize += mBufferController->GetPacketSize(BUFFER_TYPE_VIDEO);
     }
