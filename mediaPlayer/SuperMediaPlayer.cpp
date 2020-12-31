@@ -1727,12 +1727,12 @@ void SuperMediaPlayer::checkEOS()
         return;
     }
 
-    int packetSize = mBufferController->GetPacketSize(BUFFER_TYPE_VIDEO);
+    int packetSize = mBufferController->GetPacketSize(BUFFER_TYPE_AUDIO);
     int frameSize = static_cast<int>(mAudioFrameQue.size());
 
     if ((APP_BACKGROUND != mAppStatus)) {
         frameSize += mVideoFrameQue.size();
-        packetSize += mBufferController->GetPacketSize(BUFFER_TYPE_AUDIO);
+        packetSize += mBufferController->GetPacketSize(BUFFER_TYPE_VIDEO);
     }
 
     if (frameSize > 0 || packetSize > 0) {
