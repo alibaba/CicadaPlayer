@@ -921,6 +921,7 @@ int parse_h265_extraData(enum AVCodecID codecId, const uint8_t* extradata,int ex
                          uint8_t** pps_data, int* pps_data_size,
                          int* nal_length_size)
 {
+#ifdef ENABLE_CODEC_HEVC
     AVCodec *codec = avcodec_find_decoder(codecId);
     if (codec == NULL) {
         return -1;
@@ -985,4 +986,7 @@ int parse_h265_extraData(enum AVCodecID codecId, const uint8_t* extradata,int ex
     ff_hevc_ps_uninit(&ps);
     avcodec_free_context(&avctx);
     return ret;
+#else
+    return -ENOSYS;
+#endif
 }
