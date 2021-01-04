@@ -144,9 +144,13 @@ namespace Cicada {
             return ret;
         }
 
-        int64_t probeHeader_pos = mCtx->pb->bytes_read;
-        int probeHeader_seekCount = mCtx->pb->seek_count;
         int probeHeader_nbStreams = mCtx->nb_streams;
+        int64_t probeHeader_pos = -1;
+        int probeHeader_seekCount = -1;
+        if (mCtx->pb != nullptr) {
+            probeHeader_pos = mCtx->pb->bytes_read;
+            probeHeader_seekCount = mCtx->pb->seek_count;
+        }
 
         mCtx->flags |= AVFMT_FLAG_GENPTS;
         // TODO: add a opt to set fps probe
@@ -180,8 +184,13 @@ namespace Cicada {
             return ret;
         }
 
-        int64_t probeStream_pos = mCtx->pb->bytes_read;
-        int probeStream_seekCount = mCtx->pb->seek_count;
+        int64_t probeStream_pos = -1;
+        int probeStream_seekCount = -1;
+        if (mCtx->pb != nullptr) {
+            probeStream_pos = mCtx->pb->bytes_read;
+            probeStream_seekCount = mCtx->pb->seek_count;
+        }
+
         int probeStream_nbFrames = 0;
         for(int i = 0 ; i < mCtx->nb_streams; i++) {
             probeStream_nbFrames += mCtx->streams[i]->codec_info_nb_frames;
