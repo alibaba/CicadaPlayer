@@ -375,7 +375,7 @@ int SuperMediaPlayer::Stop()
         mDataSource = nullptr;
     }
 
-    if (mAVDeviceManager->isVideoRenderValid()) {
+    if (mAVDeviceManager->getVideoRender()) {
         // lock mAppStatusMutex before mCreateMutex
         std::lock_guard<std::mutex> lock(mAppStatusMutex);
 
