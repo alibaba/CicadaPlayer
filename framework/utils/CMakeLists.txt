@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.6)
 project(framework_utils)
 set(CMAKE_CXX_STANDARD 11)
+
+include(../module_config.cmake)
+if(ENABLE_CODEC_HEVC)
+    add_definitions(-DENABLE_CODEC_HEVC)
+endif()
+
 set(SOURCE_FILES
         AutoAVFrame.h
         CicadaJSON.h
