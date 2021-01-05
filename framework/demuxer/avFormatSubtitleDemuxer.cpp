@@ -281,7 +281,7 @@ namespace Cicada {
         int score = AVPROBE_SCORE_RETRY;
         AVInputFormat *fmt = av_probe_input_format2(&pd, 1, &score);
 
-        if (fmt && strcmp(fmt->name, "webvtt") == 0) {
+        if (fmt && (strcmp(fmt->name, "webvtt") == 0 || strcmp(fmt->name, "srt") == 0)) {
             return true;
         };
 
