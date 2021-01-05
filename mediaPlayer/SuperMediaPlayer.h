@@ -201,6 +201,8 @@ namespace Cicada {
 
         int selectExtSubtitle(int index, bool bSelect) override;
 
+        int setStreamDelay(int index, int64_t time) override;
+
         int invokeComponent(std::string content) override;
 
         void setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)>  &drmCallback) override;

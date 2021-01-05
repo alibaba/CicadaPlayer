@@ -2,9 +2,11 @@
 // Created by moqi on 2019/10/31.
 //
 
+#define LOG_TAG "subTitlePlayer"
 #include "subTitlePlayer.h"
-#include <memory>
 #include <cassert>
+#include <memory>
+#include <utils/frame_work_log.h>
 
 using namespace std;
 namespace Cicada {
@@ -114,6 +116,22 @@ namespace Cicada {
         }
     }
 
+    int subTitlePlayer::setDelayTime(int index, int64_t time)
+    {
+        bool found = false;
+        for (auto item = mSources.begin(); item != mSources.end();) {
+            if ((*item)->mSource->getID() == index) {
+                (*item)->mDelay = time;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            AF_LOGE("setDelayTime no such stream\n");
+        }
+        return 0;
+    }
+
     bool subTitlePlayer::isActive()
     {
         return mSelectNum > 0 && mEnable;
@@ -128,7 +146,7 @@ namespace Cicada {
     {
         for (auto item = mSources.begin(); item != mSources.end();) {
             if ((*item)->mSelected) {
-                (*item)->mSource->seek(pts);
+                (*item)->mSource->seek(std::max(pts + (*item)->mDelay, (int64_t) 0));
 
                 if ((*item)->mPacket) {
                     IAFPacket *packet = (*item)->mPacket.get();
@@ -158,7 +176,7 @@ namespace Cicada {
                 break;
             }
 
-            if (packet->getInfo().pts + packet->getInfo().duration <= pts) {
+            if (packet->getInfo().pts + info.mDelay + packet->getInfo().duration <= pts) {
                 if (packet->getDiscard()) {
                     mListener.onRender(false, info.mPacket.release());
                 }
@@ -173,7 +191,7 @@ namespace Cicada {
             return;
         }
 
-        if (packet->getInfo().pts <= pts) {
+        if (packet->getInfo().pts + info.mDelay <= pts) {
             if (!packet->getDiscard()) {
                 mListener.onRender(true, packet);
                 packet->setDiscard(true);

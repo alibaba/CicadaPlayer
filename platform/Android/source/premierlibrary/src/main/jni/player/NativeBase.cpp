@@ -815,6 +815,19 @@ void NativeBase::java_SelectExtSubtitle(JNIEnv *env, jobject instance, jint inde
     }
 }
 
+void NativeBase::java_SetStreamDelayTime(JNIEnv *env, jobject instance, jint index, jint time)
+{
+
+    if (index < 0) {
+        return;
+    }
+    MediaPlayer *player = getPlayer(env, instance);
+
+    if (player != nullptr) {
+        player->SetStreamDelayTime(index, time);
+    }
+}
+
 void NativeBase::java_SnapShot(JNIEnv *env, jobject instance)
 {
     AF_TRACE;
@@ -1077,6 +1090,7 @@ static JNINativeMethod nativePlayer_method_table[] = {
         {"nSetDataSource", "(Ljava/lang/String;)V", (void *) NativeBase::java_SetDataSource},
         {"nAddExtSubtitle", "(Ljava/lang/String;)V", (void *) NativeBase::java_AddExtSubtitle},
         {"nSelectExtSubtitle", "(IZ)V", (void *) NativeBase::java_SelectExtSubtitle},
+        {"nSetStreamDelayTime", "(II)V", (void *) NativeBase::java_SetStreamDelayTime},
         {"nSelectTrack", "(I)V", (void *) NativeBase::java_SelectTrack},
         {"nPrepare", "()V", (void *) NativeBase::java_Prepare},
         {"nStart", "()V", (void *) NativeBase::java_Start},

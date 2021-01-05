@@ -850,6 +850,13 @@ static int logOutput = 1;
     }
 }
 
+- (void)setStreamDelayTime:(int)index time:(int)time
+{
+    if (self.player) {
+        self.player->SetStreamDelayTime(index, time);
+    }
+}
+
 -(void) reload
 {
     if (self.player) {

@@ -312,6 +312,8 @@ namespace Cicada {
 
         void SelectExtSubtitle(int index, bool select);
 
+        int SetStreamDelayTime(int index, int64_t time);
+
         void setErrorConverter(ErrorConverter *converter);
 
         std::string GetPropertyString(PropertyKey key);
