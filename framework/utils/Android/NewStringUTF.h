@@ -32,6 +32,8 @@ private:
 
     const NewStringUTF &operator=(const NewStringUTF &);
 
+private:
+    static char checkUtfBytes(const char *bytes, const char **errorKind);
 };
 
 
