@@ -52,6 +52,8 @@ public:
 
     static void java_SelectExtSubtitle(JNIEnv *env, jobject instance, jint index, jboolean select);
 
+    static void java_SetStreamDelayTime(JNIEnv *env, jobject instance, jint index, jint time);
+
     static void java_SelectTrack(JNIEnv *env, jobject instance, jint index);
 
     static void java_Prepare(JNIEnv *env, jobject instance);

@@ -1181,6 +1181,19 @@ public interface CicadaPlayer {
     abstract public void selectExtSubtitle(int trackIndex, boolean select);
 
     /**
+     * 设置某路流相对于主时钟的延时时间，默认是0, 目前只支持外挂字幕
+     * @param index 流的索引
+     * @param time  延时，单位毫秒
+     */
+    /****
+     * set the delay time of the stream
+     * @param index steam index
+     * @param time  ms
+     */
+
+    abstract public void setStreamDelayTime(int index, int time);
+
+    /**
      * 设置字幕显示通知
      *
      * @param l 字幕显示通知

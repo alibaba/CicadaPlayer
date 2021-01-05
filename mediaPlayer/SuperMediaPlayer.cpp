@@ -3604,6 +3604,19 @@ int SuperMediaPlayer::selectExtSubtitle(int index, bool bSelect)
     return 0;
 }
 
+int SuperMediaPlayer::setStreamDelay(int index, int64_t time)
+{
+    if (!(index & EXT_STREAM_BASE) || !mSubPlayer) {
+        AF_LOGE("setStreamDelay support ext subtitle only for now\n");
+        return -ENOSYS;
+    }
+    if (mSubPlayer) {
+        mSubPlayer->setDelayTime(index, time * 1000);
+        mSubPlayer->seek(std::max(getCurrentPosition() + time * 1000, (int64_t) 0));
+    }
+    return 0;
+}
+
 void SuperMediaPlayer::startRendering(bool start)
 {
     if (start == mBRendingStart) {

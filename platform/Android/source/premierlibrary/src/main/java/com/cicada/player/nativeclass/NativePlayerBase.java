@@ -430,6 +430,12 @@ public class NativePlayerBase {
         nSelectExtSubtitle(index, select);
     }
 
+    public void setStreamDelayTime(int index, int time)
+    {
+        Logger.v(TAG, "setStreamDelayTime  index = " + index + " , time = " + time);
+        nSetStreamDelayTime(index, time);
+    }
+
     public void setIPResolveType(CicadaPlayer.IPResolveType type) {
         nSetIPResolveType(type.ordinal());
     }
@@ -469,6 +475,8 @@ public class NativePlayerBase {
     protected native void nAddExtSubtitle(String url);
 
     protected native void nSelectExtSubtitle(int index, boolean select);
+
+    protected native void nSetStreamDelayTime(int index, int time);
 
     protected native void nSelectTrack(int index);
 

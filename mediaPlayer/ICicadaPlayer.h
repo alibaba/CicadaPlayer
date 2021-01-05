@@ -220,6 +220,8 @@ namespace Cicada {
 
         virtual int selectExtSubtitle(int index, bool bSelect) = 0;
 
+        virtual int setStreamDelay(int index, int64_t time) = 0;
+
         virtual void setMediaFrameCb(playerMediaFrameCb func, void *arg)
         {
             if (mMediaFrameCb == func) {

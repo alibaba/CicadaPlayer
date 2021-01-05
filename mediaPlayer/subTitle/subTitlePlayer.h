@@ -54,7 +54,7 @@ namespace Cicada {
             std::unique_ptr<subTitleSource> mSource;
             bool mSelected{false};
             std::unique_ptr<IAFPacket> mPacket;
-
+            int64_t mDelay{0};
         };
 
 
@@ -81,6 +81,8 @@ namespace Cicada {
         void update(int64_t pts);
 
         int select(int index, bool bSelect);
+
+        int setDelayTime(int index, int64_t time);
 
         bool isActive();
 

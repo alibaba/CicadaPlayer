@@ -703,3 +703,7 @@ int AppleAVPlayer::invokeComponent(std::string content)
 {
     return 0;
 }
+int AppleAVPlayer::setStreamDelay(int index, int64_t time)
+{
+    return 0;
+}

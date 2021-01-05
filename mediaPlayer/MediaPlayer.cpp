@@ -1074,6 +1074,11 @@ namespace Cicada {
         GET_PLAYER_HANDLE;
         CicadaSelectExtSubtitle(handle, index, select);
     }
+    int MediaPlayer::SetStreamDelayTime(int index, int64_t time)
+    {
+        GET_PLAYER_HANDLE;
+        return CicadaSetStreamDelayTime(handle, index, time);
+    }
 
     void MediaPlayer::SetDataSourceChangedCallback(function<void(const string &)> urlChangedCallbak)
     {

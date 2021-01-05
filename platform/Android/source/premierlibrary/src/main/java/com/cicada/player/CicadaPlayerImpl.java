@@ -1025,6 +1025,10 @@ import java.lang.ref.WeakReference;
     public void selectExtSubtitle(int index, boolean select){
         mCorePlayer.selectExtSubtitle(index,select);
     }
+    @Override
+    public void setStreamDelayTime(int index, int time){
+        mCorePlayer.setStreamDelayTime(index, time);
+    }
 
     @Override
     public void setDefaultBandWidth(int bandWidth) {

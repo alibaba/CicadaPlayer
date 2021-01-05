@@ -264,6 +264,20 @@ OBJC_EXPORT
  */
 -(void) selectExtSubtitle:(int)trackIndex enable:(BOOL)enable;
 
+
+/**
+ * 设置某路流相对于主时钟的延时时间，默认是0, 目前只支持外挂字幕
+ * @param index 流的索引
+ * @param time  延时，单位毫秒
+ */
+/****
+ * set the delay time of the stream
+ * @param index steam index
+ * @param time  ms
+ */
+
+- (void)setStreamDelayTime:(int)index time:(int)time;
+
 /**
  @brief 重新加载。比如网络超时时，可以重新加载。
  */

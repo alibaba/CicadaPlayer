@@ -130,6 +130,8 @@ namespace Cicada {
 
         int selectExtSubtitle(int index, bool bSelect) override;
 
+        int setStreamDelay(int index, int64_t time) override;
+
         int getCurrentStreamMeta(Stream_meta *meta, StreamType type) override;
 
         void reLoad() override;

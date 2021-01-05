@@ -246,6 +246,8 @@ void CicadaAddExtSubtitle(playerHandle *pHandle, const char *uri);
 
 void CicadaSelectExtSubtitle(playerHandle *pHandle, int index, bool select);
 
+int CicadaSetStreamDelayTime(playerHandle *pHandle, int index, int64_t time);
+
 /*
  * get video with and height
  */

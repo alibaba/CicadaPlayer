@@ -695,6 +695,15 @@ void CicadaSelectExtSubtitle(playerHandle *pHandle, int index, bool select)
     }
 }
 
+int CicadaSetStreamDelayTime(playerHandle *pHandle, int index, int64_t time)
+{
+    GET_PLAYER;
+    if (player) {
+        return player->setStreamDelay(index, time);
+    }
+    return -EINVAL;
+}
+
 std::string CicadaGetPlayerName(playerHandle *pHandle)
 {
     GET_PLAYER;
