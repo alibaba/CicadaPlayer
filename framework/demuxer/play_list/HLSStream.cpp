@@ -1234,8 +1234,9 @@ namespace Cicada {
                 if (mThreadPtr) {
                     mThreadPtr->start();
                 }
+            } else {
+                return -1;
             }
-            return -1;
         }
 
         AF_LOGD("%s:%d stream (%d) usSeeked is %lld seek num is %d\n", __func__, __LINE__,
