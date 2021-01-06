@@ -1166,7 +1166,8 @@ void SuperMediaPlayer::doReadPacket()
             if (mBufferIsFull) {
                 static const int BufferGap = 1000 * 1000;
 
-                if ((mSet->maxBufferDuration > 2 * BufferGap) && (cur_buffer_duration > mSet->maxBufferDuration - BufferGap)) {
+                if ((mSet->maxBufferDuration > 2 * BufferGap) && (cur_buffer_duration > mSet->maxBufferDuration - BufferGap) &&
+                    getPlayerBufferDuration(false, true) > 0) {
                     break;
                 }
             }
