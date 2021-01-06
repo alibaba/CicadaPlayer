@@ -1348,7 +1348,11 @@ bool SuperMediaPlayer::DoCheckBufferPass()
                 duration_a = mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO);
             }
 
-            if (std::min(duration_v, duration_a) >= 0 && std::max(duration_v, duration_a) > mSet->maxBufferDuration) {
+            /**
+             * if meta has audio and video stream infos , but after read 2 minutes duration ,
+             * one of streams still has no buffer duration , close it to avoid read all packets.
+             */
+            if (std::min(duration_v, duration_a) == 0 && std::max(duration_v, duration_a) > 2 * 60 * 1000000) {
                 if (duration_v > duration_a) {
                     mDemuxerService->CloseStream(mCurrentAudioIndex);
                     mCurrentAudioIndex = -1;
