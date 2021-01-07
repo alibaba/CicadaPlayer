@@ -883,6 +883,14 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key)
 
             return decodeInfos.printJSON();
         }
+        case PROPERTY_KEY_HLS_KEY_URL: {
+            std::lock_guard<std::mutex> uMutex(mCreateMutex);
+            if (nullptr != mDemuxerService) {
+                return mDemuxerService->GetProperty(0, "keyUrl");
+            }
+
+            return "";
+        }
 
         default:
             break;
