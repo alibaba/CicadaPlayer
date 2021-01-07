@@ -2220,7 +2220,7 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
 void SuperMediaPlayer::RenderSubtitle(int64_t pts)
 {
     if (mSubPlayer && mSubPlayer->isActive()) {
-        mSubPlayer->update(pts);
+        mSubPlayer->update(getCurrentPosition());
         return;
     }
 
