@@ -152,6 +152,10 @@ namespace Cicada {
             probeHeader_seekCount = mCtx->pb->seek_count;
         }
 
+        if (mSeekCb == nullptr && strcmp(mCtx->iformat->name, "mpegts") == 0) {
+            mNedParserPkt = true;
+        }
+
         mCtx->flags |= AVFMT_FLAG_GENPTS;
         // TODO: add a opt to set fps probe
         mCtx->fps_probe_size = 0;
@@ -312,6 +316,10 @@ namespace Cicada {
 
             av_packet_unref(pkt);
         } while (true);
+
+        if (mNedParserPkt) {
+            av_compute_pkt_fields(mCtx, mCtx->streams[pkt->stream_index], nullptr, pkt, AV_NOPTS_VALUE, AV_NOPTS_VALUE);
+        }
 
         if (pkt->pts == AV_NOPTS_VALUE) {
             AF_LOGW("pkt pts error\n");
