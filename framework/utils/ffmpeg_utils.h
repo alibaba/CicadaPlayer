@@ -13,6 +13,7 @@ extern "C"{
 
 #include <libavutil/dict.h>
 #include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -80,6 +81,10 @@ int parse_h265_extraData(enum AVCodecID codecId, const uint8_t* extradata,int ex
                          uint8_t** sps_data ,int*sps_data_size,
                          uint8_t** pps_data, int* pps_data_size,
                          int* nal_length_size);
+
+void av_compute_pkt_fields(AVFormatContext *s, AVStream *st,
+        AVCodecParserContext *pc, AVPacket *pkt,
+        int64_t next_dts, int64_t next_pts);
 
 #ifdef __cplusplus
 };

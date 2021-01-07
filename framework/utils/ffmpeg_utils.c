@@ -14,8 +14,12 @@
 #include <libavformat/avformat.h>
 #include <libavformat/avio_internal.h>
 #include <libavformat/hevc.h>
+#include <libavformat/internal.h>
+#include <libavcodec/internal.h>
+#include <libavutil/internal.h>
 #include <libavutil/avstring.h>
 #include <libavutil/intreadwrite.h>
+#include <libavutil/timestamp.h>
 #include <pthread.h>
 #include <utils/frame_work_log.h>
 
@@ -988,5 +992,407 @@ int parse_h265_extraData(enum AVCodecID codecId, const uint8_t* extradata,int ex
     return ret;
 #else
     return -ENOSYS;
+#endif
+}
+#define RELATIVE_TS_BASE (INT64_MAX - (1LL<<48))
+static int is_relative(int64_t ts) {
+    return ts > (RELATIVE_TS_BASE - (1LL<<48));
+}
+static int has_decode_delay_been_guessed(AVStream *st)
+{
+    if (st->codecpar->codec_id != AV_CODEC_ID_H264) return 1;
+    if (!st->info) // if we have left find_stream_info then nb_decoded_frames won't increase anymore for stream copy
+        return 1;
+#if CONFIG_H264_DECODER
+    if (st->internal->avctx->has_b_frames &&
+       avpriv_h264_has_num_reorder_frames(st->internal->avctx) == st->internal->avctx->has_b_frames)
+        return 1;
+#endif
+    if (st->internal->avctx->has_b_frames<3)
+        return st->nb_decoded_frames >= 7;
+    else if (st->internal->avctx->has_b_frames<4)
+        return st->nb_decoded_frames >= 18;
+    else
+        return st->nb_decoded_frames >= 20;
+}
+static AVPacketList *get_next_pkt(AVFormatContext *s, AVStream *st, AVPacketList *pktl)
+{
+    if (pktl->next)
+        return pktl->next;
+    if (pktl == s->internal->packet_buffer_end)
+        return s->internal->parse_queue;
+    return NULL;
+}
+
+static int64_t select_from_pts_buffer(AVStream *st, int64_t *pts_buffer, int64_t dts) {
+    int onein_oneout = st->codecpar->codec_id != AV_CODEC_ID_H264 &&
+                       st->codecpar->codec_id != AV_CODEC_ID_HEVC;
+
+    if(!onein_oneout) {
+        int delay = st->internal->avctx->has_b_frames;
+        int i;
+
+        if (dts == AV_NOPTS_VALUE) {
+            int64_t best_score = INT64_MAX;
+            for (i = 0; i<delay; i++) {
+                if (st->pts_reorder_error_count[i]) {
+                    int64_t score = st->pts_reorder_error[i] / st->pts_reorder_error_count[i];
+                    if (score < best_score) {
+                        best_score = score;
+                        dts = pts_buffer[i];
+                    }
+                }
+            }
+        } else {
+            for (i = 0; i<delay; i++) {
+                if (pts_buffer[i] != AV_NOPTS_VALUE) {
+                    int64_t diff =  FFABS(pts_buffer[i] - dts)
+                                    + (uint64_t)st->pts_reorder_error[i];
+                    diff = FFMAX(diff, st->pts_reorder_error[i]);
+                    st->pts_reorder_error[i] = diff;
+                    st->pts_reorder_error_count[i]++;
+                    if (st->pts_reorder_error_count[i] > 250) {
+                        st->pts_reorder_error[i] >>= 1;
+                        st->pts_reorder_error_count[i] >>= 1;
+                    }
+                }
+            }
+        }
+    }
+
+    if (dts == AV_NOPTS_VALUE)
+        dts = pts_buffer[0];
+
+    return dts;
+}
+static void update_dts_from_pts(AVFormatContext *s, int stream_index,
+                                AVPacketList *pkt_buffer)
+{
+    AVStream *st       = s->streams[stream_index];
+    int delay          = st->internal->avctx->has_b_frames;
+    int i;
+
+    int64_t pts_buffer[MAX_REORDER_DELAY+1];
+
+    for (i = 0; i<MAX_REORDER_DELAY+1; i++)
+        pts_buffer[i] = AV_NOPTS_VALUE;
+
+    for (; pkt_buffer; pkt_buffer = get_next_pkt(s, st, pkt_buffer)) {
+        if (pkt_buffer->pkt.stream_index != stream_index)
+            continue;
+
+        if (pkt_buffer->pkt.pts != AV_NOPTS_VALUE && delay <= MAX_REORDER_DELAY) {
+            pts_buffer[0] = pkt_buffer->pkt.pts;
+            for (i = 0; i<delay && pts_buffer[i] > pts_buffer[i + 1]; i++)
+                FFSWAP(int64_t, pts_buffer[i], pts_buffer[i + 1]);
+
+            pkt_buffer->pkt.dts = select_from_pts_buffer(st, pts_buffer, pkt_buffer->pkt.dts);
+        }
+    }
+}
+static void update_initial_timestamps(AVFormatContext *s, int stream_index,
+                                      int64_t dts, int64_t pts, AVPacket *pkt)
+{
+    AVStream *st       = s->streams[stream_index];
+    AVPacketList *pktl = s->internal->packet_buffer ? s->internal->packet_buffer : s->internal->parse_queue;
+    AVPacketList *pktl_it;
+
+    uint64_t shift;
+
+    if (st->first_dts != AV_NOPTS_VALUE ||
+        dts           == AV_NOPTS_VALUE ||
+        st->cur_dts   == AV_NOPTS_VALUE ||
+        st->cur_dts < INT_MIN + RELATIVE_TS_BASE ||
+        is_relative(dts))
+        return;
+
+    st->first_dts = dts - (st->cur_dts - RELATIVE_TS_BASE);
+    st->cur_dts   = dts;
+    shift         = (uint64_t)st->first_dts - RELATIVE_TS_BASE;
+
+    if (is_relative(pts))
+        pts += shift;
+
+    for (pktl_it = pktl; pktl_it; pktl_it = get_next_pkt(s, st, pktl_it)) {
+        if (pktl_it->pkt.stream_index != stream_index)
+            continue;
+        if (is_relative(pktl_it->pkt.pts))
+            pktl_it->pkt.pts += shift;
+
+        if (is_relative(pktl_it->pkt.dts))
+            pktl_it->pkt.dts += shift;
+
+        if (st->start_time == AV_NOPTS_VALUE && pktl_it->pkt.pts != AV_NOPTS_VALUE) {
+            st->start_time = pktl_it->pkt.pts;
+            if (st->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && st->codecpar->sample_rate)
+                st->start_time += av_rescale_q(st->skip_samples, (AVRational){1, st->codecpar->sample_rate}, st->time_base);
+        }
+    }
+
+    if (has_decode_delay_been_guessed(st)) {
+        update_dts_from_pts(s, stream_index, pktl);
+    }
+
+    if (st->start_time == AV_NOPTS_VALUE) {
+        if (st->codecpar->codec_type == AVMEDIA_TYPE_AUDIO || !(pkt->flags & AV_PKT_FLAG_DISCARD)) {
+            st->start_time = pts;
+        }
+        if (st->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && st->codecpar->sample_rate)
+            st->start_time += av_rescale_q(st->skip_samples, (AVRational){1, st->codecpar->sample_rate}, st->time_base);
+    }
+}
+static void update_initial_durations(AVFormatContext *s, AVStream *st,
+                                     int stream_index, int duration)
+{
+    AVPacketList *pktl = s->internal->packet_buffer ? s->internal->packet_buffer : s->internal->parse_queue;
+    int64_t cur_dts    = RELATIVE_TS_BASE;
+
+    if (st->first_dts != AV_NOPTS_VALUE) {
+        if (st->update_initial_durations_done)
+            return;
+        st->update_initial_durations_done = 1;
+        cur_dts = st->first_dts;
+        for (; pktl; pktl = get_next_pkt(s, st, pktl)) {
+            if (pktl->pkt.stream_index == stream_index) {
+                if (pktl->pkt.pts != pktl->pkt.dts  ||
+                    pktl->pkt.dts != AV_NOPTS_VALUE ||
+                    pktl->pkt.duration)
+                    break;
+                cur_dts -= duration;
+            }
+        }
+        if (pktl && pktl->pkt.dts != st->first_dts) {
+            av_log(s, AV_LOG_DEBUG, "first_dts %s not matching first dts %s (pts %s, duration %"PRId64") in the queue\n",
+                   av_ts2str(st->first_dts), av_ts2str(pktl->pkt.dts), av_ts2str(pktl->pkt.pts), pktl->pkt.duration);
+            return;
+        }
+        if (!pktl) {
+            av_log(s, AV_LOG_DEBUG, "first_dts %s but no packet with dts in the queue\n", av_ts2str(st->first_dts));
+            return;
+        }
+        pktl          = s->internal->packet_buffer ? s->internal->packet_buffer : s->internal->parse_queue;
+        st->first_dts = cur_dts;
+    } else if (st->cur_dts != RELATIVE_TS_BASE)
+        return;
+
+    for (; pktl; pktl = get_next_pkt(s, st, pktl)) {
+        if (pktl->pkt.stream_index != stream_index)
+            continue;
+        if ((pktl->pkt.pts == pktl->pkt.dts ||
+             pktl->pkt.pts == AV_NOPTS_VALUE) &&
+            (pktl->pkt.dts == AV_NOPTS_VALUE ||
+             pktl->pkt.dts == st->first_dts ||
+             pktl->pkt.dts == RELATIVE_TS_BASE) &&
+            !pktl->pkt.duration) {
+            pktl->pkt.dts = cur_dts;
+            if (!st->internal->avctx->has_b_frames)
+                pktl->pkt.pts = cur_dts;
+//            if (st->codecpar->codec_type != AVMEDIA_TYPE_AUDIO)
+            pktl->pkt.duration = duration;
+        } else
+            break;
+        cur_dts = pktl->pkt.dts + pktl->pkt.duration;
+    }
+    if (!pktl)
+        st->cur_dts = cur_dts;
+}
+static int is_intra_only(enum AVCodecID id)
+{
+    const AVCodecDescriptor *d = avcodec_descriptor_get(id);
+    if (!d)
+        return 0;
+    if (d->type == AVMEDIA_TYPE_VIDEO && !(d->props & AV_CODEC_PROP_INTRA_ONLY))
+        return 0;
+    return 1;
+}
+// copy from ffmpeg n4.2.1
+void av_compute_pkt_fields(AVFormatContext *s, AVStream *st,
+                                      AVCodecParserContext *pc, AVPacket *pkt,
+                                      int64_t next_dts, int64_t next_pts)
+{
+    int num, den, presentation_delayed, delay, i;
+    int64_t offset;
+    AVRational duration;
+    int onein_oneout = st->codecpar->codec_id != AV_CODEC_ID_H264 &&
+                       st->codecpar->codec_id != AV_CODEC_ID_HEVC;
+
+    if (s->flags & AVFMT_FLAG_NOFILLIN)
+        return;
+
+    if (st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO && pkt->dts != AV_NOPTS_VALUE) {
+        if (pkt->dts == pkt->pts && st->last_dts_for_order_check != AV_NOPTS_VALUE) {
+            if (st->last_dts_for_order_check <= pkt->dts) {
+                st->dts_ordered++;
+            } else {
+                av_log(s, st->dts_misordered ? AV_LOG_DEBUG : AV_LOG_WARNING,
+                       "DTS %"PRIi64" < %"PRIi64" out of order\n",
+                       pkt->dts,
+                       st->last_dts_for_order_check);
+                st->dts_misordered++;
+            }
+            if (st->dts_ordered + st->dts_misordered > 250) {
+                st->dts_ordered    >>= 1;
+                st->dts_misordered >>= 1;
+            }
+        }
+
+        st->last_dts_for_order_check = pkt->dts;
+        if (st->dts_ordered < 8*st->dts_misordered && pkt->dts == pkt->pts)
+            pkt->dts = AV_NOPTS_VALUE;
+    }
+
+    if ((s->flags & AVFMT_FLAG_IGNDTS) && pkt->pts != AV_NOPTS_VALUE)
+        pkt->dts = AV_NOPTS_VALUE;
+
+    if (pc && pc->pict_type == AV_PICTURE_TYPE_B
+        && !st->internal->avctx->has_b_frames)
+        //FIXME Set low_delay = 0 when has_b_frames = 1
+        st->internal->avctx->has_b_frames = 1;
+
+    /* do we have a video B-frame ? */
+    delay = st->internal->avctx->has_b_frames;
+    presentation_delayed = 0;
+
+    /* XXX: need has_b_frame, but cannot get it if the codec is
+     *  not initialized */
+    if (delay &&
+        pc && pc->pict_type != AV_PICTURE_TYPE_B)
+        presentation_delayed = 1;
+
+    if (pkt->pts != AV_NOPTS_VALUE && pkt->dts != AV_NOPTS_VALUE &&
+        st->pts_wrap_bits < 63 &&
+        pkt->dts - (1LL << (st->pts_wrap_bits - 1)) > pkt->pts) {
+        if (is_relative(st->cur_dts) || pkt->dts - (1LL<<(st->pts_wrap_bits - 1)) > st->cur_dts) {
+            pkt->dts -= 1LL << st->pts_wrap_bits;
+        } else
+            pkt->pts += 1LL << st->pts_wrap_bits;
+    }
+
+    /* Some MPEG-2 in MPEG-PS lack dts (issue #171 / input_file.mpg).
+     * We take the conservative approach and discard both.
+     * Note: If this is misbehaving for an H.264 file, then possibly
+     * presentation_delayed is not set correctly. */
+    if (delay == 1 && pkt->dts == pkt->pts &&
+        pkt->dts != AV_NOPTS_VALUE && presentation_delayed) {
+        av_log(s, AV_LOG_DEBUG, "invalid dts/pts combination %"PRIi64"\n", pkt->dts);
+        if (    strcmp(s->iformat->name, "mov,mp4,m4a,3gp,3g2,mj2")
+                && strcmp(s->iformat->name, "flv")) // otherwise we discard correct timestamps for vc1-wmapro.ism
+            pkt->dts = AV_NOPTS_VALUE;
+    }
+
+    duration = av_mul_q((AVRational) {pkt->duration, 1}, st->time_base);
+    if (pkt->duration == 0) {
+        ff_compute_frame_duration(s, &num, &den, st, pc, pkt);
+        if (den && num) {
+            duration = (AVRational) {num, den};
+            pkt->duration = av_rescale_rnd(1,
+                                           num * (int64_t) st->time_base.den,
+                                           den * (int64_t) st->time_base.num,
+                                           AV_ROUND_DOWN);
+        }
+    }
+
+    if (pkt->duration != 0 && (s->internal->packet_buffer || s->internal->parse_queue))
+        update_initial_durations(s, st, pkt->stream_index, pkt->duration);
+
+    /* Correct timestamps with byte offset if demuxers only have timestamps
+     * on packet boundaries */
+    if (pc && st->need_parsing == AVSTREAM_PARSE_TIMESTAMPS && pkt->size) {
+        /* this will estimate bitrate based on this frame's duration and size */
+        offset = av_rescale(pc->offset, pkt->duration, pkt->size);
+        if (pkt->pts != AV_NOPTS_VALUE)
+            pkt->pts += offset;
+        if (pkt->dts != AV_NOPTS_VALUE)
+            pkt->dts += offset;
+    }
+
+    /* This may be redundant, but it should not hurt. */
+    if (pkt->dts != AV_NOPTS_VALUE &&
+        pkt->pts != AV_NOPTS_VALUE &&
+        pkt->pts > pkt->dts)
+        presentation_delayed = 1;
+
+    if (s->debug & FF_FDEBUG_TS)
+        av_log(s, AV_LOG_DEBUG,
+               "IN delayed:%d pts:%s, dts:%s cur_dts:%s st:%d pc:%p duration:%"PRId64" delay:%d onein_oneout:%d\n",
+               presentation_delayed, av_ts2str(pkt->pts), av_ts2str(pkt->dts), av_ts2str(st->cur_dts),
+               pkt->stream_index, pc, pkt->duration, delay, onein_oneout);
+
+    /* Interpolate PTS and DTS if they are not present. We skip H264
+     * currently because delay and has_b_frames are not reliably set. */
+    if ((delay == 0 || (delay == 1 && pc)) &&
+        onein_oneout) {
+        if (presentation_delayed) {
+            /* DTS = decompression timestamp */
+            /* PTS = presentation timestamp */
+            if (pkt->dts == AV_NOPTS_VALUE)
+                pkt->dts = st->last_IP_pts;
+            update_initial_timestamps(s, pkt->stream_index, pkt->dts, pkt->pts, pkt);
+            if (pkt->dts == AV_NOPTS_VALUE)
+                pkt->dts = st->cur_dts;
+
+            /* This is tricky: the dts must be incremented by the duration
+             * of the frame we are displaying, i.e. the last I- or P-frame. */
+            if (st->last_IP_duration == 0 && (uint64_t)pkt->duration <= INT32_MAX)
+                st->last_IP_duration = pkt->duration;
+            if (pkt->dts != AV_NOPTS_VALUE)
+                st->cur_dts = pkt->dts + st->last_IP_duration;
+            if (pkt->dts != AV_NOPTS_VALUE &&
+                pkt->pts == AV_NOPTS_VALUE &&
+                st->last_IP_duration > 0 &&
+                ((uint64_t)st->cur_dts - (uint64_t)next_dts + 1) <= 2 &&
+                next_dts != next_pts &&
+                next_pts != AV_NOPTS_VALUE)
+                pkt->pts = next_dts;
+
+            if ((uint64_t)pkt->duration <= INT32_MAX)
+                st->last_IP_duration = pkt->duration;
+            st->last_IP_pts      = pkt->pts;
+            /* Cannot compute PTS if not present (we can compute it only
+             * by knowing the future. */
+        } else if (pkt->pts != AV_NOPTS_VALUE ||
+                   pkt->dts != AV_NOPTS_VALUE ||
+                   pkt->duration                ) {
+
+            /* presentation is not delayed : PTS and DTS are the same */
+            if (pkt->pts == AV_NOPTS_VALUE)
+                pkt->pts = pkt->dts;
+            update_initial_timestamps(s, pkt->stream_index, pkt->pts,
+                                      pkt->pts, pkt);
+            if (pkt->pts == AV_NOPTS_VALUE)
+                pkt->pts = st->cur_dts;
+            pkt->dts = pkt->pts;
+            if (pkt->pts != AV_NOPTS_VALUE)
+                st->cur_dts = av_add_stable(st->time_base, pkt->pts, duration, 1);
+        }
+    }
+
+    if (pkt->pts != AV_NOPTS_VALUE && delay <= MAX_REORDER_DELAY) {
+        st->pts_buffer[0] = pkt->pts;
+        for (i = 0; i<delay && st->pts_buffer[i] > st->pts_buffer[i + 1]; i++)
+            FFSWAP(int64_t, st->pts_buffer[i], st->pts_buffer[i + 1]);
+
+        if(has_decode_delay_been_guessed(st))
+            pkt->dts = select_from_pts_buffer(st, st->pts_buffer, pkt->dts);
+    }
+    // We skipped it above so we try here.
+    if (!onein_oneout)
+        // This should happen on the first packet
+        update_initial_timestamps(s, pkt->stream_index, pkt->dts, pkt->pts, pkt);
+    if (pkt->dts > st->cur_dts)
+        st->cur_dts = pkt->dts;
+
+    if (s->debug & FF_FDEBUG_TS)
+        av_log(s, AV_LOG_DEBUG, "OUTdelayed:%d/%d pts:%s, dts:%s cur_dts:%s st:%d (%d)\n",
+               presentation_delayed, delay, av_ts2str(pkt->pts), av_ts2str(pkt->dts), av_ts2str(st->cur_dts), st->index, st->id);
+
+    /* update flags */
+    if (st->codecpar->codec_type == AVMEDIA_TYPE_DATA || is_intra_only(st->codecpar->codec_id))
+        pkt->flags |= AV_PKT_FLAG_KEY;
+#if FF_API_CONVERGENCE_DURATION
+    FF_DISABLE_DEPRECATION_WARNINGS
+    if (pc)
+        pkt->convergence_duration = pc->convergence_duration;
+    FF_ENABLE_DEPRECATION_WARNINGS
 #endif
 }
