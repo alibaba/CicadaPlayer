@@ -1515,6 +1515,8 @@ namespace Cicada {
             if (mPDemuxer) {
                 return mPDemuxer->GetProperty(-1, key);
             }
+        } else if ("keyUrl" == key) {
+            return mCurrentEncryption.keyUrl;
         }
 
         return "";
