@@ -214,6 +214,7 @@ int SMPAVDeviceManager::renderAudioFrame(std::unique_ptr<IAFFrame> &frame, int t
                 return -EAGAIN;
             }
         }
+        return ret;
     }
     return -EINVAL;
 }
