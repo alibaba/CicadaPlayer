@@ -312,6 +312,8 @@ namespace Cicada {
         if (mPDecoder->codecCont == nullptr) {
             return true;
         }
-        return mPDecoder->codecCont->extradata_size == 0;
+        // TODO: check the data format whether changed (avcc adts ...)
+        //return mPDecoder->codecCont->extradata_size == 0;
+        return false;
     }
 }
