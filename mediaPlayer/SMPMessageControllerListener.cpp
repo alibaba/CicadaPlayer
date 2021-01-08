@@ -369,7 +369,7 @@ void SMPMessageControllerListener::ProcessSetViewMsg(void *view)
     mPlayer.mSet->mView = view;
     std::unique_lock<std::mutex> uMutex(mPlayer.mCreateMutex);
 
-    if (mPlayer.mAVDeviceManager->isVideoRenderValid()) {
+    if (mPlayer.mAVDeviceManager->getVideoRender() != nullptr) {
         mPlayer.mAVDeviceManager->getVideoRender()->setDisPlay(view);
     }
 }
