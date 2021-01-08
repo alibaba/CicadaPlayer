@@ -147,7 +147,7 @@ void AFAudioQueueRender::fillAudioFormat()
     mAudioFormat.mBytesPerPacket = mAudioFormat.mBytesPerFrame * mAudioFormat.mFramesPerPacket;
     mAudioFormat.mReserved = 0;
 
-    mAudioDataByteSize = (mAudioFormat.mBytesPerFrame * mAudioFormat.mSampleRate) / 100;
+    mAudioDataByteSize = (mAudioFormat.mBytesPerFrame * mAudioFormat.mSampleRate) / 50;
 }
 
 int AFAudioQueueRender::setSpeed(float speed)
