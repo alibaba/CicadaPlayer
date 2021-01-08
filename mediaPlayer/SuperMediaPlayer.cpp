@@ -1871,6 +1871,10 @@ int SuperMediaPlayer::FillVideoFrame()
 
     if (ret == STATUS_EOS) {
         videoDecoderEOS = true;
+
+        if (mSeekFlag && mSeekNeedCatch) {
+            mSeekNeedCatch = false;
+        }
     }
 
     if (pFrame != nullptr) {
