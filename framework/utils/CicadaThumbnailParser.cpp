@@ -66,18 +66,25 @@ bool CicadaThumbnailParser::getLine(const std::string &input, std::size_t &start
 
 bool CicadaThumbnailParser::getText(const std::string &line, ThumbnailInfo &info)
 {
-    std::size_t pos = line.find('#');
-
-    if (pos == std::string::npos) {
+    if (line.empty()) {
         return false;
+    }
+
+    std::size_t pos = line.find("#");
+    if (pos == 0) {
+        return false;
+    }
+
+    //TODO move this, not standard syntax
+    pos = line.find("#xywh=");
+    if (pos == std::string::npos) {
+        info.URI = line;
+        return true;
     }
 
     info.URI = line.substr(0, pos);
 
     pos = line.find('=', pos);
-    if (pos == std::string::npos) {
-        return false;
-    }
     string rect = line.substr(pos+1);
     AfString::trimString(rect);
     std::replace(rect.begin(), rect.end(), ',', ' ');
