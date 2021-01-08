@@ -1134,7 +1134,8 @@ void SuperMediaPlayer::ProcessVideoLoop()
     setUpAVPath();
 
     if (!mBRendingStart && mPlayStatus == PLAYER_PLAYING && !mBufferingFlag) {
-        if (mEof ||// render out the cache frame in renders
+        if ((mEof && (!HAVE_AUDIO || mAVDeviceManager->isAudioRenderValid()) &&
+             (!HAVE_VIDEO || mAVDeviceManager->isVideoRenderValid())) ||// render out the cache frame in renders
             ((!HAVE_VIDEO || !mVideoFrameQue.empty() || (APP_BACKGROUND == mAppStatus)) && (!HAVE_AUDIO || !mAudioFrameQue.empty()))) {
             startRendering(true);
         }
