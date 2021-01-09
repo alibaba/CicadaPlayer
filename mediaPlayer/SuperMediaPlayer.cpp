@@ -3672,13 +3672,14 @@ void SuperMediaPlayer::setDrmRequestCallback(const std::function<DrmResponseData
 }
 void SuperMediaPlayer::ApsaraAudioRenderCallback::onUpdateTimePosition(int64_t pos)
 {
-    if (pos >= 0) {
+
+    if (!mPlayer.isSeeking() && pos >= 0) {
         mPlayer.mCurrentPos = pos;
     }
 }
 void SuperMediaPlayer::ApsaraVideoRenderListener::onFrameInfoUpdate(IAFFrame::AFFrameInfo &info)
 {
-    if (mPlayer.mCurrentAudioIndex < 0 && info.timePosition >= 0) {
+    if (mPlayer.mCurrentAudioIndex < 0 && info.timePosition >= 0 && !mPlayer.isSeeking()) {
         mPlayer.mCurrentPos = info.timePosition;
         // AF_LOGD("timePosition %lld\n", info.timePosition);
     }
