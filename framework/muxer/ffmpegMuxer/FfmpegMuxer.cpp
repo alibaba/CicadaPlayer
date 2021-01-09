@@ -150,14 +150,14 @@ int FfmpegMuxer::writeFrame(unique_ptr<IAFPacket> packetPtr)
         return -1;
     }
 
-    AVPacket *avPacket = getAVPacket(packetPtr.get());
+    AVPacket *pkt = getAVPacket(packetPtr.get());
 
-    if (avPacket == nullptr) {
+    if (pkt == nullptr) {
         AF_LOGE("muxer packet is null..");
         return -1;
     }
 
-    int pktStreamIndex = avPacket->stream_index;
+    int pktStreamIndex = pkt->stream_index;
     StreamInfo &streamInfo = mStreamInfoMap[pktStreamIndex];
 
     if (mStreamInfoMap.count(pktStreamIndex) == 0) {
@@ -165,10 +165,8 @@ int FfmpegMuxer::writeFrame(unique_ptr<IAFPacket> packetPtr)
         return -1;
     }
 
-    AVPacket *pkt = av_packet_clone(avPacket);
-
     if (mFirstPts == INT64_MIN) {
-        mFirstPts = avPacket->pts;
+        mFirstPts = pkt->pts;
     }
 
     pkt->stream_index = streamInfo.targetIndex;
@@ -206,7 +204,7 @@ int FfmpegMuxer::writeFrame(unique_ptr<IAFPacket> packetPtr)
 
     mDestFormatContext->max_interleave_delta = 0;
     int ret = av_interleaved_write_frame(mDestFormatContext, pkt);
-    av_packet_free(&pkt);
+    //  av_packet_free(&pkt);
 
     if (ret < 0) {
         AF_LOGE("write packet failed . ret = %d. pktStreamIndex index = %d , stream index = %d ", ret, pktStreamIndex, streamInfo.targetIndex);

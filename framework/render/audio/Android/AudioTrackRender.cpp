@@ -336,6 +336,7 @@ int AudioTrackRender::write_loop()
                 // TODO: How to decrease mMaxQueSize size, if use nonblock write, we can do this
                 //     mMaxQueSize = std::max(MIN_FRAME_QUEUE_SIZE,mMaxQueSize -1);
             }
+            delete mFrameQueue.front();
             mFrameQueue.pop();
         }
     }

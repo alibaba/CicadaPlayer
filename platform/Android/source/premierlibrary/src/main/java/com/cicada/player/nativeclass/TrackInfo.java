@@ -14,27 +14,27 @@ public class TrackInfo {
     public static final int AUTO_SELECT_INDEX = -1;
 
 
-    private int index;
-    private Type mType;
-    private String description;
+    public int index;
+    public Type mType;
+    public String description;
 
     //video
-    private int videoBitrate;
-    private int videoWidth;
-    private int videoHeight;
+    public int videoBitrate;
+    public int videoWidth;
+    public int videoHeight;
 
     //audio
-    private String audioLang;
-    private int audioChannels;
-    private int audioSampleRate;
-    private int audioSampleFormat;
+    public String audioLang;
+    public int audioChannels;
+    public int audioSampleRate;
+    public int audioSampleFormat;
 
     //subtitle
-    private String subtitleLang;
+    public String subtitleLang;
 
 
     //call from native
-    private void setType(int mType) {
+    public void setType(int mType) {
         if (mType == Type.TYPE_VIDEO.ordinal()) {
             this.mType = Type.TYPE_VIDEO;
         } else if (mType == Type.TYPE_AUDIO.ordinal()) {
@@ -42,6 +42,10 @@ public class TrackInfo {
         } else if (mType == Type.TYPE_SUBTITLE.ordinal()) {
             this.mType = Type.TYPE_SUBTITLE;
         }
+    }
+
+    private int nGetType(){
+        return mType.ordinal();
     }
 
     /**

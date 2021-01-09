@@ -23,6 +23,8 @@ namespace Cicada {
 
         ~CurlDataSource() override;
 
+        void setPost(bool post, int64_t size, const uint8_t *data);
+
         int Open(int flags) override;
 
         int Open(const std::string &url) override;
@@ -36,6 +38,8 @@ namespace Cicada {
         std::string GetOption(const std::string &key) override;
 
         void Interrupt(bool interrupt) override;
+
+        std::string GetUri() override;
 
     private:
 
@@ -62,6 +66,8 @@ namespace Cicada {
 
         static CurlDataSource se;
 
+        void closeConnections(bool current);
+
     private:
         const static int max_connection = 1;
         std::string mLocation;
@@ -82,8 +88,9 @@ namespace Cicada {
         std::string mConnectInfo;
         bool mBDummy = false;
         std::vector<CURLConnection *>* mConnections {nullptr};
-
-        void closeConnections(bool current);
+        bool mBPost{false};
+        const uint8_t *mPostData{nullptr};
+        int64_t mPostSize{0};
     };
 }
 

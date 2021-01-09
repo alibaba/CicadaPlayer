@@ -11,31 +11,29 @@
 #include "CallObjectMethod.h"
 #include "GetStringUTFChars.h"
 
-char *JniUtils::jByteArrayToChars(JNIEnv *env, jbyteArray bytearray)
-{
+char *JniUtils::jByteArrayToChars(JNIEnv *env, jbyteArray bytearray) {
     jbyte *bytes = env->GetByteArrayElements(bytearray, 0);
     int chars_len = env->GetArrayLength(bytearray);
-    char *chars = static_cast<char *>(malloc(chars_len));
+    char *chars = static_cast<char *>(malloc(chars_len + 1));
     memcpy(chars, bytes, chars_len);
+    chars[chars_len] = 0;
     env->ReleaseByteArrayElements(bytearray, bytes, 0);
     JniException::clearException(env);
     return chars;
 }
 
-char *JniUtils::jByteArrayToChars_New(JNIEnv *env, jbyteArray bytearray)
-{
+char *JniUtils::jByteArrayToChars_New(JNIEnv *env, jbyteArray bytearray) {
     jbyte *bytes = env->GetByteArrayElements(bytearray, 0);
     int chars_len = env->GetArrayLength(bytearray);
     char *chars = new char[chars_len + 1]();
     memcpy(chars, bytes, chars_len);
+    chars[chars_len] = 0;
     env->ReleaseByteArrayElements(bytearray, bytes, 0);
     JniException::clearException(env);
     return chars;
 }
 
-
-jobject JniUtils::cmap2Jmap(JNIEnv *env, std::map<std::string, std::string> cmap)
-{
+jobject JniUtils::cmap2Jmap(JNIEnv *env, std::map<std::string, std::string> cmap) {
     FindClass jmapclass(env, "java/util/HashMap");
     jmethodID initMethod = env->GetMethodID(jmapclass.getClass(), "<init>", "()V");
     jmethodID putMethod = env->GetMethodID(jmapclass.getClass(), "put",
@@ -55,8 +53,7 @@ jobject JniUtils::cmap2Jmap(JNIEnv *env, std::map<std::string, std::string> cmap
 }
 
 
-std::string JniUtils::callStringMethod(JNIEnv *env, jobject jObj, jmethodID method)
-{
+std::string JniUtils::callStringMethod(JNIEnv *env, jobject jObj, jmethodID method) {
     CallObjectMethod tmpGetObject(env, jObj, method);
     auto objec = (jstring) tmpGetObject.getValue();
     GetStringUTFChars tmpObj(env, objec);

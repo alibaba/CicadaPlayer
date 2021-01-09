@@ -49,6 +49,24 @@ public class CicadaPlayerFactory {
      * 创建播放器
      *
      * @param context 上下文。
+     * @param name 外部播放器的名字
+     * @return 播放器对象。
+     */
+    /****
+     * Create a player.
+     *
+     * @param context The context.
+     * @param name external player name
+     * @return The player object.
+     */
+    public static CicadaPlayer createCicadaPlayer(Context context , String name) {
+        return createCicadaPlayer(context, name , null);
+    }
+
+    /**
+     * 创建播放器
+     *
+     * @param context 上下文。
      * @param traceId 便于跟踪日志。
      * @return 播放器对象。
      */
@@ -59,8 +77,8 @@ public class CicadaPlayerFactory {
      * @param traceId A trace ID for troubleshooting with the relevant log.
      * @return The player object.
      */
-    public static CicadaPlayer createCicadaPlayer(Context context, String traceId) {
-        return new CicadaPlayerImpl(context, traceId);
+    public static CicadaPlayerImpl createCicadaPlayer(Context context, String name, String traceId) {
+        return new CicadaPlayerImpl(context, name , traceId);
     }
 
     /**
@@ -90,7 +108,9 @@ public class CicadaPlayerFactory {
         /****
          * H264 hardware decoding.
          */
-        HW_Decode_H264
+        HW_Decode_H264,
+
+        HW_Decode_HEVC
     }
 
     /**

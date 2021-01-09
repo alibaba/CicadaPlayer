@@ -13,7 +13,7 @@ typedef struct playerHandle_t playerHandle;
 /*
  *create the Cicada player
  */
-playerHandle *CicadaCreatePlayer();
+playerHandle *CicadaCreatePlayer(const char *opts);
 
 /*
  * release Cicada player
@@ -27,6 +27,8 @@ int CicadaSetListener(playerHandle *pHandle, const playerListener &Listener);
 
 
 void CicadaSetOnRenderCallBack(playerHandle *pHandle, onRenderFrame cb, void *userData);
+
+void CicadaSetAudioRenderingCallBack(playerHandle *pHandle, onRenderFrame cb, void *userData);
 
 /*
  * set external component callback
@@ -282,5 +284,7 @@ void CicadaReload(playerHandle *pHandle);
 void CicadaSetDefaultBandWidth(playerHandle *player, int bandWidth);
 
 int CicadaInvokeComponent(playerHandle *player, const char *content);
+
+std::string CicadaGetPlayerName(playerHandle *player);
 
 #endif // CICADA_PLAYER_H_

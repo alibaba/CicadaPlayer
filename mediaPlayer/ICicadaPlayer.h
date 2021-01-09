@@ -22,6 +22,8 @@ namespace Cicada {
 
         virtual ~ICicadaPlayer() = default;
 
+        virtual string getName() = 0;
+
         /*
         * 初始化;(同步)
         */
@@ -29,6 +31,8 @@ namespace Cicada {
 
 
         virtual void SetOnRenderCallBack(onRenderFrame cb, void *userData) = 0;
+
+        virtual void SetAudioRenderingCallBack(onRenderFrame cb, void *userData) = 0;
 
         /*
          *设置显示窗口

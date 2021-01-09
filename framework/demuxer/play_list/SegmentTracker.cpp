@@ -16,7 +16,7 @@
 
 #include <utility>
 
-#define IS_LIVE (mPPlayList->getDuration() == 0)
+#define IS_LIVE (mRep->b_live)
 
 
 namespace Cicada {
@@ -161,6 +161,9 @@ namespace Cicada {
                 }
 
                 rep->SetSegmentList(nullptr);
+
+                // update is live
+                mRep->b_live = rep->b_live;
 
                 if (pPlayList->getDuration() > 0) {
                     mPDataSource->Close();
@@ -391,4 +394,8 @@ namespace Cicada {
         mSeeked = true;
     }
 
+    int64_t SegmentTracker::getTargetDuration()
+    {
+        return mRep->targetDuration;
+    }
 }

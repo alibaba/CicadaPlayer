@@ -64,7 +64,7 @@ namespace Cicada {
         static ffmpegDataSource se;
 
     private:
-        URLContext *mPuc{};
+        AVIOContext *mPuc{};
         AVIOInterruptCB mInterruptCB{};
         int mInterrupted{};
         char mErrorMsg[AV_ERROR_MAX_STRING_SIZE]{};

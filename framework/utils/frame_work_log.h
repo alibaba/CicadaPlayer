@@ -7,8 +7,9 @@
 
 #include <af_config.h>
 
-#include <stdint.h>
 #include "CicadaType.h"
+#include <inttypes.h>
+#include <stdint.h>
 
 #define AF_LOG_LEVEL_NONE  0
 #define AF_LOG_LEVEL_FATAL  8

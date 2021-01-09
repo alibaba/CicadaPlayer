@@ -19,6 +19,7 @@
 #include <utils/Android/GetStringUTFChars.h>
 #include <utils/Android/JniException.h>
 #include <utils/Android/FindClass.h>
+#include <utils/CicadaJSON.h>
 
 
 #include "NativeBase.h"
@@ -57,12 +58,21 @@ jmethodID gj_NativePlayer_onBufferPositionUpdate = nullptr;
 jmethodID gj_NativePlayer_onCurrentPositionUpdate = nullptr;
 jmethodID gj_NativePlayer_onSubtitleExtAdded = nullptr;
 
-void NativeBase::java_Construct(JNIEnv *env, jobject instance)
+void NativeBase::java_Construct(JNIEnv *env, jobject instance , jstring name)
 {
     AF_TRACE;
     PlayerPrivateData *privateData = new PlayerPrivateData();
     privateData->j_instance = env->NewGlobalRef(instance);
-    privateData->player = new MediaPlayer();
+
+    if(name != nullptr) {
+        GetStringUTFChars jName(env, name);
+        CicadaJSONItem opts{};
+        opts.addValue("name", jName.getChars());
+        privateData->player = new MediaPlayer(opts.printJSON().c_str());
+    }else {
+        privateData->player = new MediaPlayer();
+    }
+
     env->CallVoidMethod(instance, gj_NativePlayer_setNativeContext, (jlong) privateData);
     JniException::clearException(env);
     jobject userData = privateData->j_instance;
@@ -679,6 +689,18 @@ void NativeBase::java_SetOption(JNIEnv *env, jobject instance, jstring key, jstr
     char *valueStr = tmpValue.getChars();
     player->SetOption(keyStr, valueStr);
 }
+int NativeBase::java_InvokeComponent(JNIEnv *env, jobject instance, jstring content)
+{
+    AF_TRACE;
+    MediaPlayer *player = getPlayer(env, instance);
+
+    if (player == nullptr) {
+        return -1;
+    }
+    GetStringUTFChars cont(env, content);
+    player->InvokeComponent(cont.getChars());
+    return 0;
+}
 
 void NativeBase::java_SetAutoPlay(JNIEnv *env, jobject instance,
                                   jboolean autoPlay)
@@ -774,9 +796,19 @@ jstring NativeBase::java_GetSdkVersion(JNIEnv *env, jclass jclazz)
 void NativeBase::java_SetBlackType(JNIEnv *env, jclass jclazz, jint type)
 {
     AF_TRACE;
-
-    if (type == 0) { //hw_decode_h264
-        setProperty("ro.video.dec.h264", "OFF");
+    const char *key = nullptr;
+    switch (type) {
+        case 0://hw_decode_h264
+            key = "ro.video.dec.h264";
+            break;
+        case 1://hw_decode_hevc
+            key = "ro.video.dec.hevc";
+            break;
+        default:
+            break;
+    }
+    if (key != nullptr) {
+        setProperty(key, "OFF");
     }
 }
 
@@ -936,60 +968,61 @@ void NativeBase::unInit(JNIEnv *pEnv)
 }
 
 static JNINativeMethod nativePlayer_method_table[] = {
-    {"nConstruct",              "()V",                                     (void *) NativeBase::java_Construct},
-    {"nSetConnectivityManager", "(Ljava/lang/Object;)V",                   (void *) NativeBase::java_SetConnectivityManager},
-    {"nEnableHardwareDecoder",  "(Z)V",                                    (void *) NativeBase::java_EnableHardwareDecoder},
-    {"nSetSurface",             "(Landroid/view/Surface;)V",               (void *) NativeBase::java_SetView},
-    {"nSetDataSource",          "(Ljava/lang/String;)V",                   (void *) NativeBase::java_SetDataSource},
-    {"nAddExtSubtitle",         "(Ljava/lang/String;)V",                   (void *) NativeBase::java_AddExtSubtitle},
-    {"nSelectExtSubtitle",      "(IZ)V",                                   (void *) NativeBase::java_SelectExtSubtitle},
-    {"nSelectTrack",            "(I)V",                                    (void *) NativeBase::java_SelectTrack},
-    {"nPrepare",                "()V",                                     (void *) NativeBase::java_Prepare},
-    {"nStart",                  "()V",                                     (void *) NativeBase::java_Start},
-    {"nPause",                  "()V",                                     (void *) NativeBase::java_Pause},
-    {"nSetVolume",              "(F)V",                                    (void *) NativeBase::java_SetVolume},
-    {"nGetVolume",              "()F",                                     (void *) NativeBase::java_GetVolume},
-    {"nSeekTo",                 "(JI)V",                                   (void *) NativeBase::java_SeekTo},
-    {"nSetMaxAccurateSeekDelta", "(I)V",                                   (void *) NativeBase::java_SetMaxAccurateSeekDelta},
-    {"nStop",                   "()V",                                     (void *) NativeBase::java_Stop},
-    {"nRelease",                "()V",                                     (void *) NativeBase::java_Release},
-    {"nSetVideoBackgroundColor","(I)V",                                    (void *) NativeBase::java_SetVideoBackgroundColor},
-    {"nGetDuration",            "()J",                                     (void *) NativeBase::java_GetDuration},
-    {"nGetCurrentStreamInfo",   "(I)Ljava/lang/Object;",                   (void *) NativeBase::java_GetCurrentStreamInfo},
-    {"nGetCurrentPosition",     "()J",                                     (void *) NativeBase::java_GetCurrentPosition},
-    {"nGetBufferedPosition",    "()J",                                     (void *) NativeBase::java_GetBufferedPosition},
-    {"nSetMute",                "(Z)V",                                    (void *) NativeBase::java_SetMute},
-    {"nIsMuted",                "()Z",                                     (void *) NativeBase::java_IsMuted},
-    {"nSetConfig",              "(Ljava/lang/Object;)V",                   (void *) NativeBase::java_SetConfig},
-    {"nGetConfig",              "()Ljava/lang/Object;",                    (void *) NativeBase::java_GetConfig},
-    {"nSetCacheConfig",         "(Ljava/lang/Object;)V",                   (void *) NativeBase::java_SetCacheConfig},
-    {"nSetScaleMode",           "(I)V",                                    (void *) NativeBase::java_SetScaleMode},
-    {"nGetScaleMode",           "()I",                                     (void *) NativeBase::java_GetScaleMode},
-    {"nSetLoop",                "(Z)V",                                    (void *) NativeBase::java_SetLoop},
-    {"nIsLoop",                 "()Z",                                     (void *) NativeBase::java_IsLoop},
-    {"nGetVideoWidth",          "()I",                                     (void *) NativeBase::java_GetVideoWidth},
-    {"nGetVideoHeight",         "()I",                                     (void *) NativeBase::java_GetVideoHeight},
-    {"nGetVideoRotation",       "()I",                                     (void *) NativeBase::java_GetVideoRotation},
-    {"nReload",                 "()V",                                     (void *) NativeBase::java_Reload},
-    {"nSetRotateMode",          "(I)V",                                    (void *) NativeBase::java_SetRotateMode},
-    {"nGetRotateMode",          "()I",                                     (void *) NativeBase::java_GetRotateMode},
-    {"nSetMirrorMode",          "(I)V",                                    (void *) NativeBase::java_SetMirrorMode},
-    {"nGetMirrorMode",          "()I",                                     (void *) NativeBase::java_GetMirrorMode},
-    {"nSetSpeed",               "(F)V",                                    (void *) NativeBase::java_SetSpeed},
-    {"nGetSpeed",               "()F",                                     (void *) NativeBase::java_GetSpeed},
-    {"nSetTraceID",             "(Ljava/lang/String;)V",                   (void *) NativeBase::java_SetTraceID},
-    {"nSetLibPath",             "(Ljava/lang/String;)V",                   (void *) NativeBase::java_SetLibPath},
-    {"nSetOption",              "(Ljava/lang/String;Ljava/lang/String;)V", (void *) NativeBase::java_SetOption},
-//        {"nSetComponentCb",        "(IJJJ)V",                                 (void *) NativeBase::java_SetComponentCb},
-    {"nSetAutoPlay",            "(Z)V",                                    (void *) NativeBase::java_SetAutoPlay},
-    {"nIsAutoPlay",             "()Z",                                     (void *) NativeBase::java_IsAutoPlay},
-    {"nSnapShot",               "()V",                                     (void *) NativeBase::java_SnapShot},
-    {"nGetSdkVersion",          "()Ljava/lang/String;",                    (void *) NativeBase::java_GetSdkVersion},
-    {"nSetBlackType",           "(I)V",                                    (void *) NativeBase::java_SetBlackType},
-    {"nSetIPResolveType",       "(I)V",                                    (void *) NativeBase::java_SetIPResolveType},
-    {"nSetFastStart",           "(Z)V",                                    (void *) NativeBase::java_SetFastStart},
-    {"nGetCacheFilePath",       "(Ljava/lang/String;)Ljava/lang/String;",  (void *) NativeBase::java_GetCacheFilePathByURL},
-    {"nSetDefaultBandWidth",    "(I)V",                                                                        (void *) NativeBase::java_SetDefaultBandWidth},
+        {"nConstruct", "(Ljava/lang/String;)V", (void *) NativeBase::java_Construct},
+        {"nSetConnectivityManager", "(Ljava/lang/Object;)V", (void *) NativeBase::java_SetConnectivityManager},
+        {"nEnableHardwareDecoder", "(Z)V", (void *) NativeBase::java_EnableHardwareDecoder},
+        {"nSetSurface", "(Landroid/view/Surface;)V", (void *) NativeBase::java_SetView},
+        {"nSetDataSource", "(Ljava/lang/String;)V", (void *) NativeBase::java_SetDataSource},
+        {"nAddExtSubtitle", "(Ljava/lang/String;)V", (void *) NativeBase::java_AddExtSubtitle},
+        {"nSelectExtSubtitle", "(IZ)V", (void *) NativeBase::java_SelectExtSubtitle},
+        {"nSelectTrack", "(I)V", (void *) NativeBase::java_SelectTrack},
+        {"nPrepare", "()V", (void *) NativeBase::java_Prepare},
+        {"nStart", "()V", (void *) NativeBase::java_Start},
+        {"nPause", "()V", (void *) NativeBase::java_Pause},
+        {"nSetVolume", "(F)V", (void *) NativeBase::java_SetVolume},
+        {"nGetVolume", "()F", (void *) NativeBase::java_GetVolume},
+        {"nSeekTo", "(JI)V", (void *) NativeBase::java_SeekTo},
+        {"nSetMaxAccurateSeekDelta", "(I)V", (void *) NativeBase::java_SetMaxAccurateSeekDelta},
+        {"nStop", "()V", (void *) NativeBase::java_Stop},
+        {"nRelease", "()V", (void *) NativeBase::java_Release},
+        {"nSetVideoBackgroundColor", "(I)V", (void *) NativeBase::java_SetVideoBackgroundColor},
+        {"nGetDuration", "()J", (void *) NativeBase::java_GetDuration},
+        {"nGetCurrentStreamInfo", "(I)Ljava/lang/Object;", (void *) NativeBase::java_GetCurrentStreamInfo},
+        {"nGetCurrentPosition", "()J", (void *) NativeBase::java_GetCurrentPosition},
+        {"nGetBufferedPosition", "()J", (void *) NativeBase::java_GetBufferedPosition},
+        {"nSetMute", "(Z)V", (void *) NativeBase::java_SetMute},
+        {"nIsMuted", "()Z", (void *) NativeBase::java_IsMuted},
+        {"nSetConfig", "(Ljava/lang/Object;)V", (void *) NativeBase::java_SetConfig},
+        {"nGetConfig", "()Ljava/lang/Object;", (void *) NativeBase::java_GetConfig},
+        {"nSetCacheConfig", "(Ljava/lang/Object;)V", (void *) NativeBase::java_SetCacheConfig},
+        {"nSetScaleMode", "(I)V", (void *) NativeBase::java_SetScaleMode},
+        {"nGetScaleMode", "()I", (void *) NativeBase::java_GetScaleMode},
+        {"nSetLoop", "(Z)V", (void *) NativeBase::java_SetLoop},
+        {"nIsLoop", "()Z", (void *) NativeBase::java_IsLoop},
+        {"nGetVideoWidth", "()I", (void *) NativeBase::java_GetVideoWidth},
+        {"nGetVideoHeight", "()I", (void *) NativeBase::java_GetVideoHeight},
+        {"nGetVideoRotation", "()I", (void *) NativeBase::java_GetVideoRotation},
+        {"nReload", "()V", (void *) NativeBase::java_Reload},
+        {"nSetRotateMode", "(I)V", (void *) NativeBase::java_SetRotateMode},
+        {"nGetRotateMode", "()I", (void *) NativeBase::java_GetRotateMode},
+        {"nSetMirrorMode", "(I)V", (void *) NativeBase::java_SetMirrorMode},
+        {"nGetMirrorMode", "()I", (void *) NativeBase::java_GetMirrorMode},
+        {"nSetSpeed", "(F)V", (void *) NativeBase::java_SetSpeed},
+        {"nGetSpeed", "()F", (void *) NativeBase::java_GetSpeed},
+        {"nSetTraceID", "(Ljava/lang/String;)V", (void *) NativeBase::java_SetTraceID},
+        {"nSetLibPath", "(Ljava/lang/String;)V", (void *) NativeBase::java_SetLibPath},
+        {"nSetOption", "(Ljava/lang/String;Ljava/lang/String;)V", (void *) NativeBase::java_SetOption},
+        //        {"nSetComponentCb",        "(IJJJ)V",                                 (void *) NativeBase::java_SetComponentCb},
+        {"nSetAutoPlay", "(Z)V", (void *) NativeBase::java_SetAutoPlay},
+        {"nIsAutoPlay", "()Z", (void *) NativeBase::java_IsAutoPlay},
+        {"nSnapShot", "()V", (void *) NativeBase::java_SnapShot},
+        {"nGetSdkVersion", "()Ljava/lang/String;", (void *) NativeBase::java_GetSdkVersion},
+        {"nSetBlackType", "(I)V", (void *) NativeBase::java_SetBlackType},
+        {"nSetIPResolveType", "(I)V", (void *) NativeBase::java_SetIPResolveType},
+        {"nSetFastStart", "(Z)V", (void *) NativeBase::java_SetFastStart},
+        {"nGetCacheFilePath", "(Ljava/lang/String;)Ljava/lang/String;", (void *) NativeBase::java_GetCacheFilePathByURL},
+        {"nSetDefaultBandWidth", "(I)V", (void *) NativeBase::java_SetDefaultBandWidth},
+        {"nInvokeComponent", "(Ljava/lang/String;)I", (void *) NativeBase::java_InvokeComponent},
 
 };
 

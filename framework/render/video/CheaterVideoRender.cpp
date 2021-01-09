@@ -18,11 +18,6 @@ int Cicada::CheaterVideoRender::init()
     return 0;
 }
 
-void Cicada::CheaterVideoRender::setVideoRotate(IVideoRender::Rotate rotate)
-{
-
-}
-
 void Cicada::CheaterVideoRender::setWindowSize(int windWith, int mWindHeight)
 {
     IVideoRender::setWindowSize(windWith, mWindHeight);

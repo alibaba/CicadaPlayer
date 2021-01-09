@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 public class SharedPreferenceUtils {
 
     public static final String CICADA_PLAYER_HARDWARE_DECODER = "cicada_player_hardware_decoder";
+    public static final String SELECTED_CICADA_PLAYER = "selected_cicada_player";
 
     private static SharedPreferences mInstance = null;
 

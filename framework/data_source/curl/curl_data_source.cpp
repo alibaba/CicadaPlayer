@@ -49,6 +49,7 @@ CURLConnection *CurlDataSource::initConnection()
 {
     auto *pHandle = new CURLConnection(pConfig);
     pHandle->setSource(mLocation, headerList);
+    pHandle->setPost(mBPost, mPostSize, mPostData);
     return pHandle;
 }
 
@@ -79,6 +80,8 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
         if (length > 0.0) {
             mFileSize = pConnection->tell() + (int64_t) length;
             //AF_LOGE("file size is %lld\n",mFileSize);
+        } else {
+            mFileSize = 0;
         }
 
 //        if (curlContext.fileSize == 0)
@@ -89,8 +92,6 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
             curl_easy_getinfo(pConnection->getCurlHandle(), CURLINFO_EFFECTIVE_URL, &location)) {
         if (location) {
             mLocation = location;
-        } else {
-            mLocation = "";
         }
     }
 
@@ -148,6 +149,13 @@ CurlDataSource::~CurlDataSource()
 
     Interrupt(true);
     Close();
+}
+
+void CurlDataSource::setPost(bool post, int64_t size, const uint8_t *data)
+{
+    mBPost = post;
+    mPostSize = size;
+    mPostData = data;
 }
 
 int CurlDataSource::Open(int flags)
@@ -220,6 +228,7 @@ int CurlDataSource::Open(const string &url)
     mLocation = (isRTMP ? (url + " live=1").c_str() : url.c_str());
     // only change url, don,t change share and resolve
     mPConnection->updateSource(mLocation);
+
     int ret = curl_connect(mPConnection, rangeStart != INT64_MIN ? rangeStart : 0);
     mOpenTimeMS = af_gettime_relative() / 1000 - mOpenTimeMS;
 
@@ -250,26 +259,38 @@ void CurlDataSource::closeConnections(bool current)
     }
 
     if (deleteConnection) {
-        AsyncJob::Instance()->addJob([deleteConnection] {
+        if (AsyncJob::Instance()) {
+            AsyncJob::Instance()->addJob([deleteConnection] { delete deleteConnection; });
+        } else {
             delete deleteConnection;
-        });
+        }
     }
 
     if (pConnections) {
-        AsyncJob::Instance()->addJob([pConnections] {
-            for (auto item = pConnections->begin(); item != pConnections->end();)
-            {
+        if (AsyncJob::Instance()) {
+            AsyncJob::Instance()->addJob([pConnections] {
+                for (auto item = pConnections->begin(); item != pConnections->end();) {
+                    delete *item;
+                    item = pConnections->erase(item);
+                }
+                delete pConnections;
+            });
+        } else {
+            for (auto item = pConnections->begin(); item != pConnections->end();) {
                 delete *item;
                 item = pConnections->erase(item);
             }
             delete pConnections;
-        });
+        }
     }
 }
 
 int64_t CurlDataSource::Seek(int64_t offset, int whence)
 {
 //    AF_LOGD("CurlDataSource::Seek position is %lld,when is %d", offset, whence);
+if (!mPConnection) {
+    return -(ESPIPE);
+}
     if (whence == SEEK_SIZE) {
         return mFileSize;
     } else if ((whence == SEEK_CUR && offset == 0) ||
@@ -288,7 +309,7 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
     }
 
     if (offset < 0) {
-        return -(EINVAL);
+        return -(ESPIPE);
     }
 
     if (offset == mPConnection->tell()) {
@@ -307,7 +328,7 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
         AF_LOGI("short seek ok\n");
         return offset;
     } else {
-        AF_LOGI("short seek filed\n");
+        AF_LOGI("short seek failed\n");
     }
 
     CURLConnection *con = nullptr;
@@ -332,16 +353,15 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
                 delete connection;
             });
         }
-
         mPConnection = con;
         AF_LOGW("short seek ok\n");
         return offset;
     } else {
-        AF_LOGW("short seek filed\n");
+        AF_LOGW("short seek failed\n");
     }
 
     int64_t ret = TrySeekByNewConnection(offset);
-    return (ret >= 0) ? ret : -1;
+    return ret;
 }
 
 int64_t CurlDataSource::TrySeekByNewConnection(int64_t offset)
@@ -506,4 +526,9 @@ CurlDataSource::CurlDataSource(int dummy) : IDataSource("")
     mBDummy = true;
     init_curl();
     addPrototype(this);
+}
+
+std::string CurlDataSource::GetUri()
+{
+    return mLocation;
 }

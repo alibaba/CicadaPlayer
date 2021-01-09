@@ -18,7 +18,7 @@
 #include <base/media/spsc_queue.h>
 #include <queue>
 
-class ActiveDecoder : public Cicada::IDecoder {
+class CICADA_CPLUS_EXTERN ActiveDecoder : public Cicada::IDecoder {
 
 public:
     ActiveDecoder();
@@ -89,10 +89,11 @@ private:
     Cicada::SpscQueue<IAFPacket *> mInputQueue;
     Cicada::SpscQueue<IAFFrame *> mOutputQueue;
     int maxOutQueueSize = 10;
+    int maxInQueueSize = 16;
     std::mutex mMutex{};
     std::mutex mSleepMutex{};
 #endif
-    bool bHolding = false;
+    std::atomic_bool bHolding{false};
     std::queue<std::unique_ptr<IAFPacket>> mHoldingQueue{};
     enum AFCodecID mCodecId{AF_CODEC_ID_NONE};
 };

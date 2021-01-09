@@ -70,7 +70,7 @@ namespace Cicada {
 
         void CloseStream(int index) override;
 
-        int Seek(int64_t us, int flags, int index) override;
+        int64_t Seek(int64_t us, int flags, int index) override;
 
         int ReadPacket(std::unique_ptr<IAFPacket> &packet, int index) override;
 
@@ -126,6 +126,7 @@ namespace Cicada {
         AVFormatContext *mCtx = nullptr;
         int MAX_QUEUE_SIZE = 60; // about 500ms  video and audio packet
         bool mSecretDemxuer{false};
+        std::string mDrmMagicKey{};
 
     private:
         std::atomic_bool mInterrupted{false};
@@ -142,6 +143,7 @@ namespace Cicada {
         std::mutex mQueLock{};
         std::condition_variable mQueCond{};
         atomic <int64_t> mError{0};
+        mutable std::mutex mCtxMutex{};
 #endif
 
     };

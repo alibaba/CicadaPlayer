@@ -196,7 +196,7 @@ CacheRet CacheModule::checkCanCache()
 }
 
 
-void CacheModule::addFrame(const unique_ptr<IAFPacket> &frame, StreamType type)
+void CacheModule::addFrame(const IAFPacket *frame, StreamType type)
 {
     std::unique_lock<mutex> lock(mReumxerMutex);
 

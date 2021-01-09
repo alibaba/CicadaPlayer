@@ -1,9 +1,9 @@
+#include "media_player_api.h"
+#include "CicadaPlayerPrototype.h"
 #include <complex>
+#include <utils/CicadaJSON.h>
 #include <utils/af_string.h>
 #include <utils/frame_work_log.h>
-#include "media_player_api.h"
-#include "ICicadaPlayer.h"
-#include "SuperMediaPlayer.h"
 
 using namespace Cicada;
 
@@ -13,10 +13,25 @@ typedef struct playerHandle_t {
 
 #define GET_PLAYER ICicadaPlayer *player = pHandle->pPlayer
 
-playerHandle *CicadaCreatePlayer()
+playerHandle *CicadaCreatePlayer(const char *opts)
 {
     playerHandle *pHandle = new playerHandle();
-    pHandle->pPlayer = new SuperMediaPlayer();
+    if (opts == nullptr) {
+        opts = "";
+    }
+    CicadaJSONItem item{opts};
+    options createOpt;
+    const string defaultString{};
+    string value;
+    value = item.getString("name", defaultString);
+    if (value != defaultString) {
+        createOpt.set("name", value , options::REPLACE);
+    }
+    value = item.getString("playerPointer" , defaultString);
+    if (value != defaultString) {
+        createOpt.set("playerPointer", value , options::REPLACE);
+    }
+    pHandle->pPlayer = CicadaPlayerPrototype::create(&createOpt);
     return pHandle;
 }
 
@@ -54,6 +69,14 @@ void CicadaSetOnRenderCallBack(playerHandle *pHandle, onRenderFrame cb, void *us
     GET_PLAYER;
     if (player) {
         player->SetOnRenderCallBack(cb, userData);
+    }
+}
+
+void CicadaSetAudioRenderingCallBack(playerHandle *pHandle, onRenderFrame cb, void *userData)
+{
+    GET_PLAYER;
+    if (player) {
+        player->SetAudioRenderingCallBack(cb, userData);
     }
 }
 
@@ -662,4 +685,13 @@ void CicadaSelectExtSubtitle(playerHandle *pHandle, int index, bool select)
     if (player) {
         player->selectExtSubtitle(index, select);
     }
+}
+
+std::string CicadaGetPlayerName(playerHandle *pHandle)
+{
+    GET_PLAYER;
+    if (player) {
+        return player->getName();
+    }
+    return "";
 }

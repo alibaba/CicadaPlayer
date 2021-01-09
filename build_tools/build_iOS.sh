@@ -46,29 +46,32 @@ function build_fat_libs(){
 }
 
 function create_cmake_config(){
-   echo "cmake_minimum_required(VERSION 3.6)" >> $CONFIG_FILE
-   echo "set(LIB_NAME ${LIB_NAME})" >> $CONFIG_FILE
-   echo "find_library(SECURITY Security)" >> $CONFIG_FILE
+   echo "cmake_minimum_required(VERSION 3.14)" >> "$CONFIG_FILE"
+   echo "set(LIB_NAME ${LIB_NAME})" >> "$CONFIG_FILE"
+#   echo "find_library(SECURITY Security)" >> "$CONFIG_FILE"
 #   echo "find_library(LIBXML2 Xml2)" >> $CONFIG_FILE
-   echo "find_library(AUDIO_TOOL_BOX AudioToolbox)" >> $CONFIG_FILE
+#   echo "find_library(AUDIO_TOOL_BOX AudioToolbox)" >> "$CONFIG_FILE"
 #   echo "find_library(VIDEO_TOOL_BOX VideoToolbox)" >> $CONFIG_FILE
 #   echo "find_library(COREMEDIA CoreMedia)" >> $CONFIG_FILE
 #   echo "find_library(COREVIDEO CoreVideo)" >> $CONFIG_FILE
 #   echo "find_library(COREFOUNDATION CoreFoundation)" >> $CONFIG_FILE
-   echo -n "set(SRC_LIBRARIES ${SRC_LIBRARIES}" >> $CONFIG_FILE
-   if [[ "${SSL_USE_NATIVE}" == "TRUE" ]];then
-       echo -n ' ${SECURITY}' >> $CONFIG_FILE
-   fi
+   echo -n "set(SRC_LIBRARIES ${SRC_LIBRARIES}" >> "$CONFIG_FILE"
+#   if [[ "${SSL_USE_NATIVE}" == "TRUE" ]];then
+#       echo -n ' ${SECURITY}' >> "$CONFIG_FILE"
+#   fi
    if [[ "${XML_USE_NATIVE}" == "TRUE" ]];then
-       echo -n ' xml2' >> $CONFIG_FILE
+       echo -n ' xml2' >> "$CONFIG_FILE"
    fi
-   echo -n ' ${AUDIO_TOOL_BOX}' >> $CONFIG_FILE
+#   echo -n ' ${AUDIO_TOOL_BOX}' >> "$CONFIG_FILE"
 #   echo -n ' ${VIDEO_TOOL_BOX}' >> $CONFIG_FILE
 #   echo -n ' ${COREMEDIA}' >> $CONFIG_FILE
 #   echo -n ' ${COREVIDEO}' >> $CONFIG_FILE
 #   echo -n ' ${COREFOUNDATION}' >> $CONFIG_FILE
-   echo ")" >> $CONFIG_FILE
-   echo "set(SRC_LIBRARIES_DIR ${SRC_LIBRARIES_DIR})" >>$CONFIG_FILE
+   echo ")" >> "$CONFIG_FILE"
+   echo "set(SRC_LIBRARIES_DIR ${SRC_LIBRARIES_DIR})" >>"$CONFIG_FILE"
+   echo -n "set(LINK_FRAMEWORKS " >> "$CONFIG_FILE"
+   echo -n '"-framework Security -framework AudioToolbox"' >> "$CONFIG_FILE"
+   echo  ")" >> "$CONFIG_FILE"
 }
 #build to ffmpeg
 function build_shared_framework(){
@@ -115,22 +118,22 @@ function build_shared_framework(){
 
     cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
     sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
-    rm -rf Xcode/
-    mkdir -p Xcode/OS
-    cd Xcode/OS
-    cmake  -DCMAKE_TOOLCHAIN_FILE=${BUILD_TOOLS_DIR}/iOS/iOS.cmake \
-    -DIOS_PLATFORM=OS ../../  \
-    -G Xcode
-    xcodebuild -destination generic/platform=iOS -configuration MinSizeRel -target ALL_BUILD
-
-    cd -
-    mkdir -p Xcode/SIMULATOR64
-    cd Xcode/SIMULATOR64
-    cmake  -DCMAKE_TOOLCHAIN_FILE=${BUILD_TOOLS_DIR}/iOS/iOS.cmake \
-    -DIOS_PLATFORM=SIMULATOR64 ../../  \
-    -G Xcode
-
-    xcodebuild -destination "platform=iOS Simulator" -configuration MinSizeRel -target ALL_BUILD
+#    rm -rf Xcode/
+#    mkdir -p Xcode/OS
+#    cd Xcode/OS
+#    cmake  -DCMAKE_TOOLCHAIN_FILE=${BUILD_TOOLS_DIR}/iOS/iOS.cmake \
+#    -DIOS_PLATFORM=OS ../../  \
+#    -G Xcode
+#    xcodebuild -destination generic/platform=iOS -configuration MinSizeRel -target ALL_BUILD
+#
+#    cd -
+#    mkdir -p Xcode/SIMULATOR64
+#    cd Xcode/SIMULATOR64
+#    cmake  -DCMAKE_TOOLCHAIN_FILE=${BUILD_TOOLS_DIR}/iOS/iOS.cmake \
+#    -DIOS_PLATFORM=SIMULATOR64 ../../  \
+#    -G Xcode
+#
+#    xcodebuild -destination "platform=iOS Simulator" -configuration MinSizeRel -target ALL_BUILD
 
     return;
 }

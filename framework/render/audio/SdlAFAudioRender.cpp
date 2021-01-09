@@ -16,6 +16,10 @@ namespace Cicada {
 
     SdlAFAudioRender::~SdlAFAudioRender()
     {
+        if (mDevID > 0) {
+            SDL_CloseAudioDevice(mDevID);
+            mDevID = 0;
+        }
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
         if (pcmBuffer != nullptr) {
@@ -71,17 +75,16 @@ namespace Cicada {
             bufferSize = getPCMDataLen(frame->getInfo().audio.channels, (enum AVSampleFormat) frame->getInfo().audio.format,
                                        frame->getInfo().audio.nb_samples);
             pcmBuffer = static_cast<uint8_t *>(malloc(bufferSize));
-            if (SDL_OpenAudio(&mSpec, nullptr) < 0) {
+            mDevID = SDL_OpenAudioDevice(NULL, false, &mSpec, nullptr, 0);
+            if (mDevID == 0) {
                 AF_LOGE("SdlAFAudioRender could not openAudio! Error: %s\n", SDL_GetError());
-                return -1;
+                return OPEN_AUDIO_DEVICE_FAILED;
             }
-
-            mDevID = 1;
             SDL_PauseAudioDevice(mDevID, 0); // start play audio
         }
-        if (frame->getInfo().duration < 0 && frame->getInfo().audio.sample_rate > 0) {
-            frame->getInfo().duration = frame->getInfo().audio.nb_samples * 100000 / frame->getInfo().audio.sample_rate;
-        }
+        //        if (frame->getInfo().duration < 0 &&  frame->getInfo().audio.sample_rate > 0) {
+        //            frame->getInfo().duration = (uint64_t) frame->getInfo().audio.nb_samples * 1000000 / frame->getInfo().audio.sample_rate;
+        //        }
 
         //  mAudioFrames.push(std::move(frame));
         if (getQueDuration() > 500 * 1000) {
@@ -90,6 +93,7 @@ namespace Cicada {
 
         if (mFiler != nullptr) {
             int ret;
+            int origin_samples = frame->getInfo().audio.nb_samples;
             unique_ptr<IAFFrame> filter_frame{};
             ret = mFiler->pull(filter_frame, 0);
 
@@ -102,13 +106,17 @@ namespace Cicada {
                     bufferSize = pcmDataLength;
                     pcmBuffer = static_cast<uint8_t *>(realloc(pcmBuffer, bufferSize));
                 }
-                if (!mMute) {
+                bool rendered = false;
+                if (mRenderingCb) {
+                    rendered = mRenderingCb(mRenderingCbUserData, filter_frame.get());
+                }
+                if (!mMute && !rendered) {
                     copyPCMData(getAVFrame(filter_frame.get()), pcmBuffer);
                 } else {
                     memset(pcmBuffer, 0, pcmDataLength);
                 }
                 SDL_QueueAudio(mDevID, pcmBuffer, pcmDataLength);
-                mPlayedDuration += filter_frame->getInfo().duration;
+                mPlayedDuration += (uint64_t) origin_samples * 1000000 / filter_frame->getInfo().audio.sample_rate;
             }
 
             return mFiler->push(frame, 0);
@@ -122,22 +130,30 @@ namespace Cicada {
             bufferSize = pcmDataLength;
             pcmBuffer = static_cast<uint8_t *>(realloc(pcmBuffer, bufferSize));
         }
-        if (!mMute) {
+        bool rendered = false;
+        if (mRenderingCb) {
+            rendered = mRenderingCb(mRenderingCbUserData, frame.get());
+        }
+        if (!mMute && !rendered) {
             copyPCMData(getAVFrame(frame.get()), pcmBuffer);
         } else {
             memset(pcmBuffer, 0, pcmDataLength);
         }
         SDL_QueueAudio(mDevID, pcmBuffer, pcmDataLength);
         assert(frame->getInfo().duration > 0);
-        mPlayedDuration += frame->getInfo().duration;
-//    AF_LOGD("queued duration is %llu\n", getQueDuration());
+        mPlayedDuration += (uint64_t) frame->getInfo().audio.nb_samples * 1000000 / frame->getInfo().audio.sample_rate;
+        //    AF_LOGD("queued duration is %llu\n", getQueDuration());
         frame = nullptr;
         return 0;
     }
 
     inline uint64_t SdlAFAudioRender::getQueDuration()
     {
-        double byteRate = mSpec.channels * 4 * mSpec.freq;
+        int sampleSize = 4;
+        if (mSpec.format == AUDIO_S16SYS) {
+            sampleSize = 2;
+        }
+        double byteRate = mSpec.channels * sampleSize * mSpec.freq;
         return (uint64_t) ((SDL_GetQueuedAudioSize(mDevID) / byteRate) * 1000000);
     }
 
@@ -182,9 +198,6 @@ namespace Cicada {
 
     void SdlAFAudioRender::mute(bool bMute)
     {
-        if (bMute) {
-            SDL_ClearQueuedAudio(mDevID);
-        }
         mMute = bMute;
     }
 
@@ -200,9 +213,6 @@ namespace Cicada {
         }
 
         mFiler->setOption("volume", std::to_string(volume), "volume");
-        if (volume < 0.001f) {
-            SDL_ClearQueuedAudio(mDevID);
-        }
         mVolume = volume;
         return 0;
     }
@@ -231,5 +241,10 @@ namespace Cicada {
     void SdlAFAudioRender::flush()
     {
         mPlayedDuration = 0;
+    }
+
+    void SdlAFAudioRender::preClose()
+    {
+        // do nothing
     }
 }

@@ -30,7 +30,7 @@ public class NativePlayerBase {
     private static final String TAG = "NativePlayerBase";
     private static String libPath = null;
     private MainHandler mCurrentThreadHandler;
-    private boolean mEnableLog = false;
+    private boolean mEnableLog = true;
 
     void log(String tag, String msg) {
         if (mEnableLog) {
@@ -85,11 +85,16 @@ public class NativePlayerBase {
     }
 
 
-    private Context mContext;
+
+    private static Context mContext = null;
     private long mNativeContext;
 
     protected long getNativeContext() {
         return mNativeContext;
+    }
+
+    public static Context getContext() {
+        return mContext;
     }
 
     protected void setNativeContext(long l) {
@@ -97,7 +102,7 @@ public class NativePlayerBase {
         mNativeContext = l;
     }
 
-    public NativePlayerBase(Context context) {
+    public NativePlayerBase(Context context, String name) {
 
         mContext = context;
 
@@ -115,7 +120,7 @@ public class NativePlayerBase {
         //TODO Later : 线程的情况下回调的问题。
         mCurrentThreadHandler = new MainHandler(this, Looper.getMainLooper());
 
-        construct(context);
+        construct(context , name);
     }
 
     private static String getUserNativeLibPath(Context context) {
@@ -139,8 +144,8 @@ public class NativePlayerBase {
         return userPath;
     }
 
-    private void construct(Context context) {
-        nConstruct();
+    private void construct(Context context, String name) {
+        nConstruct(name);
         if (context != null) {
             ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
             nSetConnectivityManager(connectivityManager);
@@ -456,9 +461,14 @@ public class NativePlayerBase {
         nSetBlackType(type);
     }
 
+    public int invokeComponent(String content)
+    {
+        return nInvokeComponent(content);
+    }
+
     ////===============-------------------==================------------------////
 
-    protected native void nConstruct();
+    protected native void nConstruct(String name);
 
     protected native void nSetConnectivityManager(Object connectManager);
 
@@ -567,6 +577,8 @@ public class NativePlayerBase {
     protected native void nSetIPResolveType(int type);
 
     protected native void nSetFastStart(boolean open);
+
+    protected native int nInvokeComponent(String content);
 
     //////==========--------------==================------------------================//
 

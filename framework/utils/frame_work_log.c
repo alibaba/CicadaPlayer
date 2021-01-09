@@ -17,9 +17,9 @@
 
 #ifdef __APPLE__
 
+#include "appleLog.h"
 #include <TargetConditionals.h>
 #include <string.h>
-
 #endif
 
 #ifdef ANDROID
@@ -308,6 +308,9 @@ int __log_print(int prio, const char *tag, const char *fmt, ...)
     if (!logCtrl.disable_console) {
 #ifdef ANDROID
         __android_log_print(lev, ANDROID_APP_TAG, "%s", finalLogMsg);
+#elif defined(__APPLE__) && (TARGET_OS_IPHONE)
+        const char *ctr = NULL;
+        appleNSlogC(get_char_lev(prio, &ctr), finalLogMsg);
 #else
         linux_print(prio, out_buf);
 #endif

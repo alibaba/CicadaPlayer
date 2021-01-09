@@ -312,10 +312,13 @@ namespace Cicada {
 
             if (mStreamCtxMap[streamIndex]->bsf) {
                 createBsf(streamIndex);
-            } else {
-                needUpdateExtraData = true;
             }
+            needUpdateExtraData = true;
         }
+        /*
+         * TODO: can't support this for now, audio render only support fixed sample size
+         */
+        av_packet_shrink_side_data(pkt, AV_PKT_DATA_SKIP_SAMPLES, 0);
 
         if (mStreamCtxMap[pkt->stream_index]->bsf) {
             // TODO: while pulling and ret value
@@ -354,8 +357,13 @@ namespace Cicada {
 
         packet = unique_ptr<IAFPacket>(new AVAFPacket(&pkt, mSecretDemxuer));
 
+        if (mSecretDemxuer){
+            packet->setMagicKey(mDrmMagicKey);
+        }
+
         if (needUpdateExtraData) {
-            packet->setExtraData(new_extradata, new_extradata_size);
+            packet->setExtraData(mCtx->streams[packet->getInfo().streamIndex]->codecpar->extradata,
+                                 mCtx->streams[packet->getInfo().streamIndex]->codecpar->extradata_size);
         }
 
         if (packet->getInfo().pts != INT64_MIN) {
@@ -431,6 +439,9 @@ namespace Cicada {
         }
 
         if (!bsfName.empty()) {
+#if AF_HAVE_PTHREAD
+            std::lock_guard<std::mutex> uLock(mCtxMutex);
+#endif
             mStreamCtxMap[index]->bsf = unique_ptr<IAVBSF>(IAVBSFFactory::create(bsfName));
             ret = mStreamCtxMap[index]->bsf->init(bsfName, mCtx->streams[index]->codecpar);
 
@@ -455,7 +466,7 @@ namespace Cicada {
         mInterrupted = inter;
     }
 
-    int avFormatDemuxer::Seek(int64_t us, int flags, int index)
+    int64_t avFormatDemuxer::Seek(int64_t us, int flags, int index)
     {
         us = getWorkAroundSeekPos(us);
         if (!bOpened) {
@@ -535,7 +546,10 @@ namespace Cicada {
 
     int avFormatDemuxer::GetStreamMeta(Stream_meta *meta, int index, bool sub) const
     {
-        if (index < 0 || index > mCtx->nb_streams) {
+#if AF_HAVE_PTHREAD
+        std::lock_guard<std::mutex> uLock(mCtxMutex);
+#endif
+        if (index < 0 || mCtx == nullptr || index >= mCtx->nb_streams) {
             return -EINVAL;
         }
 

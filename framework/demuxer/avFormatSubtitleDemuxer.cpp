@@ -148,7 +148,7 @@ namespace Cicada {
     {
     }
 
-    int avFormatSubtitleDemuxer::Seek(int64_t us, int flags, int index)
+    int64_t avFormatSubtitleDemuxer::Seek(int64_t us, int flags, int index)
     {
         mSeekPTS = us;
         return 0;
@@ -179,10 +179,6 @@ namespace Cicada {
             mSeekPTS = INT64_MIN;
         }
 
-        if (mCurrent == mPacketMap.end()) {
-            return 0;
-        }
-
         if (mCurrentPts == INT64_MIN) {
             mCurrent = mPacketMap.begin();
             mCurrentPts = (*(mCurrent)).second->getInfo().pts;
@@ -192,6 +188,8 @@ namespace Cicada {
             packet = ((*(mCurrent)).second->clone());
             mCurrentPts = packet->getInfo().pts;
             mCurrent++;
+        } else {
+            return 0;
         }
 
         return static_cast<int>(packet->getSize());

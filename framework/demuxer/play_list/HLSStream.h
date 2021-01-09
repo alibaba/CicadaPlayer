@@ -94,6 +94,8 @@ namespace Cicada {
         std::string GetProperty(const string &key);
 
 
+        int64_t getTargetDuration();
+
     private:
 
         static const char *hls_id3;
@@ -216,6 +218,8 @@ namespace Cicada {
         bool mProtectedBuffer{false};
 
         int64_t mLiveStartIndex{-3};//segment index to start live streams at (negative values are from the end)
+
+        std::string mDRMMagicKey{};
     };
 }
 

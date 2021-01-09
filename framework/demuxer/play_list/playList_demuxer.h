@@ -48,7 +48,7 @@ namespace Cicada{
 
         void Stop() override;
 
-        int Seek(int64_t us, int flags, int index) override;
+        int64_t Seek(int64_t us, int flags, int index) override;
 
         int GetNbStreams() const override;
 
@@ -68,6 +68,8 @@ namespace Cicada{
 
         int SwitchStreamAligned(int from, int to) override;
 
+        int64_t getMaxGopTimeUs() override;
+
         void flush() override
         {
             // TODO:
@@ -78,7 +80,7 @@ namespace Cicada{
             return true;
         }
 
-        const std::string GetProperty(int index, const string &key);
+        const std::string GetProperty(int index, const string &key) const override;
 
     private:
         explicit playList_demuxer(int dummy) : IDemuxer("")

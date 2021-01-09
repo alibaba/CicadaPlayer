@@ -18,6 +18,8 @@ public:
 private:
     int initProgram() override;
 
+    void useProgram() override;
+
     void createSurface() override;
 
     void *getSurface() override;

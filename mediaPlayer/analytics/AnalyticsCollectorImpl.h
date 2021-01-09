@@ -40,6 +40,8 @@ namespace Cicada {
         { return &mData; };
 
         // IAnalyticPlayer
+        void ReportUpdatePlaySession(const std::string &sessionId) override;
+
         // setting
         void ReportLooping(bool looping) override;
 

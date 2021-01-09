@@ -544,6 +544,11 @@ public class CicadaPlayerActivity extends BaseActivity implements View.OnClickLi
 
     @Override
     protected void onDestroy() {
+        releasePlayer();
+        super.onDestroy();
+    }
+
+    private void releasePlayer() {
         if (mCicadaVodPlayerView != null) {
             mCicadaVodPlayerView.onDestroy();
             mCicadaVodPlayerView = null;
@@ -553,8 +558,6 @@ public class CicadaPlayerActivity extends BaseActivity implements View.OnClickLi
         toFragment = null;
         mCurrentFragment  = null;
         mSubtitleMap.clear();
-
-        super.onDestroy();
     }
 
     @Override
@@ -564,6 +567,7 @@ public class CicadaPlayerActivity extends BaseActivity implements View.OnClickLi
             //handler == false 不要处理
             if (handler) {
                 if(keyCode == KeyEvent.KEYCODE_BACK){
+                    releasePlayer();
                     finish();
                 }
             }

@@ -296,14 +296,14 @@ enum AFCodecID AVCodec2CicadaCodec(enum AVCodecID codec)
             return AF_CODEC_ID_AV1;
 
         /* subtitle */
-//        case AV_CODEC_ID_TEXT:
-//            return AF_CODEC_ID_TEXT;
-//
-//        case AV_CODEC_ID_SSA:
-//            return AF_CODEC_ID_SSA;
-//
-//        case AV_CODEC_ID_SRT:
-//            return AF_CODEC_ID_SRT;
+        case AV_CODEC_ID_WEBVTT:
+            return AF_CODEC_ID_WEBVTT;
+            //
+            //        case AV_CODEC_ID_SSA:
+            //            return AF_CODEC_ID_SSA;
+            //
+            //        case AV_CODEC_ID_SRT:
+            //            return AF_CODEC_ID_SRT;
 
         default:
 //            if (codec->codec_id == AV_CODEC_ID_NONE && (!av_strcasecmp((char *) &codec->codec_tag, "dtse")))
@@ -505,15 +505,25 @@ int get_stream_meta(const struct AVStream *pStream, Stream_meta *meta)
 //    meta->cicada_codec_context = pStream->codec;
     meta->cicada_codec_context_size = sizeof(AVCodecContext);
 //        meta->index = stream_index;
-
     if (codec_type == AVMEDIA_TYPE_VIDEO) {
-        if (pStream->codecpar->sample_aspect_ratio.num) {
+        if (pStream->sample_aspect_ratio.num && av_cmp_q(pStream->sample_aspect_ratio, pStream->codecpar->sample_aspect_ratio)) {
+            AVRational display_aspect_ratio;
+            av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den,
+                      pStream->codecpar->width * (int64_t) pStream->sample_aspect_ratio.num,
+                      pStream->codecpar->height * (int64_t) pStream->sample_aspect_ratio.den, 1024 * 1024);
+            meta->displayWidth = pStream->codecpar->width;
+            meta->displayWidth *= pStream->sample_aspect_ratio.num;
+            meta->displayWidth /= pStream->sample_aspect_ratio.den;
+            meta->displayHeight = pStream->codecpar->height;
+            AF_LOGI("DAR %d:%d", meta->displayWidth, meta->displayHeight);
+        } else if (pStream->codecpar->sample_aspect_ratio.num){
             meta->displayWidth = pStream->codecpar->width;
             meta->displayWidth *= pStream->codecpar->sample_aspect_ratio.num;
             meta->displayWidth /= pStream->codecpar->sample_aspect_ratio.den;
             meta->displayHeight = pStream->codecpar->height;
-//           av_log(NULL, AV_LOG_ERROR, "DAR %d:%d", meta->displayWidth, meta->displayHeight);
-        } else {
+            AF_LOGI("DAR %d:%d", meta->displayWidth, meta->displayHeight);
+        }
+        else {
             meta->displayWidth = meta->displayHeight = 0;
         }
 

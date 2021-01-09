@@ -39,8 +39,6 @@ public:
 
     int init() override;
 
-    void setVideoRotate(Rotate rotate) override;
-
     int setDisPlay(void *view) override;
 
     int clearScreen() override;

@@ -292,6 +292,17 @@ void Cicada::CURLConnection::setSource(const string &location, struct curl_slist
         curl_easy_setopt(mHttp_handle, CURLOPT_RESOLVE, reSolveList);
     }
 }
+void CURLConnection::setPost(bool post, int64_t size, const uint8_t *data)
+{
+    if (post) {
+        curl_easy_setopt(mHttp_handle, CURLOPT_POST, 1);
+        curl_easy_setopt(mHttp_handle, CURLOPT_POSTFIELDSIZE, (long) size);
+        curl_easy_setopt(mHttp_handle, CURLOPT_POSTFIELDS, data);
+
+    } else {
+        curl_easy_setopt(mHttp_handle, CURLOPT_POST, 0);
+    }
+}
 
 int CURLConnection::my_trace(CURL *handle, curl_infotype type,
                              char *data, size_t size,
@@ -518,7 +529,7 @@ int CURLConnection::FillBuffer(uint32_t want)
                 } while (status == IDataSource::Listener::NetWorkRetryStatusPending);
 
                 reConnect = true;
-            } else if (af_getsteady_ms() - starTime > mPConfig->connect_time_out_ms) {
+            } else if (mPConfig && af_getsteady_ms() - starTime > mPConfig->connect_time_out_ms) {
                 AF_LOGE("FillBuffer - Reconnect failed!");
                 // Reset the rest of the variables like we would in Disconnect()
                 mFilePos = 0;
@@ -674,7 +685,7 @@ int CURLConnection::short_seek(int64_t off)
             return ret;
         }
 
-        AF_LOGI("read buffer size %d need is %d\n", RingBuffergetMaxReadSize(pRbuf), delta - len);
+        AF_LOGI("read buffer size %" PRIu32 " need is %d\n", RingBuffergetMaxReadSize(pRbuf), (int) (delta - len));
 
         if (!RingBufferSkipBytes(pRbuf, (int) (delta - len))) {
             AF_LOGI("%s - Failed to skip to position after having filled buffer", __FUNCTION__);
@@ -723,4 +734,18 @@ void CURLConnection::updateSource(const string &location)
 {
     curl_easy_setopt(mHttp_handle, CURLOPT_URL, location.c_str());
     mFileSize = -1;
+
+    uri = location;
+    if (reSolveList) {
+        curl_slist_free_all(reSolveList);
+    }
+
+    CURLSH *sh = nullptr;
+    reSolveList = CURLShareInstance::Instance()->getHosts(uri, &sh);
+    assert(sh != nullptr);
+    curl_easy_setopt(mHttp_handle, CURLOPT_SHARE, sh);
+
+    if (reSolveList != nullptr) {
+        curl_easy_setopt(mHttp_handle, CURLOPT_RESOLVE, reSolveList);
+    }
 }

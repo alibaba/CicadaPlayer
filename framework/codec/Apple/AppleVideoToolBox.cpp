@@ -51,7 +51,7 @@ namespace Cicada {
             return false;
         }
 
-#ifdef NDEBUG
+#ifndef NDEBUG
 
         if (codec == AF_CODEC_ID_HEVC) {
 #if TARGET_OS_IPHONE
@@ -116,8 +116,8 @@ namespace Cicada {
 
     int AFVTBDecoder::init_decoder(const Stream_meta *meta, void *voutObsr, uint64_t flags)
     {
-        if (meta->pixel_fmt == AF_PIX_FMT_YUV422P || meta->pixel_fmt == AF_PIX_FMT_YUVJ422P) {
-            return -ENOSPC;
+        if (meta->pixel_fmt == AF_PIX_FMT_YUV422P || meta->pixel_fmt == AF_PIX_FMT_YUVJ422P || meta->interlaced == InterlacedType_YES) {
+            return -ENOTSUP;
         }
 
         mPInMeta = unique_ptr<streamMeta>(new streamMeta(meta));
@@ -491,6 +491,7 @@ namespace Cicada {
 
         if (mThrowPacket) {
             AF_LOGE("IOS8VT: throw frame");
+            enqueueError(-1, pPacket->getInfo().pts);
             return 0;
         }
 
@@ -577,7 +578,7 @@ namespace Cicada {
             return;
         }
 
-        if (status != noErr) {
+        if (status != noErr || !frame) {
             AF_LOGW("AFVTBDecoder decoder error %d\n", status);
             if (status == kVTVideoDecoderBadDataErr) {
                 mThrowPacket = true;

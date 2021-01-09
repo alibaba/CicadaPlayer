@@ -20,7 +20,11 @@ namespace Cicada {
     int cachedSource::onReadSource(uint8_t *buffer, int size, uint64_t pos)
     {
         int sizeRead = 0;
-        mDataSource->Seek(pos, SEEK_SET);
+        int64_t seekPos = mDataSource->Seek(pos, SEEK_SET);
+
+        if (seekPos < 0) {
+            return seekPos;
+        }
 
         while (size > 0) {
             int ret;

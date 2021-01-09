@@ -7,8 +7,8 @@
 #include <memory>
 #include "IDecoder.h"
 
-class codecPrototype {
-//    static vector<codecPrototype *> codecQueue;
+class CICADA_CPLUS_EXTERN codecPrototype {
+    //    static vector<codecPrototype *> codecQueue;
     static codecPrototype*  codecQueue [10];
     static int _nextSlot;
 public:
@@ -21,7 +21,6 @@ public:
     static void addPrototype(codecPrototype *se);
 
     static Cicada::IDecoder *create(AFCodecID code, uint64_t flags, int maxSize);
-
 };
 
 

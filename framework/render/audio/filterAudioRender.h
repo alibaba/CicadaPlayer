@@ -47,6 +47,8 @@ namespace Cicada {
 
         void flush() override;
 
+        void preClose() override;
+
     private:
         virtual int init_device() = 0;
 
@@ -71,6 +73,9 @@ namespace Cicada {
         {
             return 0;
         };
+
+        virtual void device_preClose()
+        {}
 
 
     private:
@@ -98,6 +103,7 @@ namespace Cicada {
         std::atomic_bool mSpeedChanged{false};
         std::atomic<int64_t> mSpeedDeltaDuration{0};
         volatile std::atomic<float> mVolume{1};
+        volatile std::atomic_bool mMute{false};
         std::atomic_bool mVolumeChanged{false};
         std::unique_ptr<Cicada::IAudioFilter> mFilter{};
         std::mutex mFrameQueMutex;

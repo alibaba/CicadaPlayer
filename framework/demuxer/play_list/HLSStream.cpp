@@ -298,7 +298,7 @@ namespace Cicada {
                     return -EAGAIN;
                 } else {
                     AF_LOGE("can't find seg %llu\n", mPTracker->getCurSegNum());
-                    return -1;
+                    return gen_framework_errno(error_class_format, 0);
                 }
             }
 
@@ -640,6 +640,10 @@ namespace Cicada {
             }
 
             mSegDecrypter->flush();
+
+            if (mDRMMagicKey.empty() && mSegKeySource){
+                mDRMMagicKey = mSegKeySource->GetOption("drmMagicKey");
+            }
         } else if (mCurSeg->encryption.method == SegmentEncryption::AES_PRIVATE) {
             memset(mKey, 0, 16);
             long length = mCurSeg->encryption.keyUrl.length();
@@ -661,6 +665,9 @@ namespace Cicada {
             mSegDecrypter->SetOption("decryption key", mKey, 16);
             mSegDecrypter->SetOption("decryption IV", &mCurSeg->encryption.iv[0], 16);
             mSegDecrypter->flush();
+            if (mDRMMagicKey.empty() && mSegKeySource){
+                mDRMMagicKey = mSegDecrypter->GetOption("drmMagicKey");
+            }
         }
 
         return 0;
@@ -685,6 +692,9 @@ namespace Cicada {
 //                mSampeAesDecrypter->SetOption("decryption KEYFORMAT", (uint8_t *) mCurSeg->encryption.keyFormat.c_str(),
 //                                              (int) mCurSeg->encryption.keyFormat.length());
             }
+        }
+        if (mDRMMagicKey.empty() && mSegKeySource) {
+            mDRMMagicKey = mSegKeySource->GetOption("drmMagicKey");
         }
 
         return 0;
@@ -936,7 +946,7 @@ namespace Cicada {
             return -EAGAIN;
         }
 
-        if (ret == network_errno_http_range) {
+        if (ret == gen_framework_errno(error_class_network, network_errno_http_range)) {
             ret = 0;
         }
 
@@ -994,8 +1004,9 @@ namespace Cicada {
         if (packet != nullptr) {
             //  AF_LOGD("read a frame \n");
 
-            if (mProtectedBuffer) {
+            if (mProtectedBuffer && !mDRMMagicKey.empty()) {
                 packet->setProtected();
+                packet->setMagicKey(mDRMMagicKey);
             }
             if (mPTracker->getStreamType() != STREAM_TYPE_MIXED) {
                 packet->getInfo().streamIndex = 0;
@@ -1131,6 +1142,14 @@ namespace Cicada {
         return mIsOpened;
     }
 
+    int64_t HLSStream::getTargetDuration()
+    {
+        if (mPTracker) {
+            return mPTracker->getTargetDuration();
+        }
+        return INT64_MAX;
+    }
+
     int HLSStream::start()
     {
 //        demuxer_msg::StartReq start;
@@ -1209,6 +1228,12 @@ namespace Cicada {
         if (!b_ret) {
             AF_LOGE("(%d)getSegmentNumberByTime error us is %lld\n", mPTracker->getStreamType(),
                     us);
+            // us's accuracy is ms, so change duration's accuracy to ms
+            if (us == (mPTracker->getDuration() / 1000 * 1000)) {
+                mIsEOS = true;
+                mPTracker->setCurSegNum(mPTracker->getLastSegNum());
+                return 0;
+            }
 
             if (mPTracker->getStreamType() == STREAM_TYPE_SUB) {
                 mIsEOS = false;
@@ -1218,7 +1243,6 @@ namespace Cicada {
                     mThreadPtr->start();
                 }
             }
-
             return -1;
         }
 

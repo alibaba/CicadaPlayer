@@ -3,14 +3,15 @@
 //
 
 #include "gtest/gtest.h"
+#include <data_source/curl/curl_data_source.h>
 #include <data_source/dataSourcePrototype.h>
 #include <memory>
-#include <utils/timer.h>
-#include <utils/globalSettings.h>
-#include <utils/frame_work_log.h>
+#include <utils/AFUtils.h>
 #include <utils/CicadaJSON.h>
 #include <utils/errors/framework_error.h>
-#include <utils/AFUtils.h>
+#include <utils/frame_work_log.h>
+#include <utils/globalSettings.h>
+#include <utils/timer.h>
 
 using namespace std;
 using namespace Cicada;
@@ -187,6 +188,18 @@ TEST(http, keep_alive)
     } while (ret > 0);
 
     free(buf);
+}
+
+TEST(http, post)
+{
+    string url = "https://ptsv2.com/t/50oow-1602229322";
+    CurlDataSource source(url);
+    uint8_t c = 'c';
+    source.setPost(true, 1, &c);
+    int ret = source.Open(0);
+    ASSERT_GE(ret, 0);
+    ret = source.Seek(0, SEEK_SIZE);
+    AF_LOGD("size is %d\n", ret);
 }
 
 #include "ipList.h"

@@ -9,6 +9,9 @@
     <string name="title_input_url_item">输入URL界面</string>
     <string name="title_scanning">二维码扫描</string>
     <string name="title_setting">设置</string>
+    <string name="title_select_player">播放器选择</string>
+    <string name="title_cicada_player">CicadaPlayer</string>
+    <string name="title_exo_player">ExoPlayer</string>
 
     <!--setting-->
     <string name="setting_version">版本号 : </string>

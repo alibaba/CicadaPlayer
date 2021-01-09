@@ -64,6 +64,8 @@ namespace Cicada {
         int maxVideoRecoverSize;
         bool mFastStart{true};
         uint32_t pixelBufferOutputFormat;
+        string drmMagicKey;
+        string sessionId{};
     };
 }
 

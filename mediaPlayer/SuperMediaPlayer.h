@@ -28,6 +28,7 @@ using namespace std;
 #include <render/audio/IAudioRender.h>
 #include <utils/bitStreamParser.h>
 
+#include "CicadaPlayerPrototype.h"
 #include <cacheModule/CacheModule.h>
 #include <cacheModule/cache/CacheConfig.h>
 
@@ -64,8 +65,7 @@ namespace Cicada {
     } APP_STATUS;
 
 
-    class SuperMediaPlayer : public ICicadaPlayer,
-                             private PlayerMessageControllerListener {
+    class SuperMediaPlayer : public ICicadaPlayer, private PlayerMessageControllerListener, private CicadaPlayerPrototype {
 
         friend class SuperMediaPlayerDataSourceListener;
         friend class SMP_DCAManager;
@@ -76,9 +76,16 @@ namespace Cicada {
 
         ~SuperMediaPlayer() override;
 
+        string getName() override
+        {
+            return "SuperMediaPlayer";
+        }
+
         int SetListener(const playerListener &Listener) override;
 
         void SetOnRenderCallBack(onRenderFrame cb, void *userData) override;
+
+        void SetAudioRenderingCallBack(onRenderFrame cb, void *userData) override;
 
         // TODO: use setParameters and setOpt to set
         void SetRefer(const char *refer) override;
@@ -97,7 +104,10 @@ namespace Cicada {
 
         void GetOption(const char *key, char *value) override;
 
-        int64_t GetPlayingPosition() override;
+        int64_t GetPlayingPosition() override
+        {
+            return getCurrentPosition() / 1000;
+        };
 
         int64_t GetBufferPosition() override;
 
@@ -196,11 +206,9 @@ namespace Cicada {
     private:
         void NotifyPosition(int64_t position);
 
-        int64_t GetCurrentPosition();
-
         void OnTimer(int64_t curTime);
 
-        void updateLoopGap();
+        int updateLoopGap();
 
         int mainService();
 
@@ -260,7 +268,7 @@ namespace Cicada {
 
         void SwitchVideo(int64_t startTime);
 
-        int64_t getPlayerBufferDuration(bool gotMax);
+        int64_t getPlayerBufferDuration(bool gotMax, bool internal);
 
         void ProcessOpenStreamInit(int streamIndex);
 
@@ -304,10 +312,11 @@ namespace Cicada {
 
         void notifyPreparedCallback();
 
+        void updateVideoMeta();
+
         class ApsaraAudioRenderCallback : public IAudioRenderListener {
         public:
-            ApsaraAudioRenderCallback(SuperMediaPlayer &player)
-                    : mPlayer(player)
+            ApsaraAudioRenderCallback(SuperMediaPlayer &player) : mPlayer(player)
             {}
 
             void onEOS() override
@@ -376,6 +385,26 @@ namespace Cicada {
         static IVideoRender::Flip convertMirrorMode(MirrorMode mode);
 
 
+    public:
+        static bool is_supported(const options *opts)
+        {
+            return true;
+        }
+
+    private:
+        explicit SuperMediaPlayer(int dummy)
+        {
+            mIsDummy = true;
+            addPrototype(this);
+        }
+        ICicadaPlayer *clone() override
+        {
+            return new SuperMediaPlayer();
+        };
+
+        static SuperMediaPlayer se;
+
+
     private:
         IDataSource *mDataSource{nullptr};
         std::atomic_bool mCanceled{false};
@@ -391,9 +420,9 @@ namespace Cicada {
         bool audioDecoderEOS = false;
         picture_cache_type mPictureCacheType = picture_cache_type_cannot;
         bool videoDecoderFull = false;
-        PlayerMessageControl mMessageControl;
-        ApsaraAudioRenderCallback mAudioRenderCB;
-        BufferController mBufferController;
+        std::unique_ptr<PlayerMessageControl> mMessageControl{nullptr};
+        std::unique_ptr<ApsaraAudioRenderCallback> mAudioRenderCB{nullptr};
+        std::unique_ptr<BufferController> mBufferController{nullptr};
 
         std::mutex mAppStatusMutex;
         std::atomic<APP_STATUS> mAppStatus{APP_FOREGROUND};
@@ -457,11 +486,8 @@ namespace Cicada {
         int64_t mSubtitleShowIndex{0};
         bool mBufferIsFull{false};
         bool mWillSwitchVideo{false};
-        player_type_set mSet;
+        std::unique_ptr<player_type_set> mSet{};
         int64_t mSoughtVideoPos{INT64_MIN};
-        std::atomic<int64_t> mPlayingPosition{0};
-
-        int mMaxRunningLoopGap = 10;
         int mTimerInterval = 0;
         int64_t mTimerLatestTime = 0;
         std::mutex mCreateMutex{}; // need lock if access pointer outside of loop thread
@@ -469,7 +495,7 @@ namespace Cicada {
         std::mutex mSleepMutex{};
         std::condition_variable mPlayerCondition;
         PlayerNotifier *mPNotifier = nullptr;
-        afThread mApsaraThread;
+        std::unique_ptr<afThread> mApsaraThread{};
         int mLoadingProcess{0};
         int64_t mPrepareStartTime = 0;
 
@@ -477,10 +503,12 @@ namespace Cicada {
         InterlacedType mVideoInterlaced = InterlacedType_UNKNOWN;
         bitStreamParser *mVideoParser = nullptr;
 
-        MediaPlayerUtil mUtil;
+        int64_t mPtsDiscontinueDelta{0};
 
-        SuperMediaPlayerDataSourceListener mSourceListener;
-        SMP_DCAManager mDcaManager;
+        std::unique_ptr<MediaPlayerUtil> mUtil{};
+
+        std::unique_ptr<SuperMediaPlayerDataSourceListener> mSourceListener{nullptr};
+        std::unique_ptr<SMP_DCAManager> mDcaManager{nullptr};
 
         std::unique_ptr<IAFPacket> mVideoPacket{};
         std::unique_ptr<IAFPacket> mAudioPacket{};
@@ -491,6 +519,7 @@ namespace Cicada {
         bool waitingForStart = false;
         bool mBRendingStart {false};
         bool mSecretPlayBack{false};
+        bool mDrmKeyValid{false};
 
     private:
 
@@ -512,16 +541,17 @@ namespace Cicada {
 
         void startRendering(bool start);
 
+        void sendDCAMessage();
+
         int64_t mCheckAudioQueEOSTime{INT64_MIN};
         uint64_t mAudioQueDuration{UINT64_MAX};
 
         onRenderFrame mFrameCb{nullptr};
         void *mFrameCbUserData{nullptr};
+
+        onRenderFrame mAudioRenderingCb{nullptr};
+        void *mAudioRenderingCbUserData{nullptr};
+        bool mIsDummy{false};
     };
 }// namespace Cicada
-#endif // CICADA_PLAYER_SERVICE_H
-
-
-
-
-
+#endif// CICADA_PLAYER_SERVICE_H

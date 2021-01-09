@@ -48,9 +48,9 @@ namespace Cicada {
 
     class MediaPlayer {
     public:
-        MediaPlayer();
+        explicit MediaPlayer(const char *opt = nullptr);
 
-        MediaPlayer(IAnalyticsCollectorFactory &factory);
+        explicit MediaPlayer(IAnalyticsCollectorFactory &factory, const char *opt = nullptr);
 
         ~MediaPlayer();
 
@@ -59,10 +59,17 @@ namespace Cicada {
             return "paas 0.9";//TODO version
         }
 
+        std::string getName();
+
     public:
+
+        void SetAnalyticsCollector(IAnalyticsCollector * collector);
+
         void EnableVideoRenderedCallback(bool enable);
 
         void SetOnRenderFrameCallback(onRenderFrame cb, void *userData);
+
+        void SetAudioRenderingCallback(onRenderFrame cb, void *userData);
 
         void SetStreamTypeFlags(uint64_t flags);
 
@@ -334,7 +341,9 @@ namespace Cicada {
 
         void SetDefaultBandWidth(int bandWidth);
 
-        int InvokeComponent(const std::string &content);
+        int InvokeComponent(const char *content);
+
+        string GetPlayerSessionId();
 
     protected:
         static void preparedCallback(void *userData);
@@ -385,11 +394,13 @@ namespace Cicada {
 
         void abrChanged(int stream);
 
-        static void onMediaFrameCallback(void *arg, const unique_ptr<IAFPacket> &frame, StreamType type);
-        void mediaFrameCallback(const unique_ptr<IAFPacket> &frame, StreamType type);
+        static void onMediaFrameCallback(void *arg, const IAFPacket *frame, StreamType type);
+        void mediaFrameCallback(const IAFPacket *frame, StreamType type);
 
     private:
         void configPlayer(const MediaPlayerConfig *config) const;
+
+        void refreshPlayerSessionId();
 
         void dummyFunction(bool dummy);
 
@@ -399,6 +410,7 @@ namespace Cicada {
         MediaPlayerConfig *mConfig;
         AnalyticsQueryListener *mQueryListener;
         IAnalyticsCollector *mCollector{nullptr};
+        bool  bExternalCollector{false};
         IAnalyticsCollectorFactory &mCollectorFactory;
         AbrManager *mAbrManager;
         AbrAlgoStrategy *mAbrAlgo;
@@ -418,6 +430,10 @@ namespace Cicada {
         void *mMediaFrameArg = nullptr;
 
         function<void(const string &)> mPlayUrlChangedCallback = nullptr;
+
+        std::string mPlayerSessionId{};
+        bool mFirstPrepared = false;
+
     };
 }// namespace Cicada
 

@@ -396,9 +396,8 @@ namespace Cicada {
         return 0;
     }
 
-    int HLSManager::seek(int64_t us, int flags, int index)
+    int64_t HLSManager::seek(int64_t us, int flags, int index)
     {
-        int ret = 0;
         bool hasOpened = false;
 
         for (auto &i : mStreamInfoList) {
@@ -563,5 +562,21 @@ namespace Cicada {
         for (auto &i : mStreamInfoList) {
             i->mPStream->interrupt(inter);
         }
+    }
+
+    int64_t HLSManager::getTargetDuration()
+    {
+        if (mMuxedStream) {
+            return mMuxedStream->getTargetDuration();
+        }
+
+        int64_t targetDuration = INT64_MAX;
+        for (auto &i : mStreamInfoList) {
+            if (i->mPStream->isOpened() && i->selected) {
+                targetDuration = std::min(i->mPStream->getTargetDuration(), targetDuration);
+            }
+        }
+
+        return targetDuration;
     }
 }

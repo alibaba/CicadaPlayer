@@ -9,6 +9,8 @@ find_library(COREGRAPHICS CoreGraphics)
 find_library(OPEN_AL OpenAl)
 find_library(CORE_IMAGE CoreImage)
 find_library(QUARTZ_CORE QuartzCore)
+find_library(AV_FOUNDATION AVFoundation)
+
 
 message("xxxxxxxxxxxxxxxxxxxxxxxx TOP_DIR is ${TOP_DIR}")
 
@@ -17,7 +19,6 @@ if ("${TARGET_PLATFORM}" STREQUAL "iOS")
             ${TOP_DIR}/apsaraPlayer/external/install/ffmpeg/iOS/Xcode/OS/_builds/ NO_DEFAULT_PATH)
     set(ALIVCFFMPEG ${TOP_DIR}/apsaraPlayer/external/install/ffmpeg/iOS/Xcode/OS/_builds/alivcffmpeg.framework)
     message("CONAN is ${CONAN}")
-    find_library(AV_FOUNDATION AVFoundation)
     find_library(UIKIT UIKit)
     find_library(OPENGLES OpenGLES)
 else ()
@@ -52,13 +53,13 @@ set(ALI_SRC_LIBRARIES
         ${CORE_AUDIO}
         ${OPEN_AL}
         ${CORE_IMAGE}
+        ${AV_FOUNDATION}
+        ${QUARTZ_CORE}
         c++
         )
 if (IOS)
     set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES}
-            ${AV_FOUNDATION}
             ${UIKIT}
-            ${QUARTZ_CORE}
             ${OPENGLES}
             )
 else ()

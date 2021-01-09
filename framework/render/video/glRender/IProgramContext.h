@@ -42,6 +42,8 @@ public:
 
     virtual int initProgram() = 0;
 
+    virtual void useProgram() = 0;
+
     virtual void createSurface() {
     }
 

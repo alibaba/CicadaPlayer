@@ -48,7 +48,7 @@ namespace Cicada {
 
     void SuperMediaPlayerDataSourceListener::enableRetry_l()
     {
-        mEffectiveRetryTime = af_getsteady_ms() + mPlayer.mSet.timeout_ms;
+        mEffectiveRetryTime = af_getsteady_ms() + mPlayer.mSet->timeout_ms;
         bWaitingForRet = false;
     }
 

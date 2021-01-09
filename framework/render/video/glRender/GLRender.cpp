@@ -125,11 +125,6 @@ int GLRender::setRotate(IVideoRender::Rotate rotate)
     return 0;
 }
 
-void GLRender::setVideoRotate(Rotate rotate)
-{
-    mVideoRotate = rotate;
-}
-
 int GLRender::setFlip(IVideoRender::Flip flip)
 {
     AF_LOGD("-----> setFlip");
@@ -264,7 +259,7 @@ void GLRender::VSyncOnDestroy()
 {
     mPrograms.clear();
 
-    if(mContext == nullptr) {
+    if (mContext == nullptr) {
         return;
     }
 
@@ -278,7 +273,7 @@ void GLRender::VSyncOnDestroy()
 
 bool GLRender::renderActually()
 {
-    if(mContext == nullptr) {
+    if (mContext == nullptr) {
         return false;
     }
 
@@ -301,7 +296,6 @@ bool GLRender::renderActually()
     }
 
 #endif
-
     bool displayViewChanged  = false;
     {
         unique_lock<mutex> viewLock(mViewMutex);
@@ -319,7 +313,12 @@ bool GLRender::renderActually()
     mWindowHeight = mContext->GetHeight();
 
     if (mGLSurface == nullptr) {
-//        AF_LOGE("0918 renderActurally  return mGLSurface = null..");
+
+        std::unique_lock<std::mutex> locker(mFrameMutex);
+        if (!mInputQueue.empty()) {
+            dropFrame();
+        }
+
         return false;
     }
 
@@ -349,6 +348,7 @@ bool GLRender::renderActually()
 
     if (frame != nullptr) {
         framePts = frame->getInfo().pts;
+        mVideoRotate = getRotate(frame->getInfo().video.rotate);
     }
 
     Rotate finalRotate = Rotate_None;
@@ -369,7 +369,12 @@ bool GLRender::renderActually()
     mProgramContext->updateWindowSize(mWindowWidth, mWindowHeight, displayViewChanged);
     mProgramContext->updateFlip(mFlip);
     mProgramContext->updateBackgroundColor(mBackgroundColor);
-    int ret = mProgramContext->updateFrame(frame);
+    int ret = -1;
+    if (mClearScreenOn && frame == nullptr) {
+        //do not draw last frame when need clear screen.
+    } else {
+        ret = mProgramContext->updateFrame(frame);
+    }
     //work around for glReadPixels is upside-down.
     {
         std::unique_lock<std::mutex> locker(mCaptureMutex);
@@ -527,7 +532,9 @@ void *GLRender::getSurface()
 IProgramContext *GLRender::getProgram(int frameFormat, IAFFrame *frame)
 {
     if (mPrograms.count(frameFormat) > 0) {
-        return mPrograms[frameFormat].get();
+        IProgramContext *pContext = mPrograms[frameFormat].get();
+        pContext->useProgram();
+        return pContext;
     }
 
     unique_ptr<IProgramContext> targetProgram{nullptr};

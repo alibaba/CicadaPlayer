@@ -12,7 +12,7 @@
 #include <memory>
 #include <utils/frame_work_log.h>
 #include <cstring>
-
+#include <string>
 extern "C" {
 //#include <libavutil/rational.h>
 };
@@ -58,7 +58,7 @@ public:
 
     virtual ~IAFPacket() = default;
 
-    virtual std::unique_ptr<IAFPacket> clone() = 0;
+    virtual std::unique_ptr<IAFPacket> clone() const = 0;
 
     //TODO renturn const uint8_t, now for framework use
     virtual uint8_t *getData() = 0;
@@ -68,7 +68,7 @@ public:
     virtual void setDiscard(bool discard)
     {
         mbDiscard = discard;
-    };
+    }
 
     virtual bool getDiscard()
     {
@@ -91,6 +91,16 @@ public:
             mInfo.extra_data_size = extra_data_size;
             memcpy(mInfo.extra_data, extra_data, mInfo.extra_data_size);
         }
+    }
+
+    virtual std::string getMagicKey()
+    {
+        return "";
+    }
+
+    virtual void setMagicKey(const std::string & key)
+    {
+
     }
 
 
@@ -170,16 +180,32 @@ public:
 
     virtual void setDiscard(bool discard)
     {
+        mbDiscard = discard;
+    }
 
+    virtual bool getDiscard()
+    {
+        return mbDiscard;
     }
 
     AFFrameInfo &getInfo();
+
+    void setProtect(bool protect)
+    {
+        mbProtected = protect;
+    }
+
+    bool isProtected() const
+    {
+        return mbProtected;
+    }
 
     void dump();
 
 protected:
     AFFrameInfo mInfo{};
-
+    bool mbDiscard{false};
+    bool mbProtected{false};
 };
 
 

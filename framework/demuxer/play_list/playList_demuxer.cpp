@@ -103,7 +103,7 @@ namespace Cicada {
         }
     }
 
-    int playList_demuxer::Seek(int64_t us, int flags, int index)
+    int64_t playList_demuxer::Seek(int64_t us, int flags, int index)
     {
         if (mPPlaylistManager) {
             return mPPlaylistManager->seek(us, flags, index);
@@ -161,7 +161,7 @@ namespace Cicada {
         return -1;
     }
 
-    const std::string playList_demuxer::GetProperty(int index, const string &key)
+    const std::string playList_demuxer::GetProperty(int index, const string &key) const
     {
         if (mPPlaylistManager) {
             return mPPlaylistManager->GetProperty(index, key);
@@ -194,5 +194,12 @@ namespace Cicada {
         if (mPPlaylistManager != nullptr) {
             mPPlaylistManager->interrupt(inter);
         }
+    }
+    int64_t playList_demuxer::getMaxGopTimeUs()
+    {
+        if (mPPlaylistManager) {
+            return mPPlaylistManager->getTargetDuration();
+        }
+        return INT64_MAX;
     }
 }

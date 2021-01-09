@@ -38,7 +38,7 @@ public:
 
 
 public:
-    static void java_Construct(JNIEnv *env, jobject instance);
+    static void java_Construct(JNIEnv *env, jobject instance, jstring name);
 
     static void java_SetConnectivityManager(JNIEnv *env, jobject instance, jobject connectManager);
 
@@ -126,6 +126,8 @@ public:
     static void java_SetLibPath(JNIEnv *env, jobject instance, jstring libPath);
 
     static void java_SetOption(JNIEnv *env, jobject instance, jstring key, jstring value);
+
+    static int java_InvokeComponent(JNIEnv *env, jobject instance, jstring content);
 
     static void java_SetAutoPlay(JNIEnv *env, jobject instance,
                                  jboolean autoPlay);

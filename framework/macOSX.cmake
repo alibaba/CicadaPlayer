@@ -38,6 +38,8 @@ find_library(COREFOUNDATION CoreFoundation)
 find_library(SECURITY Security)
 find_library(OPENGL OpenGL)
 find_library(APPKIT AppKit)
+find_library(AVFOUNDATION AVFoundation)
+find_library(QUARTZCORE QuartzCore)
 
 set(FRAMEWORK_LIBS
         ${VIDEO_TOOL_BOX}
@@ -50,6 +52,8 @@ set(FRAMEWORK_LIBS
         ${COREFOUNDATION}
         ${OPENGL}
         ${APPKIT}
+        ${AVFOUNDATION}
+        ${QUARTZCORE}
         iconv
         z)
 

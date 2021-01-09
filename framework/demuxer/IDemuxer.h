@@ -81,7 +81,7 @@ namespace Cicada {
 
         virtual void flush() = 0;
 
-        virtual int Seek(int64_t us, int flags, int index) = 0;
+        virtual int64_t Seek(int64_t us, int flags, int index) = 0;
 
         virtual int GetNbStreams() const = 0;
 
@@ -124,6 +124,11 @@ namespace Cicada {
             return false;
         }
 
+        virtual int64_t getMaxGopTimeUs()
+        {
+            return INT64_MAX;
+        }
+
         virtual void setDataSourceIO()
         {
 
@@ -137,12 +142,12 @@ namespace Cicada {
         virtual const std::string GetProperty(int index, const string &key) const
         { return ""; }
 
-        virtual void SetOption(const options *opts)
-        {
-            mOpts = opts;
-        };
-
         virtual int SetOption(const std::string &key, const int64_t value)
+        {
+            return 0;
+        }
+
+        virtual int SetOption(const std::string &key, const std::string& value)
         {
             return 0;
         }

@@ -24,10 +24,6 @@ public:
 
     int init() override;
 
-    void setVideoRotate(Rotate rotate) override ;
-
-    void setWindowSize(int windWith, int mWindHeight) override;
-
     int clearScreen() override;
 
     int renderFrame(std::unique_ptr<IAFFrame> &frame) override;
@@ -59,6 +55,10 @@ public:
 
     void onWindowSizeChange(SDL_Window *window);
 
+    int refreshScreen();
+
+    void delayRefreshScreen();
+
 private:
     int VSyncOnInit() override
     {
@@ -82,13 +82,13 @@ private:
 
     void recreateTextureIfNeed(int videoWidth, int videoHeight);
 
-    int refreshScreen();
 
 private:
     bool mInited = false;
     SDL_Window *mVideoWindow = nullptr;
     SDL_Texture *mVideoTexture = nullptr;
     SDL_Renderer *mVideoRender = nullptr;
+    bool mWindowNeedRelease{false};
     bool mRenderNeedRelease{false};
     void* mCurrentView = nullptr;
 

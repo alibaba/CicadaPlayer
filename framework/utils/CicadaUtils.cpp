@@ -99,10 +99,11 @@ string CicadaUtils::base64dec(const string &str)
 int CicadaUtils::base64dec(const string &str, char **dst)
 {
     int out_size = AV_BASE64_DECODE_SIZE(str.size());
-    uint8_t *out = (uint8_t *) malloc(out_size);
+    uint8_t *out = (uint8_t *) malloc(out_size + 1);
     int ret = av_base64_decode(out, str.c_str(), out_size);
 
     if (ret > 0) {
+        out[ret] = 0;
         *dst = reinterpret_cast<char *>(out);
         return ret;
     } else {

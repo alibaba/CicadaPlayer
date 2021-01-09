@@ -21,8 +21,14 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    //开发测试用
+    // 开发测试用
     self.URLTextField.text = @"http://player.alicdn.com/video/aliyunmedia.mp4";
+    
+//    // 苹果官方测试视频
+//    self.URLTextField.text = @"https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_16x9/bipbop_16x9_variant.m3u8";
+//
+//    // 有多视频轨，没有音频轨、字幕轨
+//    self.URLTextField.text = @"https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8";
 }
 
 /**
