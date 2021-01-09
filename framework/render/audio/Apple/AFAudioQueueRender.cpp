@@ -6,14 +6,16 @@
 
 #define LOG_TAG "AFAudioQueueRender"
 
+#include <codec/utils_ios.h>
+
 #include <base/media/AVAFPacket.h>
 #include <utils/ffmpeg_utils.h>
 #include <utils/frame_work_log.h>
 #include <utils/timer.h>
 
-// TODO: let queue have a fixed size
-
 using namespace Cicada;
+
+#define AUDIO_BUFFER_SIZE (32768ll)
 
 AFAudioQueueRender AFAudioQueueRender::se(1);
 
@@ -25,14 +27,20 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
     if (!pThis->mRunning) {
         return;
     }
-    size_t copySize = pThis->copyAudioData(inBuffer);
-    if (copySize < inBuffer->mAudioDataByteSize) {
-        memset((uint8_t *) inBuffer->mAudioData + copySize, 0, inBuffer->mAudioDataByteSize - copySize);
-        //  AF_LOGW("no audio data\n");
+    pThis->mPlayedBufferSize += inBuffer->mAudioDataByteSize;
+    inBuffer->mAudioDataByteSize = pThis->copyAudioData(inBuffer);
+    if (inBuffer->mAudioDataByteSize == 0) {
+        AF_LOGW("no audio data\n");
+        inBuffer->mAudioDataByteSize = inBuffer->mAudioDataBytesCapacity;
+
+        if (!pThis->mNeedFlush) {
+            pThis->mPlayedBufferSize -= inBuffer->mAudioDataByteSize;
+        }
+        memset((uint8_t *) inBuffer->mAudioData, 0, inBuffer->mAudioDataByteSize);
     }
     AudioQueueEnqueueBuffer(inAQ, inBuffer, 0, nullptr);
 }
-size_t AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer)
+UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer)
 {
     if (mNeedFlush) {
         while (mInPut.size() > 0) {
@@ -43,27 +51,35 @@ size_t AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer)
         mNeedFlush = false;
         return 0;
     }
-    size_t copySize = 0;
+    UInt32 copySize = 0;
     int retryCont = 0;
-    while (copySize < inBuffer->mAudioDataByteSize) {
+    while (copySize < inBuffer->mAudioDataBytesCapacity) {
         if (mInPut.size() > 0) {
             bool frameClear = false;
             size_t len = copyPCMDataWithOffset(getAVFrame(mInPut.front()), mReadOffset, (uint8_t *) inBuffer->mAudioData + copySize,
-                                               inBuffer->mAudioDataByteSize - copySize, &frameClear);
+                                               inBuffer->mAudioDataBytesCapacity - copySize, &frameClear);
             assert(len > 0);
             mReadOffset += len;
             copySize += len;
             if (frameClear) {
-                mQueuedSamples += mInPut.front()->getInfo().audio.nb_samples;
                 if (mListener) {
                     mListener->onUpdateTimePosition(mInPut.front()->getInfo().timePosition);
                 }
                 delete mInPut.front();
                 mInPut.pop();
                 mReadOffset = 0;
+#if TARGET_OS_IPHONE
+                if (IOSNotificationManager::Instance()->GetActiveStatus() != 0) {
+                    break;
+                }
+#endif
             }
         } else {
-            break;
+            if (retryCont++ < 3 && mRunning && !mNeedFlush) {
+                af_msleep(5);
+            } else {
+                break;
+            }
         }
     }
     return copySize;
@@ -146,8 +162,6 @@ void AFAudioQueueRender::fillAudioFormat()
     mAudioFormat.mFormatID = kAudioFormatLinearPCM;
     mAudioFormat.mBytesPerPacket = mAudioFormat.mBytesPerFrame * mAudioFormat.mFramesPerPacket;
     mAudioFormat.mReserved = 0;
-
-    mAudioDataByteSize = (mAudioFormat.mBytesPerFrame * mAudioFormat.mSampleRate) / 50;
 }
 
 int AFAudioQueueRender::setSpeed(float speed)
@@ -213,7 +227,7 @@ void AFAudioQueueRender::flush_device()
         }
     }
     mNeedFlush = true;
-    mQueuedSamples = 0;
+    mPlayedBufferSize = 0;
 }
 
 void AFAudioQueueRender::device_setVolume(float gain)
@@ -228,23 +242,23 @@ void AFAudioQueueRender::device_setVolume(float gain)
 
 int64_t AFAudioQueueRender::device_get_position()
 {
-    return static_cast<int64_t>(mQueuedSamples / (mAudioFormat.mSampleRate / 1000000));
+    return static_cast<int64_t>(mPlayedBufferSize / (mAudioFormat.mBytesPerFrame * (mAudioFormat.mSampleRate / 1000000)));
 }
 
 int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
 {
-    while (mBufferAllocatedCount < QUEUE_SIZE) {
-        assert(mAudioDataByteSize > 0);
-        AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &_audioQueueBufferRefArray[mBufferAllocatedCount]);
-        memset(_audioQueueBufferRefArray[mBufferAllocatedCount]->mAudioData, 0, mAudioDataByteSize);
-        _audioQueueBufferRefArray[mBufferAllocatedCount]->mAudioDataByteSize = mAudioDataByteSize;
-        AudioQueueEnqueueBuffer(_audioQueueRef, _audioQueueBufferRefArray[mBufferAllocatedCount], 0, nullptr);
-        mBufferAllocatedCount++;
-    }
     if (mNeedFlush || mInPut.write_available() <= 0) {
         return -EAGAIN;
     }
     mInPut.push(frame.release());
+    if (mBufferAllocatedCount < QUEUE_SIZE) {
+        AudioQueueBuffer *buffer = NULL;
+        AudioQueueAllocateBuffer(_audioQueueRef, AUDIO_BUFFER_SIZE, &buffer);
+        _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
+        buffer->mAudioDataByteSize = copyAudioData(buffer);
+        AudioQueueEnqueueBuffer(_audioQueueRef, _audioQueueBufferRefArray[mBufferAllocatedCount], 0, nullptr);
+        mBufferAllocatedCount++;
+    }
     return 0;
 }
 
