@@ -30,7 +30,7 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
     pThis->mPlayedBufferSize += inBuffer->mAudioDataByteSize;
     inBuffer->mAudioDataByteSize = pThis->copyAudioData(inBuffer);
     if (inBuffer->mAudioDataByteSize == 0) {
-        AF_LOGW("no audio data\n");
+        //    AF_LOGW("no audio data\n");
         inBuffer->mAudioDataByteSize = inBuffer->mAudioDataBytesCapacity;
 
         if (!pThis->mNeedFlush) {

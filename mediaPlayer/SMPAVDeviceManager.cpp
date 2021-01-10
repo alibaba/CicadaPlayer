@@ -258,7 +258,7 @@ int SMPAVDeviceManager::setUpAudioRender(const IAFFrame::audioInfo &info)
 int SMPAVDeviceManager::setSpeed(float speed)
 {
     if (mAudioRender) {
-        return mAudioRender->setSpeed(speed);
+        mAudioRender->setSpeed(speed);
     }
     if (mVideoRender) {
         mVideoRender->setSpeed(speed);
