@@ -1472,7 +1472,9 @@ bool SuperMediaPlayer::DoCheckBufferPass()
 
     //check buffering status
     if ((mBufferingFlag || mFirstBufferFlag) && !mSet->bDisableBufferManager) {
-        if ((cur_buffer_duration > HighBufferDur && (!HAVE_VIDEO || videoDecoderFull || APP_BACKGROUND == mAppStatus)) || mEof) {
+        if (((cur_buffer_duration > HighBufferDur || (HighBufferDur >= mSet->maxBufferDuration && mBufferIsFull)) &&
+             (!HAVE_VIDEO || videoDecoderFull || APP_BACKGROUND == mAppStatus)) ||
+            mEof) {
             // if still in seek, wait for seek status be changed.
             if (!mSeekFlag || mEof) {
                 if (mBufferingFlag) {
