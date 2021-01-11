@@ -13,6 +13,7 @@
 @synthesize maxDelayTime;
 @synthesize highBufferDuration;
 @synthesize startBufferDuration;
+@synthesize positionTimerIntervalMs;
 @synthesize maxBufferDuration;
 @synthesize networkTimeout;
 @synthesize referer;
@@ -41,6 +42,7 @@
         liveStartIndex = -3;
         disableAudio = NO;
         disableVideo = NO;
+        positionTimerIntervalMs = 500;
     }
     return self;
 }

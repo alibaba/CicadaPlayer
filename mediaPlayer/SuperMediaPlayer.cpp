@@ -511,6 +511,8 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
         mSet->bDisableAudio = (atoi(value) != 0);
     } else if (theKey == "disableVideo") {
         mSet->bDisableVideo = (atoi(value) != 0);
+    } else if (theKey == "timerInterval") {
+        mTimerInterval = atoi(value);
     } else if (theKey == "Analytics.ReportID") {
         if (nullptr == value) {
             return -1;

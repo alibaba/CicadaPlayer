@@ -46,6 +46,8 @@ namespace Cicada {
         bool mDisableAudio;
         bool mDisableVideo;
 
+        int mPositionTimerIntervalMs;
+
     public:
         std::string toString() const;
     };

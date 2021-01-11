@@ -34,7 +34,7 @@ jfieldID  gj_playerconfig_NetworkRetryCount         = nullptr;
 jfieldID  gj_playerconfig_LiveStartIndex            = nullptr;
 jfieldID  gj_playerconfig_DisableAudio              = nullptr;
 jfieldID  gj_playerconfig_DisableVideo              = nullptr;
-
+jfieldID gj_playerconfig_PositionTimerIntervalMs = nullptr;
 
 
 void JavaPlayerConfig::init(JNIEnv *env)
@@ -97,6 +97,7 @@ void JavaPlayerConfig::init(JNIEnv *env)
         gj_playerconfig_DisableVideo = env->GetFieldID(gj_PlayerConfig_class,
                                                        "mDisableVideo",
                                                        "Z");
+        gj_playerconfig_PositionTimerIntervalMs = env->GetFieldID(gj_PlayerConfig_class, "mPositionTimerIntervalMs", "I");
     }
 }
 
@@ -134,6 +135,7 @@ jobject JavaPlayerConfig::getJPlayerConfig(JNIEnv *mEnv, const MediaPlayerConfig
                       playerConfig->liveStartIndex);
     mEnv->SetBooleanField(jPlayerConfig, gj_playerconfig_DisableAudio,  (jboolean)playerConfig->mDisableAudio);
     mEnv->SetBooleanField(jPlayerConfig, gj_playerconfig_DisableVideo,  (jboolean)playerConfig->mDisableVideo);
+    mEnv->SetIntField(jPlayerConfig, gj_playerconfig_PositionTimerIntervalMs, (jint) playerConfig->mPositionTimerIntervalMs);
     NewStringUTF tmpreferrer(mEnv, playerConfig->referer.c_str());
     jstring      referrer  = tmpreferrer.getString();
     mEnv->SetObjectField(jPlayerConfig, gj_playerconfig_Referrer, referrer);
@@ -202,6 +204,7 @@ MediaPlayerConfig JavaPlayerConfig::convertTo(JNIEnv *env, jobject playerConfig)
                                                                        gj_playerconfig_DisableAudio);
     jboolean          disableVideo              = env->GetBooleanField(playerConfig,
                                                                        gj_playerconfig_DisableVideo);
+    jint positionTimerIntervalMs = env->GetIntField(playerConfig, gj_playerconfig_PositionTimerIntervalMs);
     GetStringUTFChars tmpHttpProxy(env, httpProxyStr);
     char              *httpProxy                = tmpHttpProxy.getChars();
     GetStringUTFChars tmpreferrer(env, referrerStr);
@@ -222,6 +225,7 @@ MediaPlayerConfig JavaPlayerConfig::convertTo(JNIEnv *env, jobject playerConfig)
     config.liveStartIndex         = liveStartIndex;
     config.mDisableVideo          = disableVideo;
     config.mDisableAudio          = disableAudio;
+    config.mPositionTimerIntervalMs = positionTimerIntervalMs;
     CallObjectMethod getHeaderMethod(env, playerConfig, gj_playerconfig_getCustomHeaders);
     jobjectArray     headersArray = (jobjectArray) getHeaderMethod.getValue();
 
