@@ -183,6 +183,7 @@ static int logOutput = 1;
         alivcConfig.liveStartIndex = config.liveStartIndex;
         alivcConfig.mDisableVideo = config.disableVideo;
         alivcConfig.mDisableAudio = config.disableAudio;
+        alivcConfig.mPositionTimerIntervalMs = config.positionTimerIntervalMs;
 
         if (nil != config.httpProxy) {
             alivcConfig.httpProxy = [config.httpProxy UTF8String];
@@ -239,6 +240,7 @@ static int logOutput = 1;
             mConfig.liveStartIndex = config->liveStartIndex;
             mConfig.disableAudio = config->mDisableAudio;
             mConfig.disableVideo = config->mDisableVideo;
+            mConfig.positionTimerIntervalMs = config->mPositionTimerIntervalMs;
 
             [mConfig.httpHeaders removeAllObjects];
             for (int i=0;i<config->customHeaders.size();i++) {

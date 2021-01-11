@@ -127,6 +127,14 @@ public class PlayerConfig {
      */
     public boolean mDisableVideo = false;
 
+    /**
+     * 进度跟新的频率。包括当前位置和缓冲位置。
+     */
+    /****
+     * Set the frequencies of Progress. Includes the current position and the buffer position.
+     */
+    public int mPositionTimerIntervalMs = 500;
+
     private String[] mCustomHeaders = null;
 
     public String[] getCustomHeaders() {
