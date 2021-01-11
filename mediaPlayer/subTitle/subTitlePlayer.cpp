@@ -125,6 +125,7 @@ namespace Cicada {
                 found = true;
                 break;
             }
+            ++item;
         }
         if (!found) {
             AF_LOGE("setDelayTime no such stream\n");
