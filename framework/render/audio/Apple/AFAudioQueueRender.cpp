@@ -28,7 +28,13 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
         return;
     }
     pThis->mPlayedBufferSize += inBuffer->mAudioDataByteSize;
-    inBuffer->mAudioDataByteSize = pThis->copyAudioData(inBuffer);
+    bool CopyFull = false;
+#if TARGET_OS_IPHONE
+    if (IOSNotificationManager::Instance()->GetActiveStatus() == 0) {
+        CopyFull = true;
+    }
+#endif
+    inBuffer->mAudioDataByteSize = pThis->copyAudioData(inBuffer, CopyFull);
     if (inBuffer->mAudioDataByteSize == 0) {
         //    AF_LOGW("no audio data\n");
         inBuffer->mAudioDataByteSize = inBuffer->mAudioDataBytesCapacity;
@@ -40,7 +46,7 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
     }
     AudioQueueEnqueueBuffer(inAQ, inBuffer, 0, nullptr);
 }
-UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer)
+UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer, bool CopyFull)
 {
     if (mNeedFlush) {
         while (mInPut.size() > 0) {
@@ -68,11 +74,9 @@ UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer)
                 delete mInPut.front();
                 mInPut.pop();
                 mReadOffset = 0;
-#if TARGET_OS_IPHONE
-                if (IOSNotificationManager::Instance()->GetActiveStatus() != 0) {
-                    break;
-                }
-#endif
+            }
+            if (!CopyFull) {
+                break;
             }
         } else {
             if (retryCont++ < 3 && mRunning && !mNeedFlush) {
@@ -226,7 +230,15 @@ void AFAudioQueueRender::flush_device()
             }
         }
     }
-    mNeedFlush = true;
+    if (mBufferAllocatedCount < QUEUE_SIZE) {
+        while (mInPut.size() > 0) {
+            delete mInPut.front();
+            mInPut.pop();
+        }
+        mReadOffset = 0;
+    } else {
+        mNeedFlush = true;
+    }
     mPlayedBufferSize = 0;
 }
 
@@ -251,13 +263,16 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
         return -EAGAIN;
     }
     mInPut.push(frame.release());
-    if (mBufferAllocatedCount < QUEUE_SIZE) {
-        AudioQueueBuffer *buffer = NULL;
-        AudioQueueAllocateBuffer(_audioQueueRef, AUDIO_BUFFER_SIZE, &buffer);
-        _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
-        buffer->mAudioDataByteSize = copyAudioData(buffer);
-        AudioQueueEnqueueBuffer(_audioQueueRef, _audioQueueBufferRefArray[mBufferAllocatedCount], 0, nullptr);
-        mBufferAllocatedCount++;
+
+    if (mBufferAllocatedCount < QUEUE_SIZE && mInPut.size() >= QUEUE_SIZE) {
+        while (mBufferAllocatedCount < QUEUE_SIZE) {
+            AudioQueueBuffer *buffer = NULL;
+            AudioQueueAllocateBuffer(_audioQueueRef, AUDIO_BUFFER_SIZE, &buffer);
+            _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
+            buffer->mAudioDataByteSize = copyAudioData(buffer, false);
+            AudioQueueEnqueueBuffer(_audioQueueRef, buffer, 0, nullptr);
+            mBufferAllocatedCount++;
+        }
     }
     return 0;
 }
