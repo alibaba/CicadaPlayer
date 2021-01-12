@@ -262,6 +262,9 @@ void GLRender::VSyncOnDestroy()
     if (mContext == nullptr) {
         return;
     }
+    if (mClearScreenOn) {
+        glClearScreen();
+    }
 
     mContext->DestroyView();
     mContext->DestroySurface(mGLSurface);
@@ -269,6 +272,17 @@ void GLRender::VSyncOnDestroy()
     mContext->Destroy();
     delete mContext;
     mContext = nullptr;
+}
+
+void GLRender::glClearScreen()
+{
+    glViewport(0, 0, mWindowWidth, mWindowHeight);
+    unsigned int backgroundColor = mBackgroundColor;
+    float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    cicada::convertToGLColor(backgroundColor, color);
+    glClearColor(color[0], color[1], color[2], color[3]);
+    glClear(GL_COLOR_BUFFER_BIT);
+    mContext->Present(mGLSurface);
 }
 
 bool GLRender::renderActually()
@@ -297,10 +311,11 @@ bool GLRender::renderActually()
 
 #endif
     bool displayViewChanged  = false;
+    bool viewSizeChanged = false;
     {
         unique_lock<mutex> viewLock(mViewMutex);
         displayViewChanged = mContext->SetView(mDisplayView);
-        bool viewSizeChanged = mContext->IsViewSizeChanged();
+        viewSizeChanged = mContext->IsViewSizeChanged();
 
         if (viewSizeChanged || displayViewChanged
                 || (mGLSurface == nullptr && mDisplayView != nullptr)) {
@@ -370,9 +385,13 @@ bool GLRender::renderActually()
     mProgramContext->updateFlip(mFlip);
     mProgramContext->updateBackgroundColor(mBackgroundColor);
     int ret = -1;
-    if (mClearScreenOn && frame == nullptr) {
+    if (mScreenCleared && frame == nullptr) {
         //do not draw last frame when need clear screen.
+        if (viewSizeChanged || displayViewChanged) {
+            glClearScreen();
+        }
     } else {
+        mScreenCleared = false;
         ret = mProgramContext->updateFrame(frame);
     }
     //work around for glReadPixels is upside-down.
@@ -415,19 +434,8 @@ bool GLRender::renderActually()
     }
 
     if (mClearScreenOn) {
-        glViewport(0, 0, mWindowWidth, mWindowHeight);
-        unsigned int backgroundColor = mBackgroundColor;
-        float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-        cicada::convertToGLColor(backgroundColor, color);
-        glClearColor(color[0], color[1], color[2], color[3]);
-        glClear(GL_COLOR_BUFFER_BIT);
-        mContext->Present(mGLSurface);
-
-        if (mProgramContext != nullptr) {
-            mProgramFormat = -1;
-            mProgramContext = nullptr;
-        }
-
+        glClearScreen();
+        mScreenCleared = true;
         mClearScreenOn = false;
     }
 
