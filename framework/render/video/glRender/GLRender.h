@@ -91,6 +91,8 @@ private:
 
     void captureScreen();
 
+    void glClearScreen();
+    
     void calculateFPS(int64_t tick);
 
     IProgramContext *getProgram(int frameFormat, IAFFrame *frame = nullptr);
@@ -142,6 +144,9 @@ private:
     bool mClearScreenOn = false;
 
     std::function<void(int64_t,bool)> mRenderResultCallback = nullptr;
+
+    bool mScreenCleared = false;
+    IAFFrame::AFFrameInfo mVideoInfo{};
 
 #ifdef __ANDROID__
     std::mutex mRenderCallbackMutex{};
