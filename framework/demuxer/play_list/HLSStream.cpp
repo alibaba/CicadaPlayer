@@ -1289,21 +1289,29 @@ namespace Cicada {
             AF_LOGE("(%d)getSegmentNumberByTime error us is %lld\n", mPTracker->getStreamType(),
                     us);
             // us's accuracy is ms, so change duration's accuracy to ms
+            bool seekOnLast = false;
             if (us == (mPTracker->getDuration() / 1000 * 1000)) {
-                mIsEOS = true;
-                mPTracker->setCurSegNum(mPTracker->getLastSegNum());
-                return 0;
+                num = mPTracker->getLastSegNum();
+
+                // reopen will -- it
+                if (mIsOpened_internal) {
+                    num++;
+                }
+                usSought = us;
+                seekOnLast = true;
             }
 
-            if (mPTracker->getStreamType() == STREAM_TYPE_SUB) {
-                mIsEOS = false;
-                mError = 0;
+            if (!seekOnLast) {
+                if (mPTracker->getStreamType() == STREAM_TYPE_SUB) {
+                    mIsEOS = false;
+                    mError = 0;
 
-                if (mThreadPtr) {
-                    mThreadPtr->start();
+                    if (mThreadPtr) {
+                        mThreadPtr->start();
+                    }
+                } else {
+                    return -1;
                 }
-            } else {
-                return -1;
             }
         }
 
