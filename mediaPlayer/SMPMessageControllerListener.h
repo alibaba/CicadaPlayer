@@ -17,7 +17,7 @@ namespace Cicada {
     public:
         void ProcessSetViewMsg(void *view) final;
         void ProcessSetSpeed(float speed) final;
-        void ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, void *picUserData) final;
+        void ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, bool rendered, void *picUserData) final;
         void ProcessSeekToMsg(int64_t seekPos, bool bAccurate) final;
         void ProcessMuteMsg() final;
         void ProcessVideoHoldMsg(bool hold) final;

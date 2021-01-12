@@ -527,10 +527,12 @@ void SMPMessageControllerListener::ProcessSwitchStreamMsg(int index)
     }
 }
 
-void SMPMessageControllerListener::ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, void *picUserData)
+void SMPMessageControllerListener::ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, bool rendered, void *picUserData)
 {
     mPlayer.mUtil->render(pts);
-    mPlayer.checkFirstRender();
+    if (rendered) {
+        mPlayer.checkFirstRender();
+    }
 
     if (!mPlayer.mSeekFlag) {
         mPlayer.mCurVideoPts = pts;
@@ -558,7 +560,7 @@ void SMPMessageControllerListener::ProcessVideoCleanFrameMsg()
 {
     while (!mPlayer.mVideoFrameQue.empty()) {
         int64_t pts = mPlayer.mVideoFrameQue.front()->getInfo().pts;
-        ProcessVideoRenderedMsg(pts, af_getsteady_ms(), nullptr);
+        ProcessVideoRenderedMsg(pts, af_getsteady_ms(), false, nullptr);
         mPlayer.mVideoFrameQue.front()->setDiscard(true);
         mPlayer.mVideoFrameQue.pop();
     }
