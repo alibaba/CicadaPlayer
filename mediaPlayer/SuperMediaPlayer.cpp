@@ -2218,7 +2218,7 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
         if (mFrameCb && (!mSecretPlayBack || mDrmKeyValid)) {
             mFrameCb(mFrameCbUserData, videoFrame.get());
         }
-        VideoRenderCallback(this, videoPts, nullptr);
+        VideoRenderCallback(this, videoPts, false, nullptr);
     }
 
     mPlayedVideoPts = videoPts;
@@ -2309,7 +2309,7 @@ void SuperMediaPlayer::SendVideoFrameToRender(unique_ptr<IAFFrame> frame, bool v
     if (mFrameCb && (!mSecretPlayBack || mDrmKeyValid)) {
         bool rendered = mFrameCb(mFrameCbUserData, frame.get());
         if (rendered) {
-            VideoRenderCallback(this, frame->getInfo().pts, nullptr);
+            VideoRenderCallback(this, frame->getInfo().pts, true, nullptr);
             return;
         }
     }
@@ -2323,7 +2323,7 @@ void SuperMediaPlayer::SendVideoFrameToRender(unique_ptr<IAFFrame> frame, bool v
         }
     } else if (!mNeedVideoRender) {
         //render directly
-        VideoRenderCallback(this, frame->getInfo().pts, nullptr);
+        VideoRenderCallback(this, frame->getInfo().pts, !frame->getDiscard(), nullptr);
     }
 }
 
@@ -2813,7 +2813,7 @@ void SuperMediaPlayer::FlushVideoPath()
 
     while (!mVideoFrameQue.empty()) {
         mVideoFrameQue.front()->setDiscard(true);
-        mMsgCtrlListener->ProcessVideoRenderedMsg(mVideoFrameQue.front()->getInfo().pts, af_getsteady_ms(), nullptr);
+        mMsgCtrlListener->ProcessVideoRenderedMsg(mVideoFrameQue.front()->getInfo().pts, af_getsteady_ms(), false, nullptr);
         mVideoFrameQue.pop();
     }
 
@@ -3323,7 +3323,7 @@ bool SuperMediaPlayer::CreateVideoRender(uint64_t flags)
     mAVDeviceManager->getVideoRender()->setDisPlay(mSet->mView);
     mAVDeviceManager->setVideoRenderListener(mVideoRenderListener.get());
     mAVDeviceManager->getVideoRender()->setRenderResultCallback(
-            [this](int64_t pts, bool rendered) -> void { VideoRenderCallback(this, pts, nullptr); });
+            [this](int64_t pts, bool rendered) -> void { VideoRenderCallback(this, pts, rendered, nullptr); });
     int renderRet = mAVDeviceManager->getVideoRender()->init();
 
     if (renderRet != 0) {
@@ -3526,7 +3526,7 @@ StreamInfo *SuperMediaPlayer::GetCurrentStreamInfo(StreamType type)
     return nullptr;
 }
 
-void SuperMediaPlayer::VideoRenderCallback(void *arg, int64_t pts, void *userData)
+void SuperMediaPlayer::VideoRenderCallback(void *arg, int64_t pts, bool rendered, void *userData)
 {
     //   AF_LOGD("video stream render pts is %lld", pts);
     auto *pHandle = static_cast<SuperMediaPlayer *>(arg);
@@ -3541,6 +3541,7 @@ void SuperMediaPlayer::VideoRenderCallback(void *arg, int64_t pts, void *userDat
 
     MsgParam param;
     param.videoRenderedParam.pts = pts;
+    param.videoRenderedParam.rendered = rendered;
     param.videoRenderedParam.timeMs = af_getsteady_ms();
     param.videoRenderedParam.userData = userData;
     pHandle->putMsg(MSG_INTERNAL_VIDEO_RENDERED, param, false);

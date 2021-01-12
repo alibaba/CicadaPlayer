@@ -258,7 +258,7 @@ namespace Cicada {
 
         void ResetSeekStatus();
 
-        static void VideoRenderCallback(void *arg, int64_t pts, void *userData);
+        static void VideoRenderCallback(void *arg, int64_t pts, bool rendered, void *userData);
 
         void Reset();
 

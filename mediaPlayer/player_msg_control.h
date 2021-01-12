@@ -80,6 +80,7 @@ namespace Cicada {
     typedef struct MsgVideoRenderedParam {
         int64_t pts;
         int64_t timeMs;
+        bool rendered;
         void *userData;
     } MsgVideoRenderedParam;
 
@@ -139,7 +140,7 @@ namespace Cicada {
 
         virtual void ProcessSwitchStreamMsg(int index) = 0;
 
-        virtual void ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, void *picUserData) = 0;
+        virtual void ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, bool rendered, void *picUserData) = 0;
 
         virtual void ProcessVideoCleanFrameMsg() = 0;
 

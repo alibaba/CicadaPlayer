@@ -262,9 +262,8 @@ namespace Cicada {
                 break;
 
             case MSG_INTERNAL_VIDEO_RENDERED:
-                mProcessor.ProcessVideoRenderedMsg(msgContent.videoRenderedParam.pts,
-                                                   msgContent.videoRenderedParam.timeMs,
-                                                   msgContent.videoRenderedParam.userData);
+                mProcessor.ProcessVideoRenderedMsg(msgContent.videoRenderedParam.pts, msgContent.videoRenderedParam.timeMs,
+                                                   msgContent.videoRenderedParam.rendered, msgContent.videoRenderedParam.userData);
                 break;
 
             case MSG_INTERNAL_VIDEO_CLEAN_FRAME:
