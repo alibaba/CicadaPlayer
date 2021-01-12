@@ -140,6 +140,7 @@ private:
     int mProgramFormat = -1;
 
     bool mClearScreenOn = false;
+    bool mScreenCleared = false;
     IAFFrame::AFFrameInfo mVideoInfo{};
 
 #ifdef __ANDROID__

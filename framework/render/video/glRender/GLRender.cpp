@@ -314,10 +314,11 @@ bool GLRender::renderActually()
         return false;
     }
     bool displayViewChanged  = false;
+    bool viewSizeChanged = false;
     {
         unique_lock<mutex> viewLock(mViewMutex);
         displayViewChanged = mContext->SetView(mDisplayView);
-        bool viewSizeChanged = mContext->IsViewSizeChanged();
+        viewSizeChanged = mContext->IsViewSizeChanged();
 
         if (viewSizeChanged || displayViewChanged
                 || (mGLSurface == nullptr && mDisplayView != nullptr)) {
@@ -388,9 +389,13 @@ bool GLRender::renderActually()
     mProgramContext->updateFlip(mFlip);
     mProgramContext->updateBackgroundColor(mBackgroundColor);
     int ret = -1;
-    if (mClearScreenOn && frame == nullptr) {
+    if (mScreenCleared && frame == nullptr) {
         //do not draw last frame when need clear screen.
+        if (viewSizeChanged || displayViewChanged) {
+            glClearScreen();
+        }
     } else {
+        mScreenCleared = false;
         ret = mProgramContext->updateFrame(frame);
     }
     //work around for glReadPixels is upside-down.
@@ -438,6 +443,7 @@ bool GLRender::renderActually()
 
     if (mClearScreenOn) {
         glClearScreen();
+        mScreenCleared = true;
         mClearScreenOn = false;
     }
 
