@@ -251,7 +251,7 @@ namespace Cicada {
         if (mPDecoder->avFrame->metadata){
             AVDictionaryEntry *t = av_dict_get(mPDecoder->avFrame->metadata,"timePosition", nullptr,AV_DICT_IGNORE_SUFFIX);
             if (t){
-                timePosition = atoi(t->value);
+                timePosition = atoll(t->value);
             }
         }
         pFrame = unique_ptr<IAFFrame>(new AVAFFrame(mPDecoder->avFrame));
