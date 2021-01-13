@@ -163,9 +163,8 @@ void SMPAVDeviceManager::flushDevice(uint64_t deviceTypes)
         if (mVideoDecoder.valid) {
             mVideoDecoder.decoder->flush();
         }
-        if (mVideoRenderValid) {
-            flushVideoRender();
-        }
+
+        flushVideoRender();
     }
 }
 int SMPAVDeviceManager::getFrame(std::unique_ptr<IAFFrame> &frame, deviceType type, uint64_t timeOut)

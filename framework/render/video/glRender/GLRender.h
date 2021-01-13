@@ -143,6 +143,8 @@ private:
     bool mScreenCleared = false;
     IAFFrame::AFFrameInfo mVideoInfo{};
 
+    std::atomic_bool bFlushAsync{false};
+
 #ifdef __ANDROID__
     std::mutex mRenderCallbackMutex{};
     std::condition_variable mRenderCallbackCon{};

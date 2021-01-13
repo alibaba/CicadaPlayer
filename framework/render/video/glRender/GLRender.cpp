@@ -83,21 +83,7 @@ int GLRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
     }
 
     if (frame == nullptr) {
-        // do flush
-        mVSync->pause();
-        {
-            std::unique_lock<std::mutex> locker(mFrameMutex);
-
-            while (!mInputQueue.empty()) {
-                dropFrame();
-            }
-        }
-        std::unique_lock<std::mutex> locker(mInitMutex);
-
-        if (!mInBackground) {
-            mVSync->start();
-        }
-
+        bFlushAsync = true;
         return 0;
     }
 
@@ -182,6 +168,13 @@ int GLRender::onVsyncInner(int64_t tick)
 
     {
         std::unique_lock<std::mutex> locker(mFrameMutex);
+
+        if (bFlushAsync) {
+            while (!mInputQueue.empty()) {
+                dropFrame();
+            }
+            bFlushAsync = false;
+        }
 
         if (!mInputQueue.empty()) {
             if (mInputQueue.size() >= MAX_IN_SIZE) {
@@ -636,4 +629,3 @@ void GLRender::surfaceChanged()
     mRenderCallbackCon.wait(lock);
 #endif
 }
-
