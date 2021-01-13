@@ -184,6 +184,11 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         int openStreamRet = 0;
         mPlayer.mDemuxerService->GetStreamMeta(pMeta, i, false);
         auto *meta = (Stream_meta *) (pMeta.get());
+
+        if (mPlayer.mDuration < 0) {
+            mPlayer.mDuration = meta->duration;
+        }
+
         auto *info = new StreamInfo();
         info->streamIndex = i;
         info->subtitleLang = nullptr;
