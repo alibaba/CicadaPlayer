@@ -100,6 +100,7 @@ static void ffmpeg_log_back(void *ptr, int level, const char *fmt, va_list vl)
 
 static void ffmpeg_init_once()
 {
+    AF_LOGI("Ffmpeg version %s", av_version_info());
     av_lockmgr_register(lockmgr);
     av_log_set_level(AV_LOG_INFO);
     av_log_set_callback(ffmpeg_log_back);
