@@ -1,7 +1,6 @@
 package com.cicada.player.externalplayer;
 
 import android.content.Context;
-import android.media.MediaFormat;
 import android.media.PlaybackParams;
 import android.media.TimedText;
 import android.net.Uri;
@@ -201,7 +200,6 @@ public class MediaPlayer extends CicadaExternalPlayer {
                 trackInfoList[index] = convert(trackInfo, index);
             }
             mediaInfo.setTrackInfos(trackInfoList);
-
             mOutOnStreamInfoGetListener.OnStreamInfoGet(mediaInfo);
         }
     }
@@ -291,6 +289,7 @@ public class MediaPlayer extends CicadaExternalPlayer {
     @Override
     public void prepare() {
         if (mSystemMediaPlayer != null) {
+            mSystemMediaPlayer.reset();
             updateDataSource();
             changePlayerStatus(PlayerStatus.PLAYER_PREPARING);
             mSystemMediaPlayer.prepareAsync();
@@ -316,7 +315,7 @@ public class MediaPlayer extends CicadaExternalPlayer {
     @Override
     public void stop() {
         if (mSystemMediaPlayer != null) {
-            if (mSystemMediaPlayer.isPlaying()) {
+            if (mLastPlayerStatus != PlayerStatus.PLAYER_STOPPED) {
                 mSystemMediaPlayer.stop();
                 changePlayerStatus(PlayerStatus.PLAYER_STOPPED);
             }
@@ -380,12 +379,7 @@ public class MediaPlayer extends CicadaExternalPlayer {
     public long getDuration() {
         if (mSystemMediaPlayer != null) {
             int duration = 0;
-            if (mLastPlayerStatus == PlayerStatus.PLAYER_PREPARED ||
-                    mLastPlayerStatus == PlayerStatus.PLAYER_PLAYING ||
-                    mLastPlayerStatus == PlayerStatus.PLAYER_COMPLETION ||
-                    mLastPlayerStatus == PlayerStatus.PLAYER_PAUSED ||
-                    mLastPlayerStatus == PlayerStatus.PLAYER_STOPPED) {
-
+            if (mLastPlayerStatus != PlayerStatus.PLAYER_ERROR) {
                 duration = mSystemMediaPlayer.getDuration();
             }
             return Math.max(duration, 0);
@@ -674,7 +668,7 @@ public class MediaPlayer extends CicadaExternalPlayer {
 
     @Override
     public void addExtSubtitle(String uri) {
-    
+
     }
 
     @Override
