@@ -2736,9 +2736,15 @@ int SuperMediaPlayer::ReadPacket()
             if (ret1 >= 0) {
                 switch (((Stream_meta *) (*meta))->type) {
                     case STREAM_TYPE_VIDEO: {
-                        if (mCurrentVideoIndex < 0 && ((Stream_meta *) (*meta))->width > 0) {
+                        if (!mSet->bDisableVideo && mCurrentVideoIndex < 0 && ((Stream_meta *) (*meta))->width > 0) {
                             mCurrentVideoIndex = pFrame->getInfo().streamIndex;
                             updateVideoMeta();
+                        }
+                        break;
+                    }
+                    case STREAM_TYPE_AUDIO: {
+                        if (!mSet->bDisableAudio && mCurrentAudioIndex < 0 && ((Stream_meta *) (*meta))->channels > 0) {
+                            mCurrentAudioIndex = pFrame->getInfo().streamIndex;
                         }
                         break;
                     }
