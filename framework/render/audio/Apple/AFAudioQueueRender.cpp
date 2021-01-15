@@ -237,6 +237,9 @@ int AFAudioQueueRender::start_device()
 
 void AFAudioQueueRender::flush_device()
 {
+    if (mPlaying && _audioQueueRef) {
+        AudioQueuePause(_audioQueueRef);
+    }
     for (auto item : _audioQueueBufferRefArray) {
         if (item && item->mAudioData) {
             memset(item->mAudioData, 0, item->mAudioDataByteSize);
@@ -253,6 +256,9 @@ void AFAudioQueueRender::flush_device()
         mNeedFlush = true;
     }
     mPlayedBufferSize = 0;
+    if (mPlaying && _audioQueueRef) {
+        AudioQueueStart(_audioQueueRef, nullptr);
+    }
 }
 
 void AFAudioQueueRender::device_setVolume(float gain)
