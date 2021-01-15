@@ -28,6 +28,9 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
     //    }
     //    gtime =af_gettime_ms();
 
+
+    int size = inBuffer->mAudioDataByteSize;
+
     assert(pThis);
     if (!pThis->mRunning) {
         return;
@@ -37,12 +40,13 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
 #if TARGET_OS_IPHONE
     if (IOSNotificationManager::Instance()->GetActiveStatus() == 0) {
         CopyFull = true;
+        size = inBuffer->mAudioDataBytesCapacity;
     }
 #endif
     inBuffer->mAudioDataByteSize = pThis->copyAudioData(inBuffer, CopyFull);
     if (inBuffer->mAudioDataByteSize == 0) {
         //    AF_LOGW("no audio data\n");
-        inBuffer->mAudioDataByteSize = inBuffer->mAudioDataBytesCapacity;
+        inBuffer->mAudioDataByteSize = size;
 
         if (!pThis->mNeedFlush) {
             pThis->mPlayedBufferSize -= inBuffer->mAudioDataByteSize;
@@ -237,7 +241,16 @@ int AFAudioQueueRender::start_device()
 
 void AFAudioQueueRender::flush_device()
 {
-    if (mPlaying && _audioQueueRef) {
+    /*
+     * fix me:
+     * pause to avoid noise no flush, but it will spend too long time, so only do this when not mute
+     * , it will speed up player stop
+     */
+    AudioQueueParameterValue volume = 0;
+    if (_audioQueueRef) {
+        AudioQueueGetParameter(_audioQueueRef, kAudioQueueParam_Volume, &volume);
+    }
+    if (mPlaying && volume > 0) {
         AudioQueuePause(_audioQueueRef);
     }
     for (auto item : _audioQueueBufferRefArray) {
@@ -256,7 +269,7 @@ void AFAudioQueueRender::flush_device()
         mNeedFlush = true;
     }
     mPlayedBufferSize = 0;
-    if (mPlaying && _audioQueueRef) {
+    if (mPlaying && volume > 0) {
         AudioQueueStart(_audioQueueRef, nullptr);
     }
 }
