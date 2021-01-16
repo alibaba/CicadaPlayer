@@ -35,7 +35,7 @@
 #define PTS_DISCONTINUE_DELTA (20 * 1000 * 1000)
 #define VIDEO_PICTURE_MAX_CACHE_SIZE 2
 
-static int MAX_DECODE_ERROR_FRAME = 100;
+static int MAX_DECODE_ERROR_FRAME = 1000;
 
 #define PTS_REVERTING (mVideoPtsRevert != mAudioPtsRevert)
 
