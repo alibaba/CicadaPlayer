@@ -38,7 +38,7 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
     pThis->mPlayedBufferSize += inBuffer->mAudioDataByteSize;
     bool CopyFull = false;
 #if TARGET_OS_IPHONE
-    if (IOSNotificationManager::Instance()->GetActiveStatus() == 0) {
+    if (IOSNotificationManager::Instance()->GetActiveStatus() == 0 || pThis->mQueueSpeed > 1.0) {
         CopyFull = true;
         size = inBuffer->mAudioDataBytesCapacity;
     }
@@ -194,6 +194,7 @@ int AFAudioQueueRender::setSpeed(float speed)
     }
     AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchBypass, &timePitchBypass, sizeof(timePitchBypass));
     AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_PlayRate, speed);
+    mQueueSpeed = speed;
     return 0;
 }
 
