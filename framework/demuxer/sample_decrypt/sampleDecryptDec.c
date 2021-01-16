@@ -156,8 +156,6 @@ static int sampleDecrypt_read_close(AVFormatContext *s)
 
 #define OFFSET(x) offsetof(sampleDecryptContext, x)
 #define VD AV_OPT_FLAG_VIDEO_PARAM | AV_OPT_FLAG_DECODING_PARAM
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
 static const AVOption options[] = {
     {
         "Decryptor", "Decryptor address", OFFSET(decryptor), AV_OPT_TYPE_UINT64, {.i64 = 0}, INT64_MIN, INT64_MAX, VD
@@ -165,7 +163,6 @@ static const AVOption options[] = {
 
     {NULL}
 };
-#pragma clang diagnostic pop
 
 static const AVClass sampleDecrypt_class = {
     .class_name = "sampleDecryptDec",
