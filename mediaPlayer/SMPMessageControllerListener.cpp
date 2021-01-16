@@ -389,6 +389,9 @@ void SMPMessageControllerListener::ProcessSetDataSourceMsg(const std::string &ur
 
 void SMPMessageControllerListener::ProcessSeekToMsg(int64_t seekPos, bool bAccurate)
 {
+    mPlayer.mSeekNeedCatch = bAccurate;
+    mPlayer.mSeekPos = seekPos;
+
     // seek before prepare, should keep mSeekPos
     if (mPlayer.mPlayStatus < PLAYER_PREPARING ||
         // if reuse player..
