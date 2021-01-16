@@ -1965,6 +1965,7 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
     RENDER_RESULT ret = RENDER_NONE;
     int64_t pts = INT64_MIN;
     int64_t duration = INT64_MIN;
+    int64_t position = INT64_MIN;
     int render_ret;
 //#define DUMP_PCM
 #ifdef DUMP_PCM
@@ -1979,6 +1980,7 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
     }
 
     pts = mAudioFrameQue.front()->getInfo().pts;
+    position = mAudioFrameQue.front()->getInfo().timePosition;
 
     if (pts == INT64_MIN) {
         mAudioFrameQue.pop_front();
@@ -2076,6 +2078,12 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
         if (mAudioPtsRevert) {
             AF_LOGI("PTS_REVERTING audio start\n");
         }
+    }
+
+    if (mPlayedAudioPts == INT64_MIN && isSeeking()) {
+        // update after send first frame in seeking, because audio render callback is async.
+        // sometimes notify position before audio rendered callback , will cause position not right.
+        mCurrentPos = position;
     }
 
     mPlayedAudioPts = pts;
