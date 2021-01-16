@@ -552,7 +552,7 @@ namespace Cicada {
         CFRelease(newBuffer);
         CFRelease(sampleBuffer);
 
-        if (rv == kVTInvalidSessionErr) {
+        if (rv == kVTInvalidSessionErr || rv == kVTVideoDecoderMalfunctionErr) {
             AF_LOGW("kVTInvalidSessionErr\n");
             pPacket.reset(packet);
             close_decoder();
