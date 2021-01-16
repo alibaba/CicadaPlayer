@@ -94,6 +94,7 @@ namespace Cicada {
         OSStatus mStartStatus{AVAudioSessionErrorCodeNone};
         unsigned int mReadOffset{0};
         UInt32 mAudioDataByteSize{0};
+        float mQueueSpeed{1.0};
     };
 }// namespace Cicada
 
