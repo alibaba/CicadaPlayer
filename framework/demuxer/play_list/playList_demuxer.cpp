@@ -210,6 +210,6 @@ namespace Cicada {
         if (mPPlaylistManager) {
             return mPPlaylistManager->getTargetDuration();
         }
-        return INT64_MAX;
+        return INT64_MIN;
     }
 }

@@ -2555,6 +2555,16 @@ int SuperMediaPlayer::ReadPacket()
         return ret;
     }
 
+    if (mPtsDiscontinueDelta == INT64_MIN) {
+        int64_t maxGopTimeUs = mDemuxerService->getDemuxerHandle()->getMaxGopTimeUs();
+        if (maxGopTimeUs > 0) {
+            mPtsDiscontinueDelta = maxGopTimeUs;
+        } else {
+            mPtsDiscontinueDelta = PTS_DISCONTINUE_DELTA;
+        }
+        AF_LOGI("mPtsDiscontinueDelta = %lld", mPtsDiscontinueDelta);
+    }
+
     // FIXME: transfer to frame
     if (pMedia_Frame->isProtected() && !mSecretPlayBack) {
         AF_LOGI("SecretPlayBack\n");
@@ -3495,7 +3505,7 @@ void SuperMediaPlayer::Reset()
     mSecretPlayBack = false;
     mDrmKeyValid = false;
     mNeedVideoRender = true;
-    mPtsDiscontinueDelta = PTS_DISCONTINUE_DELTA;
+    mPtsDiscontinueDelta = INT64_MIN;
     mCurrentPos = 0;
     mCATimeBase = 0;
     mWATimeBase = 0;

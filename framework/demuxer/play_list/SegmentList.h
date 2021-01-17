@@ -44,6 +44,8 @@ namespace Cicada{
         
         bool hasLHLSSegments();
 
+        int64_t getTargetDuration();
+
     private:
         void updateLastLHLSSegment(const std::shared_ptr<segment> &seg);
         

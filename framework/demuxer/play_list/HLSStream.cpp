@@ -1207,7 +1207,7 @@ namespace Cicada {
         if (mPTracker) {
             return mPTracker->getTargetDuration();
         }
-        return INT64_MAX;
+        return INT64_MIN;
     }
 
     int HLSStream::start()

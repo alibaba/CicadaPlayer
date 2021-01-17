@@ -175,4 +175,12 @@ namespace Cicada {
 
         return ret;
     }
+
+    int64_t SegmentList::getTargetDuration()
+    {
+        if (mRep == nullptr) {
+            return INT64_MIN;
+        }
+        return mRep->targetDuration;
+    }
 }// namespace Cicada
