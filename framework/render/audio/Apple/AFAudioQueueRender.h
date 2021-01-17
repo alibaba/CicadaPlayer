@@ -10,8 +10,6 @@
 #include <base/media/spsc_queue.h>
 #include <render/audio/audioRenderPrototype.h>
 
-#define QUEUE_SIZE (3)
-
 #if TARGET_OS_IPHONE
 
 #include "AFAudioSessionWrapper.h"
@@ -82,7 +80,8 @@ namespace Cicada {
 
 #endif
     private:
-        AudioQueueBufferRef _audioQueueBufferRefArray[QUEUE_SIZE]{};
+#define MAX_QUEUE_SIZE 4
+        AudioQueueBufferRef _audioQueueBufferRefArray[MAX_QUEUE_SIZE]{};
         AudioQueueRef _audioQueueRef{nullptr};
         AudioStreamBasicDescription mAudioFormat{};
         SpscQueue<IAFFrame *> mInPut{10};
@@ -95,6 +94,7 @@ namespace Cicada {
         unsigned int mReadOffset{0};
         UInt32 mAudioDataByteSize{0};
         float mQueueSpeed{1.0};
+        uint8_t mBufferCount{0};
     };
 }// namespace Cicada
 
