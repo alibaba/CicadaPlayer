@@ -2058,7 +2058,7 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
              * the pts maybe accurate for 1/1000 s (eg. flv file), so can't increase the deltaTimeTmp when
              * offset little than 1ms.
              */
-            if (llabs(offset) > 1000) {
+            if (llabs(offset) > mCATimeBase) {
                 AF_LOGW("offset is %lld,pts is %lld", offset, pts);
                 mAudioTime.deltaTimeTmp += offset;
             }
@@ -2453,6 +2453,7 @@ void SuperMediaPlayer::ProcessOpenStreamInit(int streamIndex)
                 } else if (!mSet->bDisableAudio && meta->type == STREAM_TYPE_AUDIO && mCurrentAudioIndex < 0 && meta->channels > 0) {
                     AF_LOGD("get a audio stream\n");
                     mCurrentAudioIndex = GEN_STREAM_ID(mMainStreamId, j);
+                    mCATimeBase = meta->ptsTimeBase;
                 } else if (meta->type == STREAM_TYPE_SUB && mCurrentSubtitleIndex < 0) {
                     AF_LOGD("get a subtitle stream\n");
                     mCurrentSubtitleIndex = GEN_STREAM_ID(mMainStreamId, j);
@@ -2494,6 +2495,7 @@ void SuperMediaPlayer::setUpAVPath()
             AF_LOGE("%s SetUpAudioPath failed,url is %s %s", __FUNCTION__, mSet->url.c_str(), framework_err2_string(ret));
             mDemuxerService->CloseStream(mCurrentAudioIndex);
             mCurrentAudioIndex = -1;
+            mCATimeBase = 0;
         } else {
         }
     }
@@ -2601,6 +2603,7 @@ int SuperMediaPlayer::ReadPacket()
                 mWillChangedVideoStreamIndex = streamId;
             } else if (meta->type == STREAM_TYPE_AUDIO && meta->channels > 0 && streamId != mCurrentAudioIndex) {
                 mWillChangedAudioStreamIndex = streamId;
+                mWATimeBase = meta->ptsTimeBase;
             } else if (meta->type == STREAM_TYPE_SUB && streamId != mCurrentSubtitleIndex) {
                 mWillChangedSubtitleStreamIndex = streamId;
             }
@@ -2702,6 +2705,7 @@ int SuperMediaPlayer::ReadPacket()
 
         if (pFrame->getInfo().streamIndex == mWillChangedAudioStreamIndex) {
             mCurrentAudioIndex = mWillChangedAudioStreamIndex;
+            mCATimeBase = mWATimeBase;
             mWillChangedAudioStreamIndex = -1;
         }
 
@@ -2753,6 +2757,7 @@ int SuperMediaPlayer::ReadPacket()
                     case STREAM_TYPE_AUDIO: {
                         if (!mSet->bDisableAudio && mCurrentAudioIndex < 0 && ((Stream_meta *) (*meta))->channels > 0) {
                             mCurrentAudioIndex = pFrame->getInfo().streamIndex;
+                            mCATimeBase = ((Stream_meta *) (*meta))->ptsTimeBase;
                         }
                         break;
                     }
@@ -3152,6 +3157,7 @@ int SuperMediaPlayer::setUpAudioRender(const IAFFrame::audioInfo &info)
         // PS: we should try to recover it later, or notify error
         //                    mAudioOutHandle = 0;
         mCurrentAudioIndex = -1;
+        mCATimeBase = 0;
         return -1;
     }
     mAVDeviceManager->setAudioRenderListener(mAudioRenderCB.get());
@@ -3491,6 +3497,8 @@ void SuperMediaPlayer::Reset()
     mNeedVideoRender = true;
     mPtsDiscontinueDelta = PTS_DISCONTINUE_DELTA;
     mCurrentPos = 0;
+    mCATimeBase = 0;
+    mWATimeBase = 0;
 }
 
 int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)

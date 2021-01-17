@@ -242,6 +242,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
                 AF_LOGD("get a audio stream\n");
                 openStreamRet = mPlayer.mDemuxerService->OpenStream(i);
                 mPlayer.mCurrentAudioIndex = i;
+                mPlayer.mCATimeBase = meta->ptsTimeBase;
             }
         } else if (meta->type == STREAM_TYPE_SUB) {
             info->type = ST_TYPE_SUB;
@@ -710,10 +711,13 @@ void SMPMessageControllerListener::switchAudio(int index)
         AF_LOGD("subtitle", "switch audio open stream failed,stream index %d\n", index);
         return;
     }
+    std::unique_ptr<streamMeta> meta;
+    mPlayer.mDemuxerService->GetStreamMeta(meta, index, true);
 
     mPlayer.mDemuxerService->CloseStream(mPlayer.mCurrentAudioIndex);
     mPlayer.mAudioChangedFirstPts = INT64_MAX;
     mPlayer.mCurrentAudioIndex = index;
+    mPlayer.mCATimeBase = ((Stream_meta *) (*meta))->ptsTimeBase;
     int64_t playTime = mPlayer.mMasterClock.GetTime();
     int64_t pts = playTime - mPlayer.mFirstAudioPts;
     mPlayer.mMasterClock.setReferenceClock(nullptr, nullptr);

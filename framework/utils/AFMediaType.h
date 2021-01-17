@@ -362,6 +362,8 @@ typedef struct {
     char* keyUrl;
     char* keyFormat;
 
+    float ptsTimeBase;
+
 } Stream_meta;
 
 

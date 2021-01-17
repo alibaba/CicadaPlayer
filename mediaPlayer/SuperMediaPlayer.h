@@ -422,6 +422,9 @@ namespace Cicada {
         int mWillChangedVideoStreamIndex{-1};
         int mWillChangedAudioStreamIndex{-1};
         int mWillChangedSubtitleStreamIndex{-1};
+
+        float mCATimeBase{};      // current audio stream origin pts time base
+        float mWATimeBase{};      // willChange audio stream origin pts time base
         int mRemainLiveSegment{0};// To avoid access demuxer multi-thread
         bool mInited{false};
         atomic_bool mSeekNeedCatch{false};
