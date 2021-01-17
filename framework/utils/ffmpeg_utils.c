@@ -518,6 +518,7 @@ int get_stream_meta(const struct AVStream *pStream, Stream_meta *meta)
 //    meta->cicada_codec_context = pStream->codec;
     meta->cicada_codec_context_size = sizeof(AVCodecContext);
 //        meta->index = stream_index;
+    meta->ptsTimeBase = (float) pStream->time_base.num * 1000000 / (float) pStream->time_base.den;
     if (codec_type == AVMEDIA_TYPE_VIDEO) {
         if (pStream->sample_aspect_ratio.num && av_cmp_q(pStream->sample_aspect_ratio, pStream->codecpar->sample_aspect_ratio)) {
             AVRational display_aspect_ratio;
