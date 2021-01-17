@@ -298,13 +298,6 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         mPlayer.mSeekNeedCatch = false;
     }
 
-    int64_t maxGopTimeUs = mPlayer.mDemuxerService->getDemuxerHandle()->getMaxGopTimeUs();
-    if (maxGopTimeUs != INT64_MAX) {
-        mPlayer.mPtsDiscontinueDelta = maxGopTimeUs;
-    } else {
-        mPlayer.mPtsDiscontinueDelta = PTS_DISCONTINUE_DELTA;
-    }
-
     AF_LOGD("initOpen end");
     mPlayer.mDemuxerService->start();
     mPlayer.ChangePlayerStatus(PLAYER_PREPARING);

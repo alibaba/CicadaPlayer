@@ -581,10 +581,17 @@ namespace Cicada {
             return mMuxedStream->getTargetDuration();
         }
 
-        int64_t targetDuration = INT64_MAX;
+        int64_t targetDuration = INT64_MIN;
         for (auto &i : mStreamInfoList) {
             if (i->mPStream->isOpened() && i->selected) {
-                targetDuration = std::min(i->mPStream->getTargetDuration(), targetDuration);
+                int64_t streamTargetDuration = i->mPStream->getTargetDuration();
+                if (streamTargetDuration > 0) {
+                    if (targetDuration == INT64_MIN) {
+                        targetDuration = streamTargetDuration;
+                    } else if (streamTargetDuration < targetDuration) {
+                        targetDuration = streamTargetDuration;
+                    }
+                }
             }
         }
 

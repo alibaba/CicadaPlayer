@@ -476,6 +476,10 @@ namespace Cicada {
 
     int64_t SegmentTracker::getTargetDuration()
     {
-        return mRep->targetDuration * 1000000;
+        if (mRep->GetSegmentList() != nullptr) {
+            return mRep->GetSegmentList()->getTargetDuration();
+        } else {
+            return mRep->targetDuration;
+        }
     }
 }
