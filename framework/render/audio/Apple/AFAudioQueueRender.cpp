@@ -260,7 +260,7 @@ void AFAudioQueueRender::flush_device()
         }
     }
 
-    if (mBufferAllocatedCount < QUEUE_SIZE) {
+    if (mBufferAllocatedCount < mBufferCount) {
         while (mInPut.size() > 0) {
             delete mInPut.front();
             mInPut.pop();
@@ -295,11 +295,21 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
     if (mNeedFlush || mInPut.write_available() <= 0) {
         return -EAGAIN;
     }
-    mInPut.push(frame.release());
 
-    if (mBufferAllocatedCount < QUEUE_SIZE && mInPut.size() >= QUEUE_SIZE) {
+    if (mBufferCount == 0) {
+        //FIXME: for low latency stream, queue another more buffer
+        assert(frame->getInfo().duration > 0);
+        if (frame->getInfo().duration < 20000) {
+            mBufferCount = 4;
+        } else {
+            mBufferCount = 3;
+        }
+    }
+    mInPut.push(frame.release());
+    if (mBufferAllocatedCount < mBufferCount && mInPut.size() >= mBufferCount) {
         assert(mAudioDataByteSize > 0);
-        while (mBufferAllocatedCount < QUEUE_SIZE) {
+        assert(mBufferCount <= MAX_QUEUE_SIZE);
+        while (mBufferAllocatedCount < mBufferCount) {
             AudioQueueBuffer *buffer = NULL;
             AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &buffer);
             _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
