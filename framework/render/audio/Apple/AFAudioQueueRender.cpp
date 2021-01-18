@@ -87,7 +87,8 @@ UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer, bool 
                 mInPut.pop();
                 mReadOffset = 0;
             }
-            if (!CopyFull) {
+            // FIXME: lowlatency  mBufferCount == 4
+            if (!CopyFull && (mBufferCount < 4 || copySize >= inBuffer->mAudioDataBytesCapacity / 4)) {
                 break;
             }
         } else {
