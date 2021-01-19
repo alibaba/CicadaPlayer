@@ -93,7 +93,7 @@ namespace Cicada {
         atomic<bool> mRunning{false};
 
     private:
-
+        std::mutex mStatusMutex{};
         volatile std::atomic<float> mSpeed{1};
         std::atomic_bool mSpeedChanged{false};
         std::atomic<int64_t> mSpeedDeltaDuration{0};

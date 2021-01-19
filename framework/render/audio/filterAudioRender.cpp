@@ -141,6 +141,7 @@ namespace Cicada {
 
     int filterAudioRender::setVolume(float volume)
     {
+        std::lock_guard<std::mutex> lock(mStatusMutex);
         if (mVolume != volume) {
             mVolume = volume;
             mVolumeChanged = true;
@@ -156,6 +157,8 @@ namespace Cicada {
     int filterAudioRender::setSpeed(float speed)
     {
         assert(mFilterFlags & A_FILTER_FLAG_TEMPO);
+
+        std::lock_guard<std::mutex> lock(mStatusMutex);
         if (mSpeed != speed) {
             mSpeed = speed;
             mSpeedChanged = true;
@@ -234,14 +237,20 @@ namespace Cicada {
             if (!mRunning) {
                 return 0;
             }
-            if (mSpeedChanged) {
-                applySpeed();
-                mSpeedChanged = false;
-            }
 
-            if (mVolumeChanged) {
-                applyVolume();
-                mVolumeChanged = false;
+            {
+                std::lock_guard<std::mutex> lock(mStatusMutex);
+                if (mSpeedChanged) {
+                    applySpeed();
+                    mSpeedChanged = false;
+                }
+            }
+            {
+                std::lock_guard<std::mutex> lock(mStatusMutex);
+                if (mVolumeChanged) {
+                    applyVolume();
+                    mVolumeChanged = false;
+                }
             }
 
             loopChecker();
