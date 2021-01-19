@@ -98,7 +98,7 @@ namespace Cicada {
         }
 
         if (mOutputInfo.nb_samples == 0) {
-            float rate = mInputInfo.sample_rate / mOutputInfo.sample_rate;
+            float rate = (float) mInputInfo.sample_rate / (float) mOutputInfo.sample_rate;
             mOutputInfo.nb_samples = frame->getInfo().audio.nb_samples / rate;
         }
 

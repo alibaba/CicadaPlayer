@@ -15,7 +15,7 @@
 #include <utils/errors/framework_error.h>
 #include <utils/frame_work_log.h>
 
-#define IS_LIVE (mRep->b_live)
+#define IS_LIVE (mRep && mRep->b_live)
 
 
 namespace Cicada {
@@ -163,6 +163,10 @@ namespace Cicada {
         int ret;
         string uri;
         string *pUri;
+
+        if (!mRep) {
+            return -EINVAL;
+        }
 
         if (mLocation.empty()) {
             std::unique_lock<std::recursive_mutex> locker(mMutex);

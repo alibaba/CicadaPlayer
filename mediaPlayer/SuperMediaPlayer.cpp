@@ -1726,7 +1726,7 @@ void SuperMediaPlayer::doDeCode()
             if (duration < 0 && !mAudioFrameQue.empty()) {
                 //If audio duration is unknow when demux , update duration after decode one frame.
                 IAFFrame::AFFrameInfo frameInfo = mAudioFrameQue.front()->getInfo();
-                int64_t packetDuration = frameInfo.audio.nb_samples * 1000000 / frameInfo.audio.sample_rate;
+                int64_t packetDuration = (int64_t) frameInfo.audio.nb_samples * 1000000 / frameInfo.audio.sample_rate;
                 mBufferController->SetOnePacketDuration(BUFFER_TYPE_AUDIO, packetDuration);
             }
         }
