@@ -261,7 +261,7 @@ void AFAudioQueueRender::flush_device()
         }
     }
 
-    if (mBufferAllocatedCount < mBufferCount) {
+    if (mBufferCount == 0 || mBufferAllocatedCount < mBufferCount) {
         while (mInPut.size() > 0) {
             delete mInPut.front();
             mInPut.pop();
