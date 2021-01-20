@@ -360,7 +360,7 @@ namespace Cicada {
             return mPPlayList->getDuration();
         }
 
-        return 0;
+        return INT64_MIN;
     }
 
     int SegmentTracker::reLoadPlayList()
