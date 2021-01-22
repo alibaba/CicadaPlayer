@@ -14,6 +14,8 @@ class JniUtils {
 public:
     static char *jByteArrayToChars(JNIEnv *env, jbyteArray bytearray);
 
+    static int jByteArrayToChars(JNIEnv *env, jbyteArray bytearray, char **dst);
+
     static char *jByteArrayToChars_New(JNIEnv *env, jbyteArray bytearray);
 
     static jobject cmap2Jmap(JNIEnv *env, std::map<std::string, std::string> theMap);
