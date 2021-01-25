@@ -364,7 +364,9 @@ namespace Cicada {
     }
     void filterAudioRender::prePause()
     {
-        mRenderThread->prePause();
+        if (mRenderThread) {
+            mRenderThread->prePause();
+        }
         device_preClose();
     }
 }
