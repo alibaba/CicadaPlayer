@@ -44,6 +44,10 @@ namespace Cicada {
             av_dict_free(&format_opts);
         }
 
+        if (ret < 0) {
+            AF_LOGE("open error\n");
+            return ret;
+        }
         if (rangeStart != INT64_MIN) {
             avio_seek(mPuc, (int64_t) rangeStart, SEEK_SET);
         }
@@ -82,6 +86,9 @@ namespace Cicada {
 
     int ffmpegDataSource::Read(void *buf, size_t nbyte)
     {
+        if (mPuc == nullptr) {
+            return -EINVAL;
+        }
         if (rangeEnd != INT64_MIN) {
             nbyte = std::min(nbyte, (size_t) (rangeEnd - Seek(0, SEEK_CUR)));
 
