@@ -2,9 +2,10 @@
 // Created by moqi on 2018/6/11.
 //
 
-#include <string.h>
-#include "../frame_work_log.h"
 #include "framework_error.h"
+#include "../frame_work_log.h"
+#include <errno.h>
+#include <string.h>
 
 const char *network_err2_string(uint8_t Errno)
 {
@@ -159,6 +160,11 @@ bool isHttpError(error_type err)
     }
 
     return false;
+}
+
+bool isLocalFileError(error_type err)
+{
+    return err == -ENOENT || err == -EACCES;
 }
 
 error_type gen_framework_http_errno(int httpCode)

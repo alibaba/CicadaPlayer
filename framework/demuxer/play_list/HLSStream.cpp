@@ -921,7 +921,7 @@ namespace Cicada {
                                                   seg->getDownloadUrl());
                 ret = tryOpenSegment(uri, seg->rangeStart, seg->rangeEnd);
 
-                if (isHttpError(ret)) {
+                if (isHttpError(ret) || isLocalFileError(ret)) {
                     resetSource();
                     seg = mPTracker->getNextSegment();
 
@@ -939,7 +939,7 @@ namespace Cicada {
                         break;
                     }
                 }
-            } while (isHttpError(ret));
+            } while (isHttpError(ret) || isLocalFileError(ret));
 
             if (ret < 0) {
                 mDataSourceError = ret;

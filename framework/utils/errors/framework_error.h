@@ -89,6 +89,8 @@ static inline uint8_t get_errno(error_type err)
 
 bool isHttpError(error_type err);
 
+bool isLocalFileError(error_type err);
+
 error_type gen_framework_http_errno(int httpCode);
 
 const char *framework_err2_string(error_type err);
