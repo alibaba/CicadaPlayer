@@ -168,36 +168,27 @@ namespace Cicada {
 
     void subTitlePlayer::render(subTitlePlayer::SourceInfo &info, int64_t pts)
     {
-        IAFPacket *packet = nullptr;
+        auto iter = info.mSubtitleShowedQueue.begin();
+        while (iter != info.mSubtitleShowedQueue.end()) {
+            if ((*iter) && ((*iter)->getInfo().pts + info.mDelay + (*iter)->getInfo().duration) <= pts) {
+                mListener.onRender(false, (*iter).release());
+                iter = info.mSubtitleShowedQueue.erase(iter);
+                continue;
+            }
+            iter++;
+        }
 
         do {
-            int ret = info.getPacket(&packet);
+            IAFPacket *packet = nullptr;
+            info.getPacket(&packet);
 
-            if (packet == nullptr) {
-                break;
-            }
-
-            if (packet->getInfo().pts + info.mDelay + packet->getInfo().duration <= pts) {
-                if (packet->getDiscard()) {
-                    mListener.onRender(false, info.mPacket.release());
-                }
-
-                info.mPacket = nullptr;
+            if (packet && packet->getInfo().pts + info.mDelay <= pts) {
+                mListener.onRender(true, packet);
+                info.mSubtitleShowedQueue.push_back(move(info.mPacket));
             } else {
                 break;
             }
         } while (true);
-
-        if (packet == nullptr) {
-            return;
-        }
-
-        if (packet->getInfo().pts + info.mDelay <= pts) {
-            if (!packet->getDiscard()) {
-                mListener.onRender(true, packet);
-                packet->setDiscard(true);
-            }
-        }
     }
 
     void subTitlePlayer::update(int64_t pts)
@@ -214,11 +205,16 @@ namespace Cicada {
     void subTitlePlayer::flush()
     {
         for (auto item = mSources.begin(); item != mSources.end();) {
-            if ((*item)->mPacket && (*item)->mPacket->getDiscard()) {
-                mListener.onRender(false, (*item)->mPacket.release());
+
+            while (!(*item)->mSubtitleShowedQueue.empty()) {
+                if ((*item)->mSubtitleShowedQueue.front()) {
+                    mListener.onRender(false, (*item)->mSubtitleShowedQueue.front().release());
+                }
+                (*item)->mSubtitleShowedQueue.pop_front();
             }
+            (*item)->mSubtitleShowedQueue.clear();
             (*item)->mPacket = nullptr;
             ++item;
         }
     }
-}
+}// namespace Cicada
