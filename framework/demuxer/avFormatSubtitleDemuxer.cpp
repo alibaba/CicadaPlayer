@@ -72,7 +72,7 @@ namespace Cicada {
 
         do {
             ret = readPacketInternal();
-        } while (ret > 0);
+        } while (ret >= 0);
 
         return 0;
     }
@@ -236,7 +236,7 @@ namespace Cicada {
                 }
 
                 av_packet_free(&pkt);
-                return 0;// EOS
+                return AVERROR_EOF;// EOS
             }
 
             if (err == AVERROR_EXIT) {
