@@ -41,11 +41,10 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
         return 0;
     }
 
-    DrmInfo *drmInfo = nullptr;
+    DrmInfo drmInfo{};
     if (meta->keyFormat != nullptr) {
-        drmInfo = new DrmInfo();
-        drmInfo->format = meta->keyFormat;
-        drmInfo->uri = meta->keyUrl == nullptr ? "" : meta->keyUrl;
+        drmInfo.format = meta->keyFormat;
+        drmInfo.uri = meta->keyUrl == nullptr ? "" : meta->keyUrl;
     }
 
     if (decoderHandle->decoder) {
@@ -55,7 +54,7 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
             decoderHandle->valid = true;
             decoderHandle->meta = *meta;
             decoderHandle->mDstFormat = dstFormat;
-            decoderHandle->mDrmInfo = move(unique_ptr<DrmInfo>(drmInfo));
+            decoderHandle->mDrmInfo = drmInfo;
             flushVideoRender();
             decoderHandle->decoder->flush();
             decoderHandle->decoder->pause(false);
@@ -74,8 +73,9 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
     decoderHandle->meta = *meta;
     decoderHandle->decFlag = decFlag;
     decoderHandle->device = device;
-    decoderHandle->decoder = decoderFactory::create(*meta, decFlag, std::max(meta->height, meta->width),drmInfo);
-    decoderHandle->mDrmInfo = move(unique_ptr<DrmInfo>(drmInfo));
+    decoderHandle->decoder =
+            decoderFactory::create(*meta, decFlag, std::max(meta->height, meta->width), drmInfo.empty() ? nullptr : &drmInfo);
+    decoderHandle->mDrmInfo = drmInfo;
 
     if (decoderHandle->decoder == nullptr) {
         return gen_framework_errno(error_class_codec, codec_error_video_not_support);
@@ -93,7 +93,7 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
         }
 #endif
     }
-    ret = decoderHandle->decoder->open(meta, device, decFlag, drmInfo);
+    ret = decoderHandle->decoder->open(meta, device, decFlag, drmInfo.empty() ? nullptr : &drmInfo);
     if (ret < 0) {
         AF_LOGE("config decoder error ret= %d \n", ret);
         decoderHandle->decoder = nullptr;
