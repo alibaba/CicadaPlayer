@@ -183,8 +183,14 @@ namespace Cicada {
             info.getPacket(&packet);
 
             if (packet && packet->getInfo().pts + info.mDelay <= pts) {
-                mListener.onRender(true, packet);
-                info.mSubtitleShowedQueue.push_back(move(info.mPacket));
+
+                if (packet->getInfo().pts + info.mDelay + packet->getInfo().duration >= pts) {
+                    mListener.onRender(true, packet);
+                    info.mSubtitleShowedQueue.push_back(move(info.mPacket));
+                } else {
+                    AF_LOGD("drop the late subtitle %lld", packet->getInfo().pts);
+                    info.mPacket = nullptr;
+                }
             } else {
                 break;
             }
