@@ -8,6 +8,7 @@
 #include <utils/timer.h>
 
 using namespace std;
+using namespace Cicada;
 
 AVFoundationVideoRender::AVFoundationVideoRender()
 {
@@ -16,7 +17,9 @@ AVFoundationVideoRender::AVFoundationVideoRender()
     mRender->createLayer();
 }
 AVFoundationVideoRender::~AVFoundationVideoRender()
-{}
+{
+    delete mConvertor;
+}
 int AVFoundationVideoRender::init()
 {
     mStatisticsFrameTime = af_getsteady_ms();
@@ -35,6 +38,13 @@ int AVFoundationVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
         pts = frame->getInfo().pts;
         mFrameInfo = frame->getInfo();
         rendered = true;
+        if (mConvertor == nullptr) {
+            mConvertor = new pixelBufferConvertor();
+        }
+        if (dynamic_cast<PBAFFrame *>(frame.get()) == nullptr) {
+            IAFFrame *pbafFrame = mConvertor->convert(frame.get());
+            frame = unique_ptr<IAFFrame>(pbafFrame);
+        }
     }
     mRender->renderFrame(frame);
     if (rendered) {

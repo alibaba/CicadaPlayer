@@ -163,6 +163,16 @@ public:
 
         int colorRange;
         int colorSpace;
+
+        bool operator==(const videoInfo &info) const
+        {
+            return this->width == info.width && this->height == info.height && this->format == info.format;
+        }
+
+        bool operator!=(const videoInfo &info) const
+        {
+            return !operator==(info);
+        }
     };
     struct audioInfo {
         int nb_samples;

@@ -1,9 +1,13 @@
 //
-// Created by moqi on 2020/6/5.
+// Created by pingkai on 2021/1/26.
 //
 
-#include "avFrame2pixelBuffer.h"
+#define LOG_TAG "pixelBufferConvertor"
+#include "pixelBufferConvertor.h"
+#include <base/media/AVAFPacket.h>
 #include <utils/frame_work_log.h>
+
+using namespace Cicada;
 static int copy_avframe_to_pixel_buffer(const AVFrame *frame, CVPixelBufferRef cv_img, const size_t *plane_strides,
                                         const size_t *plane_rows)
 {
@@ -51,7 +55,7 @@ static int copy_avframe_to_pixel_buffer(const AVFrame *frame, CVPixelBufferRef c
     } else {
         if (frame->data[1]) {
             CVPixelBufferUnlockBaseAddress(cv_img, 0);
-            av_log(NULL, AV_LOG_ERROR, "Error: different number of planes in AVFrame and non-planar CVPixelBuffer.\n");
+            AF_LOGE("Error: different number of planes in AVFrame and non-planar CVPixelBuffer.\n");
 
             return AVERROR_EXTERNAL;
         }
@@ -112,7 +116,7 @@ static int get_cv_pixel_info(const AVFrame *frame, int *color, int *plane_count,
     int range_guessed;
     int status;
 
-    status = get_cv_pixel_format(av_format, av_color_range, color, &range_guessed);
+    status = get_cv_pixel_format(static_cast<AVPixelFormat>(av_format), static_cast<AVColorRange>(av_color_range), color, &range_guessed);
     if (status) {
         AF_LOGE("Could not get pixel format for color format");
         return AVERROR(EINVAL);
@@ -278,13 +282,89 @@ CVPixelBufferRef avFrame2pixelBuffer(AVFrame *frame)
         return NULL;
     }
 
-    AVFrame *nv12Frame = yuv420p2nv12(frame);
-
-    status = copy_avframe_to_pixel_buffer(nv12Frame, pixelBuffer, strides, heights);
-    av_frame_free(&nv12Frame);
+    status = copy_avframe_to_pixel_buffer(frame, pixelBuffer, strides, heights);
     if (status) {
         CFRelease(pixelBuffer);
         pixelBuffer = NULL;
     }
     return pixelBuffer;
+}
+pixelBufferConvertor::pixelBufferConvertor()
+{
+
+    memset(&mVideoInfo, 0, sizeof(IAFFrame::videoInfo));
+    mVideoInfo.format = -1;
+}
+pixelBufferConvertor::~pixelBufferConvertor()
+{
+    if (sws_ctx) {
+        sws_freeContext(sws_ctx);
+    }
+    av_frame_free(&mOutFrame);
+}
+static AVFrame *alloc_picture(enum AVPixelFormat pix_fmt, int width, int height)
+{
+    AVFrame *picture;
+    int ret;
+
+    picture = av_frame_alloc();
+    if (!picture) return nullptr;
+
+    picture->format = pix_fmt;
+    picture->width = width;
+    picture->height = height;
+
+    /* allocate the buffers for the frame data */
+    ret = av_frame_get_buffer(picture, 32);
+    if (ret < 0) {
+        fprintf(stderr, "Could not allocate frame data.\n");
+        exit(1);
+    }
+
+    return picture;
+}
+
+int pixelBufferConvertor::init(const IAFFrame::videoInfo &src)
+{
+    // TODO: get the dst format
+    enum AVPixelFormat dstFormat;
+    switch (src.format) {
+        case AV_PIX_FMT_YUV420P:
+            dstFormat = AV_PIX_FMT_NV12;
+            break;
+        default:
+            dstFormat = AV_PIX_FMT_NV12;
+    }
+
+    if (sws_ctx) {
+        sws_freeContext(sws_ctx);
+    }
+    av_frame_free(&mOutFrame);
+
+    sws_ctx = sws_getContext(src.width, src.height, static_cast<AVPixelFormat>(src.format), src.width, src.height, dstFormat, SWS_BILINEAR,
+                             nullptr, nullptr, nullptr);
+
+    mOutFrame = alloc_picture(dstFormat, src.width, src.height);
+    return 0;
+}
+
+IAFFrame *pixelBufferConvertor::convert(IAFFrame *frame)
+{
+    auto *avAFFrame = dynamic_cast<AVAFFrame *>(frame);
+    if (avAFFrame == nullptr) {
+        return nullptr;
+    }
+
+    if (mVideoInfo != frame->getInfo().video) {
+        init(frame->getInfo().video);
+    }
+    auto *avFrame = (AVFrame *) (*avAFFrame);
+    assert(sws_ctx);
+    sws_scale(sws_ctx, avFrame->data, avFrame->linesize, 0, avFrame->height, mOutFrame->data, mOutFrame->linesize);
+
+    CVPixelBufferRef pixelBuffer = avFrame2pixelBuffer(mOutFrame);
+
+    auto *pBFrame = new PBAFFrame(pixelBuffer, frame->getInfo().pts, frame->getInfo().duration);
+    CFRelease(pixelBuffer);
+    return pBFrame;
 }

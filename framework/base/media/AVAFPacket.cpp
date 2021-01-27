@@ -8,7 +8,6 @@
 #include "utils/ffmpeg_utils.h"
 #ifdef __APPLE__
 #include "PBAFFrame.h"
-#include "avFrame2pixelBuffer.h"
 #endif
 
 using namespace std;
@@ -292,15 +291,3 @@ void AVAFFrame::updateInfo()
 {
     copyInfo();
 }
-#ifdef __APPLE__
-AVAFFrame::operator PBAFFrame *()
-{
-    CVPixelBufferRef pixelBuffer = avFrame2pixelBuffer(mAvFrame);
-    if (pixelBuffer) {
-        auto* frame = new PBAFFrame(pixelBuffer, mInfo.pts, mInfo.duration);
-        CVPixelBufferRelease(pixelBuffer);
-        return frame;
-    }
-    return nullptr;
-}
-#endif
