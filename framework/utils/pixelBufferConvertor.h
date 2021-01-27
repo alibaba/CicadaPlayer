@@ -20,13 +20,17 @@ namespace Cicada {
 
         IAFFrame *convert(IAFFrame *frame);
 
+        static void UpdateColorInfo(const VideoColorInfo &info, CVPixelBufferRef pixelBuffer);
+
     private:
         int init(const IAFFrame::videoInfo &src);
+        CVPixelBufferRef avFrame2pixelBuffer(AVFrame *frame);
 
     private:
         struct SwsContext *sws_ctx{nullptr};
         AVFrame *mOutFrame{nullptr};
         IAFFrame::videoInfo mVideoInfo{};
+        CVPixelBufferPoolRef mPixBufPool{nullptr};
     };
 }// namespace Cicada
 

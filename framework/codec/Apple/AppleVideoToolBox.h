@@ -102,8 +102,6 @@ namespace Cicada{
 
         void AppDidBecomeActive() override;
 
-        void updatePixelBufferColorInfo(CVImageBufferRef imageBuffer);
-
 #if 0
         void outputByPoc(VideoFrame *CM_NULLABLE beCachedFrame, int poc);
 #endif

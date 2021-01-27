@@ -69,7 +69,7 @@ std::unique_ptr<IAudioRender> AudioRenderFactory::create()
 
 unique_ptr<IVideoRender> videoRenderFactory::create(uint64_t flags)
 {
-    if (flags & FLAG_HDR){
+    if (flags & FLAG_HDR) {
 #ifdef __APPLE__
         return std::unique_ptr<IVideoRender>(new AVFoundationVideoRender());
 #endif

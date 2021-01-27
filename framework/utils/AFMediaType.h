@@ -301,6 +301,15 @@ typedef struct Source_meta {
 } Source_meta;
 
 
+typedef struct VideoColorInfo {
+    enum AFColorRange color_range;
+    enum AFColorPrimaries color_primaries;
+    enum AFColorTransferCharacteristic color_trc;
+    enum AFColorSpace color_space;
+    enum AFChromaLocation chroma_location;
+} VideoColorInfo;
+
+
 typedef struct {
     Stream_type type;
     int64_t duration;
@@ -338,11 +347,7 @@ typedef struct {
     /**
  * Video only. Additional colorspace characteristics.
  */
-    enum AFColorRange color_range;
-    enum AFColorPrimaries color_primaries;
-    enum AFColorTransferCharacteristic color_trc;
-    enum AFColorSpace color_space;
-    enum AFChromaLocation chroma_location;
+    VideoColorInfo color_info;
 
     int pid;
     int no_program;
