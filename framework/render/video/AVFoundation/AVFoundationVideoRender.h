@@ -8,6 +8,7 @@
 #include "../IVideoRender.h"
 #include "../vsync/IVSync.h"
 #include <memory>
+#include <utils/pixelBufferConvertor.h>
 class DisplayLayerImpl;
 class AVFoundationVideoRender : public IVideoRender {
 public:
@@ -37,6 +38,7 @@ private:
     int64_t mStatisticsFrameTime{0};
     float mFPS{0};
     IAFFrame::AFFrameInfo mFrameInfo;
+    Cicada::pixelBufferConvertor *mConvertor{nullptr};
 };
 
 

@@ -71,6 +71,7 @@ target_link_libraries(cicadaPlayer PRIVATE
         avformat
         avcodec
         swresample
+        swscale
         avutil
         ${FRAMEWORK_LIBS})
 if (NOT MSVC)

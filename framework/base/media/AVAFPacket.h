@@ -97,10 +97,6 @@ public:
 
     explicit operator AVFrame *() const;
 
-#ifdef __APPLE__
-    explicit operator PBAFFrame *();
-#endif
-
     void updateInfo();
 
 

@@ -76,8 +76,8 @@ if (APPLE)
     list(APPEND SOURCE_FILES
             ../base/media/PBAFFrame.cpp
             ../base/media/PBAFFrame.h
-            ../base/media/avFrame2pixelBuffer.c
             appleLog.m
+            pixelBufferConvertor.cpp
             )
 endif ()
 
