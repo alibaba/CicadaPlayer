@@ -7,6 +7,7 @@
 #include "utils/timer.h"
 #include <cinttypes>
 #include <utils/frame_work_log.h>
+#include <utils/pixelBufferConvertor.h>
 extern "C" {
 #include <libavcodec/avcodec.h>
 };
@@ -674,100 +675,14 @@ namespace Cicada {
             // TODO: enqueue error
             return decoder->onDecoded(packet, nullptr, status);
         }
-
-        decoder->updatePixelBufferColorInfo(imageBuffer);
+        // Strip the attachments added by VT. They are likely wrong.
+        //           CVBufferRemoveAllAttachments(imageBuffer);
+        pixelBufferConvertor::UpdateColorInfo(((Stream_meta *) (*(decoder->mPInMeta)))->color_info, imageBuffer);
 
         int64_t duration = presentationDuration.value * (1000000.0 / presentationDuration.timescale);
         int64_t pts = presentationTimeStamp.value * (1000000.0 / presentationTimeStamp.timescale);
         pbafFrame = unique_ptr<PBAFFrame>(new PBAFFrame(imageBuffer, pts, duration));
         return decoder->onDecoded(packet, move(pbafFrame), status);
-    }
-    void AFVTBDecoder::updatePixelBufferColorInfo(CVImageBufferRef imageBuffer)
-    {
-        // Strip the attachments added by VT. They are likely wrong.
-        //           CVBufferRemoveAllAttachments(imageBuffer);
-        Stream_meta *meta = ((Stream_meta *) (*(mPInMeta)));
-        CFStringRef value = nullptr;
-        switch (meta->color_primaries) {
-            case AFCOL_PRI_BT709:
-                value = kCVImageBufferColorPrimaries_ITU_R_709_2;
-                break;
-            case AFCOL_PRI_SMPTE170M:
-                value = kCVImageBufferColorPrimaries_SMPTE_C;
-                break;
-            case AFCOL_PRI_BT2020:
-                value = kCVImageBufferColorPrimaries_ITU_R_2020;
-                break;
-            default:
-                value = nullptr;
-                break;
-        }
-        if (value) {
-            CVBufferSetAttachment(imageBuffer, kCVImageBufferColorPrimariesKey, value, kCVAttachmentMode_ShouldPropagate);
-        }
-
-        switch (meta->color_trc) {
-            case AFCOL_TRC_BT709:
-            case AFCOL_TRC_SMPTE170M:
-                value = kCVImageBufferTransferFunction_ITU_R_709_2;
-                break;
-            case AFCOL_TRC_BT2020_10:
-                value = kCVImageBufferTransferFunction_ITU_R_2020;
-                break;
-            case AFCOL_TRC_SMPTE2084:
-#if TARGET_OS_IPHONE
-                if (__builtin_available(iOS 11.0, *))
-#else
-                if (__builtin_available(macOS 10.13, *))
-#endif
-                {
-                    value = kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ;
-                }
-                break;
-            case AFCOL_TRC_SMPTE428:
-#if TARGET_OS_IPHONE
-                if (__builtin_available(iOS 10.0, *))
-#else
-                if (__builtin_available(macOS 10.12, *))
-#endif
-                {
-                    value = kCVImageBufferTransferFunction_SMPTE_ST_428_1;
-                }
-                break;
-            default:
-                value = nullptr;
-                break;
-        }
-        if (value) {
-            CVBufferSetAttachment(imageBuffer, kCVImageBufferTransferFunctionKey, value, kCVAttachmentMode_ShouldPropagate);
-        }
-
-        switch (meta->color_space) {
-            case AFCOL_SPC_BT709:
-                value = kCGColorSpaceITUR_709;
-                CVBufferSetAttachment(imageBuffer, kCVImageBufferYCbCrMatrixKey, kCVImageBufferYCbCrMatrix_ITU_R_709_2,
-                                      kCVAttachmentMode_ShouldPropagate);
-                break;
-            case AFCOL_SPC_BT2020_NCL:
-                value = kCGColorSpaceITUR_2020;
-                CVBufferSetAttachment(imageBuffer, kCVImageBufferYCbCrMatrixKey, kCVImageBufferYCbCrMatrix_ITU_R_2020,
-                                      kCVAttachmentMode_ShouldPropagate);
-                break;
-            case AFCOL_SPC_SMPTE170M:
-                value = kCGColorSpaceSRGB;
-                CVBufferSetAttachment(imageBuffer, kCVImageBufferYCbCrMatrixKey, kCVImageBufferYCbCrMatrix_ITU_R_601_4,
-                                      kCVAttachmentMode_ShouldPropagate);
-                break;
-            default:
-                value = nullptr;
-                break;
-        }
-        if (value && m_ColorSpace == nullptr) {
-            m_ColorSpace = CGColorSpaceCreateWithName(value);
-        }
-        if (m_ColorSpace != nullptr) {
-            CVBufferSetAttachment(imageBuffer, kCVImageBufferCGColorSpaceKey, m_ColorSpace, kCVAttachmentMode_ShouldPropagate);
-        }
     }
 
     int AFVTBDecoder::dequeue_decoder(unique_ptr<IAFFrame> &pFrame)

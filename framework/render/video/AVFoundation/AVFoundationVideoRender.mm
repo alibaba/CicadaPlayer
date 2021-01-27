@@ -37,7 +37,6 @@ int AVFoundationVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
     if (frame) {
         pts = frame->getInfo().pts;
         mFrameInfo = frame->getInfo();
-        rendered = true;
         if (mConvertor == nullptr) {
             mConvertor = new pixelBufferConvertor();
         }
@@ -46,7 +45,10 @@ int AVFoundationVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
             frame = unique_ptr<IAFFrame>(pbafFrame);
         }
     }
-    mRender->renderFrame(frame);
+    if (frame) {
+        mRender->renderFrame(frame);
+        rendered = true;
+    }
     if (rendered) {
         mStatisticsFrameCount++;
         int64_t time = af_getsteady_ms() - mStatisticsFrameTime;
