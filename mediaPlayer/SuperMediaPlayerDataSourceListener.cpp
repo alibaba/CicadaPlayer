@@ -38,8 +38,11 @@ namespace Cicada {
                 mRetryCount++;
                 return NetWorkRetryStatusRetry;
             } else {
-                string err = "network retry timeout for " + AfString::to_string(mPlayer.mSet->netWorkRetryCount) + " times";
-                mPlayer.mPNotifier->NotifyError(MEDIA_PLAYER_ERROR_LOADING_TIMEOUT, err.c_str());
+                if (!bWaitingForRet) {
+                    string err = "network retry timeout for " + AfString::to_string(mPlayer.mSet->netWorkRetryCount) + " times";
+                    mPlayer.mPNotifier->NotifyError(MEDIA_PLAYER_ERROR_LOADING_TIMEOUT, err.c_str());
+                    bWaitingForRet = true;
+                }
                 return NetWorkRetryStatusPending;
             }
         }
