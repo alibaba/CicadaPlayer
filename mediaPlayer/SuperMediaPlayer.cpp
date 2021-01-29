@@ -106,6 +106,10 @@ void SuperMediaPlayer::putMsg(PlayMsgType type, const MsgParam &param, bool trig
 void SuperMediaPlayer::SetView(void *view)
 {
     mMsgCtrlListener->ProcessSetViewMsg(view);
+    {
+        std::unique_lock<std::mutex> updateViewLock(mUpdateViewMutex);
+        mUpdateViewCond.notify_all();
+    }
 }
 
 int64_t SuperMediaPlayer::GetMasterClockPts()
@@ -3192,9 +3196,6 @@ int SuperMediaPlayer::SetUpVideoPath()
         return 0;
     }
 
-    if (mSet->mView == nullptr && mFrameCb == nullptr) {
-        return 0;
-    }
 
     if (mVideoInterlaced == InterlacedType_UNKNOWN) {
         AF_LOGW("Wait for parser video interlaced Type");
@@ -3226,6 +3227,33 @@ int SuperMediaPlayer::SetUpVideoPath()
     ) {
         mAVDeviceManager->destroyVideoRender();
         mNeedVideoRender = false;
+    }
+
+    int videoType = VideoType::VIDEO_TYPE_NONE;
+    if (isHDRVideo) {
+        videoType |= VideoType::VIDEO_TYPE_HDR10;
+    }
+
+#ifdef ANDROID
+    if (isWideVineVideo) {
+        //TODO set widevine level  by user
+        videoType |= VideoType::VIDEO_TYPE_WIDEVINE_L1;
+    }
+#endif
+
+    {
+        std::unique_lock<std::mutex> updateViewLock(mUpdateViewMutex);
+        bool needUpdateView = false;
+        if (mUpdateViewCB != nullptr) {
+            needUpdateView = mUpdateViewCB(videoType, mUpdateViewCBUserData);
+        }
+        if (needUpdateView) {
+            mUpdateViewCond.wait_for(updateViewLock, std::chrono::milliseconds(10), [this]() { return this->mCanceled.load(); });
+        }
+    }
+
+    if (mSet->mView == nullptr && mFrameCb == nullptr) {
+        return 0;
     }
 
     int ret = 0;
@@ -3697,6 +3725,12 @@ void SuperMediaPlayer::SetAudioRenderingCallBack(onRenderFrame cb, void *userDat
 {
     mAudioRenderingCb = cb;
     mAudioRenderingCbUserData = userData;
+}
+
+void SuperMediaPlayer::SetUpdateViewCB(UpdateViewCB cb, void *userData)
+{
+    mUpdateViewCB = cb;
+    mUpdateViewCBUserData = userData;
 }
 
 int SuperMediaPlayer::invokeComponent(std::string content)

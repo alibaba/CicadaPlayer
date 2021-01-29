@@ -87,6 +87,8 @@ namespace Cicada {
 
         void SetAudioRenderingCallBack(onRenderFrame cb, void *userData) override;
 
+        void SetUpdateViewCB(UpdateViewCB cb, void *userData) override;
+
         // TODO: use setParameters and setOpt to set
         void SetRefer(const char *refer) override;
 
@@ -529,6 +531,11 @@ namespace Cicada {
 
         onRenderFrame mFrameCb{nullptr};
         void *mFrameCbUserData{nullptr};
+
+        std::mutex mUpdateViewMutex{};
+        std::condition_variable mUpdateViewCond{};
+        UpdateViewCB mUpdateViewCB{nullptr};
+        void *mUpdateViewCBUserData{nullptr};
 
         onRenderFrame mAudioRenderingCb{nullptr};
         void *mAudioRenderingCbUserData{nullptr};

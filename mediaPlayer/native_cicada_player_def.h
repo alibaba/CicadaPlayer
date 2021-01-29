@@ -157,6 +157,15 @@ typedef enum PropertyKey {
     PROPERTY_KEY_HLS_KEY_URL = 10,
 } PropertyKey;
 
+typedef enum VideoType {
+    VIDEO_TYPE_NONE = 0,
+    VIDEO_TYPE_SDR = 1 << 0,
+    VIDEO_TYPE_HDR10 = 1 << 1,
+    VIDEO_TYPE_WIDEVINE_L1 = 1 << 2,
+    VIDEO_TYPE_WIDEVINE_L3 = 1 << 3,
+    VIDEO_TYPE_FAIRPLAY = 1 << 4,
+} VideoType;
+
 class AMediaFrame;
 
 typedef void (*playerMediaFrameCb)(void *arg, const IAFPacket *frame, StreamType type);
@@ -168,6 +177,8 @@ typedef int64_t (*seekCB)(void *arg, int64_t offset, int whence);
 typedef int64_t(*clockRefer)(void *arg);
 
 typedef bool (*onRenderFrame)(void *userData, IAFFrame *frame);
+
+typedef bool (*UpdateViewCB)(int videoType, void *userData);
 
 class ErrorConverter {
 public:

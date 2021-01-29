@@ -145,6 +145,9 @@ namespace Cicada {
         void SetAudioRenderingCallBack(onRenderFrame cb, void *userData)
         {}
 
+        void SetUpdateViewCB(UpdateViewCB cb, void *userData) override
+        {}
+
         void setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)> &drmCallback) override
         {}
 
