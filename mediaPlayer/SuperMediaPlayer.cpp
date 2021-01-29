@@ -106,9 +106,10 @@ void SuperMediaPlayer::putMsg(PlayMsgType type, const MsgParam &param, bool trig
 void SuperMediaPlayer::SetView(void *view)
 {
     mMsgCtrlListener->ProcessSetViewMsg(view);
-    {
-        std::unique_lock<std::mutex> updateViewLock(mUpdateViewMutex);
-        mUpdateViewCond.notify_all();
+
+    std::lock_guard<std::mutex> lockGuard(mViewUpdateMutex);
+    if (mInited) {
+        mViewUpdateStatus = ViewUpdateStatus::No;
     }
 }
 
@@ -2628,6 +2629,7 @@ int SuperMediaPlayer::ReadPacket()
 
     if (!mInited) {
         ProcessOpenStreamInit(pFrame->getInfo().streamIndex);
+        ProcessUpdateView();
         mInited = true;
     }
 
@@ -3196,6 +3198,13 @@ int SuperMediaPlayer::SetUpVideoPath()
         return 0;
     }
 
+    if (mViewUpdateStatus == ViewUpdateStatus::Yes) {
+        return 0;
+    }
+
+    if (mSet->mView == nullptr && mFrameCb == nullptr) {
+        return 0;
+    }
 
     if (mVideoInterlaced == InterlacedType_UNKNOWN) {
         AF_LOGW("Wait for parser video interlaced Type");
@@ -3207,53 +3216,20 @@ int SuperMediaPlayer::SetUpVideoPath()
      */
     updateVideoMeta();
     auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
-    bool isHDRVideo = false;
-
-    if (meta->pixel_fmt == AF_PIX_FMT_YUV420P10BE || meta->pixel_fmt == AF_PIX_FMT_YUV420P10LE) {
-        AF_LOGI("HDR video\n");
-        isHDRVideo = true;
-    }
-
+    bool isHDR = isHDRVideo(meta);
 #ifdef ANDROID
-    bool isWideVineVideo = (meta->keyFormat != nullptr && strcmp(meta->keyFormat, "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed") == 0);
+    bool isWideVine = isWideVineVideo(meta);
 #endif
     /*
      * HDR video, try use decoder to render first
      */
     if (mSet->bEnableTunnelRender
 #ifdef ANDROID
-    || isWideVineVideo
+        || isWideVine
 #endif
     ) {
         mAVDeviceManager->destroyVideoRender();
         mNeedVideoRender = false;
-    }
-
-    int videoType = VideoType::VIDEO_TYPE_NONE;
-    if (isHDRVideo) {
-        videoType |= VideoType::VIDEO_TYPE_HDR10;
-    }
-
-#ifdef ANDROID
-    if (isWideVineVideo) {
-        //TODO set widevine level  by user
-        videoType |= VideoType::VIDEO_TYPE_WIDEVINE_L1;
-    }
-#endif
-
-    {
-        std::unique_lock<std::mutex> updateViewLock(mUpdateViewMutex);
-        bool needUpdateView = false;
-        if (mUpdateViewCB != nullptr) {
-            needUpdateView = mUpdateViewCB(videoType, mUpdateViewCBUserData);
-        }
-        if (needUpdateView) {
-            mUpdateViewCond.wait_for(updateViewLock, std::chrono::milliseconds(10), [this]() { return this->mCanceled.load(); });
-        }
-    }
-
-    if (mSet->mView == nullptr && mFrameCb == nullptr) {
-        return 0;
     }
 
     int ret = 0;
@@ -3264,7 +3240,7 @@ int SuperMediaPlayer::SetUpVideoPath()
         }
         AF_LOGD("SetUpVideoRender start");
         uint64_t flags = 0;
-        if (isHDRVideo){
+        if (isHDR) {
             flags |= videoRenderFactory::FLAG_HDR;
         }
         CreateVideoRender(flags);
@@ -3353,7 +3329,6 @@ void SuperMediaPlayer::updateVideoMeta()
 {
     mDemuxerService->GetStreamMeta(mCurrentVideoMeta, mCurrentVideoIndex, false);
     auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
-
     if (mVideoWidth != meta->width || mVideoHeight != meta->height || mVideoRotation != meta->rotate) {
         mVideoWidth = meta->width;
         mVideoHeight = meta->height;
@@ -3537,6 +3512,7 @@ void SuperMediaPlayer::Reset()
     mCurrentPos = 0;
     mCATimeBase = 0;
     mWATimeBase = 0;
+    mViewUpdateStatus = ViewUpdateStatus::Unknown;
 }
 
 int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)
@@ -3741,9 +3717,65 @@ int SuperMediaPlayer::invokeComponent(std::string content)
 void SuperMediaPlayer::setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)>  &drmCallback) {
     mDrmManager->setDrmCallback(drmCallback);
 }
-void SuperMediaPlayer::ApsaraAudioRenderCallback::onUpdateTimePosition(int64_t pos)
+
+void SuperMediaPlayer::ProcessUpdateView()
 {
 
+    if (mCurrentVideoIndex < 0) {
+        return;
+    }
+
+    int videoTag = VideoTag::VIDEO_TAG_NONE;
+
+    updateVideoMeta();
+    auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
+
+    bool isHDR = isHDRVideo(meta);
+    if (isHDR) {
+        videoTag |= VideoTag::VIDEO_TAG_HDR10;
+    }
+
+#ifdef ANDROID
+    bool isWideVine = isWideVineVideo(meta);
+    if (isWideVine) {
+        //TODO set widevine level  by user
+        videoTag |= VideoTag::VIDEO_TAG_WIDEVINE_L1;
+    }
+#endif
+
+    {
+        std::lock_guard<std::mutex> lockGuard(mViewUpdateMutex);
+
+        if (mViewUpdateStatus == ViewUpdateStatus::Unknown) {
+            if (mUpdateViewCB != nullptr) {
+                bool ret = mUpdateViewCB(videoTag, mUpdateViewCBUserData);
+                mViewUpdateStatus = ret ? ViewUpdateStatus::Yes : ViewUpdateStatus::No;
+            } else {
+                mViewUpdateStatus = ViewUpdateStatus::No;
+            }
+        }
+    }
+}
+
+bool SuperMediaPlayer::isWideVineVideo(const Stream_meta *meta) const
+{
+    bool isWideVineVideo = (meta->keyFormat != nullptr && strcmp(meta->keyFormat, "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed") == 0);
+    return isWideVineVideo;
+}
+
+bool SuperMediaPlayer::isHDRVideo(const Stream_meta *meta) const
+{
+    bool isHDRVideo = false;
+
+    if (meta->pixel_fmt == AF_PIX_FMT_YUV420P10BE || meta->pixel_fmt == AF_PIX_FMT_YUV420P10LE) {
+        AF_LOGI("HDR video\n");
+        isHDRVideo = true;
+    }
+    return isHDRVideo;
+}
+
+void SuperMediaPlayer::ApsaraAudioRenderCallback::onUpdateTimePosition(int64_t pos)
+{
     if (!mPlayer.isSeeking() && pos >= 0) {
         mPlayer.mCurrentPos = pos;
     }
