@@ -228,6 +228,9 @@ public:
 
     void SetAudioRenderingCallBack(onRenderFrame cb, void *userData) override ;
 
+    void SetUpdateViewCB(UpdateViewCB cb, void *userData) override
+    {}
+
     void setDrmRequestCallback(const std::function<Cicada::DrmResponseData*(const Cicada::DrmRequestParam& drmRequestParam)> &drmCallback) override{
         mDrmCallback = drmCallback;
     };

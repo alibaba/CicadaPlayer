@@ -72,8 +72,9 @@ namespace Cicada {
 
         void SetAudioRenderingCallback(onRenderFrame cb, void *userData);
 
-        void SetStreamTypeFlags(uint64_t flags);
+        void SetUpdateViewCallback(UpdateViewCB cb, void *userData);
 
+        void SetStreamTypeFlags(uint64_t flags);
 
         void SetIPResolveType(IpResolveType type);
 

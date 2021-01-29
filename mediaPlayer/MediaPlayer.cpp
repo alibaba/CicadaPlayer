@@ -1133,6 +1133,12 @@ namespace Cicada {
         CicadaSetAudioRenderingCallBack(handle, cb, userData);
     }
 
+    void MediaPlayer::SetUpdateViewCallback(UpdateViewCB cb, void *userData)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaSetUpdateViewCallback(handle, cb, userData);
+    }
+
     void MediaPlayer::SetStreamTypeFlags(uint64_t flags)
     {
         GET_PLAYER_HANDLE;

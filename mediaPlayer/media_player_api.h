@@ -31,6 +31,8 @@ void CicadaSetOnRenderCallBack(playerHandle *pHandle, onRenderFrame cb, void *us
 
 void CicadaSetAudioRenderingCallBack(playerHandle *pHandle, onRenderFrame cb, void *userData);
 
+void CicadaSetUpdateViewCallback(playerHandle *pHandle, UpdateViewCB cb, void *userData);
+
 /*
  * set external component callback
  */
