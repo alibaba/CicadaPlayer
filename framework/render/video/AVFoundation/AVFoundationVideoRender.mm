@@ -22,51 +22,11 @@ AVFoundationVideoRender::~AVFoundationVideoRender()
 }
 int AVFoundationVideoRender::init()
 {
-    mStatisticsFrameTime = af_getsteady_ms();
     return 0;
 }
 int AVFoundationVideoRender::clearScreen()
 {
     mRender->clearScreen();
-    return 0;
-}
-int AVFoundationVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
-{
-    int64_t pts = INT64_MIN;
-    bool rendered = false;
-    if (frame) {
-        pts = frame->getInfo().pts;
-        mFrameInfo = frame->getInfo();
-        if (mConvertor == nullptr) {
-            mConvertor = new pixelBufferConvertor();
-        }
-        if (dynamic_cast<PBAFFrame *>(frame.get()) == nullptr) {
-            IAFFrame *pbafFrame = mConvertor->convert(frame.get());
-            frame = unique_ptr<IAFFrame>(pbafFrame);
-        }
-    }
-    if (frame) {
-        mRender->renderFrame(frame);
-        rendered = true;
-    }
-    if (rendered) {
-        mStatisticsFrameCount++;
-        int64_t time = af_getsteady_ms() - mStatisticsFrameTime;
-        if (time > 1000) {
-            float timeS = (float) time / 1000;
-            mFPS = mStatisticsFrameCount / timeS;
-            mStatisticsFrameCount = 0;
-            mStatisticsFrameTime = af_getsteady_ms();
-            AF_LOGD("video fps is %f\n", mFPS);
-        }
-        if (mRenderResultCallback) {
-            mRenderResultCallback(pts, true);
-        }
-
-        if (mListener) {
-            mListener->onFrameInfoUpdate(mFrameInfo);
-        }
-    }
     return 0;
 }
 int AVFoundationVideoRender::setRotate(IVideoRender::Rotate rotate)
@@ -82,14 +42,33 @@ int AVFoundationVideoRender::setScale(IVideoRender::Scale scale)
     mRender->setScale(scale);
     return 0;
 }
-void AVFoundationVideoRender::setSpeed(float speed)
-{}
+
 int AVFoundationVideoRender::setDisPlay(void *view)
 {
     mRender->setDisplay(view);
     return 0;
 }
-float AVFoundationVideoRender::getRenderFPS()
+bool AVFoundationVideoRender::deviceRenderFrame(IAFFrame *frame)
 {
-    return mFPS;
+    bool rendered = false;
+    bool converted = false;
+    if (frame) {
+        if (mConvertor == nullptr) {
+            mConvertor = new pixelBufferConvertor();
+        }
+        if (dynamic_cast<PBAFFrame *>(frame) == nullptr) {
+            IAFFrame *pbafFrame = mConvertor->convert(frame);
+            frame = pbafFrame;
+            converted = true;
+        }
+    }
+    if (frame) {
+        mRender->renderFrame(frame);
+        rendered = true;
+    }
+    if (converted) {
+        delete frame;
+    }
+
+    return rendered;
 }

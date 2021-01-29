@@ -5,12 +5,13 @@
 #ifndef CICADAMEDIA_AVFOUNDATIONVIDEORENDER_H
 #define CICADAMEDIA_AVFOUNDATIONVIDEORENDER_H
 
+#include "../AFActiveVideoRender.h"
 #include "../IVideoRender.h"
 #include "../vsync/IVSync.h"
 #include <memory>
 #include <utils/pixelBufferConvertor.h>
 class DisplayLayerImpl;
-class AVFoundationVideoRender : public IVideoRender {
+class AVFoundationVideoRender : public AFActiveVideoRender {
 public:
     AVFoundationVideoRender();
     ~AVFoundationVideoRender() override;
@@ -18,26 +19,19 @@ public:
 
     int clearScreen() override;
 
-    int renderFrame(std::unique_ptr<IAFFrame> &frame) override;
-
     int setRotate(Rotate rotate) override;
 
     int setFlip(Flip flip) override;
 
     int setScale(Scale scale) override;
 
-    void setSpeed(float speed) override;
-
     int setDisPlay(void *view) override;
 
-    float getRenderFPS() override;
+private:
+    bool deviceRenderFrame(IAFFrame *frame) override;
 
 private:
     std::unique_ptr<DisplayLayerImpl> mRender;
-    uint32_t mStatisticsFrameCount{0};
-    int64_t mStatisticsFrameTime{0};
-    float mFPS{0};
-    IAFFrame::AFFrameInfo mFrameInfo;
     Cicada::pixelBufferConvertor *mConvertor{nullptr};
 };
 

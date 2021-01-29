@@ -54,14 +54,16 @@ private:
 private:
     std::unique_ptr<IVSync> mVSync{};
 
-    //   Cicada::SpscQueue<IAFFrame*>mInputQueue;
-    std::mutex mFrameMutex;
-    std::queue<std::unique_ptr<IAFFrame>> mInputQueue;
+    Cicada::SpscQueue<IAFFrame *> mInputQueue;
+    //    std::mutex mFrameMutex;
+    //    std::queue<std::unique_ptr<IAFFrame>> mInputQueue;
     af_scalable_clock mRenderClock;
     IAFFrame::AFFrameInfo mFrameInfo{};
     uint64_t mRenderCount{};
     uint64_t mRendertimeS{0};
     uint8_t mFps{0};
+    size_t mNeedFlushSize{0};
+    std::unique_ptr<IAFFrame> mRendingFrame{nullptr};
 };
 
 
