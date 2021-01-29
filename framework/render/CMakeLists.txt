@@ -7,6 +7,8 @@ list(APPEND SRC_FILES
         video/vsync/timedVSync.h
         video/vsync/VSyncFactory.cpp
         video/vsync/VSyncFactory.h
+        video/AFActiveVideoRender.cpp
+        video/AFActiveVideoRender.h
         renderFactory.cpp
         renderFactory.h
         audio/filterAudioRender.cpp

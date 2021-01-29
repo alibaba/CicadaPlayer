@@ -210,6 +210,8 @@ public:
 protected:
     IVideoRenderFilter *mFilter{};
     bool mInvalid{false};
+
+    // TODO: delete this
     std::function<void(int64_t, bool)> mRenderResultCallback = nullptr;
     IVideoRenderListener *mListener{nullptr};
 };

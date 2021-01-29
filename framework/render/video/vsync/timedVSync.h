@@ -21,9 +21,17 @@ public:
     void start() override;
 
     void pause() override;
-    float getHz()override{
+
+
+    float getHz() override
+    {
         return mHz;
-    };
+    }
+
+    int getPeriod() override
+    {
+        return mPeriod;
+    }
 
 
 private:
