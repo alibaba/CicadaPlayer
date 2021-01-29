@@ -157,14 +157,14 @@ typedef enum PropertyKey {
     PROPERTY_KEY_HLS_KEY_URL = 10,
 } PropertyKey;
 
-typedef enum VideoType {
-    VIDEO_TYPE_NONE = 0,
-    VIDEO_TYPE_SDR = 1 << 0,
-    VIDEO_TYPE_HDR10 = 1 << 1,
-    VIDEO_TYPE_WIDEVINE_L1 = 1 << 2,
-    VIDEO_TYPE_WIDEVINE_L3 = 1 << 3,
-    VIDEO_TYPE_FAIRPLAY = 1 << 4,
-} VideoType;
+typedef enum VideoTag {
+    VIDEO_TAG_NONE = 0,
+    VIDEO_TAG_SDR = 1 << 0,
+    VIDEO_TAG_HDR10 = 1 << 1,
+    VIDEO_TAG_WIDEVINE_L1 = 1 << 2,
+    VIDEO_TAG_WIDEVINE_L3 = 1 << 3,
+    VIDEO_TAG_FAIRPLAY = 1 << 4,
+} VideoTag;
 
 class AMediaFrame;
 

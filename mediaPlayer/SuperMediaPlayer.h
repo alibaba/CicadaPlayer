@@ -63,6 +63,11 @@ namespace Cicada {
         APP_BACKGROUND,
     } APP_STATUS;
 
+    enum class ViewUpdateStatus {
+        Unknown,
+        No,
+        Yes,
+    };
 
     class SuperMediaPlayer : public ICicadaPlayer, private CicadaPlayerPrototype {
 
@@ -526,14 +531,20 @@ namespace Cicada {
 
         void sendDCAMessage();
 
+        void ProcessUpdateView();
+
+        bool isHDRVideo(const Stream_meta *meta) const;
+
+        bool isWideVineVideo(const Stream_meta *meta) const;
+
         int64_t mCheckAudioQueEOSTime{INT64_MIN};
         uint64_t mAudioQueDuration{UINT64_MAX};
 
         onRenderFrame mFrameCb{nullptr};
         void *mFrameCbUserData{nullptr};
 
-        std::mutex mUpdateViewMutex{};
-        std::condition_variable mUpdateViewCond{};
+        std::mutex mViewUpdateMutex{};
+        std::atomic<ViewUpdateStatus> mViewUpdateStatus{ViewUpdateStatus::Unknown};
         UpdateViewCB mUpdateViewCB{nullptr};
         void *mUpdateViewCBUserData{nullptr};
 
