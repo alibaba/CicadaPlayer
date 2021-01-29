@@ -8,24 +8,61 @@
 
 #include "IVideoRender.h"
 #include "render/video/vsync/IVSync.h"
+#include <base/media/spsc_queue.h>
+#include <mutex>
+#include <queue>
+#include <utils/af_clock.h>
 
-class AFActiveVideoRender : public IVideoRender {
+class AFActiveVideoRender : public IVideoRender, private IVSync::Listener {
 
 public:
     explicit AFActiveVideoRender(float Hz = 60);
 
-    ~AFActiveVideoRender() override = default;
+    ~AFActiveVideoRender() override;
 
-    virtual void onVSync(int64_t tick) = 0;
+    void setSpeed(float speed) final;
+
+    int renderFrame(std::unique_ptr<IAFFrame> &frame) final;
+
+    float getRenderFPS() final
+    {
+        return mFps;
+    }
+
+private:
+    int VSyncOnInit() override
+    {
+        return 0;
+    }
+
+    int onVSync(int64_t tick) override;
+
+    void VSyncOnDestroy() override
+    {}
 
     virtual int setHz(float Hz);
 
+private:
+    virtual bool deviceRenderFrame(IAFFrame *frame) = 0;
 
 
-protected:
+private:
+    void dropFrame();
+    void calculateFPS(int64_t tick);
+
+
+private:
     std::unique_ptr<IVSync> mVSync{};
 
+    //   Cicada::SpscQueue<IAFFrame*>mInputQueue;
+    std::mutex mFrameMutex;
+    std::queue<std::unique_ptr<IAFFrame>> mInputQueue;
+    af_scalable_clock mRenderClock;
+    IAFFrame::AFFrameInfo mFrameInfo{};
+    uint64_t mRenderCount{};
+    uint64_t mRendertimeS{0};
+    uint8_t mFps{0};
 };
 
 
-#endif //FRAMEWORK_AFACTIVEVIDEORENDER_H
+#endif//FRAMEWORK_AFACTIVEVIDEORENDER_H
