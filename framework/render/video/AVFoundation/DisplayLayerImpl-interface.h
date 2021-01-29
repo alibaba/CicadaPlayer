@@ -14,7 +14,7 @@ public:
     void init();
     int createLayer();
     void setDisplay(void *display);
-    int renderFrame(std::unique_ptr<IAFFrame> &frame);
+    int renderFrame(IAFFrame *frame);
     void clearScreen();
     void setScale(IVideoRender::Scale scale);
 

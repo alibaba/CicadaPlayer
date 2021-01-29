@@ -30,13 +30,12 @@ int DisplayLayerImpl::createLayer()
     return [(__bridge id) renderHandle createLayer];
 }
 
-int DisplayLayerImpl::renderFrame(std::unique_ptr<IAFFrame> &frame)
+int DisplayLayerImpl::renderFrame(IAFFrame *frame)
 {
-    auto *pbafFrame = dynamic_cast<PBAFFrame *>(frame.get());
+    auto *pbafFrame = dynamic_cast<PBAFFrame *>(frame);
     if (pbafFrame) {
         [(__bridge id) renderHandle displayPixelBuffer:pbafFrame->getPixelBuffer()];
     }
-    frame = NULL;
 
     return 0;
 }
