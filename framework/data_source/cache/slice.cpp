@@ -69,7 +69,7 @@ namespace Cicada {
 
     int slice::readAt(void *buffer, int size, uint64_t offset)
     {
-        int readSize = (int) MIN(size, mSize - offset);
+        int readSize = (int) MIN(size, (int) (mSize - offset));
 
         if (readSize > 0 && buffer != nullptr) {
             memcpy(buffer, mBufferPtr + offset, static_cast<size_t>(readSize));
