@@ -27,6 +27,11 @@ public:
 
     int setDisPlay(void *view) override;
 
+    uint64_t getFlags() override
+    {
+        return FLAG_HDR;
+    }
+
 private:
     bool deviceRenderFrame(IAFFrame *frame) override;
 

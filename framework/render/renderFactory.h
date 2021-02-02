@@ -15,7 +15,6 @@ namespace Cicada {
 
     class videoRenderFactory {
     public:
-        static const uint64_t FLAG_HDR = (1 << 0);
         static std::unique_ptr<IVideoRender> create(uint64_t flags = 0);
     };
 }// namespace Cicada
