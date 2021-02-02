@@ -79,6 +79,10 @@ unique_ptr<IVideoRender> videoRenderFactory::create(uint64_t flags)
 #ifdef __APPLE__
         return std::unique_ptr<IVideoRender>(new AVFoundationVideoRender());
 #endif
+
+#ifdef __ANDROID__
+        return std::unique_ptr<IVideoRender>(new DummyVideoRender());
+#endif
         return nullptr;
     }
 
