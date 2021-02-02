@@ -12,17 +12,10 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-      - name: build external
+      - name: build SDK
         run: |
           git config --global user.email "you@example.com"
           git config --global user.name "Your Name"
           . setup.env
           . build_player.sh
           build_iOS
-
-      - name: build SDK
-        run: |
-          cd platform/Apple/demo/iOS
-          ./genxcodeproj.sh
-          cd SDK
-          xcodebuild -scheme ALL_BUILD ONLY_ACTIVE_ARCH=NO -configuration MinSizeRel -sdk iphoneos VALID_ARCHS="armv7 arm64"
