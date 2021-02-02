@@ -2334,7 +2334,8 @@ void SuperMediaPlayer::SendVideoFrameToRender(unique_ptr<IAFFrame> frame, bool v
             // for windows init failed, which may need change render type in future.
             mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_VIDEO_RENDER_INIT_ERROR, "init video render failed");
         }
-    } else if (!mNeedVideoRender) {
+    } else {
+        assert(0);
         //render directly
         VideoRenderCallback(this, frame->getInfo().pts, !frame->getDiscard(), nullptr);
     }
@@ -3189,8 +3190,7 @@ int SuperMediaPlayer::setUpAudioRender(const IAFFrame::audioInfo &info)
 
 int SuperMediaPlayer::SetUpVideoPath()
 {
-    if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO) &&
-        (mAVDeviceManager->isVideoRenderValid() || !mNeedVideoRender)) {
+    if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO) && (mAVDeviceManager->isVideoRenderValid())) {
         return 0;
     }
 
@@ -3216,7 +3216,11 @@ int SuperMediaPlayer::SetUpVideoPath()
      */
     updateVideoMeta();
     auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
-    bool isHDR = isHDRVideo(meta);
+    uint64_t flags = 0;
+
+    if (isHDRVideo(meta)) {
+        flags |= IVideoRender::FLAG_HDR;
+    }
 #ifdef ANDROID
     bool isWideVine = isWideVineVideo(meta);
 #endif
@@ -3228,25 +3232,21 @@ int SuperMediaPlayer::SetUpVideoPath()
         || isWideVine
 #endif
     ) {
-        mAVDeviceManager->destroyVideoRender();
-        mNeedVideoRender = false;
+        flags |= IVideoRender::FLAG_DUMMY;
     }
 
     int ret = 0;
 
-    if (mNeedVideoRender && mSet->mView != nullptr && !mAVDeviceManager->isVideoRenderValid()) {
+    if (mSet->mView != nullptr && !mAVDeviceManager->isVideoRenderValid()) {
         if (mAppStatus == APP_BACKGROUND) {
             AF_LOGW("create video render in background");
         }
         AF_LOGD("SetUpVideoRender start");
-        uint64_t flags = 0;
-        if (isHDR) {
-            flags |= videoRenderFactory::FLAG_HDR;
-        }
         CreateVideoRender(flags);
         if (!mAVDeviceManager->isVideoRenderValid()) {
-            AF_LOGI("try use decoder to render video\n");
-            mNeedVideoRender = false;
+            AF_LOGE("can't create video render\n");
+            mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_VIDEO_RENDER_INIT_ERROR, "init video render failed");
+            return -EINVAL;
         }
     }
 
@@ -3394,7 +3394,7 @@ int SuperMediaPlayer::CreateVideoDecoder(bool bHW, Stream_meta &meta)
     mAVDeviceManager->flushVideoRender();
 
     if (bHW) {
-        if (!mNeedVideoRender) {
+        if (mAVDeviceManager->getVideoRender()->getFlags() & IVideoRender::FLAG_DUMMY) {
             view = mSet->mView;
             decFlag |= DECFLAG_DIRECT;
         } else {
@@ -3507,7 +3507,6 @@ void SuperMediaPlayer::Reset()
     mPausedByAudioInterrupted = false;
     mSecretPlayBack = false;
     mDrmKeyValid = false;
-    mNeedVideoRender = true;
     mPtsDiscontinueDelta = INT64_MIN;
     mCurrentPos = 0;
     mCATimeBase = 0;
