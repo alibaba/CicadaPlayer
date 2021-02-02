@@ -59,6 +59,11 @@ public:
 
     void delayRefreshScreen();
 
+    uint64_t getFlags() override
+    {
+        return 0;
+    }
+
 private:
     int VSyncOnInit() override
     {

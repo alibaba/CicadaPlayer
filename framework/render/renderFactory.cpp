@@ -43,6 +43,8 @@
 
 #endif
 
+#include "video/DummyVideoRender.h"
+
 using namespace Cicada;
 
 std::unique_ptr<IAudioRender> AudioRenderFactory::create()
@@ -69,7 +71,11 @@ std::unique_ptr<IAudioRender> AudioRenderFactory::create()
 
 unique_ptr<IVideoRender> videoRenderFactory::create(uint64_t flags)
 {
-    if (flags & FLAG_HDR) {
+    if (flags & IVideoRender::FLAG_DUMMY) {
+        return std::unique_ptr<IVideoRender>(new DummyVideoRender());
+    }
+
+    if (flags & IVideoRender::FLAG_HDR) {
 #ifdef __APPLE__
         return std::unique_ptr<IVideoRender>(new AVFoundationVideoRender());
 #endif

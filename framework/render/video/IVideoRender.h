@@ -12,6 +12,8 @@
 class IVideoRender {
 
 public:
+    static const uint64_t FLAG_HDR = (1 << 0);
+    static const uint64_t FLAG_DUMMY = (1 << 1);
 
     enum Rotate {
         Rotate_None = 0,
@@ -205,6 +207,7 @@ public:
     {
         mInvalid = invalid;
     }
+    virtual uint64_t getFlags() = 0;
 
 
 protected:

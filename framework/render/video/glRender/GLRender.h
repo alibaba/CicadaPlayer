@@ -62,6 +62,10 @@ public:
     float getRenderFPS() override;
 
     void surfaceChanged() override;
+    uint64_t getFlags() override
+    {
+        return 0;
+    };
 
 private:
 
