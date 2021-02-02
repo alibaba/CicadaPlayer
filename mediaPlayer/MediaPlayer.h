@@ -17,12 +17,13 @@ class AbrManager;
 class AbrAlgoStrategy;
 
 #include <cacheModule/CacheManager.h>
+#include <drm/DrmHandler.h>
 #include <mutex>
+#include <render/video/IVideoRender.h>
 #include <sstream>
 #include <string>
 #include <utils/AFMediaType.h>
 #include <vector>
-#include <drm/DrmHandler.h>
 
 #ifdef ANDROID
 
@@ -73,6 +74,8 @@ namespace Cicada {
         void SetAudioRenderingCallback(onRenderFrame cb, void *userData);
 
         void SetUpdateViewCallback(UpdateViewCB cb, void *userData);
+
+        void SetVideoRenderOperationListener(IVideoRender::VideoRenderOperationListener *listener);
 
         void SetStreamTypeFlags(uint64_t flags);
 

@@ -1139,6 +1139,12 @@ namespace Cicada {
         CicadaSetUpdateViewCallback(handle, cb, userData);
     }
 
+    void MediaPlayer::SetVideoRenderOperationListener(IVideoRender::VideoRenderOperationListener *listener)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaSetVideoRenderOperationListener(handle, listener);
+    }
+
     void MediaPlayer::SetStreamTypeFlags(uint64_t flags)
     {
         GET_PLAYER_HANDLE;

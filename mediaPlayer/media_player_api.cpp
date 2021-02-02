@@ -668,6 +668,15 @@ void CicadaSetErrorConverter(playerHandle *pHandle, ErrorConverter *converter)
     }
 }
 
+void CicadaSetVideoRenderOperationListener(playerHandle *pHandle, IVideoRender::VideoRenderOperationListener *listener)
+{
+    GET_PLAYER;
+
+    if (player) {
+        return player->setVideoRenderOperationListener(listener);
+    }
+}
+
 void CicadaSetBitStreamCb(playerHandle *pHandle, readCB read, seekCB seek, void *arg)
 {
     GET_PLAYER;

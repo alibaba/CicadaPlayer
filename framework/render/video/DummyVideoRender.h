@@ -24,18 +24,37 @@ namespace Cicada {
         }
         int clearScreen() override
         {
+            if (mVideoRenderOperationListener != nullptr) {
+                mVideoRenderOperationListener->onClearScreen();
+            }
             return 0;
         }
+
+        void setBackgroundColor(uint32_t color) override
+        {
+            if (mVideoRenderOperationListener != nullptr) {
+                mVideoRenderOperationListener->onSetBackgroundColor(color);
+            }
+        };
         int setRotate(Rotate rotate) override
         {
+            if (mVideoRenderOperationListener != nullptr) {
+                mVideoRenderOperationListener->onSetRotateMode(rotate);
+            }
             return 0;
         }
         int setFlip(Flip flip) override
         {
+            if (mVideoRenderOperationListener != nullptr) {
+                mVideoRenderOperationListener->onSetMirrorMode(flip);
+            }
             return 0;
         }
         int setScale(Scale scale) override
         {
+            if (mVideoRenderOperationListener != nullptr) {
+                mVideoRenderOperationListener->onSetScaleMode(scale);
+            }
             return 0;
         }
 

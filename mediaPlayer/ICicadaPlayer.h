@@ -5,10 +5,11 @@
 #ifndef CICADA_PLAYER_ICICADAPLAYER_H
 #define CICADA_PLAYER_ICICADAPLAYER_H
 
-#include <utils/AFMediaType.h>
 #include "native_cicada_player_def.h"
 #include <cacheModule/cache/CacheConfig.h>
 #include <drm/DrmHandler.h>
+#include <render/video/IVideoRender.h>
+#include <utils/AFMediaType.h>
 
 namespace Cicada{
     class IDemuxerFactory;
@@ -255,6 +256,11 @@ namespace Cicada {
             mErrorConverter = converter;
         }
 
+        virtual void setVideoRenderOperationListener(IVideoRender::VideoRenderOperationListener *listener)
+        {
+            mVideoRenderOperationListener = listener;
+        }
+
         /*
          * Reload network connection at the break point
          */
@@ -278,6 +284,7 @@ namespace Cicada {
         void* mCRArg = nullptr;
 
         ErrorConverter *mErrorConverter = nullptr;
+        IVideoRender::VideoRenderOperationListener *mVideoRenderOperationListener{nullptr};
     };
 
 }

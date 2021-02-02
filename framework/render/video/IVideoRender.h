@@ -86,7 +86,24 @@ public:
     class IVideoRenderListener {
     public:
         virtual void onFrameInfoUpdate(IAFFrame::AFFrameInfo &info) = 0;
+
         virtual ~IVideoRenderListener() = default;
+    };
+
+
+    class VideoRenderOperationListener {
+    public:
+        virtual void onSetScaleMode(int scale) = 0;
+
+        virtual void onSetMirrorMode(int mirror) = 0;
+
+        virtual void onSetRotateMode(int rotate) = 0;
+
+        virtual void onSetBackgroundColor(uint32_t color) = 0;
+
+        virtual void onClearScreen() = 0;
+
+        virtual void onRenderCreated(uint64_t flags) = 0;
     };
 
 public:
@@ -163,6 +180,11 @@ public:
 
     }
 
+    virtual void setVideoRenderOperationListener(VideoRenderOperationListener *listener)
+    {
+        mVideoRenderOperationListener = listener;
+    }
+
     virtual void surfaceChanged() {
 
     }
@@ -217,6 +239,7 @@ protected:
     // TODO: delete this
     std::function<void(int64_t, bool)> mRenderResultCallback = nullptr;
     IVideoRenderListener *mListener{nullptr};
+    VideoRenderOperationListener *mVideoRenderOperationListener{nullptr};
 };
 
 

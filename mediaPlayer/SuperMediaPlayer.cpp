@@ -3210,6 +3210,7 @@ int SuperMediaPlayer::SetUpVideoPath()
         AF_LOGW("Wait for parser video interlaced Type");
         return 0;
     }
+
     /*
      * update the video meta after the first video packet was reached,
      * otherwise the video meta is incomplete when playing a master hls playList.
@@ -3357,6 +3358,11 @@ bool SuperMediaPlayer::CreateVideoRender(uint64_t flags)
     if (!mAVDeviceManager->getVideoRender()) {
         return false;
     }
+
+    if (mVideoRenderOperationListener != nullptr) {
+        mVideoRenderOperationListener->onRenderCreated(flags);
+    }
+    mAVDeviceManager->getVideoRender()->setVideoRenderOperationListener(mVideoRenderOperationListener);
     mAVDeviceManager->getVideoRender()->setScale(convertScaleMode(mSet->scaleMode));
     mAVDeviceManager->getVideoRender()->setRotate(convertRotateMode(mSet->rotateMode));
     mAVDeviceManager->getVideoRender()->setBackgroundColor(mSet->mVideoBackgroundColor);

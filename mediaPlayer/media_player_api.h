@@ -1,11 +1,12 @@
 #ifndef CICADA_PLAYER_H_
 #define CICADA_PLAYER_H_
 
-#include <vector>
-#include <utils/AFMediaType.h>
-#include <cacheModule/cache/CacheConfig.h>
 #include "native_cicada_player_def.h"
+#include <cacheModule/cache/CacheConfig.h>
 #include <drm/DrmHandler.h>
+#include <render/video/IVideoRender.h>
+#include <utils/AFMediaType.h>
+#include <vector>
 
 //typedef struct Stream_meta_t Stream_meta;
 
@@ -48,6 +49,8 @@ void CicadaSetBitStreamCb(playerHandle *pHandle, readCB read, seekCB seek, void 
  * set error code converter
  */
 void CicadaSetErrorConverter(playerHandle *player, ErrorConverter *converter);
+
+void CicadaSetVideoRenderOperationListener(playerHandle *player, IVideoRender::VideoRenderOperationListener *listener);
 
 /*
  * set decoder type
