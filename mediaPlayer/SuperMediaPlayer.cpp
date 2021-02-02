@@ -3219,7 +3219,15 @@ int SuperMediaPlayer::SetUpVideoPath()
     uint64_t flags = 0;
 
     if (isHDRVideo(meta)) {
+        /*
+         * HDR video must use mediaCodec to render direct on Android,
+         * we use a dummy render to release the frame simply
+         */
+#ifdef ANDROID
+        flags |= IVideoRender::FLAG_DUMMY;
+#else
         flags |= IVideoRender::FLAG_HDR;
+#endif
     }
 #ifdef ANDROID
     bool isWideVine = isWideVineVideo(meta);
