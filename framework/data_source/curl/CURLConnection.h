@@ -16,6 +16,8 @@ namespace Cicada {
     public:
         explicit CURLConnection(Cicada::IDataSource::SourceConfig *pConfig);
 
+        void setSSLBackEnd(curl_sslbackend sslbackend);
+
         ~CURLConnection();
 
         void disconnect();

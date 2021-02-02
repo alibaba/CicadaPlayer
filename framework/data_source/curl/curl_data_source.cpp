@@ -22,8 +22,8 @@
 #include <cerrno>
 #include <utils/CicadaUtils.h>
 //#include <openssl/opensslv.h>
+#include <cassert>
 #include <cstring>
-
 
 
 // TODO: move to another file
@@ -42,12 +42,15 @@
 static pthread_once_t once = PTHREAD_ONCE_INIT;
 using namespace Cicada;
 
+static curl_sslbackend g_sslbackend = CURLSSLBACKEND_NONE;
+
 CurlDataSource CurlDataSource::se(0);
 using std::string;
 
 CURLConnection *CurlDataSource::initConnection()
 {
     auto *pHandle = new CURLConnection(pConfig);
+    pHandle->setSSLBackEnd(g_sslbackend);
     pHandle->setSource(mLocation, headerList);
     pHandle->setPost(mBPost, mPostSize, mPostData);
     return pHandle;
@@ -114,10 +117,23 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
 
     return 0;
 }
+static curl_sslbackend getCurlSslBackend()
+{
+    const curl_ssl_backend **list;
+    CURLsslset result = curl_global_sslset((curl_sslbackend) -1, nullptr, &list);
+    assert(result == CURLSSLSET_UNKNOWN_BACKEND);
 
+    // we only build one ssl backend
+    if (list[0]) {
+        return list[0]->id;
+    }
+
+    return CURLSSLBACKEND_NONE;
+}
 
 static void init_curl()
 {
+    g_sslbackend = getCurlSslBackend();
     curl_global_init(CURL_GLOBAL_DEFAULT);
 #if (OPENSSL_VERSION_NUMBER < 0x10100000L)
 //   openssl_thread_setup();

@@ -115,6 +115,17 @@ Cicada::CURLConnection::CURLConnection(Cicada::IDataSource::SourceConfig *pConfi
     multi_handle = curl_multi_init();
 }
 
+void CURLConnection::setSSLBackEnd(curl_sslbackend sslbackend)
+{
+    //For https ignore CA certificates
+    curl_easy_setopt(mHttp_handle, CURLOPT_SSL_VERIFYPEER, FALSE);
+
+    // openssl not verify host, otherwise will return CURLE_PEER_FAILED_VERIFICATION
+    if (sslbackend == CURLSSLBACKEND_OPENSSL) {
+        curl_easy_setopt(mHttp_handle, CURLOPT_SSL_VERIFYHOST, FALSE);
+    }
+}
+
 Cicada::CURLConnection::~CURLConnection()
 {
     if (multi_handle && mHttp_handle) {
@@ -367,9 +378,6 @@ int Cicada::CURLConnection::esayHandle_set_common_opt()
     curl_easy_setopt(mHttp_handle, CURLOPT_DEBUGDATA, this);
     curl_easy_setopt(mHttp_handle, CURLOPT_HEADERFUNCTION, write_response);
     curl_easy_setopt(mHttp_handle, CURLOPT_HEADERDATA, this);
-//For https ignore CA certificates
-    curl_easy_setopt(mHttp_handle, CURLOPT_SSL_VERIFYPEER, FALSE);
-    //   curl_easy_setopt(mHttp_handle, CURLOPT_SSL_VERIFYHOST, FALSE);
     return 0;
 }
 
