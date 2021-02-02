@@ -45,28 +45,12 @@ set(ALI_SRC_LIBRARIES
         iconv
         resolv
         bz2
-        ${VIDEO_TOOL_BOX}
-        ${COREMEDIA}
-        ${COREVIDEO}
-        ${COREFOUNDATION}
-        ${COREGRAPHICS}
-        ${AUDIO_TOOL_BOX}
-        ${CORE_AUDIO}
-        ${OPEN_AL}
-        ${CORE_IMAGE}
-        ${AV_FOUNDATION}
-        ${QUARTZ_CORE}
         c++
         )
+
+set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES} "-framework CoreMedia -framework CoreVideo -framework VideoToolbox -framework CoreFoundation -framework CoreGraphics -framework AudioToolbox -framework CoreAudio -framework OpenAl -framework CoreImage -framework AVFoundation -framework QuartzCore")
 if (IOS)
-    set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES}
-            ${UIKIT}
-            ${OPENGLES}
-            )
+    set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES} "-framework UIKit -framework OpenGLES")
 else ()
-    set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES}
-#            ${CONAN}
-            ${APP_KIT}
-            ${OPEN_GL}
-            )
+    set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES} "-framework AppKit -framework OpenGl")
 endif ()
