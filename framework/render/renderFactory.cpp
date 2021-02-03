@@ -29,12 +29,6 @@
 
 #endif
 
-#ifdef ENABLE_CHEAT_RENDER
-
-#include "video/CheaterVideoRender.h"
-
-#endif
-
 #include "audio/audioRenderPrototype.h"
 
 #ifdef ENABLE_CHEAT_RENDER
@@ -76,7 +70,7 @@ unique_ptr<IVideoRender> videoRenderFactory::create(uint64_t flags)
     }
 
     if (flags & IVideoRender::FLAG_HDR) {
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(ENABLE_SDL)
         return std::unique_ptr<IVideoRender>(new AVFoundationVideoRender());
 #endif
         return nullptr;
@@ -87,7 +81,7 @@ unique_ptr<IVideoRender> videoRenderFactory::create(uint64_t flags)
 #elif defined(ENABLE_SDL)
     return std::unique_ptr<IVideoRender>(new SdlAFVideoRender());
 #elif defined(ENABLE_CHEAT_RENDER)
-    return std::unique_ptr<IVideoRender>(new CheaterVideoRender());
+    return std::unique_ptr<IVideoRender>(new DummyVideoRender());
 #endif
     return nullptr;
 }
