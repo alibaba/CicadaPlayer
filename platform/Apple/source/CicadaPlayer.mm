@@ -931,7 +931,7 @@ int64_t CicadaClockRefer(void *arg)
     if (player.referClock) {
         return player.referClock();
     }
-    return -1;
+    return 0;
 }
 
 -(void) SetClockRefer:(int64_t (^)(void))referClock
