@@ -1377,11 +1377,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
                     mBufferController->ClearPacket(BUFFER_TYPE_AUDIO);
                     AF_LOGW("close audio stream");
                 } else {
-                    mDemuxerService->CloseStream(mCurrentVideoIndex);
-                    mCurrentVideoIndex = -1;
-                    //  mVideoFrameQue.clear();
-                    mBufferController->ClearPacket(BUFFER_TYPE_VIDEO);
-                    AF_LOGW("close video stream");
+                    closeVideo();
                 }
             }
         }
@@ -1528,6 +1524,15 @@ bool SuperMediaPlayer::DoCheckBufferPass()
     }
 
     return true;
+}
+void SuperMediaPlayer::closeVideo()
+{
+    AF_LOGW("close video stream");
+    mDemuxerService->CloseStream(mCurrentVideoIndex);
+    mCurrentVideoIndex = -1;
+    //  mVideoFrameQue.clear();
+    mBufferController->ClearPacket(BUFFER_TYPE_VIDEO);
+    FlushVideoPath();
 }
 
 void SuperMediaPlayer::LiveCatchUp(int64_t delayTime)
@@ -2106,6 +2111,10 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
 
 bool SuperMediaPlayer::RenderVideo(bool force_render)
 {
+
+    if (!mAVDeviceManager->isVideoRenderValid()) {
+        return false;
+    }
     //send to video render
     if (mVideoFrameQue.empty()) {
         return false;
@@ -2512,8 +2521,7 @@ void SuperMediaPlayer::setUpAVPath()
 
         if (ret < 0) {
             AF_LOGE("%s SetUpVideoPath failed,url is %s %s", __FUNCTION__, mSet->url.c_str(), framework_err2_string(ret));
-            mDemuxerService->CloseStream(mCurrentVideoIndex);
-            mCurrentVideoIndex = -1;
+            closeVideo();
         }
     }
 

@@ -321,6 +321,34 @@ namespace Cicada {
 
         void updateVideoMeta();
 
+        void doDeCode();
+
+        void doRender();
+
+        void doReadPacket();
+
+        int setUpAudioRender(const IAFFrame::audioInfo &info);
+
+        std::atomic<int64_t> mCurrentPos{};
+
+        void printTimePosition(int64_t time) const;
+
+        void setUpAVPath();
+
+        void startRendering(bool start);
+
+        void sendDCAMessage();
+
+        void ProcessUpdateView();
+
+        bool isHDRVideo(const Stream_meta *meta) const;
+
+        bool isWideVineVideo(const Stream_meta *meta) const;
+
+        void closeVideo();
+
+        void checkFirstRender();
+
         class ApsaraAudioRenderCallback : public IAudioRenderListener {
         public:
             explicit ApsaraAudioRenderCallback(SuperMediaPlayer &player) : mPlayer(player)
@@ -361,8 +389,6 @@ namespace Cicada {
             SuperMediaPlayer &mPlayer;
         };
 
-    private:
-        void checkFirstRender();
     private:
         static IVideoRender::Scale convertScaleMode(ScaleMode mode);
 
@@ -408,12 +434,8 @@ namespace Cicada {
         std::unique_ptr<ApsaraAudioRenderCallback> mAudioRenderCB{nullptr};
         std::unique_ptr<ApsaraVideoRenderListener> mVideoRenderListener{nullptr};
         std::unique_ptr<BufferController> mBufferController{nullptr};
-
         std::mutex mAppStatusMutex;
         std::atomic<APP_STATUS> mAppStatus{APP_FOREGROUND};
-//#ifdef WIN32
-//        AlivcDxva2Render m_dxva2Render;
-//#endif
         int mVideoWidth{0};
         int mVideoHeight{0};
         int mVideoRotation{0};
@@ -431,7 +453,6 @@ namespace Cicada {
         int mWillChangedVideoStreamIndex{-1};
         int mWillChangedAudioStreamIndex{-1};
         int mWillChangedSubtitleStreamIndex{-1};
-
         float mCATimeBase{};      // current audio stream origin pts time base
         float mWATimeBase{};      // willChange audio stream origin pts time base
         int mRemainLiveSegment{0};// To avoid access demuxer multi-thread
@@ -484,72 +505,33 @@ namespace Cicada {
         std::unique_ptr<afThread> mApsaraThread{};
         int mLoadingProcess{0};
         int64_t mPrepareStartTime = 0;
-
         int mVideoParserTimes = 0;
         InterlacedType mVideoInterlaced = InterlacedType_UNKNOWN;
         bitStreamParser *mVideoParser = nullptr;
-
         int64_t mPtsDiscontinueDelta{INT64_MIN};
-
         std::unique_ptr<MediaPlayerUtil> mUtil{};
-
         std::unique_ptr<SuperMediaPlayerDataSourceListener> mSourceListener{nullptr};
         std::unique_ptr<SMP_DCAManager> mDcaManager{nullptr};
-
         std::unique_ptr<SMPAVDeviceManager> mAVDeviceManager{nullptr};
-
         std::unique_ptr<IAFPacket> mVideoPacket{};
         std::unique_ptr<IAFPacket> mAudioPacket{};
         std::unique_ptr<mediaPlayerSubTitleListener> mSubListener;
         std::unique_ptr<subTitlePlayer> mSubPlayer;
-
         bool dropLateVideoFrames = false;
         bool waitingForStart = false;
         bool mBRendingStart {false};
         bool mSecretPlayBack{false};
         bool mDrmKeyValid{false};
-
         std::unique_ptr<SMPRecorderSet> mRecorderSet{nullptr};
-
-    private:
-
         bool mAutoPlay = false;
-
-        void doDeCode();
-
-        void doRender();
-
-        void doReadPacket();
-
-        int setUpAudioRender(const IAFFrame::audioInfo &info);
-
-        std::atomic<int64_t> mCurrentPos{};
-
-        void printTimePosition(int64_t time) const;
-
-        void setUpAVPath();
-
-        void startRendering(bool start);
-
-        void sendDCAMessage();
-
-        void ProcessUpdateView();
-
-        bool isHDRVideo(const Stream_meta *meta) const;
-
-        bool isWideVineVideo(const Stream_meta *meta) const;
-
         int64_t mCheckAudioQueEOSTime{INT64_MIN};
         uint64_t mAudioQueDuration{UINT64_MAX};
-
         onRenderFrame mFrameCb{nullptr};
         void *mFrameCbUserData{nullptr};
-
         std::mutex mViewUpdateMutex{};
         std::atomic<ViewUpdateStatus> mViewUpdateStatus{ViewUpdateStatus::Unknown};
         UpdateViewCB mUpdateViewCB{nullptr};
         void *mUpdateViewCBUserData{nullptr};
-
         onRenderFrame mAudioRenderingCb{nullptr};
         void *mAudioRenderingCbUserData{nullptr};
         bool mIsDummy{false};
