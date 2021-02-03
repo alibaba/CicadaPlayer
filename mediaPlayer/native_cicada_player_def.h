@@ -100,6 +100,7 @@ typedef struct playerListener_t {
     playerType1Callback PositionUpdate;
     playerType1Callback BufferPositionUpdate;
     playerType1Callback LoadingProgress;
+    playerType1Callback CurrentDownLoadSpeed;
 
     playerType12Callback VideoSizeChanged;
     playerType12Callback StatusChanged;

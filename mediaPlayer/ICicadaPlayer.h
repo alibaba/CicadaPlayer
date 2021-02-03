@@ -267,6 +267,8 @@ namespace Cicada {
 
         virtual int invokeComponent(std::string content) = 0;
 
+        virtual float getCurrentDownloadSpeed() = 0;
+
     protected:
         playerMediaFrameCb mMediaFrameCb = nullptr;
         void *mMediaFrameCbArg = nullptr;

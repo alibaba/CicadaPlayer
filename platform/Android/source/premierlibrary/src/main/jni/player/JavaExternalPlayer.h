@@ -234,6 +234,12 @@ public:
     void setDrmRequestCallback(const std::function<Cicada::DrmResponseData*(const Cicada::DrmRequestParam& drmRequestParam)> &drmCallback) override{
         mDrmCallback = drmCallback;
     };
+
+    float getCurrentDownloadSpeed() override
+    {
+        return 0;
+    }
+
 public:
     static bool is_supported(const Cicada::options *opts);
 

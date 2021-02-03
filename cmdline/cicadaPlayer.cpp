@@ -51,6 +51,11 @@ static void onPrepared(void *userData)
     cont->player->Start();
 }
 
+static void currentDownLoadSpeed(int64_t speed, void *userData)
+{
+    AF_LOGD("current speed is %f kbps\n", (float) speed / 1024);
+}
+
 static void onEvent(int64_t errorCode, const void *errorMsg, void *userData)
 {
     auto *cont = static_cast<cicadaCont *>(userData);
@@ -131,6 +136,7 @@ int main(int argc, char *argv[])
     pListener.EventCallback = onEvent;
     pListener.ErrorCallback = onError;
     pListener.Prepared = onPrepared;
+    pListener.CurrentDownLoadSpeed = currentDownLoadSpeed;
     cicadaEventListener eListener(player.get());
 #ifdef ENABLE_SDL
     SDLEventReceiver receiver(eListener);

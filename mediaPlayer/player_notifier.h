@@ -41,6 +41,8 @@ namespace Cicada {
 
         void NotifyPosition(int64_t pos);
 
+        void NotifyCurrentDownloadSpeed(float speed);
+
         void NotifyBufferPosition(int64_t pos);
 
         void NotifyVideoSizeChanged(int64_t width, int64_t height);
@@ -96,6 +98,7 @@ namespace Cicada {
         std::condition_variable mCondition;
         bool mEnable = true;
         std::atomic_bool mRunning{true};
+        float mCurrentDownloadSpeed{0};
     };
 }
 

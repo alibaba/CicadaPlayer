@@ -378,6 +378,8 @@ namespace Cicada {
 
         static void loadingProgressCallback(int64_t prg, void *userData);
 
+        static void currentDownLoadSpeed(int64_t speed, void *userData);
+
         static void subtitleShowCallback(int64_t index, int64_t size, const void *content, void *userData);
 
         static void subtitleHideCallback(int64_t index, int64_t size, const void *content, void *userData);
