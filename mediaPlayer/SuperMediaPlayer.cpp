@@ -2315,6 +2315,7 @@ void SuperMediaPlayer::OnTimer(int64_t curTime)
 
         PostBufferPositionMsg();
     }
+    mPNotifier->NotifyCurrentDownloadSpeed(mUtil->getCurrentDownloadSpeed());
 }
 
 void SuperMediaPlayer::SendVideoFrameToRender(unique_ptr<IAFFrame> frame, bool valid)
@@ -3779,6 +3780,10 @@ bool SuperMediaPlayer::isHDRVideo(const Stream_meta *meta) const
         isHDRVideo = true;
     }
     return isHDRVideo;
+}
+float SuperMediaPlayer::getCurrentDownloadSpeed()
+{
+    return mUtil->getCurrentDownloadSpeed();
 }
 
 void SuperMediaPlayer::ApsaraAudioRenderCallback::onUpdateTimePosition(int64_t pos)

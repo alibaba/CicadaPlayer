@@ -50,6 +50,7 @@ namespace Cicada {
         listener.LoadingStart = loadingStartCallback;
         listener.LoadingEnd = loadingEndCallback;
         listener.LoadingProgress = loadingProgressCallback;
+        listener.CurrentDownLoadSpeed = currentDownLoadSpeed;
         listener.Seeking = PlayerSeeking;
         listener.SeekEnd = PlayerSeekEnd;
         listener.SubtitleShow = subtitleShowCallback;
@@ -860,6 +861,15 @@ namespace Cicada {
 
         if (player->mListener.LoadingProgress) {
             player->mListener.LoadingProgress(prg, player->mListener.userData);
+        }
+    }
+
+    void MediaPlayer::currentDownLoadSpeed(int64_t speed, void *userData)
+    {
+        GET_MEDIA_PLAYER
+
+        if (player->mListener.CurrentDownLoadSpeed) {
+            player->mListener.CurrentDownLoadSpeed(speed, player->mListener.userData);
         }
     }
 
