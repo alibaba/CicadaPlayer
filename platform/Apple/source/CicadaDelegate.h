@@ -114,6 +114,19 @@
  */
 - (void)onLoadingProgress:(CicadaPlayer*)player progress:(float)progress;
 
+
+/**
+ @brief 下载速度回调
+ @param player 播放器player指针
+ @param speed 当前下载速度单位 bps
+ */
+/****
+ @brief current download speed callback.
+ @param player Player pointer.
+ @param speed   bps
+ */
+- (void)onCurrentDownLoadSpeed:(CicadaPlayer *)player progress:(float)speed;
+
 /**
  @brief 获取track信息回调
  @param player 播放器player指针
