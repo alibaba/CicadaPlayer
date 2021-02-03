@@ -44,7 +44,6 @@ endif ()
 
 if (ENABLE_CHEAT_RENDER)
     list(APPEND SRC_FILES
-            video/CheaterVideoRender.cpp
             audio/CheaterAudioRender.cpp
             )
 endif ()
