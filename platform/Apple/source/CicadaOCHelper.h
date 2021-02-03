@@ -47,6 +47,8 @@ protected:
 
     static void onLoadingProgress(int64_t percent, void *userData);
 
+    static void onCurrentDownLoadSpeed(int64_t speed, void *userData);
+
     static void onLoadingEnd(void *userData);
 
     static void onSeekEnd(int64_t seekInCache, void *userData);

@@ -158,6 +158,7 @@ void CicadaOCHelper::getListener(playerListener &listener)
     listener.BufferPositionUpdate = onBufferPositionUpdate;
     listener.LoadingStart = onLoadingStart;
     listener.LoadingProgress = onLoadingProgress;
+    listener.CurrentDownLoadSpeed = onCurrentDownLoadSpeed;
     listener.LoadingEnd = onLoadingEnd;
     listener.SeekEnd = onSeekEnd;
     listener.StreamInfoGet = onStreamInfoGet;
@@ -311,6 +312,17 @@ void CicadaOCHelper::onLoadingProgress(int64_t percent, void *userData) {
         });
     }
 }
+
+void CicadaOCHelper::onCurrentDownLoadSpeed(int64_t speed, void *userData)
+{
+    __weak CicadaPlayer *player = getOCPlayer(userData);
+    if (player.delegate && [player.delegate respondsToSelector:@selector(onCurrentDownLoadSpeed:speed:)]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          [player.delegate onCurrentDownLoadSpeed:player progress:speed];
+        });
+    }
+}
+
 
 void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *data, void *userData) {
     __weak CicadaPlayer * player = getOCPlayer(userData);
