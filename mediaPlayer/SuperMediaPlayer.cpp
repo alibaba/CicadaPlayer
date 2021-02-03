@@ -503,8 +503,6 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
         if (duration > 0) {
             mSet->maxBufferDuration = int64_t(duration) * 1000;
         }
-    } else if (theKey == "DisableBufferManager") {
-        mSet->bDisableBufferManager = (bool) atoi(value);
     } else if (theKey == "LowLatency") {
         mSet->bLowLatency = (bool) atoi(value);
     } else if (theKey == "ClearShowWhenStop") {
@@ -1165,124 +1163,121 @@ void SuperMediaPlayer::doReadPacket()
     //100s
     mUtil->notifyRead(MediaPlayerUtil::readEvent_Loop, 0);
 
-    if (!mEof) {
-        //demuxer read
-        int64_t read_start_time = af_gettime_relative();
-        int timeout = 10000;
+    if (mEof) {
+        return;
+    }
 
-        if (mSet->bDisableBufferManager) {
-            timeout = 5000;
+    //demuxer read
+    int64_t read_start_time = af_gettime_relative();
+    int timeout = 10000;
+    mem_info info{};
+    int checkStep = 0;
+
+    while (true) {
+        // once buffer is full, we will try to read again if buffer consume more then BufferGap
+        if (mBufferIsFull) {
+            static const int BufferGap = 1000 * 1000;
+
+            if ((mSet->maxBufferDuration > 2 * BufferGap) && (cur_buffer_duration > mSet->maxBufferDuration - BufferGap) &&
+                getPlayerBufferDuration(false, true) > 0) {
+                break;
+            }
         }
 
-        mem_info info{};
-        int checkStep = 0;
+        if (cur_buffer_duration > mSet->maxBufferDuration &&
+            getPlayerBufferDuration(false, true) > 0// we need readout the buffer in demuxer when no buffer in player
+        ) {
+            mBufferIsFull = true;
+            break;
+        }
 
-        while (true) {
-            // once buffer is full, we will try to read again if buffer consume more then BufferGap
-            if (mBufferIsFull) {
-                static const int BufferGap = 1000 * 1000;
+        mBufferIsFull = false;
 
-                if ((mSet->maxBufferDuration > 2 * BufferGap) && (cur_buffer_duration > mSet->maxBufferDuration - BufferGap) &&
-                    getPlayerBufferDuration(false, true) > 0) {
-                    break;
+        if ((0 >= checkStep--) && (cur_buffer_duration > 1000 * 1000) && (AFGetSystemMemInfo(&info) >= 0)) {
+            //AF_LOGD("system_availableram is %" PRIu64 "",info.system_availableram);
+            if (info.system_availableram > 2 * mSet->lowMemSize) {
+                checkStep = (int) (info.system_availableram / (5 * 1024 * 1024));
+            } else if (info.system_availableram < mSet->lowMemSize) {
+                AF_LOGW("low memery...");
+
+                if (!mLowMem) {
+                    mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_SYSTEM_LOW_MEMORY, "App Low memory");
                 }
+
+                mLowMem = true;
+
+                if (mSet->highLevelBufferDuration > 800 * 1000) {
+                    mSet->highLevelBufferDuration = 800 * 1000;
+                }
+
+                if (mSet->startBufferDuration > 800 * 1000) {
+                    mSet->startBufferDuration = 800 * 1000;
+                }
+
+                break;
+            } else {
+                checkStep = 5;
+                mLowMem = false;
+            }
+        }
+
+        int ret = ReadPacket();
+
+        if (ret == -EAGAIN) {
+            if (0 == mDuration) {
+                mRemainLiveSegment = mDemuxerService->GetRemainSegmentCount(mCurrentVideoIndex);
             }
 
-            if (cur_buffer_duration > mSet->maxBufferDuration &&
-                getPlayerBufferDuration(false, true) > 0// we need readout the buffer in demuxer when no buffer in player
-            ) {
-                mBufferIsFull = true;
-                break;
+            mUtil->notifyRead(MediaPlayerUtil::readEvent_Again, 0);
+            break;
+        } else if (ret == 0) {
+            AF_LOGE("Player ReadPacket EOF");
+
+            if (!mEof) {
+                mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_DEMUXER_EOF, "Demuxer End of File");
             }
 
-            mBufferIsFull = false;
-
-            if ((0 >= checkStep--) && (cur_buffer_duration > 1000 * 1000) && (AFGetSystemMemInfo(&info) >= 0)) {
-                //AF_LOGD("system_availableram is %" PRIu64 "",info.system_availableram);
-                if (info.system_availableram > 2 * mSet->lowMemSize) {
-                    checkStep = (int) (info.system_availableram / (5 * 1024 * 1024));
-                } else if (info.system_availableram < mSet->lowMemSize) {
-                    AF_LOGW("low memery...");
-
-                    if (!mLowMem) {
-                        mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_SYSTEM_LOW_MEMORY, "App Low memory");
-                    }
-
-                    mLowMem = true;
-
-                    if (mSet->highLevelBufferDuration > 800 * 1000) {
-                        mSet->highLevelBufferDuration = 800 * 1000;
-                    }
-
-                    if (mSet->startBufferDuration > 800 * 1000) {
-                        mSet->startBufferDuration = 800 * 1000;
-                    }
-
-                    break;
-                } else {
-                    checkStep = 5;
-                    mLowMem = false;
-                }
-            }
-
-            int ret = ReadPacket();
-
-            if (ret == -EAGAIN) {
-                if (0 == mDuration) {
-                    mRemainLiveSegment = mDemuxerService->GetRemainSegmentCount(mCurrentVideoIndex);
-                }
-
-                mUtil->notifyRead(MediaPlayerUtil::readEvent_Again, 0);
-                break;
-            } else if (ret == 0) {
-                AF_LOGE("Player ReadPacket EOF");
-
-                if (!mEof) {
-                    mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_DEMUXER_EOF, "Demuxer End of File");
-                }
-
-                mEof = true;
-                break;
-            } else if (ret == FRAMEWORK_ERR_EXIT) {
+            mEof = true;
+            break;
+        } else if (ret == FRAMEWORK_ERR_EXIT) {
+            AF_LOGE("Player ReadPacket error 0x%04x :%s\n", -ret, framework_err2_string(ret));
+            break;
+        } else if (ret == FRAMEWORK_ERR_FORMAT_NOT_SUPPORT) {
+            AF_LOGE("read error %s\n", framework_err2_string(ret));
+            NotifyError(ret);
+            break;
+        } else if (ret < 0) {
+            if (!mBufferingFlag && mPlayStatus >= PLAYER_PREPARED) {
+                //AF_LOGI("Player ReadPacket ret < 0 with data");
+            } else {
                 AF_LOGE("Player ReadPacket error 0x%04x :%s\n", -ret, framework_err2_string(ret));
-                break;
-            } else if (ret == FRAMEWORK_ERR_FORMAT_NOT_SUPPORT) {
-                AF_LOGE("read error %s\n", framework_err2_string(ret));
-                NotifyError(ret);
-                break;
-            } else if (ret < 0) {
-                if (!mBufferingFlag && mPlayStatus >= PLAYER_PREPARED) {
-                    //AF_LOGI("Player ReadPacket ret < 0 with data");
-                } else {
-                    AF_LOGE("Player ReadPacket error 0x%04x :%s\n", -ret, framework_err2_string(ret));
 
-                    if (ret != FRAMEWORK_ERR_EXIT && !mCanceled) {
-                        NotifyError(ret);
-                    }
+                if (ret != FRAMEWORK_ERR_EXIT && !mCanceled) {
+                    NotifyError(ret);
                 }
-
-                break;
             }
 
-            //AF_LOGI("Player ReadPacket have data");
-            if (0 >= mFirstReadPacketSucMS) {
-                mFirstReadPacketSucMS = af_getsteady_ms();
-            }
-
-            if (af_gettime_relative() - read_start_time > timeout) {
-                AF_LOGD("Player ReadPacket time out\n");
-                mUtil->notifyRead(MediaPlayerUtil::readEvent_timeOut, 0);
-                //                    mMsgProcessTime = 0;
-                break;
-            }
-
-            cur_buffer_duration = getPlayerBufferDuration(false, false);
-            //                if(getPlayerBufferDuration(true) > mSet->maxBufferDuration * 2){
-            //                    AF_LOGE("buffer stuffed\n");
-            //                    mPNotifier->NotifyError(MEDIA_PLAYER_ERROR_BUFFER_STUFFED,"buffer stuffed");
-            //                    break;
-            //                }
+            break;
         }
+
+        //AF_LOGI("Player ReadPacket have data");
+        if (0 >= mFirstReadPacketSucMS) {
+            mFirstReadPacketSucMS = af_getsteady_ms();
+        }
+
+        if (af_gettime_relative() - read_start_time > timeout) {
+            AF_LOGD("Player ReadPacket time out\n");
+            mUtil->notifyRead(MediaPlayerUtil::readEvent_timeOut, 0);
+            //                    mMsgProcessTime = 0;
+            break;
+        }
+
+        cur_buffer_duration = getPlayerBufferDuration(false, false);
+        //                if(getPlayerBufferDuration(true) > mSet->maxBufferDuration * 2){
+        //                    AF_LOGE("buffer stuffed\n");
+        //                    mPNotifier->NotifyError(MEDIA_PLAYER_ERROR_BUFFER_STUFFED,"buffer stuffed");
+        //                    break;
+        //                }
     }
 }
 
@@ -1294,14 +1289,8 @@ bool SuperMediaPlayer::DoCheckBufferPass()
     int64_t cur_buffer_duration = getPlayerBufferDuration(false, false);
     int64_t HighBufferDur = mSet->highLevelBufferDuration;
 
-    if (mSet->bDisableBufferManager) {
-        HighBufferDur = 10 * 1000;
-    }
-
     if (mFirstBufferFlag && !mEof) {
-        if (!mSet->bDisableBufferManager) {
-            HighBufferDur = mSet->startBufferDuration;
-        }
+        HighBufferDur = mSet->startBufferDuration;
 
         //clean late audio data
         if (cur_buffer_duration > HighBufferDur && HAVE_VIDEO && HAVE_AUDIO) {
@@ -1384,8 +1373,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
     }
 
     //check buffering empty
-    if (!mEof && cur_buffer_duration <= 0 && !mBufferingFlag && (mPlayStatus == PLAYER_PLAYING || mPlayStatus == PLAYER_PAUSED) &&
-        !mSet->bDisableBufferManager) {
+    if (!mEof && cur_buffer_duration <= 0 && !mBufferingFlag && (mPlayStatus == PLAYER_PLAYING || mPlayStatus == PLAYER_PAUSED)) {
         mBufferingFlag = true;
         mPNotifier->NotifyLoading(loading_event_start, 0);
         AF_LOGD("loading start");
@@ -1474,7 +1462,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
     }
 
     //check buffering status
-    if ((mBufferingFlag || mFirstBufferFlag) && !mSet->bDisableBufferManager) {
+    if ((mBufferingFlag || mFirstBufferFlag)) {
         if (((cur_buffer_duration > HighBufferDur || (HighBufferDur >= mSet->maxBufferDuration && mBufferIsFull)) &&
              (!HAVE_VIDEO || videoDecoderFull || APP_BACKGROUND == mAppStatus)) ||
             mEof) {

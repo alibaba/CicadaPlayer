@@ -38,7 +38,6 @@ namespace Cicada {
         bool bDisableAudio{false};
         bool bDisableVideo{false};
         bool bMute = false;
-        bool bDisableBufferManager = false;
         bool bLowLatency = false;
 
         std::atomic<void *> mView{nullptr};

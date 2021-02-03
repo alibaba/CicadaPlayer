@@ -38,7 +38,6 @@ namespace Cicada {
         bDisableAudio = false;
         bDisableVideo = false;
         bMute = false;
-        bDisableBufferManager = false;
         bLowLatency = false;
         mView = nullptr;
         mAutoSwitchTime = INT64_MIN;
