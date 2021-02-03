@@ -1163,7 +1163,7 @@ void SuperMediaPlayer::doReadPacket()
     //check packet queue full
     int64_t cur_buffer_duration = getPlayerBufferDuration(false, false);
     //100s
-    mUtil->notifyRead(MediaPlayerUtil::readEvent_Loop);
+    mUtil->notifyRead(MediaPlayerUtil::readEvent_Loop, 0);
 
     if (!mEof) {
         //demuxer read
@@ -1232,7 +1232,7 @@ void SuperMediaPlayer::doReadPacket()
                     mRemainLiveSegment = mDemuxerService->GetRemainSegmentCount(mCurrentVideoIndex);
                 }
 
-                mUtil->notifyRead(MediaPlayerUtil::readEvent_Again);
+                mUtil->notifyRead(MediaPlayerUtil::readEvent_Again, 0);
                 break;
             } else if (ret == 0) {
                 AF_LOGE("Player ReadPacket EOF");
@@ -1271,7 +1271,7 @@ void SuperMediaPlayer::doReadPacket()
 
             if (af_gettime_relative() - read_start_time > timeout) {
                 AF_LOGD("Player ReadPacket time out\n");
-                mUtil->notifyRead(MediaPlayerUtil::readEvent_timeOut);
+                mUtil->notifyRead(MediaPlayerUtil::readEvent_timeOut, 0);
                 //                    mMsgProcessTime = 0;
                 break;
             }
@@ -2582,7 +2582,7 @@ int SuperMediaPlayer::ReadPacket()
     }
 
     pFrame = pMedia_Frame.get();
-    mUtil->notifyRead(MediaPlayerUtil::readEvent_Got);
+    mUtil->notifyRead(MediaPlayerUtil::readEvent_Got, pFrame->getSize());
 
     // TODO: get the min first stream pts
     if (pFrame->getInfo().timePosition >= 0 && mMediaStartPts == INT64_MIN && pFrame->getInfo().streamIndex != mCurrentSubtitleIndex &&
@@ -3402,7 +3402,7 @@ int SuperMediaPlayer::CreateVideoDecoder(bool bHW, Stream_meta &meta)
     mAVDeviceManager->flushVideoRender();
 
     if (bHW) {
-        if (mAVDeviceManager->getVideoRender()->getFlags() & IVideoRender::FLAG_DUMMY) {
+        if (mAVDeviceManager->isVideoRenderValid() && mAVDeviceManager->getVideoRender()->getFlags() & IVideoRender::FLAG_DUMMY) {
             view = mSet->mView;
             decFlag |= DECFLAG_DIRECT;
         } else {

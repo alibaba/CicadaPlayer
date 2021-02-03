@@ -39,7 +39,7 @@ namespace Cicada {
 
         void notifyPlayerLoop(int64_t time);
 
-        void notifyRead(enum readEvent event);
+        void notifyRead(enum readEvent event, uint64_t size);
 
         void render(int64_t pts);
 
@@ -47,6 +47,11 @@ namespace Cicada {
 
         float getVideoRenderFps()
         { return mVideoRenderFps; }
+
+        float getCurrentDownloadSpeed() const
+        {
+            return mCurrentDownloadSpeed;
+        }
 
         static void getPropertyJSONStr(const std::string &name, CicadaJSONArray &array, bool isArray,
                                        std::deque<StreamInfo *> &streamInfoQueue, demuxer_service *service);
@@ -69,6 +74,9 @@ namespace Cicada {
         int64_t mReadGotIndex = 0;
         int64_t mReadTimeOutIndex = 0;
         int64_t mLastReadTime = 0;
+        uint64_t mReadGotSize{0};
+
+        float mCurrentDownloadSpeed{0};
 
         float mVideoRenderFps = 0;
     };
