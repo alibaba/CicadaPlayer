@@ -60,6 +60,7 @@ jmethodID gj_NativePlayer_onSwitchStreamSuccess = nullptr;
 jmethodID gj_NativePlayer_onBufferPositionUpdate = nullptr;
 jmethodID gj_NativePlayer_onCurrentPositionUpdate = nullptr;
 jmethodID gj_NativePlayer_onSubtitleExtAdded = nullptr;
+jmethodID gj_NativePlayer_onCurrentDownloadSpeed = nullptr;
 
 jmethodID gj_NativePlayer_requestProvision = nullptr;
 jmethodID gj_NativePlayer_requestKey = nullptr;
@@ -105,6 +106,7 @@ void NativeBase::java_Construct(JNIEnv *env, jobject instance , jstring name)
     listener.Prepared = jni_onPrepared;
     listener.Completion = jni_onCompletion;
     listener.SubtitleExtAdd = jni_onSubTitleExtAdd;
+    listener.CurrentDownLoadSpeed = jni_onCurrentDownloadSpeed;
     auto *apsaraPlayer = privateData->player;
     apsaraPlayer->SetListener(listener);
     apsaraPlayer->setDrmRequestCallback([userData](
@@ -1063,6 +1065,7 @@ void NativeBase::init(JNIEnv *env)
         gj_NativePlayer_onSubtitleExtAdded = env->GetMethodID(gj_NativePlayer_Class,
                                              "onSubtitleExtAdded",
                                              "(ILjava/lang/String;)V");
+        gj_NativePlayer_onCurrentDownloadSpeed = env->GetMethodID(gj_NativePlayer_Class, "onCurrentDownloadSpeed", "(J)V");
         gj_NativePlayer_requestProvision = env->GetMethodID(gj_NativePlayer_Class,
                                              "requestProvision",
                                              "(Ljava/lang/String;[B)[B");
@@ -1419,6 +1422,24 @@ void NativeBase::jni_onCaptureScreen(int64_t width, int64_t height, const void *
     }
 
     JniException::clearException(mEnv);
+}
+
+
+void NativeBase::jni_onCurrentDownloadSpeed(int64_t speed, void *userData)
+{
+    if (userData == nullptr) {
+        return;
+    }
+
+    JniEnv Jenv;
+    JNIEnv *pEnv = Jenv.getEnv();
+
+    if (pEnv == nullptr) {
+        return;
+    }
+
+    pEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onCurrentDownloadSpeed, (jlong) speed);
+    JniException::clearException(pEnv);
 }
 
 void NativeBase::jni_onSubTitleExtAdd(int64_t index, const void *url, void *userData)

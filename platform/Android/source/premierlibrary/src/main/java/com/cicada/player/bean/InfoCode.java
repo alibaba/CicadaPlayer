@@ -43,6 +43,14 @@ public enum InfoCode {
     AutoPlayStart(3),
 
     /**
+     * 当前下载网速。额外值为当前网速。单位bps。
+     */
+    /**
+     * Current network download speed. Additional value: the current network speed. Unit: bps.
+     */
+    CurrentDownloadSpeed(4),
+
+    /**
      * 设置了硬解，但是切换为软解。额外信息为描述信息。
      */
     /****

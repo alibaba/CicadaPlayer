@@ -8,7 +8,6 @@ import android.net.ConnectivityManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 import android.view.Surface;
 
 import com.cicada.player.CicadaPlayer;
@@ -983,6 +982,21 @@ public class NativePlayerBase {
             public void run() {
                 if (mOnSubtitleDisplayListener != null) {
                     mOnSubtitleDisplayListener.onSubtitleExtAdded(id, content);
+                }
+            }
+        });
+    }
+
+    protected void onCurrentDownloadSpeed(final long speed){
+        Logger.v(TAG, "onCurrentDownloadSpeed  = " + speed);
+        mCurrentThreadHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mOnInfoListener != null) {
+                    InfoBean infoBean = new InfoBean();
+                    infoBean.setCode(InfoCode.CurrentDownloadSpeed);
+                    infoBean.setExtraValue(speed);
+                    mOnInfoListener.onInfo(infoBean);
                 }
             }
         });
