@@ -29,6 +29,13 @@ namespace Cicada {
 
     int subTitlePlayer::add(const std::string &uri)
     {
+        for (auto item = mSources.begin(); item != mSources.end();) {
+            if ((*item)->mSource->getUri() == uri) {
+                mListener.onAdded(uri, (*item)->mSource->getID());
+                return 0;
+            }
+            item++;
+        }
         auto *adding = new Adding();
         adding->mSource = unique_ptr<subTitleSource>(new subTitleSource(uri));
         subTitleSource *pSource = adding->mSource.get();
