@@ -167,7 +167,7 @@ namespace Cicada {
             iter++;
         }
 
-        do {
+        while (info.mSelected) {
             IAFPacket *packet = nullptr;
             info.getPacket(&packet);
 
@@ -183,7 +183,7 @@ namespace Cicada {
             } else {
                 break;
             }
-        } while (true);
+        }
     }
 
     void subTitlePlayer::update(int64_t pts)
