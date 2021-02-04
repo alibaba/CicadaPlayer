@@ -504,6 +504,10 @@ int CURLConnection::FillBuffer(uint32_t want)
                             case CURLE_OUT_OF_MEMORY:
                                 return FRAMEWORK_ERR(ENOMEM);
 
+                            case CURLE_URL_MALFORMAT:
+                                return gen_framework_errno(error_class_network, network_errno_url_malformat);
+
+
                             default:
                                 return FRAMEWORK_ERR(EIO);
                         }

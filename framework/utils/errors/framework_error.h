@@ -35,6 +35,7 @@ enum network_errno {
     network_errno_resolve,
     network_errno_connect_timeout,
     network_errno_could_not_connect,
+    network_errno_url_malformat,
 
     network_errno_http_400 = 100,
     network_errno_http_403,
