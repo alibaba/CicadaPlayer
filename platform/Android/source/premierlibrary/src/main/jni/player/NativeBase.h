@@ -204,6 +204,8 @@ public:
 
     static void jni_onSubTitleExtAdd(int64_t index, const void *url, void *userData);
 
+    static void jni_onCurrentDownloadSpeed(int64_t speed, void *userData);
+
     static jbyteArray  jni_requestProvision(const std::string& url , void* data, int size, void *userData);
 
     static jbyteArray  jni_requestKey(const std::string& url , void* data, int size , int type, void *userData);
