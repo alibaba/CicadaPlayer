@@ -94,16 +94,7 @@ namespace Cicada {
                         ++mSelectNum;
                     } else {
                         --mSelectNum;
-
-                        if ((*item)->mPacket) {
-                            IAFPacket *packet = (*item)->mPacket.get();
-
-                            if (packet->getDiscard()) {
-                                mListener.onRender(false, (*item)->mPacket.release());
-                            }
-
-                            (*item)->mPacket = nullptr;
-                        }
+                        (*item)->mNeedFlush = true;
                     }
                 }
 
@@ -155,16 +146,7 @@ namespace Cicada {
         for (auto item = mSources.begin(); item != mSources.end();) {
             if ((*item)->mSelected) {
                 (*item)->mSource->seek(std::max(pts + (*item)->mDelay, (int64_t) 0));
-
-                if ((*item)->mPacket) {
-                    IAFPacket *packet = (*item)->mPacket.get();
-
-                    if (packet->getDiscard()) {
-                        mListener.onRender(false, (*item)->mPacket.release());
-                    }
-
-                    (*item)->mPacket = nullptr;
-                }
+                (*item)->mNeedFlush = true;
             }
 
             ++item;
@@ -207,6 +189,10 @@ namespace Cicada {
     void subTitlePlayer::update(int64_t pts)
     {
         for (auto item = mSources.begin(); item != mSources.end();) {
+            if ((*item)->mNeedFlush) {
+                flushSource((*item).get());
+                (*item)->mNeedFlush = false;
+            }
             if ((*item)->mSelected) {
                 render(*(*item), pts);
             }
@@ -215,18 +201,27 @@ namespace Cicada {
         }
     }
 
+
+    void subTitlePlayer::flushSource(SourceInfo *source)
+    {
+        if (source == nullptr) {
+            return;
+        }
+        while (!source->mSubtitleShowedQueue.empty()) {
+            if (source->mSubtitleShowedQueue.front()) {
+                mListener.onRender(false, source->mSubtitleShowedQueue.front().release());
+            }
+            source->mSubtitleShowedQueue.pop_front();
+        }
+        source->mSubtitleShowedQueue.clear();
+        source->mPacket = nullptr;
+    }
+
     void subTitlePlayer::flush()
     {
         for (auto item = mSources.begin(); item != mSources.end();) {
-
-            while (!(*item)->mSubtitleShowedQueue.empty()) {
-                if ((*item)->mSubtitleShowedQueue.front()) {
-                    mListener.onRender(false, (*item)->mSubtitleShowedQueue.front().release());
-                }
-                (*item)->mSubtitleShowedQueue.pop_front();
-            }
-            (*item)->mSubtitleShowedQueue.clear();
-            (*item)->mPacket = nullptr;
+            flushSource((*item).get());
+            (*item)->mNeedFlush = false;
             ++item;
         }
     }
