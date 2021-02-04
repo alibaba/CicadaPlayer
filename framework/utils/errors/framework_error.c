@@ -22,6 +22,9 @@ const char *network_err2_string(uint8_t Errno)
         case network_errno_could_not_connect:
             return "Couldn't connect to server";
 
+        case network_errno_url_malformat:
+            return "URL using bad/illegal format or missing URL";
+
         case network_errno_http_403:
             return "Server returned 403 Forbidden (access denied)";
 
