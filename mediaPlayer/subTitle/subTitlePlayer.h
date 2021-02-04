@@ -54,6 +54,7 @@ namespace Cicada {
 
             std::unique_ptr<subTitleSource> mSource;
             bool mSelected{false};
+            bool mNeedFlush{false};
             std::unique_ptr<IAFPacket> mPacket;
             int64_t mDelay{0};
             std::deque<std::unique_ptr<IAFPacket>> mSubtitleShowedQueue{};
@@ -96,6 +97,7 @@ namespace Cicada {
 
     private:
         void render(subTitlePlayer::SourceInfo &info, int64_t pts);
+        void flushSource(SourceInfo *source);
 
     private:
         Listener &mListener;
