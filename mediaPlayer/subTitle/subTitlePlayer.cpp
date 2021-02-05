@@ -94,7 +94,7 @@ namespace Cicada {
                         ++mSelectNum;
                     } else {
                         --mSelectNum;
-                        (*item)->mNeedFlush = true;
+                        (*item)->mNeedFlush++;
                     }
                 }
 
@@ -133,11 +133,18 @@ namespace Cicada {
 
     bool subTitlePlayer::isActive()
     {
-        return mSelectNum > 0 && mEnable;
+        /*
+         * need flush async
+         */
+        return true;
+        // return mSelectNum > 0 && mEnable;
     }
 
     void subTitlePlayer::enable(bool bEnable)
     {
+        /*
+         *  TODO: flush when disable
+         */
         mEnable = bEnable;
     }
 
@@ -146,7 +153,7 @@ namespace Cicada {
         for (auto item = mSources.begin(); item != mSources.end();) {
             if ((*item)->mSelected) {
                 (*item)->mSource->seek(std::max(pts + (*item)->mDelay, (int64_t) 0));
-                (*item)->mNeedFlush = true;
+                (*item)->mNeedFlush++;
             }
 
             ++item;
@@ -189,9 +196,10 @@ namespace Cicada {
     void subTitlePlayer::update(int64_t pts)
     {
         for (auto item = mSources.begin(); item != mSources.end();) {
-            if ((*item)->mNeedFlush) {
+            assert((*item)->mNeedFlush >= 0);
+            if ((*item)->mNeedFlush > 0) {
                 flushSource((*item).get());
-                (*item)->mNeedFlush = false;
+                (*item)->mNeedFlush--;
             }
             if ((*item)->mSelected) {
                 render(*(*item), pts);
@@ -221,7 +229,8 @@ namespace Cicada {
     {
         for (auto item = mSources.begin(); item != mSources.end();) {
             flushSource((*item).get());
-            (*item)->mNeedFlush = false;
+            //mNeedFlush is used for async flush
+            //            (*item)->mNeedFlush--;
             ++item;
         }
     }
