@@ -39,6 +39,8 @@ namespace Cicada {
 
         void ProcessSetDataSourceMsg(const std::string &url) final;
 
+        void ProcessSetBitStreamMsg(readCB read, seekCB seekCb, void *arg) final;
+
         void ProcessPauseMsg() final;
 
         void ProcessSwitchStreamMsg(int index) final;
