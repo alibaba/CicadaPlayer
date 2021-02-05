@@ -162,6 +162,8 @@ namespace Cicada {
 
         void SetDataSource(const char *url) override;
 
+        void setBitStreamCb(readCB read, seekCB seek, void *arg) override;
+
         void Prepare() override;
 
         void SetVolume(float volume) override;
@@ -536,6 +538,9 @@ namespace Cicada {
         void *mAudioRenderingCbUserData{nullptr};
         bool mIsDummy{false};
         bool mPausedByAudioInterrupted{false};
+        readCB mBSReadCb = nullptr;
+        seekCB mBSSeekCb = nullptr;
+        void *mBSCbArg = nullptr;
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H

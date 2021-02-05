@@ -381,6 +381,16 @@ void SMPMessageControllerListener::ProcessSetDataSourceMsg(const std::string &ur
     }
 }
 
+void SMPMessageControllerListener::ProcessSetBitStreamMsg(readCB read, seekCB seek, void *arg)
+{
+    if (mPlayer.mPlayStatus == PLAYER_IDLE || mPlayer.mPlayStatus == PLAYER_STOPPED) {
+        mPlayer.mBSReadCb = read;
+        mPlayer.mBSSeekCb = seek;
+        mPlayer.mBSCbArg = arg;
+        mPlayer.ChangePlayerStatus(PLAYER_INITIALZED);
+    }
+}
+
 void SMPMessageControllerListener::ProcessSeekToMsg(int64_t seekPos, bool bAccurate)
 {
     mPlayer.mSeekNeedCatch = bAccurate;
