@@ -155,6 +155,8 @@ namespace Cicada {
 
         void SetDataSource(const char *url) override;
 
+        void setBitStreamCb(readCB read, seekCB seek, void *arg) override;
+
         void Prepare() override;
 
         void SetVolume(float volume) override;
@@ -356,6 +358,8 @@ namespace Cicada {
 
         void ProcessSetDataSourceMsg(const std::string &url) final;
 
+        void ProcessSetBitStreamMsg(readCB read, seekCB seekCb, void *arg) final;
+
         void ProcessPauseMsg() final;
 
         void ProcessSeekToMsg(int64_t seekPos, bool bAccurate) final;
@@ -550,6 +554,10 @@ namespace Cicada {
         onRenderFrame mAudioRenderingCb{nullptr};
         void *mAudioRenderingCbUserData{nullptr};
         bool mIsDummy{false};
+
+        readCB mBSReadCb = nullptr;
+        seekCB mBSSeekCb = nullptr;
+        void *mBSCbArg = nullptr;
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H

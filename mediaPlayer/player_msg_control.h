@@ -1,9 +1,10 @@
 #ifndef CICADA_PLAYER_MSG_CONTROL_H
 #define CICADA_PLAYER_MSG_CONTROL_H
 
-#include <mutex>
-#include <deque>
+#include "native_cicada_player_def.h"
 #include <condition_variable>
+#include <deque>
+#include <mutex>
 #include <string>
 
 using namespace std;
@@ -30,6 +31,7 @@ namespace Cicada {
         MSG_ADD_EXT_SUBTITLE,
         MSG_SELECT_EXT_SUBTITLE,
         MSG_SET_SPEED,
+        MSG_SET_BITSTREAM,
 
         MSG_INTERNAL_VIDEO_FIRST = 0x100,
         MSG_INTERNAL_VIDEO_RENDERED = MSG_INTERNAL_VIDEO_FIRST,
@@ -58,6 +60,12 @@ namespace Cicada {
     typedef struct _MsgDataSourceParam {
         std::string *url;
     } MsgDataSourceParam;
+
+    typedef struct MsgBitStreamParam {
+        readCB read;
+        seekCB seek;
+        void *arg;
+    } MsgBitStreamParam;
 
     typedef struct _MsgSeekParam {
         int64_t seekPos;
@@ -91,6 +99,7 @@ namespace Cicada {
     typedef union _MsgParam {
         MsgViewParam viewParam;
         MsgDataSourceParam dataSourceParam;
+        MsgBitStreamParam msgBitStreamParam;
         MsgSeekParam seekParam;
         MsgChangeStreamParam streamParam;
         MsgVideoRenderedParam videoRenderedParam;
@@ -132,6 +141,8 @@ namespace Cicada {
         virtual void ProcessSetViewMsg(void *view) = 0;
 
         virtual void ProcessSetDataSourceMsg(const std::string &url) = 0;
+
+        virtual void ProcessSetBitStreamMsg(readCB read, seekCB seekCb, void *arg) = 0;
 
         virtual void ProcessPauseMsg() = 0;
 

@@ -15,6 +15,7 @@ namespace Cicada {
     {
         switch (type) {
             case MSG_SETDATASOURCE:
+            case MSG_SET_BITSTREAM:
             case MSG_SETVIEW:
             case MSG_PREPARE:
             case MSG_CHANGE_VIDEO_STREAM:
@@ -216,6 +217,11 @@ namespace Cicada {
 
             case MSG_SETDATASOURCE:
                 mProcessor.ProcessSetDataSourceMsg(*(msgContent.dataSourceParam.url));
+                break;
+
+            case MSG_SET_BITSTREAM:
+                mProcessor.ProcessSetBitStreamMsg(msgContent.msgBitStreamParam.read, msgContent.msgBitStreamParam.seek,
+                                                  msgContent.msgBitStreamParam.arg);
                 break;
 
             case MSG_SETVIEW:

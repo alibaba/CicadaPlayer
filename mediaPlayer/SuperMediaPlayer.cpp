@@ -105,6 +105,17 @@ int64_t SuperMediaPlayer::GetMasterClockPts()
     return mMasterClock.GetTime();
 }
 
+void SuperMediaPlayer::setBitStreamCb(readCB read, seekCB seek, void *arg)
+{
+    MsgParam param;
+    MsgBitStreamParam msgBitStreamParam = {nullptr};
+    msgBitStreamParam.read = read;
+    msgBitStreamParam.seek = seek;
+    msgBitStreamParam.arg = arg;
+    param.msgBitStreamParam = msgBitStreamParam;
+    putMsg(MSG_SET_BITSTREAM, param);
+}
+
 void SuperMediaPlayer::SetDataSource(const char *url)
 {
     MsgParam param;
@@ -3991,6 +4002,16 @@ void SuperMediaPlayer::ProcessSetDataSourceMsg(const std::string &url)
 {
     if (mPlayStatus == PLAYER_IDLE || mPlayStatus == PLAYER_STOPPED) {
         mSet->url = url;
+        ChangePlayerStatus(PLAYER_INITIALZED);
+    }
+}
+
+void SuperMediaPlayer::ProcessSetBitStreamMsg(readCB read, seekCB seek, void *arg)
+{
+    if (mPlayStatus == PLAYER_IDLE || mPlayStatus == PLAYER_STOPPED) {
+        mBSReadCb = read;
+        mBSSeekCb = seek;
+        mBSCbArg = arg;
         ChangePlayerStatus(PLAYER_INITIALZED);
     }
 }
