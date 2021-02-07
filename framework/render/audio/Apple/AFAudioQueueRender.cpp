@@ -36,7 +36,10 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
         return;
     }
     pThis->mPlayedBufferSize += inBuffer->mAudioDataByteSize;
-    bool CopyFull = false;
+    /*
+     *  MUST copy buffer fully, otherwise lots of bug will come
+     */
+    bool CopyFull = true;
 #if TARGET_OS_IPHONE
     if (IOSNotificationManager::Instance()->GetActiveStatus() == 0 || pThis->mQueueSpeed > 1.0) {
         CopyFull = true;
