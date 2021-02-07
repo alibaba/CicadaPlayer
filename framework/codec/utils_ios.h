@@ -6,6 +6,7 @@
 
 namespace Cicada{
     extern float GetIosVersion();
+    extern std::string GetIOSDeviceName();
 
     extern void PixelBuffer_Retain(void *pixelBuffer);
 
