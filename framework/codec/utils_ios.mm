@@ -6,21 +6,11 @@
 #import <UIKit/UIKit.h>
 #include <list>
 #include <mutex>
-#include <sys/utsname.h>
 
 namespace Cicada{
     float GetIosVersion()
     {
         return [[[UIDevice currentDevice] systemVersion] floatValue];
-    }
-
-    std::string GetIOSDeviceName()
-    {
-        struct utsname systemInfo;
-        uname(&systemInfo);
-        NSString *phoneType = [NSString stringWithCString:systemInfo.machine encoding:NSASCIIStringEncoding];
-        const char *c1 = [phoneType UTF8String];
-        return std::string(c1);
     }
 
     void PixelBuffer_Retain(void *pixelBuffer)

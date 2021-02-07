@@ -10,9 +10,6 @@
 #ifdef __APPLE__
 #include <render/audio/Apple/AFAudioQueueRender.h>
 #include <render/video/AVFoundation/AVFoundationVideoRender.h>
-#if TARGET_OS_IPHONE
-#include "../codec/utils_ios.h"
-#endif
 #endif
 
 
@@ -78,17 +75,6 @@ unique_ptr<IVideoRender> videoRenderFactory::create(uint64_t flags)
 #endif
         return nullptr;
     }
-#ifdef __APPLE__
-#if TARGET_OS_IPHONE
-    float systemVersion = GetIosVersion();
-    string deviceName = GetIOSDeviceName();
-    AF_LOGD("deviceName is %s\n", deviceName.c_str());
-    if (systemVersion >= 14.0 && (deviceName == "iPhone8,2" || deviceName == "iPhone8,1")) {
-        return std::unique_ptr<IVideoRender>(new AVFoundationVideoRender());
-    }
-#endif
-#endif
-
 
 #if defined(GLRENDER)
     return std::unique_ptr<IVideoRender>(new GLRender());
