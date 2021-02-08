@@ -248,6 +248,13 @@ namespace Cicada {
         CFDictionarySetValue(dict, key, number);
         CFRelease(number);
     }
+    static void dict_set_f32(CFMutableDictionaryRef dict, CFStringRef key, float value)
+    {
+        CFNumberRef number;
+        number = CFNumberCreate(nullptr, kCFNumberFloat32Type, &value);
+        CFDictionarySetValue(dict, key, number);
+        CFRelease(number);
+    }
 
     int AFVTBDecoder::createVideoFormatDesc(const uint8_t *pData, int size, int width, int height, CFDictionaryRef &decoder_spec,
                                             CMFormatDescriptionRef &cm_fmt_desc)
@@ -276,8 +283,8 @@ namespace Cicada {
             VSpacing = (float) meta->displayHeight / height;
             HSpacing = (float) meta->displayWidth / width;
         }
-        dict_set_i32(par, CFSTR("HorizontalSpacing"), HSpacing);
-        dict_set_i32(par, CFSTR("VerticalSpacing"), VSpacing);
+        dict_set_f32(par, CFSTR("HorizontalSpacing"), HSpacing);
+        dict_set_f32(par, CFSTR("VerticalSpacing"), HSpacing);
 
 
         /* SampleDescriptionExtensionAtoms dict */
