@@ -284,7 +284,7 @@ namespace Cicada {
             HSpacing = (float) meta->displayWidth / width;
         }
         dict_set_f32(par, CFSTR("HorizontalSpacing"), HSpacing);
-        dict_set_f32(par, CFSTR("VerticalSpacing"), HSpacing);
+        dict_set_f32(par, CFSTR("VerticalSpacing"), VSpacing);
 
 
         /* SampleDescriptionExtensionAtoms dict */
