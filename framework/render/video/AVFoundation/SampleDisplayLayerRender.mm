@@ -11,6 +11,7 @@
 
 @implementation SampleDisplayLayerRender {
     CALayer *parentLayer;
+    AVLayerVideoGravity videoGravity;
 }
 DisplayLayerImpl::DisplayLayerImpl()
 {}
@@ -54,6 +55,13 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
     [(__bridge id) renderHandle setVideoScale:scale];
 }
 
+- (instancetype)init
+{
+    videoGravity = AVLayerVideoGravityResizeAspect;
+    parentLayer = nil;
+    return self;
+}
+
 - (void)setDisplay:(void *)layer
 {
     if (layer != (__bridge void *) parentLayer) {
@@ -61,7 +69,7 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
         dispatch_async(dispatch_get_main_queue(), ^{
           if (!self.displayLayer) {
               self.displayLayer = [AVSampleBufferDisplayLayer layer];
-              self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspect;
+              self.displayLayer.videoGravity = videoGravity;
           }
           [parentLayer addSublayer:self.displayLayer];
           parentLayer.masksToBounds = YES;
@@ -75,16 +83,22 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
 {
     switch (scale) {
         case IVideoRender::Scale_AspectFit:
-            self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspect;
+            videoGravity = AVLayerVideoGravityResizeAspectFill;
             break;
         case IVideoRender::Scale_AspectFill:
-            self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+            videoGravity = AVLayerVideoGravityResizeAspectFill;
             break;
         case IVideoRender::Scale_Fill:
-            self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+            videoGravity = AVLayerVideoGravityResize;
             break;
         default:
             break;
+    }
+
+    if (self.displayLayer) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspect;
+        });
     }
 }
 
