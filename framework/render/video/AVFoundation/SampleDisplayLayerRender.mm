@@ -82,7 +82,7 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
 {
     switch (scale) {
         case IVideoRender::Scale_AspectFit:
-            videoGravity = AVLayerVideoGravityResizeAspectFill;
+            videoGravity = AVLayerVideoGravityResizeAspect;
             break;
         case IVideoRender::Scale_AspectFill:
             videoGravity = AVLayerVideoGravityResizeAspectFill;
@@ -91,12 +91,15 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
             videoGravity = AVLayerVideoGravityResize;
             break;
         default:
-            break;
+            return;
     }
 
     if (self.displayLayer) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspect;
+          self.displayLayer.videoGravity = videoGravity;
+          CGRect bounds = self.displayLayer.bounds;
+          self.displayLayer.bounds = CGRectZero;
+          self.displayLayer.bounds = bounds;
         });
     }
 }
