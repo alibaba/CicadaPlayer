@@ -9,6 +9,7 @@
 #include <AudioToolbox/AudioToolbox.h>
 #include <base/media/spsc_queue.h>
 #include <render/audio/audioRenderPrototype.h>
+#include <utils/afThread.h>
 
 #if TARGET_OS_IPHONE
 
@@ -75,12 +76,16 @@ namespace Cicada {
 
         UInt32 copyAudioData(const AudioQueueBuffer *inBuffer, bool CopyFull);
 
+        int audioQueueLoop();
+
+        void flushAudioQueue();
+
 #if TARGET_OS_IPHONE
         void onInterrupted(Cicada::AF_AUDIO_SESSION_STATUS status) override;
 
 #endif
     private:
-#define MAX_QUEUE_SIZE 4
+#define MAX_QUEUE_SIZE 3
         AudioQueueBufferRef _audioQueueBufferRefArray[MAX_QUEUE_SIZE]{};
         AudioQueueRef _audioQueueRef{nullptr};
         AudioStreamBasicDescription mAudioFormat{};
@@ -88,13 +93,15 @@ namespace Cicada {
         uint64_t mPlayedBufferSize{0};
         uint8_t mBufferAllocatedCount{0};
         bool mNeedFlush{false};
-        bool mRunning{true};
+        bool mRunning{false};
         bool mPlaying{false};
         OSStatus mStartStatus{AVAudioSessionErrorCodeNone};
         unsigned int mReadOffset{0};
         UInt32 mAudioDataByteSize{0};
-        float mQueueSpeed{1.0};
         uint8_t mBufferCount{0};
+        std::unique_ptr<afThread> mAudioQueueThread{nullptr};
+        uint8_t mInitStatus{0};
+        float mQueueSpeed{1.0};
     };
 }// namespace Cicada
 

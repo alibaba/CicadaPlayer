@@ -23,10 +23,10 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
 {
     auto *pThis = (AFAudioQueueRender *) inUserData;
 
-    //    if (gtime != INT64_MIN) {
-    //        AF_LOGD("time delta is %lld\n",af_gettime_ms() - gtime);
-    //    }
-    //    gtime =af_gettime_ms();
+    //        if (gtime != INT64_MIN) {
+    //            AF_LOGD("time delta is %lld\n",af_gettime_ms() - gtime);
+    //        }
+    //        gtime =af_gettime_ms();
 
 
     int size = inBuffer->mAudioDataByteSize;
@@ -39,7 +39,7 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
     /*
      *  MUST copy buffer fully, otherwise lots of bug will come
      */
-    bool CopyFull = true;
+    bool CopyFull = false;
 #if TARGET_OS_IPHONE
     if (IOSNotificationManager::Instance()->GetActiveStatus() == 0 || pThis->mQueueSpeed > 1.0) {
         CopyFull = true;
@@ -60,15 +60,6 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
 }
 UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer, bool CopyFull)
 {
-    if (mNeedFlush) {
-        while (mInPut.size() > 0) {
-            delete mInPut.front();
-            mInPut.pop();
-        }
-        mReadOffset = 0;
-        mNeedFlush = false;
-        return 0;
-    }
     if (!mPlaying) {
         return 0;
     }
@@ -95,7 +86,7 @@ UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer, bool 
                 break;
             }
         } else {
-            if (retryCont++ < 3 && mRunning && !mNeedFlush) {
+            if (retryCont++ < 0 && mRunning && !mNeedFlush) {
                 af_msleep(5);
             } else {
                 break;
@@ -107,6 +98,7 @@ UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer, bool 
 
 AFAudioQueueRender::AFAudioQueueRender()
 {
+    mAudioQueueThread = unique_ptr<afThread>(NEW_AF_THREAD(audioQueueLoop));
 #if TARGET_OS_IPHONE
     AFAudioSessionWrapper::addObserver(this);
 #endif
@@ -126,9 +118,8 @@ AFAudioQueueRender::~AFAudioQueueRender()
     AFAudioSessionWrapper::removeObserver(this);
 #endif
     mRunning = false;
-    if (_audioQueueRef) {
-        AudioQueueStop(_audioQueueRef, true);
-        AudioQueueDispose(_audioQueueRef, true);
+    if (mAudioQueueThread) {
+        mAudioQueueThread->stop();
     }
     while (mInPut.size() > 0) {
         delete mInPut.front();
@@ -205,17 +196,14 @@ int AFAudioQueueRender::setSpeed(float speed)
 int AFAudioQueueRender::init_device()
 {
     fillAudioFormat();
-    OSStatus status = AudioQueueNewOutput(&mAudioFormat, OutputCallback, this, nullptr, kCFRunLoopCommonModes, 0, &_audioQueueRef);
-    if (status != noErr) {
-        AF_LOGE("AudioQueue: AudioQueueNewOutput failed (%d)\n", (int) status);
-        return status;
+    mRunning = true;
+    mAudioQueueThread->start();
+    while (mInitStatus == 0 && mRunning) {
+        af_msleep(3);
     }
-    UInt32 propValue = 1;
-    AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_EnableTimePitch, &propValue, sizeof(propValue));
-    propValue = 1;
-    AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchBypass, &propValue, sizeof(propValue));
-    propValue = kAudioQueueTimePitchAlgorithm_TimeDomain;
-    AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchAlgorithm, &propValue, sizeof(propValue));
+    if (mInitStatus < 0) {
+        return -EINVAL;
+    }
     return 0;
 }
 
@@ -246,11 +234,15 @@ int AFAudioQueueRender::start_device()
 
 void AFAudioQueueRender::flush_device()
 {
-    /*
-     * fix me:
-     * pause to avoid noise no flush, but it will spend too long time, so only do this when not mute
-     * , it will speed up player stop
-     */
+    mNeedFlush = true;
+    mPlayedBufferSize = 0;
+}
+void AFAudioQueueRender::flushAudioQueue()
+{ /*
+ * fix me:
+ * pause to avoid noise no flush, but it will spend too long time, so only do this when not mute
+ * , it will speed up player stop
+ */
     AudioQueueParameterValue volume = 0;
     if (_audioQueueRef) {
         AudioQueueGetParameter(_audioQueueRef, kAudioQueueParam_Volume, &volume);
@@ -263,18 +255,12 @@ void AFAudioQueueRender::flush_device()
             memset(item->mAudioData, 0, item->mAudioDataByteSize);
         }
     }
-
-    if (mBufferCount == 0 || mBufferAllocatedCount < mBufferCount) {
-        while (mInPut.size() > 0) {
-            delete mInPut.front();
-            mInPut.pop();
-        }
-        mReadOffset = 0;
-    } else {
-        mNeedFlush = true;
+    while (mInPut.size() > 0) {
+        delete mInPut.front();
+        mInPut.pop();
     }
-    mPlayedBufferSize = 0;
-    if (mPlaying && volume > 0) {
+    mReadOffset = 0;
+    if (mPlaying) {
         AudioQueueStart(_audioQueueRef, nullptr);
     }
 }
@@ -299,7 +285,6 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
     if (mNeedFlush || mInPut.write_available() <= 0) {
         return -EAGAIN;
     }
-
     if (mBufferCount == 0) {
         //FIXME: for low latency stream, queue another more buffer
         assert(frame->getInfo().duration > 0);
@@ -310,18 +295,6 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
         }
     }
     mInPut.push(frame.release());
-    if (mBufferAllocatedCount < mBufferCount && mInPut.size() >= mBufferCount) {
-        assert(mAudioDataByteSize > 0);
-        assert(mBufferCount <= MAX_QUEUE_SIZE);
-        while (mBufferAllocatedCount < mBufferCount) {
-            AudioQueueBuffer *buffer = NULL;
-            AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &buffer);
-            _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
-            buffer->mAudioDataByteSize = copyAudioData(buffer, false);
-            AudioQueueEnqueueBuffer(_audioQueueRef, buffer, 0, nullptr);
-            mBufferAllocatedCount++;
-        }
-    }
     return 0;
 }
 
@@ -331,6 +304,49 @@ uint64_t AFAudioQueueRender::device_get_que_duration()
         return 0;
     }
     return mInPut.size() * mInPut.front()->getInfo().duration;
+}
+int AFAudioQueueRender::audioQueueLoop()
+{
+    OSStatus status =
+            AudioQueueNewOutput(&mAudioFormat, OutputCallback, this, CFRunLoopGetCurrent(), kCFRunLoopCommonModes, 0, &_audioQueueRef);
+    if (status != noErr) {
+        AF_LOGE("AudioQueue: AudioQueueNewOutput failed (%d)\n", (int) status);
+        mInitStatus = -1;
+        return -1;
+    }
+    UInt32 propValue = 1;
+    AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_EnableTimePitch, &propValue, sizeof(propValue));
+    propValue = 1;
+    AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchBypass, &propValue, sizeof(propValue));
+    propValue = kAudioQueueTimePitchAlgorithm_TimeDomain;
+    AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchAlgorithm, &propValue, sizeof(propValue));
+    mInitStatus = 1;
+
+    while (mRunning) {
+        if (mNeedFlush) {
+            flushAudioQueue();
+            mNeedFlush = false;
+        }
+
+        if (mBufferAllocatedCount < mBufferCount && mInPut.size() >= mBufferCount) {
+            assert(mAudioDataByteSize > 0);
+            assert(mBufferCount <= MAX_QUEUE_SIZE);
+            while (mBufferAllocatedCount < mBufferCount) {
+                AudioQueueBuffer *buffer = nullptr;
+                AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &buffer);
+                _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
+                buffer->mAudioDataByteSize = copyAudioData(buffer, false);
+                AudioQueueEnqueueBuffer(_audioQueueRef, buffer, 0, nullptr);
+                mBufferAllocatedCount++;
+            }
+        }
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.2, 1);
+    }
+    if (_audioQueueRef) {
+        AudioQueueStop(_audioQueueRef, true);
+        AudioQueueDispose(_audioQueueRef, true);
+    }
+    return -1;
 }
 
 #if TARGET_OS_IPHONE
