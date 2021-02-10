@@ -53,4 +53,4 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -Os -pipe -fPIC -Wall -fmessage-leng
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -Os -pipe -fPIC -Wall -fmessage-length=0 -fvisibility=hidden")
 
 set(BUILD_TEST OFF)
-set(ENABLE_GLRENDER ON)
+set(ENABLE_GLRENDER OFF)

@@ -55,7 +55,11 @@ typedef int64_t(^CicadaReferClockFun) ();
 
 @interface CicadaPlayer () <CicadaPlayerViewDelegate>
 {
+#if TARGET_OS_OSX
     CicadaPlayerView* mView;
+#else
+    UIView *mView;
+#endif
     CicadaConfig* mConfig;
     CicadaMediaInfo* mMediaInfo;
     CicadaOCHelper* mHelper;
@@ -349,9 +353,8 @@ static int logOutput = 1;
     if (showView != nil) {
         //TODO: 重新设置视图？
         if(mView == nil) {
-            mView = [[CicadaPlayerView alloc] initWithFrame:showView.bounds];
+            mView = [[UIView alloc] initWithFrame:showView.bounds];
             mView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-            mView.delegate = self;
 
             [showView addSubview:mView];
             [showView bringSubviewToFront:mView];
@@ -408,10 +411,11 @@ static int logOutput = 1;
 {
     if (self.player) {
         [self stop];
+#if TARGET_OS_OSX
         if (mView) {
             mView.delegate = nil;
         }
-
+#endif
         if (self.player){
             self.player->SetView(nil);
         }
@@ -454,10 +458,11 @@ static int logOutput = 1;
 
 -(void)destroy
 {
+#if TARGET_OS_OSX
     if (mView) {
         mView.delegate = nil;
     }
-
+#endif
     if (self.player) {
         delete self.player;
         self.player = nullptr;
