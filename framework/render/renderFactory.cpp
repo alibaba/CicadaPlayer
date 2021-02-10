@@ -70,11 +70,13 @@ unique_ptr<IVideoRender> videoRenderFactory::create(uint64_t flags)
     }
 
     if (flags & IVideoRender::FLAG_HDR) {
-#if defined(__APPLE__) && !defined(ENABLE_SDL)
-        return std::unique_ptr<IVideoRender>(new AVFoundationVideoRender());
-#endif
+#ifdef ANDROID// no render support hdr on Android, use FLAG_DUMMY to render use mediacodec
         return nullptr;
+#endif
     }
+#if defined(__APPLE__) && !defined(ENABLE_SDL)
+    return std::unique_ptr<IVideoRender>(new AVFoundationVideoRender());
+#endif
 
 #if defined(GLRENDER)
     return std::unique_ptr<IVideoRender>(new GLRender());
