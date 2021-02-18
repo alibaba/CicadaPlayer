@@ -44,10 +44,15 @@ int DisplayLayerImpl::renderFrame(std::unique_ptr<IAFFrame> &frame)
         mFrameRotate = frame->getInfo().video.rotate;
         applyRotate();
     }
-    // TODO: use dar
-    if (frame->getInfo().video.height != mFrameDisplayHeight || frame->getInfo().video.width != mFrameDisplayWidth) {
+    if (frame->getInfo().video.height != mFrameHeight || frame->getInfo().video.width != mFrameWidth ||
+        frame->getInfo().video.dar != mFrameDar) {
+
+        mFrameHeight = frame->getInfo().video.height;
+        mFrameWidth = frame->getInfo().video.width;
+        mFrameDar = frame->getInfo().video.dar;
+
+        mFrameDisplayWidth = static_cast<int>(frame->getInfo().video.dar * frame->getInfo().video.height);
         mFrameDisplayHeight = frame->getInfo().video.height;
-        mFrameDisplayWidth = frame->getInfo().video.width;
         CGSize size;
         size.width = mFrameDisplayWidth;
         size.height = mFrameDisplayHeight;
@@ -173,7 +178,7 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
         dispatch_async(dispatch_get_main_queue(), ^{
           if (!self.displayLayer) {
               self.displayLayer = [AVSampleBufferDisplayLayer layer];
-              self.displayLayer.videoGravity = videoGravity;
+              self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspect;
           }
           [parentLayer addSublayer:self.displayLayer];
           parentLayer.masksToBounds = YES;
