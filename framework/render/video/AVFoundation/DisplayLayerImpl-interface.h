@@ -31,6 +31,10 @@ private:
 
     int mFrameDisplayWidth{0};
     int mFrameDisplayHeight{0};
+
+    int mFrameWidth{0};
+    int mFrameHeight{0};
+    double mFrameDar{0};
 };
 
 #endif//CICADAMEDIA_DISPLAYLAYERIMPL_H
