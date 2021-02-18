@@ -13,10 +13,20 @@
 }
 @property(nonatomic, strong) AVSampleBufferDisplayLayer *displayLayer;
 
+@property CATransform3D scaleTransform;
+@property CATransform3D mirrorTransform;
+@property CATransform3D rotateTransform;
+
+@property(nonatomic, assign) BOOL isFillWidth;
+@property(nonatomic) CGSize videoSize;
+
+@property(nonatomic) int rotateMode;
+
 - (int)createLayer;
 
 - (void)setDisplay:(void *)layer;
 
+- (void)setVideoSize:(CGSize)videoSize;
 @end
 
 
