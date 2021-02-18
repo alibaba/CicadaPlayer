@@ -59,10 +59,12 @@ int AVFoundationVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
 }
 int AVFoundationVideoRender::setRotate(IVideoRender::Rotate rotate)
 {
+    mRender->setRotate(rotate);
     return 0;
 }
 int AVFoundationVideoRender::setFlip(IVideoRender::Flip flip)
 {
+    mRender->setFlip(flip);
     return 0;
 }
 int AVFoundationVideoRender::setScale(IVideoRender::Scale scale)

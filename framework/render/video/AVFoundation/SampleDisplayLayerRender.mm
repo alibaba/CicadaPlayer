@@ -30,10 +30,29 @@ int DisplayLayerImpl::createLayer()
 {
     return [(__bridge id) renderHandle createLayer];
 }
+void DisplayLayerImpl::applyRotate()
+{
+    int rotate = static_cast<int>(llabs((mFrameRotate + mRotate) % 360));
+    [(__bridge id) renderHandle setRotateMode:rotate];
+}
 
 int DisplayLayerImpl::renderFrame(std::unique_ptr<IAFFrame> &frame)
 {
     auto *pbafFrame = dynamic_cast<PBAFFrame *>(frame.get());
+
+    if (frame->getInfo().video.rotate != mFrameRotate) {
+        mFrameRotate = frame->getInfo().video.rotate;
+        applyRotate();
+    }
+    // TODO: use dar
+    if (frame->getInfo().video.height != mFrameDisplayHeight || frame->getInfo().video.width != mFrameDisplayWidth) {
+        mFrameDisplayHeight = frame->getInfo().video.height;
+        mFrameDisplayWidth = frame->getInfo().video.width;
+        CGSize size;
+        size.width = mFrameDisplayWidth;
+        size.height = mFrameDisplayHeight;
+        [(__bridge id) renderHandle setVideoSize:size];
+    }
     if (pbafFrame) {
         [(__bridge id) renderHandle displayPixelBuffer:pbafFrame->getPixelBuffer()];
     }
@@ -55,11 +74,96 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
     [(__bridge id) renderHandle setVideoScale:scale];
 }
 
+void DisplayLayerImpl::setFlip(IVideoRender::Flip flip)
+{
+    if (mFlip != flip) {
+        mFlip = flip;
+        int rotate = static_cast<int>(llabs((mFrameRotate + mRotate) % 180));
+        switch (flip) {
+            case IVideoRender::Flip_None:
+                [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(0, 0, 0, 0)];
+                break;
+            case IVideoRender::Flip_Horizontal:
+                if (rotate == 0) {
+                    [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(M_PI, 0, 1, 0)];
+                } else {
+                    [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(M_PI, 1, 0, 0)];
+                }
+                break;
+            case IVideoRender::Flip_Vertical:
+                if (rotate == 0) {
+                    [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(M_PI, 1, 0, 0)];
+                } else {
+                    [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(M_PI, 0, 1, 0)];
+                }
+                break;
+            default:
+                break;
+        }
+        [(__bridge id) renderHandle applyTransform];
+    }
+}
+
+void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
+{
+    if (mRotate != rotate) {
+        mRotate = rotate;
+        applyRotate();
+    }
+}
+
 - (instancetype)init
 {
     videoGravity = AVLayerVideoGravityResizeAspect;
     parentLayer = nil;
+    _mirrorTransform = CATransform3DMakeRotation(0, 0, 0, 0);
+    _rotateTransform = CATransform3DMakeRotation(0, 0, 0, 0);
+    _scaleTransform = CATransform3DMakeRotation(0, 0, 0, 0);
     return self;
+}
+
+- (CATransform3D)CalculateTransform
+{
+    CATransform3D transform = CATransform3DConcat(_mirrorTransform, _rotateTransform);
+    if (videoGravity == AVLayerVideoGravityResizeAspect) {
+        float scale = 1;
+        if (_isFillWidth) {
+            scale = static_cast<float>(self.displayLayer.bounds.size.width / [self getVideoSize].width);
+        } else {
+            scale = static_cast<float>(self.displayLayer.bounds.size.height / [self getVideoSize].height);
+        }
+        _scaleTransform = CATransform3DMakeScale(scale, scale, 1);
+    } else if (videoGravity == AVLayerVideoGravityResizeAspectFill) {
+        float scale = 1;
+        if (!_isFillWidth) {
+            scale = static_cast<float>(self.displayLayer.bounds.size.width / [self getVideoSize].width);
+        } else {
+            scale = static_cast<float>(self.displayLayer.bounds.size.height / [self getVideoSize].height);
+        }
+        _scaleTransform = CATransform3DMakeScale(scale, scale, 1);
+    } else if (videoGravity == AVLayerVideoGravityResize) {
+        float scalex;
+        float scaley;
+        if (!_isFillWidth) {
+            scalex = static_cast<float>(self.displayLayer.bounds.size.width / [self getVideoSize].width);
+            scaley = static_cast<float>(self.displayLayer.bounds.size.height / [self getVideoSize].height);
+        } else {
+            scalex = static_cast<float>(self.displayLayer.bounds.size.width / [self getVideoSize].width);
+            scaley = static_cast<float>(self.displayLayer.bounds.size.height / [self getVideoSize].height);
+        }
+        _scaleTransform = CATransform3DMakeScale(scalex, scaley, 1);
+    }
+    return CATransform3DConcat(transform, _scaleTransform);
+}
+
+- (void)applyTransform
+{
+    if (self.displayLayer) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          self.displayLayer.transform = [self CalculateTransform];
+          [self.displayLayer removeAllAnimations];
+        });
+    }
 }
 
 - (void)setDisplay:(void *)layer
@@ -74,6 +178,7 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
           [parentLayer addSublayer:self.displayLayer];
           parentLayer.masksToBounds = YES;
           self.displayLayer.frame = parentLayer.bounds;
+          self.displayLayer.transform = [self CalculateTransform];
           [parentLayer addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:nil];
         });
     }
@@ -94,15 +199,30 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
         default:
             return;
     }
+    [self applyTransform];
+}
 
-    if (self.displayLayer) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          self.displayLayer.videoGravity = videoGravity;
-          CGRect bounds = self.displayLayer.bounds;
-          self.displayLayer.bounds = CGRectZero;
-          self.displayLayer.bounds = bounds;
-        });
+- (void)setRotateMode:(int)rotateMode
+{
+    _rotateMode = rotateMode;
+    switch (rotateMode) {
+        case 0:
+            _rotateTransform = CATransform3DMakeRotation(0, 0, 0, 0);
+            break;
+        case 90:
+            _rotateTransform = CATransform3DMakeRotation(M_PI_2, 0, 0, 1);
+            break;
+        case 180:
+            _rotateTransform = CATransform3DMakeRotation(M_PI, 0, 0, 1);
+            break;
+        case 270:
+            _rotateTransform = CATransform3DMakeRotation(M_PI_2, 0, 0, -1);
+            break;
+
+        default:
+            break;
     }
+    [self applyTransform];
 }
 
 - (void)clearScreen
@@ -124,47 +244,27 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
     return 0;
 };
 
-#if 0
-- (CVPixelBufferRef)copyPixelBuffer:(CVPixelBufferRef)pixelBuffer
+- (void)setVideoSize:(CGSize)videoSize
 {
-    CVPixelBufferRef copyBuffer = nil;
-    NSDictionary *pixelAttributes = @{(id) kCVPixelBufferIOSurfacePropertiesKey: @{}};
-
-
-    size_t width = CVPixelBufferGetWidth(pixelBuffer);
-    size_t height = CVPixelBufferGetHeight(pixelBuffer);
-    OSType pix_fmt = CVPixelBufferGetPixelFormatType(pixelBuffer);
-
-    CVReturn result =
-            CVPixelBufferCreate(kCFAllocatorDefault, width, height, pix_fmt, (__bridge CFDictionaryRef)(pixelAttributes), &copyBuffer);
-
-    if (result != kCVReturnSuccess) {
-        return nullptr;
+    float scale = 1;
+    _isFillWidth = self.displayLayer.bounds.size.width / self.displayLayer.bounds.size.height < videoSize.width / videoSize.height;
+    if (_isFillWidth) {
+        scale = static_cast<float>(self.displayLayer.bounds.size.width / videoSize.width);
+    } else {
+        scale = static_cast<float>(self.displayLayer.bounds.size.height / videoSize.height);
     }
-    uint8_t *DestPlane;
-    uint8_t *SrcPlane;
-    size_t line_size;
+    _videoSize = CGSizeMake(videoSize.width * scale, videoSize.height * scale);
 
-    for (int j = 0; j < CVPixelBufferGetPlaneCount(pixelBuffer); j++) {
-        CVPixelBufferLockBaseAddress(copyBuffer, j);
-        CVPixelBufferLockBaseAddress(pixelBuffer, j);
-        DestPlane = (uint8_t *) CVPixelBufferGetBaseAddressOfPlane(copyBuffer, j);
-        SrcPlane = (uint8_t *) CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, j);
-        line_size = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, j);
-        height = CVPixelBufferGetHeightOfPlane(pixelBuffer, j);
-        width = CVPixelBufferGetWidthOfPlane(pixelBuffer, j);
-
-
-        for (int i = 0; i < height; i++) {
-            memcpy(DestPlane + i * line_size, SrcPlane + i * line_size, line_size);
-        }
-        CVPixelBufferUnlockBaseAddress(copyBuffer, j);
-        CVPixelBufferUnlockBaseAddress(pixelBuffer, j);
-    }
-
-    return copyBuffer;
+    [self applyTransform];
 }
-#endif
+
+- (CGSize)getVideoSize
+{
+    if (_rotateMode % 180) {
+        return CGSizeMake(_videoSize.height, _videoSize.width);
+    }
+    return _videoSize;
+}
 
 - (void)displayPixelBuffer:(CVPixelBufferRef)pixelBuffer
 {
@@ -174,17 +274,17 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
 
     CMSampleTimingInfo timing = {kCMTimeInvalid, kCMTimeInvalid, kCMTimeInvalid};
 
-    CMVideoFormatDescriptionRef videoInfo = NULL;
-    OSStatus result = CMVideoFormatDescriptionCreateForImageBuffer(NULL, pixelBuffer, &videoInfo);
-    NSParameterAssert(result == 0 && videoInfo != NULL);
+    CMVideoFormatDescriptionRef videoInfo = nullptr;
+    OSStatus result = CMVideoFormatDescriptionCreateForImageBuffer(nullptr, pixelBuffer, &videoInfo);
+    NSParameterAssert(result == 0 && videoInfo != nullptr);
 
-    CMSampleBufferRef sampleBuffer = NULL;
+    CMSampleBufferRef sampleBuffer = nullptr;
     result = CMSampleBufferCreateForImageBuffer(kCFAllocatorDefault, pixelBuffer, true, NULL, NULL, videoInfo, &timing, &sampleBuffer);
-    NSParameterAssert(result == 0 && sampleBuffer != NULL);
+    NSParameterAssert(result == 0 && sampleBuffer != nullptr);
     CFRelease(videoInfo);
 
     CFArrayRef attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, YES);
-    CFMutableDictionaryRef dict = (CFMutableDictionaryRef) CFArrayGetValueAtIndex(attachments, 0);
+    auto dict = (CFMutableDictionaryRef) CFArrayGetValueAtIndex(attachments, 0);
     CFDictionarySetValue(dict, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue);
 
     if (self.displayLayer.status == AVQueuedSampleBufferRenderingStatusFailed) {
