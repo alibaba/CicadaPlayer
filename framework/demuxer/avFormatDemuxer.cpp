@@ -318,7 +318,10 @@ namespace Cicada {
         } while (true);
 
         if (mNedParserPkt) {
+            int old_duration = pkt->duration;
             av_compute_pkt_fields(mCtx, mCtx->streams[pkt->stream_index], nullptr, pkt, AV_NOPTS_VALUE, AV_NOPTS_VALUE);
+            // the algorithm of duration was incorrect for mpegts, so restore it
+            pkt->duration = old_duration;
         }
 
         if (pkt->pts == AV_NOPTS_VALUE) {
