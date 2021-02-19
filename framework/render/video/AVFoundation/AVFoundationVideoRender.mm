@@ -83,3 +83,8 @@ float AVFoundationVideoRender::getRenderFPS()
 {
     return mFPS;
 }
+
+void AVFoundationVideoRender::setBackgroundColor(uint32_t color)
+{
+    mRender->setBackgroundColor(color);
+}

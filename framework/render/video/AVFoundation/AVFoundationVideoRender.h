@@ -29,6 +29,8 @@ public:
 
     int setDisPlay(void *view) override;
 
+    void setBackgroundColor(uint32_t color) override;
+
     float getRenderFPS() override;
 
 private:

@@ -19,6 +19,7 @@ public:
     void setScale(IVideoRender::Scale scale);
     void setRotate(IVideoRender::Rotate rotate);
     void setFlip(IVideoRender::Flip flip);
+    void setBackgroundColor(uint32_t color);
 
 private:
     void applyRotate();

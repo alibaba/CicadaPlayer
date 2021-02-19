@@ -5,6 +5,7 @@
 #import "SampleDisplayLayerRender.h"
 #include "DisplayLayerImpl-interface.h"
 #include <base/media/PBAFFrame.h>
+#import <render/video/glRender/base/utils.h>
 #if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
 #endif
@@ -109,6 +110,17 @@ void DisplayLayerImpl::setFlip(IVideoRender::Flip flip)
     }
 }
 
+void DisplayLayerImpl::setBackgroundColor(uint32_t color)
+{
+    float fColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    cicada::convertToGLColor(color, fColor);
+    CGColorSpaceRef rgb = CGColorSpaceCreateDeviceRGB();
+    CGColorRef cgColor = CGColorCreate(rgb, (CGFloat[]){fColor[0], fColor[1], fColor[2], fColor[3]});
+    [(__bridge id) renderHandle setBGColour:cgColor];
+    CGColorRelease(cgColor);
+    CGColorSpaceRelease(rgb);
+}
+
 void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 {
     if (mRotate != rotate) {
@@ -121,6 +133,7 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 {
     videoGravity = AVLayerVideoGravityResizeAspect;
     parentLayer = nil;
+    _bGColour = nullptr;
     _mirrorTransform = CATransform3DMakeRotation(0, 0, 0, 0);
     _rotateTransform = CATransform3DMakeRotation(0, 0, 0, 0);
     _scaleTransform = CATransform3DMakeRotation(0, 0, 0, 0);
@@ -181,12 +194,30 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
               self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspect;
           }
           [parentLayer addSublayer:self.displayLayer];
+          if (_bGColour) {
+              parentLayer.backgroundColor = _bGColour;
+          }
           parentLayer.masksToBounds = YES;
           self.displayLayer.frame = parentLayer.bounds;
           self.displayLayer.transform = [self CalculateTransform];
           [parentLayer addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:nil];
         });
     }
+}
+
+- (void)setBGColour:(CGColorRef)bGColour
+{
+    assert(bGColour);
+    CGColorRef color = CGColorRetain(bGColour);
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if (_bGColour) {
+          CGColorRelease(_bGColour);
+      }
+      _bGColour = color;
+      if (parentLayer) {
+          parentLayer.backgroundColor = _bGColour;
+      }
+    });
 }
 
 - (void)setVideoScale:(IVideoRender::Scale)scale
@@ -321,6 +352,9 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
               [parentLayer removeObserver:self forKeyPath:@"bounds" context:nil];
           }
         });
+    }
+    if (_bGColour) {
+        CGColorRelease(_bGColour);
     }
 }
 
