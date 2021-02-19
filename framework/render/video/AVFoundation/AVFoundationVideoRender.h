@@ -31,8 +31,7 @@ public:
     {
         return FLAG_HDR;
     }
-    void setBackgroundColor(uint32_t color) override
-    {}
+    void setBackgroundColor(uint32_t color) override;
 
 private:
     bool deviceRenderFrame(IAFFrame *frame) override;

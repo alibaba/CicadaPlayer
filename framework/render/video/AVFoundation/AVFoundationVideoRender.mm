@@ -50,6 +50,11 @@ int AVFoundationVideoRender::setDisPlay(void *view)
     mRender->setDisplay(view);
     return 0;
 }
+
+void AVFoundationVideoRender::setBackgroundColor(uint32_t color)
+{
+    mRender->setBackgroundColor(color);
+}
 bool AVFoundationVideoRender::deviceRenderFrame(IAFFrame *frame)
 {
     bool rendered = false;
