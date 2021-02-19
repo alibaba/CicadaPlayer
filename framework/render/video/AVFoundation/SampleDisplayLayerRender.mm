@@ -240,6 +240,9 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     if ([keyPath isEqualToString:@"bounds"]) {
         CGRect bounds = [change[NSKeyValueChangeNewKey] CGRectValue];
         self.displayLayer.frame = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
+        self.displayLayer.bounds = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
+        [self getVideoSize];
+        [self applyTransform];
     }
 }
 
@@ -251,22 +254,26 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 
 - (void)setVideoSize:(CGSize)videoSize
 {
-    float scale = 1;
-    _isFillWidth = self.displayLayer.bounds.size.width / self.displayLayer.bounds.size.height < videoSize.width / videoSize.height;
-    if (_isFillWidth) {
-        scale = static_cast<float>(self.displayLayer.bounds.size.width / videoSize.width);
-    } else {
-        scale = static_cast<float>(self.displayLayer.bounds.size.height / videoSize.height);
-    }
-    _videoSize = CGSizeMake(videoSize.width * scale, videoSize.height * scale);
-
+    _frameSize = videoSize;
+    [self getVideoSize];
     [self applyTransform];
 }
 
 - (CGSize)getVideoSize
 {
+    float scale = 1;
+
+    _isFillWidth = self.displayLayer.bounds.size.width / self.displayLayer.bounds.size.height < _frameSize.width / _frameSize.height;
+
+    if (_isFillWidth) {
+        scale = static_cast<float>(self.displayLayer.bounds.size.width / _frameSize.width);
+    } else {
+        scale = static_cast<float>(self.displayLayer.bounds.size.height / _frameSize.height);
+    }
     if (_rotateMode % 180) {
-        return CGSizeMake(_videoSize.height, _videoSize.width);
+        _videoSize = CGSizeMake(_frameSize.height * scale, _frameSize.width * scale);
+    } else {
+        _videoSize = CGSizeMake(_frameSize.width * scale, _frameSize.height * scale);
     }
     return _videoSize;
 }

@@ -19,6 +19,7 @@
 
 @property(nonatomic, assign) BOOL isFillWidth;
 @property(nonatomic) CGSize videoSize;
+@property(nonatomic) CGSize frameSize;
 
 @property(nonatomic) int rotateMode;
 
