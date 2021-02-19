@@ -26,6 +26,7 @@ AFActiveVideoRender::~AFActiveVideoRender()
     while (mInputQueue.size() > 0) {
         dropFrame();
     }
+    mVSync->pause();
     mVSync = nullptr;
 }
 
