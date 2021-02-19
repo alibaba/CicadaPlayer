@@ -63,6 +63,8 @@ public:
     {
         return 0;
     }
+    void setBackgroundColor(uint32_t color) override
+    {}
 
 private:
     int VSyncOnInit() override

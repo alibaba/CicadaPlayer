@@ -51,6 +51,8 @@ namespace Cicada {
         {
             mRenderResultCallback = renderedCallback;
         }
+        void setBackgroundColor(uint32_t color) override
+        {}
 
     private:
         int VSyncOnInit() override

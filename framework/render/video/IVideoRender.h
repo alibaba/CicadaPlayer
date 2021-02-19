@@ -106,9 +106,7 @@ public:
     /*
      * set background color
      */
-    virtual void setBackgroundColor(uint32_t color) {
-
-    };
+    virtual void setBackgroundColor(uint32_t color) = 0;
 
     /**
      * set want draw frame.

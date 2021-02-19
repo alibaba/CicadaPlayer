@@ -43,6 +43,8 @@ namespace Cicada {
         {
             return FLAG_DUMMY;
         }
+        void setBackgroundColor(uint32_t color) override
+        {}
     };
 }// namespace Cicada
 
