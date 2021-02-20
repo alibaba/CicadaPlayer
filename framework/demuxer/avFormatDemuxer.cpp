@@ -183,7 +183,7 @@ namespace Cicada {
             return FRAMEWORK_ERR_EXIT;
         }
 
-        if (ret < 0) {
+        if (ret < 0 && ret != AVERROR_EOF) {
             AF_LOGE("avformat_find_stream_info error %d:%s\n", ret, getErrorString(ret));
             return ret;
         }
