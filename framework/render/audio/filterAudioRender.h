@@ -107,6 +107,7 @@ namespace Cicada {
         bool mUseActiveFilter{false};
         std::atomic_int mMaxQueSize{2};
         uint64_t mFilterFlags{};
+        bool mSuccessInitDevice = false;
 
     protected:
         std::unique_ptr<afThread> mRenderThread = nullptr;

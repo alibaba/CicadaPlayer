@@ -63,8 +63,10 @@ namespace Cicada {
 
         if (ret < 0) {
             AF_LOGE("subInit failed , ret = %d ", ret);
+            mSuccessInitDevice = false;
             return ret;
         }
+        mSuccessInitDevice = true;
         if (mOutputInfo.nb_samples > 0) {
             float rate = (float) mInputInfo.sample_rate / mOutputInfo.sample_rate;
             float nb_samples = mOutputInfo.nb_samples /= rate;
@@ -88,6 +90,10 @@ namespace Cicada {
         unique_lock<mutex> lock(mFrameQueMutex);
 
         //AF_LOGD("mFrameQue.size() is %d\n", mFrameQue.size());
+
+        if (!mSuccessInitDevice) {
+            return OPEN_AUDIO_DEVICE_FAILED;
+        }
 
         if (mFrameQue.size() >= mMaxQueSize) {
             return -EAGAIN;
