@@ -313,13 +313,22 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
     if (mBufferAllocatedCount < mBufferCount && mInPut.size() >= mBufferCount) {
         assert(mAudioDataByteSize > 0);
         assert(mBufferCount <= MAX_QUEUE_SIZE);
+
+        /*
+         * AudioQueueAllocateBuffer could waste a long time more than a buffer duration,
+         * to avoid consuming mInPut in two thead, alloc and fill the buffer first, and then enqueue
+         * them at once
+         */
         while (mBufferAllocatedCount < mBufferCount) {
-            AudioQueueBuffer *buffer = NULL;
+            AudioQueueBuffer *buffer = nullptr;
             AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &buffer);
             _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
             buffer->mAudioDataByteSize = copyAudioData(buffer, false);
-            AudioQueueEnqueueBuffer(_audioQueueRef, buffer, 0, nullptr);
             mBufferAllocatedCount++;
+        }
+
+        for (int i = 0; i < mBufferAllocatedCount; i++) {
+            AudioQueueEnqueueBuffer(_audioQueueRef, _audioQueueBufferRefArray[i], 0, nullptr);
         }
     }
     return 0;
