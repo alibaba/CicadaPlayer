@@ -39,6 +39,9 @@ void DisplayLayerImpl::applyRotate()
 
 int DisplayLayerImpl::renderFrame(std::unique_ptr<IAFFrame> &frame)
 {
+    if (!frame) {
+        return 0;
+    }
     auto *pbafFrame = dynamic_cast<PBAFFrame *>(frame.get());
 
     if (frame->getInfo().video.rotate != mFrameRotate) {
