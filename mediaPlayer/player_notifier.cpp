@@ -175,6 +175,11 @@ namespace Cicada {
             return;
         }
 
+        if (width == -1 && height == -1) {
+            auto *event = new player_event(width, height, buffer, mListener.CaptureScreen, true);
+            pushEvent(event);
+            return;
+        }
         auto *dupBuffer = static_cast<uint8_t *>(malloc(width * height * 4));
         memcpy(dupBuffer, buffer, width * height * 4);
         auto *event = new player_event(width, height, dupBuffer, mListener.CaptureScreen, false);

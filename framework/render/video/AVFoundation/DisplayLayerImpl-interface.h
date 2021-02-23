@@ -21,6 +21,8 @@ public:
     void setFlip(IVideoRender::Flip flip);
     void setBackgroundColor(uint32_t color);
 
+    void captureScreen(std::function<void(uint8_t *, int, int)> func);
+
 private:
     void applyRotate();
 

@@ -347,7 +347,12 @@ CicadaOCHelper::onCaptureScreen(int64_t width, int64_t height, const void *buffe
     if (nullptr == buffer) {
         return;
     }
-    CicadaImage* image = convertBitmapRGBA8ToUIImage((unsigned char *)buffer, static_cast<int>(width), static_cast<int>(height));
+    CicadaImage *image = nullptr;
+    if (width == -1 && height == -1) {
+        image = (__bridge id) buffer;
+    } else {
+        image = convertBitmapRGBA8ToUIImage((unsigned char *) buffer, static_cast<int>(width), static_cast<int>(height));
+    }
 
     if(player.delegate && [player.delegate respondsToSelector:@selector(onCaptureScreen:image:)]){
         dispatch_async(dispatch_get_main_queue(), ^{

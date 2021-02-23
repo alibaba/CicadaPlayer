@@ -79,3 +79,7 @@ bool AVFoundationVideoRender::deviceRenderFrame(IAFFrame *frame)
 
     return rendered;
 }
+void AVFoundationVideoRender::captureScreen(std::function<void(uint8_t *, int, int)> func)
+{
+    mRender->captureScreen(func);
+}
