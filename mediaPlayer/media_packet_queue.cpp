@@ -31,6 +31,9 @@ namespace Cicada {
             }
 
             mDuration += frame->getInfo().duration;
+        } else if (mPacketDuration > 0) {
+            frame->getInfo().duration = mPacketDuration;
+            mDuration += mPacketDuration;
         }
 
         if (mMediaType == BUFFER_TYPE_AUDIO && !mQueue.empty() && frame->getInfo().pts != INT64_MIN
