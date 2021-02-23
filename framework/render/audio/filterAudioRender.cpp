@@ -57,7 +57,7 @@ namespace Cicada {
             mFilterFlags |= A_FILTER_FLAG_TEMPO;
         }
 
-        if (!(device_ability & A_FILTER_FLAG_VOLUME)) {
+        if (!(device_ability & A_FILTER_FLAG_VOLUME) || 1) {// device not support volume >1
             mFilterFlags |= A_FILTER_FLAG_VOLUME;
         }
 
@@ -138,32 +138,19 @@ namespace Cicada {
     void filterAudioRender::mute(bool bMute)
     {
         mMute = bMute;
-        if (bMute) {
-            device_setVolume(0);
-        } else {
-            device_setVolume(mVolume * mVolume * mVolume);
-        }
+        device_mute(bMute);
     }
 
     int filterAudioRender::setVolume(float volume)
     {
-        if (mVolume != volume) {
-            mVolume = volume;
-
-            if (!(mFilterFlags & A_FILTER_FLAG_VOLUME)) {
-                device_setVolume(mVolume * mVolume * mVolume);
-            }
-        }
-
+        mVolume = volume;
         return 0;
     }
 
     int filterAudioRender::setSpeed(float speed)
     {
         assert(mFilterFlags & A_FILTER_FLAG_TEMPO);
-        if (mSpeed != speed) {
-            mSpeed = speed;
-        }
+        mSpeed = speed;
         return 0;
     }
 
@@ -328,11 +315,10 @@ namespace Cicada {
 
     int filterAudioRender::applyVolume()
     {
-        float volume = mVolume;
+        float gain = mVolume * mVolume * mVolume;
 
-        if (volume > 1) {
-            float gain = volume * volume * volume;
-
+        if (gain > 1) {
+            //use filter to enlarge, set device volume to 1
             if (mFilter == nullptr) {
                 mFilter = std::unique_ptr<IAudioFilter>(filterFactory::createAudioFilter(mInputInfo, mOutputInfo, mUseActiveFilter));
                 mFilter->setOption("volume", AfString::to_string(gain), "volume");
@@ -344,18 +330,19 @@ namespace Cicada {
             } else {
                 mFilter->setOption("volume", AfString::to_string(gain), "volume");
             }
-
-//set device volume to 1
-            volume = 1;
-        } else {
-            if (mFilter) {
-                mFilter->setOption("volume", AfString::to_string(1.0), "volume");
+            if (device_get_ability() & A_FILTER_FLAG_VOLUME) {
+                device_setVolume(1.0);
             }
-        }
-
-        if(!mMute) {
-            float gain = volume * volume * volume;
-            device_setVolume(gain);
+        } else {
+            if (device_get_ability() & A_FILTER_FLAG_VOLUME) {
+                if (mFilter) {
+                    mFilter->setOption("volume", AfString::to_string(1.0), "volume");
+                }
+                device_setVolume(gain);
+            } else {
+                assert(mFilter);
+                mFilter->setOption("volume", AfString::to_string(gain), "volume");
+            }
         }
         return 0;
     }

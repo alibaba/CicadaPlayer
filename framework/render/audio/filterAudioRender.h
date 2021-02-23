@@ -57,6 +57,8 @@ namespace Cicada {
 
         virtual int device_write(unique_ptr<IAFFrame> &frame) = 0;
 
+        virtual void device_mute(bool bMute) = 0;
+
         virtual uint64_t device_get_que_duration()
         {
             return 0;
