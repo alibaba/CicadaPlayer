@@ -88,3 +88,7 @@ void AVFoundationVideoRender::setBackgroundColor(uint32_t color)
 {
     mRender->setBackgroundColor(color);
 }
+void AVFoundationVideoRender::captureScreen(std::function<void(uint8_t *, int, int)> func)
+{
+    mRender->captureScreen(func);
+}

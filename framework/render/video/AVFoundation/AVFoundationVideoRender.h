@@ -33,6 +33,8 @@ public:
 
     float getRenderFPS() override;
 
+    void captureScreen(std::function<void(uint8_t *, int, int)> func) override;
+
 private:
     std::unique_ptr<DisplayLayerImpl> mRender;
     uint32_t mStatisticsFrameCount{0};

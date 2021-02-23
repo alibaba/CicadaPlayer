@@ -5,7 +5,9 @@
 #import "SampleDisplayLayerRender.h"
 #include "DisplayLayerImpl-interface.h"
 #include <base/media/PBAFFrame.h>
+
 #import <render/video/glRender/base/utils.h>
+#include <utility>
 #if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
 #endif
@@ -13,6 +15,7 @@
 @implementation SampleDisplayLayerRender {
     CALayer *parentLayer;
     AVLayerVideoGravity videoGravity;
+    CVPixelBufferRef renderingBuffer;
 }
 DisplayLayerImpl::DisplayLayerImpl()
 {}
@@ -124,6 +127,15 @@ void DisplayLayerImpl::setBackgroundColor(uint32_t color)
     CGColorSpaceRelease(rgb);
 }
 
+void DisplayLayerImpl::captureScreen(std::function<void(uint8_t *, int, int)> func)
+{
+#if TARGET_OS_IPHONE
+    void *img = [(__bridge id) renderHandle captureScreen];
+    func((uint8_t *) img, -1, -1);
+//    CFRelease(img);
+#endif
+}
+
 void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 {
     if (mRotate != rotate) {
@@ -140,6 +152,7 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     _mirrorTransform = CATransform3DMakeRotation(0, 0, 0, 0);
     _rotateTransform = CATransform3DMakeRotation(0, 0, 0, 0);
     _scaleTransform = CATransform3DMakeRotation(0, 0, 0, 0);
+    renderingBuffer = nullptr;
     return self;
 }
 
@@ -263,10 +276,50 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     }
     [self applyTransform];
 }
+#if TARGET_OS_IPHONE
+- (void *)captureScreen
+{
+    if (renderingBuffer && self.displayLayer) {
+        UIImage *uiImage = nil;
+        CIImage *ciImage = [CIImage imageWithCVPixelBuffer:renderingBuffer];
+        uiImage = [UIImage imageWithCIImage:ciImage];
+        UIGraphicsBeginImageContext(self.displayLayer.bounds.size);
+
+        [uiImage drawInRect:self.displayLayer.bounds];
+        uiImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+
+        if (_rotateMode != 0) {
+        }
+
+        if (videoGravity != AVLayerVideoGravityResizeAspect) {
+        }
+
+        //        if (mirrorTransform) {
+        //
+        //        }
+
+        if (_bGColour) {
+        }
+
+        // cleanup
+
+        return (void *) CFBridgingRetain(uiImage);
+    }
+
+    // TODO: reurn a black img
+
+    return nullptr;
+}
+#endif
 
 - (void)clearScreen
 {
     [self.displayLayer flushAndRemoveImage];
+    if (renderingBuffer) {
+        CVPixelBufferRelease(renderingBuffer);
+    }
+    renderingBuffer = nullptr;
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *, id> *)change context:(void *)context
@@ -318,6 +371,11 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
         return;
     }
 
+    if (renderingBuffer) {
+        CVPixelBufferRelease(renderingBuffer);
+    }
+    renderingBuffer = CVPixelBufferRetain(pixelBuffer);
+
     CMSampleTimingInfo timing = {kCMTimeInvalid, kCMTimeInvalid, kCMTimeInvalid};
 
     CMVideoFormatDescriptionRef videoInfo = nullptr;
@@ -358,6 +416,9 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     }
     if (_bGColour) {
         CGColorRelease(_bGColour);
+    }
+    if (renderingBuffer) {
+        CVPixelBufferRelease(renderingBuffer);
     }
 }
 
