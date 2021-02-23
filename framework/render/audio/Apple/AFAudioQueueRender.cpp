@@ -281,11 +281,14 @@ void AFAudioQueueRender::flush_device()
 
 void AFAudioQueueRender::device_setVolume(float gain)
 {
-    float aq_volume = gain;
-    if (fabsf(aq_volume - 1.0f) <= 0.000001) {
+    mVolume = gain;
+    if (mMute) {
+        return;
+    }
+    if (fabsf(gain - 1.0f) <= 0.000001) {
         AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_Volume, 1.f);
     } else {
-        AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_Volume, aq_volume);
+        AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_Volume, gain);
     }
 }
 
@@ -340,6 +343,16 @@ uint64_t AFAudioQueueRender::device_get_que_duration()
         return 0;
     }
     return mInPut.size() * mInPut.front()->getInfo().duration;
+}
+
+void AFAudioQueueRender::device_mute(bool bMute)
+{
+    mMute = bMute;
+    if (bMute) {
+        AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_Volume, 0);
+    } else {
+        device_setVolume(mVolume);
+    }
 }
 
 #if TARGET_OS_IPHONE

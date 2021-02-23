@@ -259,10 +259,27 @@ void AudioTrackRender::flush_device()
 
 void AudioTrackRender::device_setVolume(float gain)
 {
+    mVolume = gain;
+    if (mMute) {
+        return;
+    }
     if (audio_track && method_setVolume) {
         JniEnv  jniEnv;
         JNIEnv *handle = jniEnv.getEnv();
         handle->CallIntMethod(audio_track, method_setVolume, gain, gain);
+    }
+}
+void AudioTrackRender::device_mute(bool bMute)
+{
+    mMute = bMute;
+    if (bMute) {
+        if (audio_track && method_setVolume) {
+            JniEnv jniEnv;
+            JNIEnv *handle = jniEnv.getEnv();
+            handle->CallIntMethod(audio_track, method_setVolume, 0, 0);
+        }
+    } else {
+        device_setVolume(mVolume);
     }
 }
 

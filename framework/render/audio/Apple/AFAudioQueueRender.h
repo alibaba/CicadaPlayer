@@ -48,9 +48,11 @@ namespace Cicada {
 
         uint64_t device_get_que_duration() override;
 
+        void device_mute(bool bMute) override;
+
         uint64_t device_get_ability() override
         {
-            return (uint64_t) A_FILTER_FLAG_TEMPO;
+            return (uint64_t) A_FILTER_FLAG_TEMPO | A_FILTER_FLAG_VOLUME;
         }
 
     private:
@@ -95,6 +97,8 @@ namespace Cicada {
         UInt32 mAudioDataByteSize{0};
         float mQueueSpeed{1.0};
         uint8_t mBufferCount{0};
+        float mVolume{1.0};
+        bool mMute{false};
     };
 }// namespace Cicada
 
