@@ -31,10 +31,11 @@
 
         self.backgroundColor = [UIColor colorWithWhite:0.3 alpha:1];
         
-        UIImageView *imageView = [[UIImageView alloc]init];
+        UIImageView *imageView = [[UIImageView alloc]initWithFrame:frame];
         imageView.image = image;
-        [imageView sizeToFit];
-        imageView.center = self.center;
+//        [imageView sizeToFit];
+//        imageView.center = self.center;
+        imageView.contentMode = UIViewContentModeScaleAspectFit;
         [self addSubview:imageView];
         
         [self addTapGesture];
