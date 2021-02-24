@@ -277,14 +277,17 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 - (void *)captureScreen
 {
     if (renderingBuffer && self.displayLayer) {
+        CGSize newSize = CGSizeMake(self.displayLayer.bounds.size.width*3, self.displayLayer.bounds.size.height*3);
         UIImage *uiImage = nil;
         CIImage *ciImage = [CIImage imageWithCVPixelBuffer:renderingBuffer];
         uiImage = [UIImage imageWithCIImage:ciImage];
-        UIGraphicsBeginImageContext(self.displayLayer.bounds.size);
+        UIGraphicsBeginImageContext(newSize);
 
-        [uiImage drawInRect:self.displayLayer.bounds];
+        [uiImage drawInRect:CGRectMake(0, 0, newSize.width, newSize.height)];
         uiImage = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
+
+        uiImage = [self imageTransform:uiImage inSize:newSize];
 
         if (_rotateMode != 0) {
         }
@@ -308,6 +311,39 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 
     return nullptr;
 }
+
+- (UIImage *)imageTransform:(UIImage*)img inSize:(CGSize)newSize
+{
+    UIGraphicsBeginImageContext(newSize);
+    CGContextRef ctx = UIGraphicsGetCurrentContext();
+    CGImageRef cgImage = img.CGImage;
+    if (ctx == NULL || cgImage == NULL) {
+        UIGraphicsEndImageContext();
+        return img;
+    }
+    
+    if (!_bGColour) {
+        _bGColour = [UIColor blackColor].CGColor;
+    }
+    //画上背景色
+    CGRect bgRect = CGRectMake(0.0f, 0.0f, newSize.width, newSize.height);
+    CGContextSetFillColorWithColor(ctx, _bGColour);
+    CGContextSetBlendMode(ctx, kCGBlendModeNormal);
+    CGContextFillRect(ctx, bgRect);
+    
+    CGContextTranslateCTM(ctx, newSize.width / 2.0, newSize.height / 2.0);
+    CGContextConcatCTM(ctx, CATransform3DGetAffineTransform(self.displayLayer.transform));
+    CGContextScaleCTM(ctx, 1, -1);
+    CGPoint origin = CGPointMake(-(img.size.width / 2.0), -(img.size.height / 2.0));
+    CGRect rect = CGRectZero;
+    rect.origin = origin;
+    rect.size = img.size;
+    CGContextDrawImage(ctx, rect, cgImage);
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return image ?: img;
+}
+
 #endif
 
 - (void)clearScreen
