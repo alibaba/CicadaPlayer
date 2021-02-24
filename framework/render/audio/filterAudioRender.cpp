@@ -197,6 +197,8 @@ namespace Cicada {
         if (mFilter) {
             mFilter->flush();
         }
+        mFilterSpeed = 1.0;
+        mFilterVolume = 1.0;
 
         mMaxQueSize = 2;
 
