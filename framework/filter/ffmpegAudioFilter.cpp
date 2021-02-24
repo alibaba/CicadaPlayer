@@ -427,6 +427,8 @@ namespace Cicada {
         if (m_pFilterGraph) {
             avfilter_graph_free(&m_pFilterGraph);
         }
+        mRate = 1.0;
+        mVolume = 1.0;
 
         if (mPThread) {
             mPThread->start();
