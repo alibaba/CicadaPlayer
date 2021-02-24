@@ -276,9 +276,14 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 #if TARGET_OS_IPHONE
 - (void *)captureScreen
 {
+    CGSize newSize = CGSizeMake(10, 10);
+    UIImage *uiImage = nil;
+    if (self.displayLayer) {
+        CGFloat scale = [UIScreen mainScreen].scale;
+        newSize = CGSizeMake(self.displayLayer.bounds.size.width * scale, self.displayLayer.bounds.size.height * scale);
+    }
+
     if (renderingBuffer && self.displayLayer) {
-        CGSize newSize = CGSizeMake(self.displayLayer.bounds.size.width*3, self.displayLayer.bounds.size.height*3);
-        UIImage *uiImage = nil;
         CIImage *ciImage = [CIImage imageWithCVPixelBuffer:renderingBuffer];
         uiImage = [UIImage imageWithCIImage:ciImage];
         UIGraphicsBeginImageContext(newSize);
@@ -286,30 +291,11 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
         [uiImage drawInRect:CGRectMake(0, 0, newSize.width, newSize.height)];
         uiImage = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
-
-        uiImage = [self imageTransform:uiImage inSize:newSize];
-
-        if (_rotateMode != 0) {
-        }
-
-        if (videoGravity != AVLayerVideoGravityResizeAspect) {
-        }
-
-        //        if (mirrorTransform) {
-        //
-        //        }
-
-        if (_bGColour) {
-        }
-
-        // cleanup
-
-        return (void *) CFBridgingRetain(uiImage);
     }
 
-    // TODO: reurn a black img
+    uiImage = [self imageTransform:uiImage inSize:newSize];
 
-    return nullptr;
+    return (void *) CFBridgingRetain(uiImage);
 }
 
 - (UIImage *)imageTransform:(UIImage*)img inSize:(CGSize)newSize
@@ -317,20 +303,23 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     UIGraphicsBeginImageContext(newSize);
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     CGImageRef cgImage = img.CGImage;
-    if (ctx == NULL || cgImage == NULL) {
-        UIGraphicsEndImageContext();
-        return img;
-    }
     
     if (!_bGColour) {
         _bGColour = [UIColor blackColor].CGColor;
     }
-    //画上背景色
+
+    //draw the background color
     CGRect bgRect = CGRectMake(0.0f, 0.0f, newSize.width, newSize.height);
     CGContextSetFillColorWithColor(ctx, _bGColour);
     CGContextSetBlendMode(ctx, kCGBlendModeNormal);
     CGContextFillRect(ctx, bgRect);
-    
+
+    if (ctx == NULL || cgImage == NULL) {
+        UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        return image ?: img;
+    }
+
     CGContextTranslateCTM(ctx, newSize.width / 2.0, newSize.height / 2.0);
     CGContextConcatCTM(ctx, CATransform3DGetAffineTransform(self.displayLayer.transform));
     CGContextScaleCTM(ctx, 1, -1);
@@ -339,6 +328,7 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     rect.origin = origin;
     rect.size = img.size;
     CGContextDrawImage(ctx, rect, cgImage);
+
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return image ?: img;
