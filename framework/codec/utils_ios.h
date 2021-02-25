@@ -8,6 +8,8 @@ namespace Cicada{
     extern float GetIosVersion();
     extern std::string GetIOSDeviceName();
 
+    extern void CFBridging_Release(void *data);
+
     extern void PixelBuffer_Retain(void *pixelBuffer);
 
 #if 0

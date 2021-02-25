@@ -22,6 +22,10 @@ namespace Cicada{
         const char *c1 = [phoneType UTF8String];
         return std::string(c1);
     }
+    void CFBridging_Release(void *data)
+    {
+        CFBridgingRelease(data);
+    }
 
     void PixelBuffer_Retain(void *pixelBuffer)
     {
