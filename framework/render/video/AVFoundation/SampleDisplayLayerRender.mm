@@ -281,17 +281,21 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 {
     CGSize newSize = CGSizeMake(10, 10);
     UIImage *uiImage = nil;
+    CGFloat scale = [UIScreen mainScreen].scale;
     if (self.displayLayer) {
-        CGFloat scale = [UIScreen mainScreen].scale;
         newSize = CGSizeMake(self.displayLayer.bounds.size.width * scale, self.displayLayer.bounds.size.height * scale);
     }
 
     if (renderingBuffer && self.displayLayer) {
+        CGSize imageSize = CGSizeMake(_videoSize.width * scale, _videoSize.height * scale);
+        if (_rotateMode % 180) {
+            imageSize = CGSizeMake(_videoSize.height * scale, _videoSize.width * scale);
+        }
         CIImage *ciImage = [CIImage imageWithCVPixelBuffer:renderingBuffer];
         uiImage = [UIImage imageWithCIImage:ciImage];
-        UIGraphicsBeginImageContext(newSize);
+        UIGraphicsBeginImageContext(imageSize);
 
-        [uiImage drawInRect:CGRectMake(0, 0, newSize.width, newSize.height)];
+        [uiImage drawInRect:CGRectMake(0, 0, imageSize.width, imageSize.height)];
         uiImage = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
     }
