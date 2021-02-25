@@ -62,6 +62,9 @@ int AFActiveVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
 
 void AFActiveVideoRender::dropFrame()
 {
+    if(mInputQueue.size() <= 0){
+        return;
+    }
     int64_t framePts = mInputQueue.front()->getInfo().pts;
     AF_LOGI("drop a frame pts = %lld ", framePts);
     mInputQueue.front()->setDiscard(true);
