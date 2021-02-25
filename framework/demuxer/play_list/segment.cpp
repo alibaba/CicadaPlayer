@@ -157,6 +157,7 @@ namespace Cicada {
             if (mParts.at(i).independent) {
                 moveToPart(i);
                 isFind = true;
+                break;
             }
         }
         if (!isFind) {
