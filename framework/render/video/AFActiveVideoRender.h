@@ -8,6 +8,7 @@
 
 #include "IVideoRender.h"
 #include "render/video/vsync/IVSync.h"
+#include <atomic>
 #include <base/media/spsc_queue.h>
 #include <mutex>
 #include <queue>
@@ -29,6 +30,8 @@ public:
         return mFps;
     }
 
+    void captureScreen(std::function<void(uint8_t *, int, int)> func) override;
+
 private:
     int VSyncOnInit() override
     {
@@ -41,6 +44,9 @@ private:
     {}
 
     virtual int setHz(float Hz);
+
+    virtual void device_captureScreen(std::function<void(uint8_t *, int, int)> func)
+    {}
 
 private:
     virtual bool deviceRenderFrame(IAFFrame *frame) = 0;
@@ -64,6 +70,8 @@ private:
     uint8_t mFps{0};
     size_t mNeedFlushSize{0};
     std::unique_ptr<IAFFrame> mRendingFrame{nullptr};
+    std::atomic_bool mNeedCaptureScreen{false};
+    std::function<void(uint8_t *, int, int)> mCAPFunc{nullptr};
 };
 
 

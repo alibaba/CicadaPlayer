@@ -87,6 +87,10 @@ void AFActiveVideoRender::calculateFPS(int64_t tick)
 }
 int AFActiveVideoRender::onVSync(int64_t tick)
 {
+    if (mNeedCaptureScreen) {
+        mNeedCaptureScreen = false;
+        device_captureScreen(mCAPFunc);
+    }
     while (mNeedFlushSize > 0) {
         if (mRendingFrame) {
             mRendingFrame->setDiscard(true);
@@ -152,3 +156,8 @@ int AFActiveVideoRender::onVSync(int64_t tick)
     }
     return 0;
 }
+void AFActiveVideoRender::captureScreen(std::function<void(uint8_t *, int, int)> func)
+{
+    mCAPFunc = func;
+    mNeedCaptureScreen = true;
+};
