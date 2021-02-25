@@ -420,10 +420,12 @@ void SMPMessageControllerListener::ProcessSeekToMsg(int64_t seekPos, bool bAccur
 
     mPlayer.mPNotifier->NotifySeeking(mPlayer.mSeekInCache);
 
+    // TODO: why add this?
+    /*
     if (mPlayer.mSeekNeedCatch && !HAVE_VIDEO) {
         mPlayer.mSeekNeedCatch = false;
     }
-
+*/
     if (!mPlayer.mSeekInCache) {
         mPlayer.mBufferController->ClearPacket(BUFFER_TYPE_ALL);
         int64_t ret = mPlayer.mDemuxerService->Seek(seekPos, 0, -1);
