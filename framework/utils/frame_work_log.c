@@ -142,7 +142,7 @@ static void get_local_time(char *buffer)
 #ifdef WIN32
     SYSTEMTIME st = { 0 };
     GetLocalTime(&st);
-    sprintf(buffer, "%d-%02d-%02d %02d:%02d:%02d %d",
+    sprintf(buffer, "%d-%02d-%02d %02d:%02d:%02d.%03d",
             st.wYear,
             st.wMonth,
             st.wDay,
