@@ -13,6 +13,11 @@ namespace Cicada{
         return [[[UIDevice currentDevice] systemVersion] floatValue];
     }
 
+    void CFBridging_Release(void *data)
+    {
+        CFBridgingRelease(data);
+    }
+
     void PixelBuffer_Retain(void *pixelBuffer)
     {
         if (pixelBuffer == nullptr) {
