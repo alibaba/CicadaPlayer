@@ -6,6 +6,7 @@
 #include "DisplayLayerImpl-interface.h"
 #include <base/media/PBAFFrame.h>
 
+#import <mutex>
 #import <render/video/glRender/base/utils.h>
 #include <utility>
 #if TARGET_OS_IPHONE
@@ -16,6 +17,7 @@
     CALayer *parentLayer;
     AVLayerVideoGravity videoGravity;
     CVPixelBufferRef renderingBuffer;
+    std::mutex renderingBufferMutex;
 }
 DisplayLayerImpl::DisplayLayerImpl()
 {}
@@ -285,22 +287,33 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     if (self.displayLayer) {
         newSize = CGSizeMake(self.displayLayer.bounds.size.width * scale, self.displayLayer.bounds.size.height * scale);
     }
+    {
+        if (renderingBuffer && self.displayLayer) {
+            CGSize imageSize = CGSizeMake(_videoSize.width * scale, _videoSize.height * scale);
+            if (_rotateMode % 180) {
+                imageSize = CGSizeMake(_videoSize.height * scale, _videoSize.width * scale);
+            }
+            CIImage *ciImage = nullptr;
+            {
+                std::lock_guard<std::mutex> lock(renderingBufferMutex);
+                if (renderingBuffer) {
+                    ciImage = [CIImage imageWithCVPixelBuffer:renderingBuffer];
+                }
+            }
+            if (ciImage) {
+                uiImage = [UIImage imageWithCIImage:ciImage];
+                UIGraphicsBeginImageContext(imageSize);
 
-    if (renderingBuffer && self.displayLayer) {
-        CGSize imageSize = CGSizeMake(_videoSize.width * scale, _videoSize.height * scale);
-        if (_rotateMode % 180) {
-            imageSize = CGSizeMake(_videoSize.height * scale, _videoSize.width * scale);
+                [uiImage drawInRect:CGRectMake(0, 0, imageSize.width, imageSize.height)];
+                uiImage = UIGraphicsGetImageFromCurrentImageContext();
+                UIGraphicsEndImageContext();
+            }
         }
-        CIImage *ciImage = [CIImage imageWithCVPixelBuffer:renderingBuffer];
-        uiImage = [UIImage imageWithCIImage:ciImage];
-        UIGraphicsBeginImageContext(imageSize);
-
-        [uiImage drawInRect:CGRectMake(0, 0, imageSize.width, imageSize.height)];
-        uiImage = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
     }
 
-    uiImage = [self imageTransform:uiImage inSize:newSize];
+    if (uiImage) {
+        uiImage = [self imageTransform:uiImage inSize:newSize];
+    }
 
     return (void *) CFBridgingRetain(uiImage);
 }
@@ -346,6 +359,7 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 - (void)clearScreen
 {
     [self.displayLayer flushAndRemoveImage];
+    std::lock_guard<std::mutex> lock(renderingBufferMutex);
     if (renderingBuffer) {
         CVPixelBufferRelease(renderingBuffer);
     }
@@ -400,11 +414,14 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     if (!pixelBuffer || !self.displayLayer) {
         return;
     }
+    {
+        std::lock_guard<std::mutex> lock(renderingBufferMutex);
+        if (renderingBuffer) {
+            CVPixelBufferRelease(renderingBuffer);
+        }
 
-    if (renderingBuffer) {
-        CVPixelBufferRelease(renderingBuffer);
+        renderingBuffer = CVPixelBufferRetain(pixelBuffer);
     }
-    renderingBuffer = CVPixelBufferRetain(pixelBuffer);
 
     CMSampleTimingInfo timing = {kCMTimeInvalid, kCMTimeInvalid, kCMTimeInvalid};
 
