@@ -216,6 +216,40 @@ int AFAudioQueueRender::init_device()
     AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchBypass, &propValue, sizeof(propValue));
     propValue = kAudioQueueTimePitchAlgorithm_TimeDomain;
     AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchAlgorithm, &propValue, sizeof(propValue));
+    AudioChannelLayout layout;
+    memset(&layout, 0, sizeof(AudioChannelLayout));
+    switch (mAudioFormat.mChannelsPerFrame) {
+        case 1:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_Mono;
+            break;
+        case 2:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_Stereo;
+            break;
+        case 3:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_DVD_4;
+            break;
+        case 4:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_Quadraphonic;
+            break;
+        case 5:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_MPEG_5_0_A;
+            break;
+        case 6:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_MPEG_5_1_A;
+            break;
+        case 7:
+            /* FIXME: Need to move channel[4] (BC) to channel[6] */
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_MPEG_6_1_A;
+            break;
+        case 8:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_MPEG_7_1_A;
+            break;
+        default:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_Stereo;
+            break;
+    }
+
+    AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_ChannelLayout, &layout, sizeof(AudioChannelLayout));
     return 0;
 }
 
