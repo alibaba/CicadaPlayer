@@ -236,7 +236,7 @@ function link_shared_lib_Android(){
      -Wl,--no-undefined -Wl,-z,noexecstack ${CPU_LD_FLAGS}  -landroid -llog -Wl,-soname,lib${LIB_NAME}.so \
     ${objs} \
     -o ${install_dir}/lib${LIB_NAME}.so \
-    -Wl,--whole-archive   ${ldflags} -Wl,--no-whole-archive
+    -Wl,--whole-archive   ${ldflags} -Wl,--no-whole-archive -Wl,--build-id=sha1
 
     rm build_version.cpp version.h
 }
