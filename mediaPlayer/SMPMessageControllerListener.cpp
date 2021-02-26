@@ -294,9 +294,12 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         }
     }
 
+    // TODO: why ?
+    /*
     if (!HAVE_VIDEO) {
         mPlayer.mSeekNeedCatch = false;
     }
+*/
 
     AF_LOGD("initOpen end");
     mPlayer.mDemuxerService->start();
