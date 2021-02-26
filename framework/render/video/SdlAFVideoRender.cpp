@@ -148,9 +148,6 @@ int SdlAFVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
                 mLastVideoFrame->setDiscard(true);
                 mRenderResultCallback(mLastVideoFrame->getInfo().pts, false);
             }
-            if (mListener && mLastVideoFrame) {
-                mListener->onFrameInfoUpdate(mLastVideoFrame->getInfo());
-            }
             mLastVideoFrame = std::move(frame);
         }
         if (mLastVideoFrame && mVideoRotate != getRotate(mLastVideoFrame->getInfo().video.rotate)) {
@@ -266,6 +263,9 @@ int SdlAFVideoRender::onVSyncInner(int64_t tick)
         std::unique_lock<std::mutex> lock(mRenderMutex);
 
         if (mRenderResultCallback) mRenderResultCallback(frame->getInfo().pts, true);
+        if (mListener && frame) {
+            mListener->onFrameInfoUpdate(frame->getInfo());
+        }
         mBackFrame = move(frame);
     }
     return 0;
