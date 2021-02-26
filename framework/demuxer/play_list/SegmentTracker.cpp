@@ -116,6 +116,8 @@ namespace Cicada {
                         (*iter)->moveToNearestIndependentPart(offset);
                         isFindPart = true;
                         setCurSegNum((*iter)->getSequenceNumber());
+                        std::string segUrl = (*iter)->getDownloadUrl();
+                        AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
                         break;
                     }
                 }
@@ -124,6 +126,8 @@ namespace Cicada {
                     auto iter = segments.back();
                     iter->moveToNearestIndependentPart(iter->getSegmentParts().size() - 1);
                     setCurSegNum(iter->getSequenceNumber());
+                    std::string segUrl = iter->getDownloadUrl();
+                    AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
                 }
             } else {
                 int offset = -liveStartIndex - 1;
@@ -136,6 +140,8 @@ namespace Cicada {
                         (*iter)->moveToNearestIndependentPart(segmentParts.size() - 1 - offset);
                         isFindPart = true;
                         setCurSegNum((*iter)->getSequenceNumber());
+                        std::string segUrl = (*iter)->getDownloadUrl();
+                        AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
                         break;
                     }
                 }
@@ -144,6 +150,8 @@ namespace Cicada {
                     auto iter = segments.front();
                     iter->moveToNearestIndependentPart(0);
                     setCurSegNum(iter->getSequenceNumber());
+                    std::string segUrl = iter->getDownloadUrl();
+                    AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
                 }
             }
         } else {
