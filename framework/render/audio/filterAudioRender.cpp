@@ -197,8 +197,6 @@ namespace Cicada {
         if (mFilter) {
             mFilter->flush();
         }
-        mFilterSpeed = 1.0;
-        mFilterVolume = 1.0;
 
         mMaxQueSize = 2;
 
@@ -225,18 +223,6 @@ namespace Cicada {
         while (mRenderFrame != nullptr) {
             if (!mRunning) {
                 return 0;
-            }
-
-            float speed = mSpeed.load();
-            if (speed != mFilterSpeed) {
-                applySpeed();
-                mFilterSpeed = speed;
-            }
-
-            float volume = mVolume.load();
-            if (volume != mFilterVolume) {
-                applyVolume();
-                mFilterVolume = volume;
             }
 
             loopChecker();
@@ -266,6 +252,18 @@ namespace Cicada {
 
     unique_ptr<IAFFrame> filterAudioRender::getFrame()
     {
+        float speed = mSpeed.load();
+        if (speed != mFilterSpeed) {
+            applySpeed();
+            mFilterSpeed = speed;
+        }
+
+        float volume = mVolume.load();
+        if (volume != mFilterVolume) {
+            applyVolume();
+            mFilterVolume = volume;
+        }
+
         unique_ptr<IAFFrame> filter_frame{};
 
         if (mFilter != nullptr) {
