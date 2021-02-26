@@ -438,6 +438,7 @@ void pixelBufferConvertor::UpdateColorInfo(const VideoColorInfo &info, CVPixelBu
     if (value) {
         CVBufferSetAttachment(pixelBuffer, kCVImageBufferColorPrimariesKey, value, kCVAttachmentMode_ShouldPropagate);
     }
+    value = nullptr;
     switch (info.color_trc) {
         case AFCOL_TRC_BT709:
         case AFCOL_TRC_SMPTE170M:
@@ -464,6 +465,16 @@ void pixelBufferConvertor::UpdateColorInfo(const VideoColorInfo &info, CVPixelBu
 #endif
             {
                 value = kCVImageBufferTransferFunction_SMPTE_ST_428_1;
+            }
+            break;
+        case AFCOL_TRC_ARIB_STD_B67:
+#if TARGET_OS_IPHONE
+            if (__builtin_available(iOS 11.0, *))
+#else
+            if (__builtin_available(macOS 10.13, *))
+#endif
+            {
+                value = kCVImageBufferTransferFunction_ITU_R_2100_HLG;
             }
             break;
         default:
