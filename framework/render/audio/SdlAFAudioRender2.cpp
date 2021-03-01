@@ -142,6 +142,13 @@ namespace Cicada {
     void SdlAFAudioRender2::device_mute(bool bMute)
     {
         mMute = bMute;
+        // mute all queued audio buffer
+        uint32_t queuedAudioSize = SDL_GetQueuedAudioSize(mDevID);
+        uint8_t *muteAudioBuffer = (uint8_t *) malloc(queuedAudioSize);
+        memset(muteAudioBuffer, 0, queuedAudioSize);
+        SDL_ClearQueuedAudio(mDevID);
+        SDL_QueueAudio(mDevID, muteAudioBuffer, queuedAudioSize);
+        free(muteAudioBuffer);
     }
 
     uint64_t SdlAFAudioRender2::device_get_que_duration()
