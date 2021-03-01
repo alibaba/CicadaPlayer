@@ -17,7 +17,7 @@ class CICADA_CPLUS_EXTERN CicadaUtils {
 public:
     static bool isEqual(double a, double b);
 
-    static bool startWith(const std::string &src, const std::initializer_list<std::string > &val);
+    static bool startWith(const std::string &src, const std::initializer_list<std::string> &val);
 
     static std::vector<std::string> split(const std::string &str, char delim);
 
@@ -25,10 +25,11 @@ public:
 
     static std::string base64dec(const std::string &str);
 
-    static std::string base64enc(const char* in, int len);
+    static std::string base64enc(const char *in, int len);
 
-    static int base64dec(const std::string &str , char** dst);
+    static int base64dec(const std::string &str, char **dst);
 
+    static int hmac_sha1(uint8_t **dst, const uint8_t *data, unsigned int dataLen, const uint8_t *key, unsigned int keyLen);
 };
 
 #endif /* CicadaUtils_hpp */

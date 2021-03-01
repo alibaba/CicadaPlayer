@@ -11,7 +11,8 @@
 
 extern "C" {
 #include <libavutil/base64.h>
-};
+#include <libavutil/hmac.h>
+}
 
 using namespace std;
 
@@ -112,4 +113,18 @@ int CicadaUtils::base64dec(const string &str, char **dst)
     }
 }
 
+int CicadaUtils::hmac_sha1(uint8_t **dst, const uint8_t *data, unsigned int dataLen, const uint8_t *key, unsigned int keyLen)
+{
+    if (data == nullptr || dataLen <= 0 || key == nullptr || keyLen <= 0) {
+        return -1;
+    }
 
+    AVHMAC *shaContext = av_hmac_alloc(AV_HMAC_SHA1);
+    av_hmac_init(shaContext, key, keyLen);
+    av_hmac_update(shaContext, data, dataLen);
+
+    *dst = static_cast<uint8_t *>(malloc(20));
+    int ret = av_hmac_final(shaContext, *dst, 20);
+    av_hmac_free(shaContext);
+    return ret;
+}
