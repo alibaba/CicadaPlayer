@@ -7,5 +7,5 @@
 
 void appleNSlogC(const char level, const char *fmt)
 {
-    NSLog(@"AliFrameWork %c %s", level, fmt);
+    NSLog(@"%c/AliFrameWork %s", level, fmt);
 }

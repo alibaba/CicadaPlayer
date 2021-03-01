@@ -26,9 +26,9 @@
 
 #include <android/log.h>
 #include <string.h>
-
-#define ANDROID_APP_TAG "AliFrameWork"
 #endif
+
+#define APP_TAG "AliFrameWork"
 
 #include "frame_work_log.h"
 
@@ -237,11 +237,9 @@ static void format_log(int prio, const char *tag, char *cont_buf, char *out_buf)
     get_local_time(time_buffer);
     lev_c = get_char_lev(prio, &ctr);
 #ifdef __APPLE__
-    sprintf(out_buf, "%s %d 0x%llx %c [%s] [%s]: %s", time_buffer, pid, atid, lev_c, mtlVer, tag,
-            cont_buf);
+    sprintf(out_buf, "%s %d 0x%llx %c/%s [%s] [%s]: %s", time_buffer, pid, atid, lev_c, APP_TAG, mtlVer, tag, cont_buf);
 #else
-    sprintf(out_buf, "%s %d %d %c [%s] [%s]: %s", time_buffer, pid, tid, lev_c, mtlVer, tag,
-            cont_buf);
+    sprintf(out_buf, "%s %d %d %c/%s [%s] [%s]: %s", time_buffer, pid, tid, lev_c, APP_TAG, mtlVer, tag, cont_buf);
 #endif
     int len = (int) strlen(out_buf);
 
@@ -287,19 +285,22 @@ int __log_print(int prio, const char *tag, const char *fmt, ...)
 #endif
     static char printf_buf[1024];
     static char out_buf[1024 + 256] = {0};
+    int out_buffer_formatted = 0;
     va_list args;
-    int printed;
     va_start(args, fmt);
-    printed = vsnprintf(printf_buf, 1023, fmt, args);
+    vsnprintf(printf_buf, 1023, fmt, args);
     va_end(args);
-    format_log(prio, tag, printf_buf, out_buf);
 
-    if (logCtrl.log_out) {
-        logCtrl.log_out(logCtrl.log_out_arg, prio, out_buf);
-    }
+    if (logCtrl.log_out || logCtrl.log_out2) {
+        format_log(prio, tag, printf_buf, out_buf);
+        out_buffer_formatted = 1;
+        if (logCtrl.log_out) {
+            logCtrl.log_out(logCtrl.log_out_arg, prio, out_buf);
+        }
 
-    if (logCtrl.log_out2) {
-        logCtrl.log_out2(prio, out_buf);
+        if (logCtrl.log_out2) {
+            logCtrl.log_out2(prio, out_buf);
+        }
     }
 
     static char finalLogMsg[2048];
@@ -307,11 +308,15 @@ int __log_print(int prio, const char *tag, const char *fmt, ...)
 
     if (!logCtrl.disable_console) {
 #ifdef ANDROID
-        __android_log_print(lev, ANDROID_APP_TAG, "%s", finalLogMsg);
-#elif defined(__APPLE__) && (TARGET_OS_IPHONE)
+        __android_log_print(lev, APP_TAG, "%s", finalLogMsg);
+#elif defined(__APPLE__) && TARGET_OS_IPHONE
         const char *ctr = NULL;
         appleNSlogC(get_char_lev(prio, &ctr), finalLogMsg);
 #else
+        if (!out_buffer_formatted) {
+            format_log(prio, tag, printf_buf, out_buf);
+            out_buffer_formatted = 1;
+        }
         linux_print(prio, out_buf);
 #endif
     }
