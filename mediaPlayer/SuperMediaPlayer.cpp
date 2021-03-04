@@ -157,7 +157,7 @@ void SuperMediaPlayer::CaptureScreen()
 {
     std::lock_guard<std::mutex> uMutex(mCreateMutex);
 
-    if (mAVDeviceManager->isVideoRenderValid()) {
+    if (mAVDeviceManager->getVideoRender()) {
         mAVDeviceManager->getVideoRender()->captureScreen([this](uint8_t *data, int width, int height) {
             if (this->mPNotifier) {
                 this->mPNotifier->NotifyCaptureScreen(data, width, height);
