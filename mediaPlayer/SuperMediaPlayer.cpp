@@ -1603,10 +1603,9 @@ void SuperMediaPlayer::doRender()
             }
         } else {// audio only
             if (!mAudioFrameQue.empty()) {
-                int64_t audioPTS = mAudioFrameQue.front()->getInfo().pts;
-                NotifyPosition(audioPTS);
+                NotifyPosition(mAudioFrameQue.front()->getInfo().timePosition);
                 rendered = true;
-                mAudioTime.startTime = audioPTS;
+                mAudioTime.startTime = mAudioFrameQue.front()->getInfo().pts;
             }
         }
     }
