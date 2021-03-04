@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    run: 作用于每个case，true:需要跑的case，false: 不需要跑的case
+    每个casegroup写一个函数来实现，解析其中所有的key,将key的的值传递给此函数去执行，解析
+    测试过程中将log全部保存到文件中，log中打印开始测试的case名称，出错时打印出当时测试的resources和错误原因
+    测试结果输出到一个xml文件中
+
+    case_name 的值是唯一的，不能重复
+-->
+<test stop_on_error="false" run="true">
+    <!-- 包含媒体协议_封装格式_视频codec_音频codec 支持-->
+    <casegroup casegroup_name="format">
+        <case case_name="format_http_mp4_h264_aac">
+            <resources>
+                <id>http_mp4_h264_aac</id>
+                <id>https_mp4_h264_aac</id>
+            </resources>
+        </case>
+    </casegroup>
+    <!--seek 测试，
+    one_by_one: seek后收到seek完成，并检查播放器回调的position是否正确，不能回跳
+    preview: seek过程中暂停，资源必须用有视频的，seek完成后要保证对应的画面出来
+    -->
+    <casegroup casegroup_name="operation_seek" accurate="false" preview="false" interval="one_by_one" time="1" loop="true">
+        <case case_name="operation_seek_one_by_one">
+            <accurate>false</accurate>
+            <time>1000</time>
+            <interval>one_by_one</interval>
+            <resources>
+                <id>http_mp4_h264_aac</id>
+            </resources>
+        </case>
+        <case case_name="operation_seek_one_by_one_accurate">
+            <accurate>true</accurate>
+            <time>1000</time>
+            <interval>one_by_one</interval>
+            <resources>
+                <id>http_mp4_h264_aac</id>
+            </resources>
+        </case>
+        <case case_name="operation_seek_by_time">
+            <accurate>false</accurate>
+            <time>1000</time>
+            <interval>1</interval> <!--秒-->
+            <resources>
+                <id>http_mp4_h264_aac</id>
+            </resources>
+        </case>
+        <case case_name="operation_seek_by_time_accurate">
+            <accurate>true</accurate>
+            <time>1000</time>
+            <interval>1</interval> <!--秒-->
+            <resources>
+                <id>http_mp4_h264_aac</id>
+            </resources>
+        </case>
+        <case case_name="operation_seek_preview">
+            <accurate>false</accurate>
+            <preview>true</preview>
+            <time>1000</time>
+            <interval>1</interval> <!--秒-->
+            <resources>
+                <id>http_mp4_h264_aac</id>
+            </resources>
+        </case>
+        <case case_name="operation_seek_preview_accurate">
+            <accurate>true</accurate>
+            <preview>true</preview>
+            <time>1000</time>
+            <interval>1</interval> <!--秒-->
+            <resources>
+                <id>http_mp4_h264_aac</id>
+            </resources>
+        </case>
+        <case case_name="operation_seek_to_end">
+            <accurate>true</accurate>
+            <time>1</time>
+            <loop>false</loop>
+            <position>
+                <value>end</value>
+                <value>end+1</value>
+                <value>end-1</value>
+            </position>
+            <resources>
+                <id>http_mp4_h264_aac</id>
+            </resources>
+        </case>
+        <case case_name="operation_seek_to_end_loop">
+            <accurate>true</accurate>
+            <time>1</time>
+            <loop>true</loop>
+            <position>
+                <value>end</value>
+                <value>end+1</value>
+                <value>end-1</value>
+            </position>
+            <resources>
+                <id>http_mp4_h264_aac</id>
+            </resources>
+        </case>
+
+    </casegroup>
+
+</test>

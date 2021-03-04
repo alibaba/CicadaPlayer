@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    为了防止测试过程中崩溃后无任何结果，每测试完一个case，删除上次的结果文件，重新写一次文件。
+-->
+<test_result start="" duation="xx" count="200" fail="100">
+    <case name="test_case_name">
+        <resources>
+            <name>resource_id</name>
+            <start>time</start>
+            <duration>100</duration>
+            <result>success</result>
+            <description>"xxx"</description>
+        </resources>
+        <resurces>
+            <name>resource_id</name>
+            <start>time</start>
+            <duration>100</duration>
+            <result>fail</result>
+            <description>"xxx"</description>
+        </resurces>
+    </case>
+</test_result>

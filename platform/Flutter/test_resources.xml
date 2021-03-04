@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test_resources>
+    <resources>
+        <id>http_mp4_h264_aac</id>
+        <url>http://player.alicdn.com/video/aliyunmedia.mp4</url>
+        <duration>00:04:22.08</duration> <!-- 时长 格式?-->
+        <container>mp4</container>
+        <protocol>http</protocol>
+        <video>h264</video> <!-- 视频流的codec -->
+        <audio>aac</audio> <!-- 音频流的codec -->
+    </resources>
+    <resources>
+        <id>https_mp4_h264_aac</id>
+        <url>https://player.alicdn.com/video/aliyunmedia.mp4</url>
+        <duration>00:04:22.08</duration>
+        <container>mp4</container>
+        <protocol>https</protocol>
+        <video>h264</video>
+        <audio>aac</audio>
+    </resources>
+</test_resources>
