@@ -28,6 +28,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) BOOL isCirclePlay;
 @property (nonatomic, strong) AppleAVPlayerLayerProcessor *layerProcessor;
 @property(nonatomic, assign) BOOL isSeeking;
+@property(nonatomic, assign) float recordSpeed;
 
 - (instancetype)init;
 - (void)setmPlayerListener:(playerListener)playerListener;

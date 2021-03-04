@@ -136,6 +136,9 @@
     if (self.isCirclePlay) {
         [self.avplayer seekToTime:CMTimeMakeWithSeconds(0, 1) completionHandler:^(BOOL finished) {
             [self.avplayer play];
+            if (self.recordSpeed > 0) {
+                self.avplayer.rate = self.recordSpeed;
+            }
             if (mPlayerListener.AutoPlayStart) {
                 mPlayerListener.AutoPlayStart(mPlayerListener.userData);
             }
