@@ -649,6 +649,10 @@ void AppleAVPlayer::setSpeed(float speed)
     std::lock_guard<std::recursive_mutex> lock(mCreateMutex);
     AVPlayer *player = (__bridge AVPlayer *) this->avPlayer;
     if (player) {
+        AppleAVPlayerHandler *playerHandler = (__bridge AppleAVPlayerHandler *) this->playerHandler;
+        if (playerHandler) {
+            playerHandler.recordSpeed = speed;
+        }
         player.rate = speed;
     }
 }
