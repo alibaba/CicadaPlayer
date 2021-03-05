@@ -385,7 +385,7 @@ namespace Cicada {
     private:
         IDataSource *mDataSource{nullptr};
         std::atomic_bool mCanceled{false};
-        demuxer_service *mDemuxerService{nullptr};
+        std::unique_ptr<demuxer_service> mDemuxerService{nullptr};
         std::unique_ptr<DrmManager> mDrmManager{};
         std::queue<unique_ptr<IAFFrame>> mVideoFrameQue{};
         std::deque<unique_ptr<IAFFrame>> mAudioFrameQue{};

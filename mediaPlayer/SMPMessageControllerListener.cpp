@@ -99,7 +99,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
 
     {
         std::lock_guard<std::mutex> locker(mPlayer.mCreateMutex);
-        mPlayer.mDemuxerService = new demuxer_service(mPlayer.mDataSource);
+        mPlayer.mDemuxerService = static_cast<unique_ptr<demuxer_service>>(new demuxer_service(mPlayer.mDataSource));
         mPlayer.mDemuxerService->setOptions(&mPlayer.mSet->mOptions);
     }
 
@@ -554,6 +554,7 @@ void SMPMessageControllerListener::ProcessVideoRenderedMsg(int64_t pts, int64_t 
         mPlayer.mVideoChangedFirstPts = INT64_MIN;
     }
 
+    assert(mPlayer.mDemuxerService);
     mPlayer.mDemuxerService->SetOption("FRAME_RENDERED", pts);
 
     if (mPlayer.mSet->bEnableVRC) {
