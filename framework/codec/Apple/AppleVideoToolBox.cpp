@@ -674,6 +674,10 @@ namespace Cicada {
         if (infoFlags & kVTDecodeInfo_FrameDropped) {
             AF_LOGI("kVTDecodeInfo_FrameDropped");
         }
+        if (status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr) {
+            // the packet will be send to decoder again on those error, so do nothing here
+            return;
+        }
 
         // TODO: why status is 1 when recovering
 
