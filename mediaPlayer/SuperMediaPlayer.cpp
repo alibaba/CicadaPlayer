@@ -379,9 +379,6 @@ int SuperMediaPlayer::Stop()
                 mDemuxerService->CloseStream(mCurrentSubtitleIndex);
             }
         }
-
-        delete mDemuxerService;
-        mDemuxerService = nullptr;
     }
 
     if (mDataSource) {
@@ -801,7 +798,7 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key)
             MediaPlayerUtil::addURLProperty("responseInfo", array, mDataSource);
             //if (mDemuxerService->isPlayList())
             {
-                MediaPlayerUtil::getPropertyJSONStr("responseInfo", array, false, mStreamInfoQueue, mDemuxerService);
+                MediaPlayerUtil::getPropertyJSONStr("responseInfo", array, false, mStreamInfoQueue, mDemuxerService.get());
             }
             return array.printJSON();
         }
@@ -825,7 +822,7 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key)
             MediaPlayerUtil::addURLProperty("connectInfo", array, mDataSource);
             //if (mDemuxerService->isPlayList())
             {
-                MediaPlayerUtil::getPropertyJSONStr("openJsonInfo", array, true, mStreamInfoQueue, mDemuxerService);
+                MediaPlayerUtil::getPropertyJSONStr("openJsonInfo", array, true, mStreamInfoQueue, mDemuxerService.get());
             }
             return array.printJSON();
         }
@@ -838,7 +835,7 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key)
             if (nullptr == mDemuxerService) {
                 return array.printJSON();
             } else if (mDemuxerService->isPlayList()) {
-                MediaPlayerUtil::getPropertyJSONStr("probeInfo", array, false, mStreamInfoQueue, mDemuxerService);
+                MediaPlayerUtil::getPropertyJSONStr("probeInfo", array, false, mStreamInfoQueue, mDemuxerService.get());
             } else {
                 CicadaJSONItem item(mDemuxerService->GetProperty(0, "probeInfo"));
                 item.addValue("type", "video");

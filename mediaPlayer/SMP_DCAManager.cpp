@@ -32,7 +32,7 @@ void SMP_DCAManager::createObservers()
 {
     if (mDemuxerObserver == nullptr && mPlayer.mDemuxerService && mPlayer.mDemuxerService->getDemuxerHandle()) {
         mDemuxerObserver = static_cast<unique_ptr<SMP_DCAObserver>>(
-                new SMP_DCAObserver("demuxer", mPlayer.mDemuxerService->getDemuxerHandle()->getName(), mPlayer.mDemuxerService));
+                new SMP_DCAObserver("demuxer", mPlayer.mDemuxerService->getDemuxerHandle()->getName(), mPlayer.mDemuxerService.get()));
         mDemuxerObserver->setListener(this);
         mDemuxerObserver->hello();
         mPlayer.mDemuxerService->getDemuxerHandle()->setDCAObserver(mDemuxerObserver.get());
@@ -43,7 +43,7 @@ int SMP_DCAManager::invoke(const string &content)
     CicadaJSONItem item(content);
     string ClassName = item.getString("class");
     if (ClassName == "demuxer" && mDemuxerObserver != nullptr) {
-        if ((void *) atoll(item.getString("obj").c_str()) == (void *) mPlayer.mDemuxerService) {
+        if ((void *) atoll(item.getString("obj").c_str()) == (void *) mPlayer.mDemuxerService.get()) {
             assert(mPlayer.mDemuxerService->getDemuxerHandle());
             if (mPlayer.mDemuxerService->getDemuxerHandle()->getName() == item.getString("name")) {
                 return mPlayer.mDemuxerService->getDemuxerHandle()->invoke(item.getInt("cmd", -1), item.getString("content"));
