@@ -2235,7 +2235,7 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
         if (mFrameCb && (!mSecretPlayBack || mDrmKeyValid)) {
             mFrameCb(mFrameCbUserData, videoFrame.get());
         }
-        VideoRenderCallback(this, videoPts, false, nullptr);
+        RenderCallback(ST_TYPE_VIDEO, false, videoFrame->getInfo());
     }
 
     mPlayedVideoPts = videoPts;
@@ -2327,7 +2327,7 @@ void SuperMediaPlayer::SendVideoFrameToRender(unique_ptr<IAFFrame> frame, bool v
     if (mFrameCb && (!mSecretPlayBack || mDrmKeyValid)) {
         bool rendered = mFrameCb(mFrameCbUserData, frame.get());
         if (rendered) {
-            VideoRenderCallback(this, frame->getInfo().pts, true, nullptr);
+            RenderCallback(ST_TYPE_VIDEO, true, frame->getInfo());
             return;
         }
     }
@@ -2342,7 +2342,7 @@ void SuperMediaPlayer::SendVideoFrameToRender(unique_ptr<IAFFrame> frame, bool v
     } else {
         assert(0);
         //render directly
-        VideoRenderCallback(this, frame->getInfo().pts, !frame->getDiscard(), nullptr);
+        RenderCallback(ST_TYPE_VIDEO, !frame->getDiscard(), frame->getInfo());
     }
 }
 
@@ -2853,7 +2853,7 @@ void SuperMediaPlayer::FlushVideoPath()
 
     while (!mVideoFrameQue.empty()) {
         mVideoFrameQue.front()->setDiscard(true);
-        mMsgCtrlListener->ProcessVideoRenderedMsg(mVideoFrameQue.front()->getInfo().pts, af_getsteady_ms(), false, nullptr);
+        mMsgCtrlListener->ProcessRenderedMsg(ST_TYPE_VIDEO, mVideoFrameQue.front()->getInfo(), af_getsteady_ms(), false, nullptr);
         mVideoFrameQue.pop();
     }
 
@@ -3571,25 +3571,23 @@ StreamInfo *SuperMediaPlayer::GetCurrentStreamInfo(StreamType type)
     return nullptr;
 }
 
-void SuperMediaPlayer::VideoRenderCallback(void *arg, int64_t pts, bool rendered, void *userData)
+void SuperMediaPlayer::RenderCallback(StreamType type, bool rendered, IAFFrame::AFFrameInfo &info)
 {
     //   AF_LOGD("video stream render pts is %lld", pts);
-    auto *pHandle = static_cast<SuperMediaPlayer *>(arg);
-
-    if (pHandle->mCanceled) {
+    if (mCanceled) {
         return;
     }
 
-    if ((PLAYER_PREPARED != pHandle->mPlayStatus) && (PLAYER_PAUSED != pHandle->mPlayStatus) && (PLAYER_PLAYING != pHandle->mPlayStatus)) {
+    if ((PLAYER_PREPARED != mPlayStatus) && (PLAYER_PAUSED != mPlayStatus) && (PLAYER_PLAYING != mPlayStatus)) {
         return;
     }
 
     MsgParam param;
-    param.videoRenderedParam.pts = pts;
-    param.videoRenderedParam.rendered = rendered;
-    param.videoRenderedParam.timeMs = af_getsteady_ms();
-    param.videoRenderedParam.userData = userData;
-    pHandle->putMsg(MSG_INTERNAL_VIDEO_RENDERED, param, false);
+    param.renderedParam.info = info;
+    param.renderedParam.rendered = rendered;
+    param.renderedParam.type = type;
+    param.renderedParam.timeMs = af_getsteady_ms();
+    putMsg(MSG_INTERNAL_RENDERED, param, false);
 }
 
 void SuperMediaPlayer::checkFirstRender()
@@ -3799,5 +3797,5 @@ void SuperMediaPlayer::ApsaraVideoRenderListener::onFrameInfoUpdate(IAFFrame::AF
         mPlayer.mCurrentPos = info.timePosition;
         // AF_LOGD("timePosition %lld\n", info.timePosition);
     }
-    VideoRenderCallback(this, info.pts, rendered, nullptr);
+    mPlayer.RenderCallback(ST_TYPE_VIDEO, rendered, info);
 }

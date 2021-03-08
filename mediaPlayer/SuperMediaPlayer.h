@@ -269,7 +269,7 @@ namespace Cicada {
 
         void ResetSeekStatus();
 
-        static void VideoRenderCallback(void *arg, int64_t pts, bool rendered, void *userData);
+        void RenderCallback(StreamType type, bool rendered, IAFFrame::AFFrameInfo &info);
 
         void Reset();
 

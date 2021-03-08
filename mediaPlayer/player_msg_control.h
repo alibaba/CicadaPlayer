@@ -33,8 +33,8 @@ namespace Cicada {
         MSG_SET_SPEED,
         MSG_SET_BITSTREAM,
 
-        MSG_INTERNAL_VIDEO_FIRST = 0x100,
-        MSG_INTERNAL_VIDEO_RENDERED = MSG_INTERNAL_VIDEO_FIRST,
+        MSG_INTERNAL_FIRST = 0x100,
+        MSG_INTERNAL_RENDERED = MSG_INTERNAL_FIRST,
         MSG_INTERNAL_VIDEO_CLEAN_FRAME,
         MSG_INTERNAL_VIDEO_HOLD_ON
     } PlayMsgType;
@@ -86,11 +86,12 @@ namespace Cicada {
     } MsgChangeStreamParam;
 
     typedef struct MsgVideoRenderedParam {
-        int64_t pts;
+        IAFFrame::AFFrameInfo info;
         int64_t timeMs;
+        StreamType type;
         bool rendered;
         void *userData;
-    } MsgVideoRenderedParam;
+    } MsgRenderedParam;
 
     typedef struct MsgSelectExtSubtitleParam {
         int index;
@@ -103,7 +104,7 @@ namespace Cicada {
         MsgBitStreamParam msgBitStreamParam;
         MsgSeekParam seekParam;
         MsgChangeStreamParam streamParam;
-        MsgVideoRenderedParam videoRenderedParam;
+        MsgRenderedParam renderedParam;
         MsgSelectExtSubtitleParam msgSelectExtSubtitleParam;
         MsgHoldOnVideoParam msgHoldOnVideoParam;
         MsgSpeedParam msgSpeedParam;
@@ -151,7 +152,7 @@ namespace Cicada {
 
         virtual void ProcessSwitchStreamMsg(int index) = 0;
 
-        virtual void ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, bool rendered, void *picUserData) = 0;
+        virtual void ProcessRenderedMsg(StreamType type, IAFFrame::AFFrameInfo &info, int64_t timeMs, bool rendered, void *picUserData) = 0;
 
         virtual void ProcessVideoCleanFrameMsg() = 0;
 

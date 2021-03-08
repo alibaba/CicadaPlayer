@@ -544,31 +544,36 @@ void SMPMessageControllerListener::ProcessSwitchStreamMsg(int index)
     }
 }
 
-void SMPMessageControllerListener::ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, bool rendered, void *picUserData)
+void SMPMessageControllerListener::ProcessRenderedMsg(StreamType type, IAFFrame::AFFrameInfo &info, int64_t timeMs, bool rendered,
+                                                      void *picUserData)
 {
-    mPlayer.mUtil->render(pts);
+    if (type == ST_TYPE_AUDIO) {
+
+        return;
+    }
+    mPlayer.mUtil->render(info.pts);
     if (rendered) {
         mPlayer.checkFirstRender();
     }
 
     if (!mPlayer.mSeekFlag) {
-        mPlayer.mCurVideoPts = pts;
+        mPlayer.mCurVideoPts = info.pts;
     }
 
     //AF_LOGD("video stream render pts is %lld ， mVideoChangedFirstPts = %lld ", pts, mVideoChangedFirstPts);
 
-    if ((INT64_MIN != mPlayer.mVideoChangedFirstPts) && (pts >= mPlayer.mVideoChangedFirstPts)) {
+    if ((INT64_MIN != mPlayer.mVideoChangedFirstPts) && (info.pts >= mPlayer.mVideoChangedFirstPts)) {
         AF_LOGD("video stream changed");
-        StreamInfo *info = mPlayer.GetCurrentStreamInfo(ST_TYPE_VIDEO);
-        mPlayer.mPNotifier->NotifyStreamChanged(info, ST_TYPE_VIDEO);
+        StreamInfo *pInfo = mPlayer.GetCurrentStreamInfo(ST_TYPE_VIDEO);
+        mPlayer.mPNotifier->NotifyStreamChanged(pInfo, ST_TYPE_VIDEO);
         mPlayer.mVideoChangedFirstPts = INT64_MIN;
     }
 
     assert(mPlayer.mDemuxerService);
-    mPlayer.mDemuxerService->SetOption("FRAME_RENDERED", pts);
+    mPlayer.mDemuxerService->SetOption("FRAME_RENDERED", info.pts);
 
     if (mPlayer.mSet->bEnableVRC) {
-        mPlayer.mPNotifier->NotifyVideoRendered(timeMs, pts);
+        mPlayer.mPNotifier->NotifyVideoRendered(timeMs, info.pts);
     }
 
     //TODO packetGotTime
@@ -578,7 +583,7 @@ void SMPMessageControllerListener::ProcessVideoCleanFrameMsg()
 {
     while (!mPlayer.mVideoFrameQue.empty()) {
         int64_t pts = mPlayer.mVideoFrameQue.front()->getInfo().pts;
-        ProcessVideoRenderedMsg(pts, af_getsteady_ms(), false, nullptr);
+        ProcessRenderedMsg(ST_TYPE_VIDEO, mPlayer.mVideoFrameQue.front()->getInfo(), af_getsteady_ms(), false, nullptr);
         mPlayer.mVideoFrameQue.front()->setDiscard(true);
         mPlayer.mVideoFrameQue.pop();
     }

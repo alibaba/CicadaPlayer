@@ -36,7 +36,7 @@ namespace Cicada {
             case MSG_SEEKTO:
                 return SEEK_REPEAT_TIME;
 
-            case MSG_INTERNAL_VIDEO_RENDERED:
+            case MSG_INTERNAL_RENDERED:
             case MSG_ADD_EXT_SUBTITLE:
             case MSG_SELECT_EXT_SUBTITLE:
             case MSG_INTERNAL_VIDEO_CLEAN_FRAME:
@@ -172,7 +172,7 @@ namespace Cicada {
             OnPlayerMsgProcessor(it.msgType, it.msgParam);
             recycleMsg(it);
 
-            if (MSG_INTERNAL_VIDEO_RENDERED != it.msgType) {
+            if (it.msgType < MSG_INTERNAL_FIRST) {
                 count++;
             }
         }
@@ -267,9 +267,9 @@ namespace Cicada {
                 mProcessor.ProcessSwitchStreamMsg(msgContent.streamParam.index);
                 break;
 
-            case MSG_INTERNAL_VIDEO_RENDERED:
-                mProcessor.ProcessVideoRenderedMsg(msgContent.videoRenderedParam.pts, msgContent.videoRenderedParam.timeMs,
-                                                   msgContent.videoRenderedParam.rendered, msgContent.videoRenderedParam.userData);
+            case MSG_INTERNAL_RENDERED:
+                mProcessor.ProcessRenderedMsg(msgContent.renderedParam.type, msgContent.renderedParam.info, msgContent.renderedParam.timeMs,
+                                              msgContent.renderedParam.rendered, msgContent.renderedParam.userData);
                 break;
 
             case MSG_INTERNAL_VIDEO_CLEAN_FRAME:
