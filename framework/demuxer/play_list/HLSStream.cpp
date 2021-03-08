@@ -789,6 +789,13 @@ namespace Cicada {
 
                 return 0;
             } else if (ret < 0) {
+                if (ret == gen_framework_errno(error_class_format, 0) && !mPTracker->isLive() &&
+                    mPTracker->getCurSegNum() > mPTracker->getLastSegNum()) {
+                    mIsEOS = true;
+                    AF_LOGW("read packet lager than last segment , return EOS");
+                    return -1;
+                }
+
                 mError = ret;
                 af_msleep(10);
                 return 0; // continue retry
