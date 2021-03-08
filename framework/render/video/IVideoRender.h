@@ -85,7 +85,7 @@ public:
 
     class IVideoRenderListener {
     public:
-        virtual void onFrameInfoUpdate(IAFFrame::AFFrameInfo &info) = 0;
+        virtual void onFrameInfoUpdate(IAFFrame::AFFrameInfo &info, bool rendered) = 0;
         virtual ~IVideoRenderListener() = default;
     };
 

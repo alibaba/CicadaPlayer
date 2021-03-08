@@ -385,7 +385,7 @@ namespace Cicada {
         public:
             explicit ApsaraVideoRenderListener(SuperMediaPlayer &player) : mPlayer(player)
             {}
-            void onFrameInfoUpdate(IAFFrame::AFFrameInfo &info) override;
+            void onFrameInfoUpdate(IAFFrame::AFFrameInfo &info, bool rendered) override;
 
         private:
             SuperMediaPlayer &mPlayer;

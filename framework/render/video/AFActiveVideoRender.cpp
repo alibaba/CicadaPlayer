@@ -74,6 +74,10 @@ void AFActiveVideoRender::dropFrame()
     if (mRenderResultCallback != nullptr) {
         mRenderResultCallback(framePts, false);
     }
+
+    if (mListener) {
+        mListener->onFrameInfoUpdate(mFrameInfo, false);
+    }
 }
 
 void AFActiveVideoRender::calculateFPS(int64_t tick)
@@ -152,7 +156,7 @@ int AFActiveVideoRender::onVSync(int64_t tick)
         mRenderResultCallback(mFrameInfo.pts, true);
     }
     if (mListener) {
-        mListener->onFrameInfoUpdate(mFrameInfo);
+        mListener->onFrameInfoUpdate(mFrameInfo, true);
     }
     return 0;
 }

@@ -3795,7 +3795,7 @@ void SuperMediaPlayer::ApsaraAudioRenderCallback::onUpdateTimePosition(int64_t p
         mPlayer.mCurrentPos = pos;
     }
 }
-void SuperMediaPlayer::ApsaraVideoRenderListener::onFrameInfoUpdate(IAFFrame::AFFrameInfo &info)
+void SuperMediaPlayer::ApsaraVideoRenderListener::onFrameInfoUpdate(IAFFrame::AFFrameInfo &info, bool rendered)
 {
     if (mPlayer.mCurrentAudioIndex < 0 && info.timePosition >= 0 && !mPlayer.isSeeking()) {
         mPlayer.mCurrentPos = info.timePosition;

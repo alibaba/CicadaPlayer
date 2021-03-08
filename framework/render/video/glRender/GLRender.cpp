@@ -102,6 +102,9 @@ void GLRender::dropFrame()
     if (mRenderResultCallback != nullptr) {
         mRenderResultCallback(framePts, false);
     }
+    if (mListener) {
+        mListener->onFrameInfoUpdate(mVideoInfo, false);
+    }
 }
 
 int GLRender::setRotate(IVideoRender::Rotate rotate)
@@ -430,7 +433,7 @@ bool GLRender::renderActually()
         }
 
         if (mListener) {
-            mListener->onFrameInfoUpdate(mVideoInfo);
+            mListener->onFrameInfoUpdate(mVideoInfo, true);
         }
     }
 
