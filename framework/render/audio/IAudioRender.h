@@ -37,7 +37,7 @@ namespace Cicada{
             return false;
         };
 
-        virtual void onUpdateTimePosition(int64_t pos)
+        virtual void onFrameInfoUpdate(IAFFrame::AFFrameInfo &info, bool rendered)
         {}
     };
 

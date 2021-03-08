@@ -549,34 +549,45 @@ void SMPMessageControllerListener::ProcessRenderedMsg(StreamType type, IAFFrame:
 {
     if (type == ST_TYPE_AUDIO) {
 
+        if (rendered && !mPlayer.isSeeking() && info.timePosition >= 0) {
+            mPlayer.mCurrentPos = info.timePosition;
+        }
+
         return;
     }
-    mPlayer.mUtil->render(info.pts);
-    if (rendered) {
-        mPlayer.checkFirstRender();
+
+
+    if (type == ST_TYPE_VIDEO) {
+
+        if (mPlayer.mCurrentAudioIndex < 0 && info.timePosition >= 0 && !mPlayer.isSeeking()) {
+            mPlayer.mCurrentPos = info.timePosition;
+        }
+
+        //   mPlayer.mUtil->render(info.pts);
+        if (rendered) {
+            mPlayer.checkFirstRender();
+        }
+
+        if (!mPlayer.mSeekFlag) {
+            mPlayer.mCurVideoPts = info.pts;
+        }
+
+        //AF_LOGD("video stream render pts is %lld ， mVideoChangedFirstPts = %lld ", pts, mVideoChangedFirstPts);
+
+        if ((INT64_MIN != mPlayer.mVideoChangedFirstPts) && (info.pts >= mPlayer.mVideoChangedFirstPts)) {
+            AF_LOGD("video stream changed");
+            StreamInfo *pInfo = mPlayer.GetCurrentStreamInfo(ST_TYPE_VIDEO);
+            mPlayer.mPNotifier->NotifyStreamChanged(pInfo, ST_TYPE_VIDEO);
+            mPlayer.mVideoChangedFirstPts = INT64_MIN;
+        }
+
+        assert(mPlayer.mDemuxerService);
+        mPlayer.mDemuxerService->SetOption("FRAME_RENDERED", info.pts);
     }
-
-    if (!mPlayer.mSeekFlag) {
-        mPlayer.mCurVideoPts = info.pts;
-    }
-
-    //AF_LOGD("video stream render pts is %lld ， mVideoChangedFirstPts = %lld ", pts, mVideoChangedFirstPts);
-
-    if ((INT64_MIN != mPlayer.mVideoChangedFirstPts) && (info.pts >= mPlayer.mVideoChangedFirstPts)) {
-        AF_LOGD("video stream changed");
-        StreamInfo *pInfo = mPlayer.GetCurrentStreamInfo(ST_TYPE_VIDEO);
-        mPlayer.mPNotifier->NotifyStreamChanged(pInfo, ST_TYPE_VIDEO);
-        mPlayer.mVideoChangedFirstPts = INT64_MIN;
-    }
-
-    assert(mPlayer.mDemuxerService);
-    mPlayer.mDemuxerService->SetOption("FRAME_RENDERED", info.pts);
 
     if (mPlayer.mSet->bEnableVRC) {
         mPlayer.mPNotifier->NotifyVideoRendered(timeMs, info.pts);
     }
-
-    //TODO packetGotTime
 }
 
 void SMPMessageControllerListener::ProcessVideoCleanFrameMsg()

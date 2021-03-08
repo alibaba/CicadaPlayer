@@ -75,7 +75,7 @@ UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer, bool 
             copySize += len;
             if (frameClear) {
                 if (mListener) {
-                    mListener->onUpdateTimePosition(mInPut.front()->getInfo().timePosition);
+                    mListener->onFrameInfoUpdate(mInPut.front()->getInfo(), true);
                 }
                 delete mInPut.front();
                 mInPut.pop();

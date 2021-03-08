@@ -374,7 +374,7 @@ namespace Cicada {
 
                 return true;
             }
-            void onUpdateTimePosition(int64_t pos) override;
+            void onFrameInfoUpdate(IAFFrame::AFFrameInfo &info, bool rendered) override;
 
         private:
             SuperMediaPlayer &mPlayer;

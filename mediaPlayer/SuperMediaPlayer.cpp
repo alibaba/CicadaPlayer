@@ -3785,17 +3785,11 @@ float SuperMediaPlayer::getCurrentDownloadSpeed()
     return mUtil->getCurrentDownloadSpeed();
 }
 
-void SuperMediaPlayer::ApsaraAudioRenderCallback::onUpdateTimePosition(int64_t pos)
+void SuperMediaPlayer::ApsaraAudioRenderCallback::onFrameInfoUpdate(IAFFrame::AFFrameInfo &info, bool rendered)
 {
-    if (!mPlayer.isSeeking() && pos >= 0) {
-        mPlayer.mCurrentPos = pos;
-    }
+    mPlayer.RenderCallback(ST_TYPE_AUDIO, rendered, info);
 }
 void SuperMediaPlayer::ApsaraVideoRenderListener::onFrameInfoUpdate(IAFFrame::AFFrameInfo &info, bool rendered)
 {
-    if (mPlayer.mCurrentAudioIndex < 0 && info.timePosition >= 0 && !mPlayer.isSeeking()) {
-        mPlayer.mCurrentPos = info.timePosition;
-        // AF_LOGD("timePosition %lld\n", info.timePosition);
-    }
     mPlayer.RenderCallback(ST_TYPE_VIDEO, rendered, info);
 }

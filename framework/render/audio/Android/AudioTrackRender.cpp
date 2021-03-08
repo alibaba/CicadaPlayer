@@ -355,7 +355,7 @@ int AudioTrackRender::write_loop()
                 //     mMaxQueSize = std::max(MIN_FRAME_QUEUE_SIZE,mMaxQueSize -1);
             }
             if (mListener) {
-                mListener->onUpdateTimePosition(mFrameQueue.front()->getInfo().timePosition);
+                mListener->onFrameInfoUpdate(mFrameQueue.front()->getInfo());
             }
             delete mFrameQueue.front();
             mFrameQueue.pop();

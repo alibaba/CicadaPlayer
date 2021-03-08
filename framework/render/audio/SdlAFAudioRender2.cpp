@@ -131,7 +131,7 @@ namespace Cicada {
 
         assert(frame->getInfo().duration > 0);
         if (mListener) {
-            mListener->onUpdateTimePosition(frame->getInfo().timePosition);
+            mListener->onFrameInfoUpdate(frame->getInfo(), true);
         }
         mPlayedDuration += (uint64_t) frame->getInfo().audio.nb_samples * 1000000 / frame->getInfo().audio.sample_rate;
         //AF_LOGD("queued duration is %llu\n", getQueDuration());
