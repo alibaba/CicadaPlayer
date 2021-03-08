@@ -32,8 +32,8 @@ int Cicada::CheaterVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
 {
 
     std::unique_lock<std::mutex> lock(mRenderMutex);
-    if (mLastVideoFrame && mRenderResultCallback) {
-        mRenderResultCallback(mLastVideoFrame->getInfo().pts, true);
+    if (mListener) {
+        mListener->onFrameInfoUpdate(mLastVideoFrame->getInfo(), false);
     }
     mLastVideoFrame = std::move(frame);
     return 0;
@@ -64,8 +64,8 @@ int Cicada::CheaterVideoRender::onVSync(int64_t tick)
     std::unique_lock<std::mutex> lock(mRenderMutex);
     if (!mLastVideoFrame)
         return 0;
-    if (mRenderResultCallback) {
-        mRenderResultCallback(mLastVideoFrame->getInfo().pts, true);
+    if (mListener) {
+        mListener->onFrameInfoUpdate(mLastVideoFrame->getInfo(), true);
     }
     mLastVideoFrame = nullptr;
     return 0;

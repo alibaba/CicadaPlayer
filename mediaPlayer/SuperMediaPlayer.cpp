@@ -3367,8 +3367,6 @@ bool SuperMediaPlayer::CreateVideoRender(uint64_t flags)
     mAVDeviceManager->getVideoRender()->setFlip(convertMirrorMode(mSet->mirrorMode));
     mAVDeviceManager->getVideoRender()->setDisPlay(mSet->mView);
     mAVDeviceManager->setVideoRenderListener(mVideoRenderListener.get());
-    mAVDeviceManager->getVideoRender()->setRenderResultCallback(
-            [this](int64_t pts, bool rendered) -> void { VideoRenderCallback(this, pts, rendered, nullptr); });
     int renderRet = mAVDeviceManager->getVideoRender()->init();
 
     if (renderRet != 0) {
@@ -3801,4 +3799,5 @@ void SuperMediaPlayer::ApsaraVideoRenderListener::onFrameInfoUpdate(IAFFrame::AF
         mPlayer.mCurrentPos = info.timePosition;
         // AF_LOGD("timePosition %lld\n", info.timePosition);
     }
+    VideoRenderCallback(this, info.pts, rendered, nullptr);
 }

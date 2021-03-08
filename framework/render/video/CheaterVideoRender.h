@@ -47,10 +47,6 @@ namespace Cicada {
             return 0;
         };
 
-        void setRenderResultCallback(std::function<void(int64_t, bool)> renderedCallback) override
-        {
-            mRenderResultCallback = renderedCallback;
-        }
         void setBackgroundColor(uint32_t color) override
         {}
 
@@ -68,7 +64,6 @@ namespace Cicada {
         int onVSync(int64_t tick) override;
 
     private:
-        std::function<void(int64_t, bool)> mRenderResultCallback = nullptr;
         std::unique_ptr<IVSync> mVSync{nullptr};
         std::unique_ptr<IAFFrame> mLastVideoFrame{nullptr};
         std::mutex mRenderMutex;

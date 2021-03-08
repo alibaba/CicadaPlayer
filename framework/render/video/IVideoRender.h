@@ -114,15 +114,6 @@ public:
      */
     virtual int renderFrame(std::unique_ptr<IAFFrame> &frame) = 0;
 
-    /**
-     * NOTE: will callback in render thread.
-     * @param renderedCallback
-     */
-    virtual void setRenderResultCallback(std::function<void(int64_t, bool)> renderedCallback)
-    {
-        mRenderResultCallback = renderedCallback;
-    }
-
     virtual void setListener(IVideoRenderListener *listener)
     {
         mListener = listener;
@@ -211,9 +202,6 @@ public:
 protected:
     IVideoRenderFilter *mFilter{};
     bool mInvalid{false};
-
-    // TODO: delete this
-    std::function<void(int64_t, bool)> mRenderResultCallback = nullptr;
     IVideoRenderListener *mListener{nullptr};
 };
 

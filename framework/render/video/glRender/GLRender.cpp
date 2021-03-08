@@ -98,10 +98,6 @@ void GLRender::dropFrame()
     AF_LOGI("drop a frame pts = %lld ", framePts);
     mInputQueue.front()->setDiscard(true);
     mInputQueue.pop();
-
-    if (mRenderResultCallback != nullptr) {
-        mRenderResultCallback(framePts, false);
-    }
     if (mListener) {
         mListener->onFrameInfoUpdate(mVideoInfo, false);
     }
@@ -427,11 +423,6 @@ bool GLRender::renderActually()
     if (ret == 0) {
         //if frame not change, don`t need present surface
         mContext->Present(mGLSurface);
-
-        if ((INT64_MIN != framePts) && (mRenderResultCallback != nullptr)) {
-            mRenderResultCallback(framePts, true);
-        }
-
         if (mListener) {
             mListener->onFrameInfoUpdate(mVideoInfo, true);
         }

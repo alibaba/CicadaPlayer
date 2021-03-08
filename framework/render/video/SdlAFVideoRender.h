@@ -48,11 +48,6 @@ public:
         return 0;
     };
 
-    void setRenderResultCallback(std::function<void(int64_t, bool)> renderedCallback) override
-    {
-        mRenderResultCallback = renderedCallback;
-    }
-
     void onWindowSizeChange(SDL_Window *window);
 
     int refreshScreen();
@@ -115,7 +110,6 @@ private:
 
     std::mutex mRenderMutex;
     std::unique_ptr<IVSync> mVSync{nullptr};
-    std::function<void(int64_t, bool)> mRenderResultCallback = nullptr;
 
 #ifdef __WINDOWS__
     std::mutex mWindowSizeChangeMutex{};
