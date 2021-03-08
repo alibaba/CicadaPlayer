@@ -350,6 +350,14 @@
     }
 }
 
+- (void)onVideoRendered:(int64_t)timeMs pts(int64_t)pts
+{
+    if (self.onVideoRendered) {
+        self.onVideoRendered(timeMs, pts);
+    }
+}
+
+
 /**
  @brief 获取截图回调
  @param player 播放器player指针

@@ -27,6 +27,8 @@ protected:
 
     static void onVideoRendered(int64_t theTimeMs, int64_t thePts, void *userData);
 
+    static void onAudioRendered(int64_t theTimeMs, int64_t thePts, void *userData);
+
     static void onPrepared(void *userData);
 
     static void onCompletion(void *userData);

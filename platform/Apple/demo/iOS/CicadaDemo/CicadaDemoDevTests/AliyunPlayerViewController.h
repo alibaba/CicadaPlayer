@@ -27,6 +27,7 @@
 @property (nonatomic, copy) void(^onGetThumbnailSucCallback)(int64_t positionMs,int64_t fromPos,int64_t toPos,id image);
 @property (nonatomic, copy) void(^onGetThumbnailFailedCallback)(int64_t positionMs);
 @property (nonatomic, copy) void(^onPlayerStatusChangedCallback)(CicadaStatus oldStatus,CicadaStatus newStatus);
+@property(nonatomic, copy) void (^onVideoRendered)(int64_t time, int64_t pts);
 @property (nonatomic, copy) void(^onCaptureScreenCallback)(UIImage* image);
 @property (nonatomic, copy) void(^onSELDataCallBack)(NSString * data);
 @property (nonatomic, copy) void(^redrawCallback)(void);

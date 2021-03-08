@@ -796,6 +796,16 @@ tableview点击外挂字幕回调
     [self.CicadaView setLoadingViewProgress:(int)progress];
 }
 
+- (void)onVideoRendered:(CicadaPlayer *)player timeMs:(int64_t)timeMs pts:(int64_t)pts
+{
+    //   NSLog(@"onVideoRendered pts is %lld\n",pts);
+}
+
+- (void)onAudioRendered:(CicadaPlayer *)player timeMs:(int64_t)timeMs pts:(int64_t)pts
+{
+    //  NSLog(@"onAudioRendered pts is %lld\n",pts);
+}
+
 - (BOOL)setActive:(BOOL)active error:(NSError **)outError
 {
     [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
