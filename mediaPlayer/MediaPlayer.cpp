@@ -45,8 +45,9 @@ namespace Cicada {
         listener.FirstFrameShow = firstFrameCallback;
         listener.VideoSizeChanged = videoSizeChangedCallback;
         listener.VideoRendered = videoRenderedCallback;
-        listener.PositionUpdate = currentPostionCallback;
-        listener.BufferPositionUpdate = bufferPostionCallback;
+        listener.AudioRendered = audioRenderedCallback;
+        listener.PositionUpdate = currentPositionCallback;
+        listener.BufferPositionUpdate = bufferPositionCallback;
         listener.LoadingStart = loadingStartCallback;
         listener.LoadingEnd = loadingEndCallback;
         listener.LoadingProgress = loadingProgressCallback;
@@ -797,8 +798,17 @@ namespace Cicada {
         }
     }
 
+    void MediaPlayer::audioRenderedCallback(int64_t timeMs, int64_t pts, void *userData)
+    {
+        GET_MEDIA_PLAYER
 
-    void MediaPlayer::currentPostionCallback(int64_t position, void *userData)
+        if (player->mListener.AudioRendered) {
+            player->mListener.AudioRendered(timeMs, pts, player->mListener.userData);
+        }
+    }
+
+
+    void MediaPlayer::currentPositionCallback(int64_t position, void *userData)
     {
         GET_MEDIA_PLAYER
 
@@ -807,7 +817,7 @@ namespace Cicada {
         }
     }
 
-    void MediaPlayer::bufferPostionCallback(int64_t position, void *userData)
+    void MediaPlayer::bufferPositionCallback(int64_t position, void *userData)
     {
         GET_MEDIA_PLAYER
 

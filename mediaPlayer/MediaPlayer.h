@@ -366,9 +366,11 @@ namespace Cicada {
 
         static void videoRenderedCallback(int64_t timeMs, int64_t pts, void *userData);
 
-        static void currentPostionCallback(int64_t position, void *userData);
+        static void audioRenderedCallback(int64_t timeMs, int64_t pts, void *userData);
 
-        static void bufferPostionCallback(int64_t position, void *userData);
+        static void currentPositionCallback(int64_t position, void *userData);
+
+        static void bufferPositionCallback(int64_t position, void *userData);
 
         static void loopingStartCallback(void *userData);
 

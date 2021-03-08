@@ -244,6 +244,16 @@ namespace Cicada {
         pushEvent(event);
     }
 
+    void PlayerNotifier::NotifyAudioRendered(int64_t timeMs, int64_t pts)
+    {
+        if (!mEnable || mListener.AudioRendered == nullptr) {
+            return;
+        }
+
+        auto *event = new player_event(timeMs, pts, mListener.AudioRendered);
+        pushEvent(event);
+    }
+
     void PlayerNotifier::NotifyFirstFrame()
     {
         if (!mEnable || mListener.FirstFrameShow == nullptr) {

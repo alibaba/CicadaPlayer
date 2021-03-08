@@ -36,6 +36,11 @@ static void onVideoSize(int64_t width, int64_t height, void *userData)
     }
 }
 
+static void onAudioRendered(int64_t time, int64_t pts, void *userData)
+{
+    //    AF_LOGD("audio pts %lld rendered\n",pts);
+}
+
 static void onEOS(void *userData)
 {
     auto *cont = static_cast<cicadaCont *>(userData);
@@ -132,6 +137,7 @@ int main(int argc, char *argv[])
     playerListener pListener{nullptr};
     pListener.userData = &cicada;
     pListener.VideoSizeChanged = onVideoSize;
+    pListener.AudioRendered = onAudioRendered;
     pListener.Completion = onEOS;
     pListener.EventCallback = onEvent;
     pListener.ErrorCallback = onError;
