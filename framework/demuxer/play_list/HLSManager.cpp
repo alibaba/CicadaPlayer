@@ -253,7 +253,7 @@ namespace Cicada {
             pFrameOut = nullptr;
 
             for (auto &i : mStreamInfoList) {
-                if (i->mPStream->isOpened() && i->selected && i->mPFrame == nullptr && !i->eos) {
+                if (i->mPStream->isOpened() && i->selected && i->mPFrame != nullptr && !i->eos) {
                     if (i->mPFrame->getInfo().streamIndex == index) {
                         pFrameOut = i->mPFrame.get();
                         packet = move(i->mPFrame);
