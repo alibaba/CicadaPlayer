@@ -471,7 +471,34 @@ import java.lang.ref.WeakReference;
         if(mOutOnVideoRenderedListener != null){
             mOutOnVideoRenderedListener.onVideoRendered(timeMs ,pts);
         }
-    };
+    }
+
+    private OnAudioRenderedListener mOutOnAudioRenderedListener = null;
+    private OnAudioRenderedListener mInnerOnAudioRenderedListener = new InnerAudioRenderedListener(this);
+
+    private static class InnerAudioRenderedListener implements OnAudioRenderedListener {
+        private WeakReference<CicadaPlayerImpl> cicadaPlayerImplWR;
+
+        InnerAudioRenderedListener(CicadaPlayerImpl avpBase)
+        {
+            cicadaPlayerImplWR = new WeakReference<CicadaPlayerImpl>(avpBase);
+        }
+
+        @Override public void onAudioRendered(long timeMs, long pts)
+        {
+            CicadaPlayerImpl cicadaPlayerImpl = cicadaPlayerImplWR.get();
+            if (cicadaPlayerImpl != null) {
+                cicadaPlayerImpl.onAudioRendered(timeMs, pts);
+            }
+        }
+    }
+
+    private void onAudioRendered(long timeMs, long pts)
+    {
+        if (mOutOnAudioRenderedListener != null) {
+            mOutOnAudioRenderedListener.onAudioRendered(timeMs, pts);
+        }
+    }
 
     public CicadaPlayerImpl(Context context, String name, String traceID) {
         mContext = context;
@@ -1047,6 +1074,16 @@ import java.lang.ref.WeakReference;
             mCorePlayer.setOnVideoRenderedListener(mInnerOnVideoRenderedListener);
         }else{
             mCorePlayer.setOnVideoRenderedListener(null);
+        }
+    }
+
+    @Override public void setOnAudioRenderedListener(OnAudioRenderedListener listener)
+    {
+        mOutOnAudioRenderedListener = listener;
+        if (mOutOnAudioRenderedListener != null) {
+            mCorePlayer.setOnAudioRenderedListener(mInnerOnAudioRenderedListener);
+        } else {
+            mCorePlayer.setOnAudioRenderedListener(null);
         }
     }
 

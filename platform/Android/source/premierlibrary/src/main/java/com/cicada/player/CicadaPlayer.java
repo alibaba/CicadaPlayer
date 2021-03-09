@@ -1366,6 +1366,14 @@ public interface CicadaPlayer {
 
     abstract public void setOnVideoRenderedListener(OnVideoRenderedListener l);
 
+
+    public interface OnAudioRenderedListener {
+        void onAudioRendered(long timeMs, long pts);
+    }
+
+    abstract public void setOnAudioRenderedListener(OnAudioRenderedListener l);
+
+
     /**
      * 设置视频的背景色
      *

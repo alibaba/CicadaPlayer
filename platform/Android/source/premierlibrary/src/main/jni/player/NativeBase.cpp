@@ -61,6 +61,8 @@ jmethodID gj_NativePlayer_onBufferPositionUpdate = nullptr;
 jmethodID gj_NativePlayer_onCurrentPositionUpdate = nullptr;
 jmethodID gj_NativePlayer_onSubtitleExtAdded = nullptr;
 jmethodID gj_NativePlayer_onCurrentDownloadSpeed = nullptr;
+jmethodID gj_NativePlayer_onVideoRendered = nullptr;
+jmethodID gj_NativePlayer_onAudioRendered = nullptr;
 
 jmethodID gj_NativePlayer_requestProvision = nullptr;
 jmethodID gj_NativePlayer_requestKey = nullptr;
@@ -107,6 +109,8 @@ void NativeBase::java_Construct(JNIEnv *env, jobject instance , jstring name)
     listener.Completion = jni_onCompletion;
     listener.SubtitleExtAdd = jni_onSubTitleExtAdd;
     listener.CurrentDownLoadSpeed = jni_onCurrentDownloadSpeed;
+    listener.VideoRendered = jni_onVideoRendered;
+    listener.AudioRendered = jni_onAudioRendered;
     auto *apsaraPlayer = privateData->player;
     apsaraPlayer->SetListener(listener);
     apsaraPlayer->setDrmRequestCallback([userData](
@@ -758,6 +762,18 @@ void NativeBase::java_SetAutoPlay(JNIEnv *env, jobject instance,
     player->SetAutoPlay((bool) autoPlay);
 }
 
+void NativeBase::java_EnableVideoRenderedCallback(JNIEnv *env, jobject instance, jboolean enable)
+{
+    AF_TRACE;
+    MediaPlayer *player = getPlayer(env, instance);
+
+    if (player == nullptr) {
+        return;
+    }
+
+    player->EnableVideoRenderedCallback((bool) enable);
+}
+
 
 jboolean NativeBase::java_IsAutoPlay(JNIEnv *env, jobject instance)
 {
@@ -1066,6 +1082,8 @@ void NativeBase::init(JNIEnv *env)
                                              "onSubtitleExtAdded",
                                              "(ILjava/lang/String;)V");
         gj_NativePlayer_onCurrentDownloadSpeed = env->GetMethodID(gj_NativePlayer_Class, "onCurrentDownloadSpeed", "(J)V");
+        gj_NativePlayer_onVideoRendered = env->GetMethodID(gj_NativePlayer_Class, "onVideoRendered", "(JJ)V");
+        gj_NativePlayer_onAudioRendered = env->GetMethodID(gj_NativePlayer_Class, "onAudioRendered", "(JJ)V");
         gj_NativePlayer_requestProvision = env->GetMethodID(gj_NativePlayer_Class,
                                              "requestProvision",
                                              "(Ljava/lang/String;[B)[B");
@@ -1142,6 +1160,7 @@ static JNINativeMethod nativePlayer_method_table[] = {
         {"nGetCacheFilePath", "(Ljava/lang/String;)Ljava/lang/String;", (void *) NativeBase::java_GetCacheFilePathByURL},
         {"nSetDefaultBandWidth", "(I)V", (void *) NativeBase::java_SetDefaultBandWidth},
         {"nInvokeComponent", "(Ljava/lang/String;)I", (void *) NativeBase::java_InvokeComponent},
+        {"nEnableVideoRenderedCallback", "(Z)V", (void *) NativeBase::java_EnableVideoRenderedCallback},
 
 };
 
@@ -1508,6 +1527,41 @@ void NativeBase::jni_onHideSubtitle(int64_t id, int64_t size, const void *conten
     mEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onHideSubtitle,
                          (jint) packet->getInfo().streamIndex,
                          (jlong) packet->getInfo().pts);
+    JniException::clearException(mEnv);
+}
+
+void NativeBase::jni_onVideoRendered(int64_t timeMs, int64_t pts, void *userData)
+{
+    if (userData == nullptr) {
+        return;
+    }
+
+    JniEnv Jenv;
+    JNIEnv *mEnv = Jenv.getEnv();
+
+    if (mEnv == nullptr) {
+        return;
+    }
+
+
+    mEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onVideoRendered, (jlong) timeMs, (jlong) pts);
+    JniException::clearException(mEnv);
+}
+
+void NativeBase::jni_onAudioRendered(int64_t timeMs, int64_t pts, void *userData)
+{
+    if (userData == nullptr) {
+        return;
+    }
+
+    JniEnv Jenv;
+    JNIEnv *mEnv = Jenv.getEnv();
+
+    if (mEnv == nullptr) {
+        return;
+    }
+
+    mEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onAudioRendered, (jlong) timeMs, (jlong) pts);
     JniException::clearException(mEnv);
 }
 

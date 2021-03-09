@@ -579,6 +579,7 @@ public class NativePlayerBase {
 
     private CicadaPlayer.OnVideoSizeChangedListener mOnVideoSizeChangedListener = null;
     private CicadaPlayer.OnVideoRenderedListener mOnVideoRenderedListener = null;
+    private CicadaPlayer.OnAudioRenderedListener mOnAudioRenderedListener = null;
     private CicadaPlayer.OnInfoListener mOnInfoListener = null;
     private CicadaPlayer.OnTrackReadyListener mOnTrackReadyListener = null;
     private CicadaPlayer.OnPreparedListener mOnPreparedListener = null;
@@ -638,6 +639,12 @@ public class NativePlayerBase {
         Logger.v(TAG, "setOnVideoRenderedListener = " + l);
         mOnVideoRenderedListener = l;
         nEnableVideoRenderedCallback(l != null);
+    }
+
+    public void setOnAudioRenderedListener(CicadaPlayer.OnAudioRenderedListener l)
+    {
+        Logger.v(TAG, "setOnAudioRenderedListener = " + l);
+        mOnAudioRenderedListener = l;
     }
 
     public void setOnTrackSelectRetListener(CicadaPlayer.OnTrackChangedListener l) {
@@ -816,6 +823,19 @@ public class NativePlayerBase {
             public void run() {
                 if (mOnVideoRenderedListener != null) {
                     mOnVideoRenderedListener.onVideoRendered(timeMs, pts);
+                }
+            }
+        });
+    }
+
+    protected void onAudioRendered(final long timeMS, final long pts)
+    {
+        Logger.v(TAG, "onAudioRendered = " + timeMS + " , pts = " + pts);
+        mCurrentThreadHandler.post(new Runnable() {
+            @Override public void run()
+            {
+                if (mOnAudioRenderedListener != null) {
+                    mOnAudioRenderedListener.onAudioRendered(timeMS, pts);
                 }
             }
         });
@@ -1013,6 +1033,7 @@ public class NativePlayerBase {
             }
         });
     }
+
 
     protected void onCaptureScreen(final int width, final int height, final byte[] buffer) {
         Logger.v(TAG, "onCaptureScreen . width = " + width + " , height = " + height);

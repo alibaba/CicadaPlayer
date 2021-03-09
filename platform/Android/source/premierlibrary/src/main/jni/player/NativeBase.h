@@ -133,6 +133,8 @@ public:
     static void java_SetAutoPlay(JNIEnv *env, jobject instance,
                                  jboolean autoPlay);
 
+    static void java_EnableVideoRenderedCallback(JNIEnv *env, jobject instance, jboolean enable);
+
     static jboolean java_IsAutoPlay(JNIEnv *env, jobject instance);
 
     static void java_SnapShot(JNIEnv *env, jobject instance);
@@ -194,6 +196,9 @@ public:
     static void
     jni_onShowSubtitle(int64_t id, int64_t size, const void *content,/*void *extra,*/
                        void *userData);
+    static void jni_onVideoRendered(int64_t timeMs, int64_t pts, void *userData);
+
+    static void jni_onAudioRendered(int64_t timeMs, int64_t pts, void *userData);
 
     static void
     jni_onHideSubtitle(int64_t id, int64_t size, const void *content, void *userData);
