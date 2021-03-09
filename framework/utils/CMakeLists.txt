@@ -63,6 +63,8 @@ set(SOURCE_FILES
         UrlUtils.h
         DrmUtils.cpp
         DrmUtils.h
+        UTCTimer.cpp
+        UTCTimer.h
         )
 
 list(APPEND SOURCE_FILES

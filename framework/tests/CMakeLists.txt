@@ -21,6 +21,7 @@ add_subdirectory(dataSource)
 add_subdirectory(demuxer)
 add_subdirectory(decoder)
 add_subdirectory(communication)
+add_subdirectory(utils)
 
 enable_testing()
 
