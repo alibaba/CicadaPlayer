@@ -4,12 +4,17 @@
 #define LOG_TAG "HlsParser"
 
 #include "HlsParser.h"
+#include "AdaptationSet.h"
 #include "Helper.h"
+#include "Period.h"
+#include "Representation.h"
+#include "SegmentList.h"
+#include "segment.h"
 #include "utils/AFMediaType.h"
+#include "utils/af_string.h"
 #include "utils/frame_work_log.h"
 #include <cstring>
 #include <map>
-#include <utils/af_string.h>
 
 #define CLOCK_FREQ INT64_C(1000000)
 

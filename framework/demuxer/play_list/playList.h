@@ -5,21 +5,23 @@
 #ifndef FRAMEWORK_PLAYLIST_H
 #define FRAMEWORK_PLAYLIST_H
 
+#include "demuxer/dash/DashUrl.h"
+#include "demuxer/dash/IDashUrl.h"
 #include <list>
-#include "Period.h"
 
 //using namespace std;
 namespace Cicada{
     class Period;
+    class UTCTimer;
 
-    class playList {
+    class playList : public Dash::IDashUrl {
     public:
         playList()
         {
 
         }
 
-        ~playList();
+        virtual ~playList();
 
         void addPeriod(Period *period);
 
@@ -39,18 +41,50 @@ namespace Cicada{
             mDuration = duration;
         }
 
-        int64_t getDuration()
+        int64_t getDuration() const
         {
             return mDuration;
         }
 
         void dump();
 
+        virtual bool isLive() const;
+
+        virtual bool isLowLatency() const;
+
+        virtual Dash::DashUrl getUrlSegment() const override;
+
+        void addBaseUrl (const std::string &url);
+
+        virtual void InitUtcTime()
+        {
+            return;
+        }
+
+        virtual int64_t GetUtcTime() const
+        {
+            return 0;
+        }
+
+    public:
+        int64_t minUpdatePeriod{0};
+        int64_t maxSegmentDuration{0};
+        std::string type;
+        int64_t minBufferTime{0};
+        int64_t maxBufferTime{0};
+        int64_t availabilityStartTime{0};
+        int64_t availabilityEndTime{0};
+        int64_t timeShiftBufferDepth{0};
+        int64_t suggestedPresentationDelay{0};
+
+    protected:
+        UTCTimer *mUtcTimer = nullptr;
+
     private:
         std::list<Period *> mPeriodList{};
         int64_t mDuration = 0;
         std::string playlistUrl = "";
-
+        std::vector<std::string> baseUrls;
 
     };
 }

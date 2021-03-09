@@ -5,8 +5,10 @@
 #define  LOG_TAG "playList_demuxer"
 
 #include "playList_demuxer.h"
-#include "HlsParser.h"
 #include "HLSManager.h"
+#include "HlsParser.h"
+#include "demuxer/dash/DashManager.h"
+#include "demuxer/dash/MPDParser.h"
 
 namespace Cicada {
     playList_demuxer playList_demuxer::se(0);
@@ -18,8 +20,9 @@ namespace Cicada {
     {
         if (type == playList_type_hls) {
             mParser = new HlsParser(path.c_str());
+        } else if (type == playList_type_dash) {
+            mParser = new Dash::MPDParser(path);
         }
-
         mType = type;
     }
 
@@ -52,6 +55,8 @@ namespace Cicada {
 
         if (mType == playList_type_hls) {
             playlistManager = new HLSManager(mPPlayList);
+        } else if (mType == playList_type_dash) {
+            playlistManager = new DashManager(mPPlayList);
         }
 
         if (playlistManager == nullptr) {
@@ -205,11 +210,37 @@ namespace Cicada {
         return false;
     }
 
+    bool playList_demuxer::isWallclockTimeSyncStream(int index)
+    {
+        if (mPPlaylistManager) {
+            return mPPlaylistManager->isWallclockTimeSyncStream(index);
+        }
+
+        return false;
+    }
+
     int64_t playList_demuxer::getMaxGopTimeUs()
     {
         if (mPPlaylistManager) {
             return mPPlaylistManager->getTargetDuration();
         }
         return INT64_MIN;
+    }
+
+    bool playList_demuxer::is_supported(const string &uri, const uint8_t *buffer, int64_t size, int *type, const Cicada::DemuxerMeta *meta,
+                                        const Cicada::options *opts)
+    {
+        // TODO: check the description
+        int ret = HlsParser::probe(buffer, size);
+        if (ret > 0) {
+            *type = playList_type_hls;
+            return true;
+        }
+        ret = Dash::MPDParser::probe(buffer, size);
+        if (ret > 0) {
+            *type = playList_type_dash;
+            return true;
+        }
+        return false;
     }
 }

@@ -106,6 +106,8 @@ namespace Cicada {
         
         bool isRealTimeStream(int index);
 
+        bool isWallclockTimeSyncStream(int index);
+
         int SwitchStreamAligned(int from, int to);
 
         void interrupt(int inter);

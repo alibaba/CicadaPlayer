@@ -5,25 +5,17 @@
 #ifndef FRAMEWORK_ADAPTATIONSET_H
 #define FRAMEWORK_ADAPTATIONSET_H
 
-
+#include "demuxer/dash/SegmentInformation.h"
 #include <list>
-#include "Representation.h"
-#include "Period.h"
-
-//using namespace std;
 
 namespace Cicada{
-    class Period;
 
+    class Period;
     class Representation;
 
-    class AdaptationSet {
+    class AdaptationSet : public Dash::SegmentInformation {
     public:
-        AdaptationSet(Period *period)
-        {
-            mPeriod = period;
-        }
-
+        AdaptationSet(Period *period);
         ~AdaptationSet();
 
         void addRepresentation(Representation *represent);
@@ -50,9 +42,17 @@ namespace Cicada{
 
         void print();
 
+        const std::string &getMimeType() const;
+
+    public:
+        std::string mimeType;
+        std::string lang;
+        bool segmentAligned = false;
+        bool bitswitchAble = false;
+
     private:
         std::list<Representation *> mRepresentList{};
-        std::string mimeType = "";
+        
         Period *mPeriod = nullptr;
         std::string mDescription = "";
     };

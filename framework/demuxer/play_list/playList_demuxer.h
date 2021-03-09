@@ -14,7 +14,6 @@ using namespace std;
 #include "demuxer/demuxerPrototype.h"
 #include "playListParser.h"
 #include "PlaylistManager.h"
-#include "HlsParser.h"
 
 namespace Cicada{
 
@@ -24,7 +23,7 @@ namespace Cicada{
         enum playList_type {
             playList_type_unknown = 0,
             playList_type_hls,
-
+            playList_type_dash
         };
 
         explicit playList_demuxer();
@@ -83,6 +82,7 @@ namespace Cicada{
         const std::string GetProperty(int index, const string &key) const override;
         
         bool isRealTimeStream(int index) override;
+        bool isWallclockTimeSyncStream(int index) override;
 
     private:
         explicit playList_demuxer(int dummy) : IDemuxer("")
@@ -96,15 +96,7 @@ namespace Cicada{
         }
 
         bool is_supported(const string &uri, const uint8_t *buffer, int64_t size, int *type, const Cicada::DemuxerMeta *meta,
-                          const Cicada::options *opts) override
-        {
-            // TODO: check the description
-            int ret = HlsParser::probe(buffer, size);
-            *type = playList_type_hls;
-            if (ret > 0)
-                return true;
-            return false;
-        }
+                          const Cicada::options *opts) override;
 
         int getType() override
         {

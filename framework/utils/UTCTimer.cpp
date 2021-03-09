@@ -9,13 +9,18 @@
 #include <cstring>
 #include <ctime>
 #include <iomanip>
+#include <sstream>
+#include <sys/types.h>
+#include <utility>
+#ifdef WIN32
+#include <winsock.h>
+#else
 #include <netdb.h>
 #include <netinet/in.h>
-#include <sstream>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
-#include <utility>
+#endif
+
 
 #define NTP_TIMESTAMP_DELTA 2208988800ull
 using namespace Cicada;
@@ -119,7 +124,11 @@ UTCTime::UTCTime(const string &str)
             tm.tm_sec = values[UTCTIME_SEC];
             tm.tm_isdst = 0;
 
+#if defined _WIN32
+            time_t mst = _mkgmtime(&tm);
+#else
             time_t mst = timegm(&tm);
+#endif
             mst += values[UTCTIME_TZ] * -60;
             mst *= 1000;
             mst += values[UTCTIME_MSEC];
@@ -146,7 +155,7 @@ UTCTimer::UTCTimer(const std::string &time)
     UTCTime utcTime(time);
     mClock.set(utcTime.mtime() * 1000);
 }
-uint64_t UTCTimer::get()
+int64_t UTCTimer::get()
 {
     return mClock.get();
 }
@@ -179,6 +188,15 @@ int64_t NTPClient::get() const
     }
     return mTime;
 }
+
+int64_t NTPClient::getTimeSync() const
+{
+    if (mThread) {
+        mThread->stop();
+    }
+    return mTime;
+}
+
 NTPClient::NTPClient()
 {
     if (!mThread) {
@@ -214,20 +232,20 @@ int NTPClient::getNTPTime()
     }
     memset((char *) &serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    bcopy((char *) server->h_addr, (char *) &serv_addr.sin_addr.s_addr, server->h_length);
+    memcpy((char *) &serv_addr.sin_addr.s_addr, (char *) server->h_addr, server->h_length);
     serv_addr.sin_port = htons(mPort);
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         AF_LOGE("ERROR connecting");
         mTime = -errno;
         return -1;
     }
-    n = write(sockfd, (char *) &packet, sizeof(ntp_packet));
+    n = send(sockfd, (char *) &packet, sizeof(ntp_packet), 0);
     if (n < 0) {
         AF_LOGE("ERROR writing to socket");
         mTime = -errno;
         return -1;
     }
-    n = read(sockfd, (char *) &packet, sizeof(ntp_packet));
+    n = recv(sockfd, (char *) &packet, sizeof(ntp_packet), 0);
     if (n < 0) {
         AF_LOGE("ERROR reading from socket");
         mTime = -errno;

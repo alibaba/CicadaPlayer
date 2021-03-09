@@ -5,20 +5,21 @@
 
 #include "HLSStream.h"
 #include "Helper.h"
+#include "data_source/dataSourcePrototype.h"
+#include "demuxer/DemuxerMeta.h"
 #include "demuxer/IDemuxer.h"
+#include "demuxer/play_list/segment_decrypt/AES_128Decrypter.h"
+#include "segment.h"
 #include "segment_decrypt/SegDecryptorFactory.h"
+#include "utils/DrmUtils.h"
+#include "utils/af_string.h"
+#include "utils/errors/framework_error.h"
 #include "utils/frame_work_log.h"
 #include "utils/mediaFrame.h"
+#include "utils/timer.h"
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
-#include <data_source/dataSourcePrototype.h>
-#include <demuxer/DemuxerMeta.h>
-#include <demuxer/play_list/segment_decrypt/AES_128Decrypter.h>
-#include <utils/af_string.h>
-#include <utils/errors/framework_error.h>
-#include <utils/timer.h>
-#include <utils/DrmUtils.h>
 
 // TODO support active and no active mode
 

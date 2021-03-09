@@ -5,15 +5,19 @@
 #define LOG_TAG "SegmentTracker"
 
 #include "SegmentTracker.h"
+#include "AdaptationSet.h"
 #include "Helper.h"
 #include "HlsParser.h"
+#include "Period.h"
+#include "Representation.h"
+#include "SegmentList.h"
+#include "data_source/dataSourcePrototype.h"
 #include "playList_demuxer.h"
+#include "utils/errors/framework_error.h"
+#include "utils/frame_work_log.h"
 #include "utils/timer.h"
 #include <algorithm>
-#include <data_source/dataSourcePrototype.h>
 #include <utility>
-#include <utils/errors/framework_error.h>
-#include <utils/frame_work_log.h>
 
 #define IS_LIVE (mRep && mRep->b_live)
 
@@ -484,6 +488,16 @@ namespace Cicada {
             AF_LOGD("1206, setCurSegPosition  %llu\n", mCurSegPos);
         }
         mSeeked = true;
+    }
+
+    uint64_t SegmentTracker::getFirstSegNum()
+    {
+        return mRep->GetSegmentList()->getFirstSeqNum();
+    }
+
+    uint64_t SegmentTracker::getLastSegNum()
+    {
+        return mRep->GetSegmentList()->getLastSeqNum();
     }
 
     int64_t SegmentTracker::getTargetDuration()

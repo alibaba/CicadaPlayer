@@ -13,6 +13,10 @@
 using namespace std;
 using namespace Cicada::hls;
 namespace Cicada{
+
+    class AdaptationSet;
+    class Representation;
+
     class HlsParser : public playListParser {
     public:
         explicit HlsParser(const char *uri);

@@ -25,6 +25,8 @@ namespace Cicada{ ;
 
         int64_t seek(int64_t offset, int whence);
 
+        char readChar();
+
         bool isEOF();
 
 

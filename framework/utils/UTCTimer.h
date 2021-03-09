@@ -13,7 +13,7 @@ namespace Cicada {
     public:
         explicit UTCTimer(const std::string &time);
         ~UTCTimer() = default;
-        uint64_t get();
+        int64_t get();
         void start();
         explicit operator std::string();
 
@@ -27,6 +27,7 @@ namespace Cicada {
         NTPClient();
         ~NTPClient();
         int64_t get() const;
+        int64_t getTimeSync() const;
         explicit operator std::string();
 
     private:

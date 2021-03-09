@@ -63,6 +63,10 @@ namespace Cicada{
         }
         
         virtual bool isRealTimeStream(int index) = 0;
+        virtual bool isWallclockTimeSyncStream(int index)
+        {
+            return false;
+        }
 
         virtual int64_t getTargetDuration() = 0;
 

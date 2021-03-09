@@ -68,6 +68,12 @@ namespace Cicada {
         Yes,
     };
 
+    enum class LiveTimeSyncType {
+        LiveTimeSyncNormal,
+        LiveTimeSyncCatchUp,
+        LiveTimeSyncSlowDown
+    };
+
     class SuperMediaPlayer : public ICicadaPlayer, private CicadaPlayerPrototype {
 
         friend class SuperMediaPlayerDataSourceListener;
@@ -241,6 +247,8 @@ namespace Cicada {
         int DecodeVideoPacket(unique_ptr<IAFPacket> &pVideoPacket);
 
         void LiveCatchUp(int64_t delayTime);
+
+        void LiveTimeSync(int64_t delayTime);
 
         int FillVideoFrame();
 
@@ -539,6 +547,8 @@ namespace Cicada {
         readCB mBSReadCb = nullptr;
         seekCB mBSSeekCb = nullptr;
         void *mBSCbArg = nullptr;
+        int64_t mSuggestedPresentationDelay = 0;
+        LiveTimeSyncType mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncNormal;
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H

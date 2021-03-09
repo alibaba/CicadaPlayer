@@ -4,9 +4,11 @@
 
 #define LOG_TAG "playList"
 
-#include <utils/frame_work_log.h>
 #include "playList.h"
-
+#include "AdaptationSet.h"
+#include "Period.h"
+#include "Representation.h"
+#include "utils/frame_work_log.h"
 
 namespace Cicada {
 
@@ -54,6 +56,34 @@ namespace Cicada {
                 }
             }
         }
+    }
+
+    bool playList::isLive() const
+    {
+        return false;
+    }
+
+    bool playList::isLowLatency() const
+    {
+        return false;
+    }
+
+    Dash::DashUrl playList::getUrlSegment() const
+    {
+        Dash::DashUrl ret;
+
+        if (!baseUrls.empty()) ret = Dash::DashUrl(baseUrls.front());
+
+        if (!ret.hasScheme() && !playlistUrl.empty()) {
+            ret.prepend(Dash::DashUrl(playlistUrl));
+        }
+
+        return ret;
+    }
+
+    void playList::addBaseUrl (const std::string &url)
+    {
+        baseUrls.push_back(url);
     }
 
     const std::string &playList::getPlaylistUrl()

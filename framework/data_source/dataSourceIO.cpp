@@ -89,6 +89,11 @@ namespace Cicada {
     {
         return static_cast<bool>(avio_feof(mPb));
     }
+
+    char dataSourceIO::readChar()
+    {
+        return avio_r8(mPb);
+    }
 }
 
 

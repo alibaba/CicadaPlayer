@@ -3,12 +3,18 @@
 //
 
 #include "Period.h"
+#include "AdaptationSet.h"
+#include "utils/frame_work_log.h"
 
 #define LOG_TAG "Period"
 
-#include <utils/frame_work_log.h>
-
 namespace Cicada {
+
+    Period::Period(playList *playlist) : Dash::SegmentInformation(playlist)
+    {
+        mPlayList = playlist;
+    }
+
     void Period::addAdaptationSet(AdaptationSet *adaptSet)
     {
         mAdaptSetList.push_back(adaptSet);

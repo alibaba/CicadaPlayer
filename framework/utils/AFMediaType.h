@@ -369,6 +369,9 @@ typedef struct {
 
     float ptsTimeBase;
 
+    // add for dash
+    int64_t suggestedPresentationDelay;
+
 } Stream_meta;
 
 

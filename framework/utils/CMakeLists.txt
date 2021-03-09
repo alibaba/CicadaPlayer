@@ -75,6 +75,8 @@ list(APPEND SOURCE_FILES
         )
 
 list(APPEND SOURCE_FILES
+        xml/DOMHelper.cpp
+        xml/DOMHelper.h
         xml/DOMParser.cpp
         xml/DOMParser.h
         xml/Node.cpp

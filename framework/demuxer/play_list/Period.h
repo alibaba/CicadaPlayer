@@ -6,27 +6,23 @@
 #define FRAMEWORK_PERIOD_H
 
 #include <list>
-#include "AdaptationSet.h"
+#include "demuxer/dash/SegmentInformation.h"
 
 using namespace std;
 
 namespace Cicada{
-    class playList;
 
+    class playList;
     class AdaptationSet;
 
-    class Period {
+    class Period : public Dash::SegmentInformation {
     public:
-        explicit Period(playList *playlist)
-        {
-            mPlayList = playlist;
-        }
-
+        explicit Period(playList *playlist);
         ~Period();
 
         void addAdaptationSet(AdaptationSet *adaptSet);
 
-        playList *getPlayList()
+        playList *getPlayList() const override
         {
             return mPlayList;
         }
@@ -38,10 +34,17 @@ namespace Cicada{
             return mAdaptSetList;
         }
 
+    public:
+        int64_t startTime{0};
+        int64_t duration{0};
+
     private:
         list<AdaptationSet *> mAdaptSetList;
-        int64_t startTime = 0;
+        
         playList *mPlayList = nullptr;
+
+        
+
     };
 }
 

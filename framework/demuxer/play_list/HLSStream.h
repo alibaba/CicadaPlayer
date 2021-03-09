@@ -5,19 +5,20 @@
 #ifndef FRAMEWORK_HLSSTREAM_H
 #define FRAMEWORK_HLSSTREAM_H
 
-#include <demuxer/play_list/segment_decrypt/ISegDecrypter.h>
-#include <demuxer/sample_decrypt/HLSSampleAesDecrypter.h>
-#include <utils/afThread.h>
-#include <utils/CicadaJSON.h>
 #include "AbstractStream.h"
 #include "SegmentTracker.h"
-#include "../demuxer_service.h"
 #include "demuxer/DemuxerMetaInfo.h"
+#include "demuxer/demuxer_service.h"
+#include "demuxer/play_list/segment_decrypt/ISegDecrypter.h"
+#include "demuxer/sample_decrypt/HLSSampleAesDecrypter.h"
+#include "segment_decrypt/SegmentEncryption.h"
+#include "utils/CicadaJSON.h"
+#include "utils/afThread.h"
+#include <atomic>
 #include <condition_variable>
 #include <deque>
-#include <mutex>
 #include <map>
-#include <atomic>
+#include <mutex>
 
 namespace Cicada {
 

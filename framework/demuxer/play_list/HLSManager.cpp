@@ -3,16 +3,18 @@
 //
 
 #include "HLSManager.h"
+#include "AdaptationSet.h"
+#include "Period.h"
+#include "Representation.h"
 #include "playList_demuxer.h"
+#include "utils/errors/framework_error.h"
+#include "utils/frame_work_log.h"
+#include "utils/mediaFrame.h"
+#include <cassert>
+#include <cerrno>
 
 #undef LOG_TAG
-#define  LOG_TAG "HLSManager"
-
-#include "../../utils/frame_work_log.h"
-#include "../../utils/mediaFrame.h"
-#include <cerrno>
-#include <utils/errors/framework_error.h>
-#include <cassert>
+#define LOG_TAG "HLSManager"
 
 namespace Cicada {
 

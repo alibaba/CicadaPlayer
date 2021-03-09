@@ -48,10 +48,14 @@ if (ENABLE_HLS_DEMUXER)
     target_compile_definitions(demuxer PRIVATE ENABLE_HLS_DEMUXER)
     target_sources(demuxer PRIVATE
             play_list/segment.cpp
+            play_list/segment.h
             play_list/SegmentPart.h
             play_list/Representation.cpp
+            play_list/Representation.h
             play_list/AdaptationSet.cpp
+            play_list/AdaptationSet.h
             play_list/Period.cpp
+            play_list/Period.h
             play_list/playList.h
             play_list/playList.cpp
             play_list/playList_demuxer.h
@@ -61,7 +65,9 @@ if (ENABLE_HLS_DEMUXER)
             play_list/HlsParser.h
             play_list/HlsParser.cpp
             play_list/HlsTags.cpp
+            play_list/HlsTags.h
             play_list/Helper.cpp
+            play_list/Helper.h
             play_list/SegmentList.h
             play_list/SegmentList.cpp
             play_list/PlaylistManager.h
@@ -80,6 +86,50 @@ if (ENABLE_HLS_DEMUXER)
             play_list/segment_decrypt/AES_128Decrypter.cpp
             play_list/segment_decrypt/ISegDecryptorPrototype.cpp
             play_list/segment_decrypt/ISegDecryptorPrototype.h)
+endif ()
+
+if (ENABLE_DASH_DEMUXER)
+    target_compile_definitions(demuxer PRIVATE ENABLE_DASH_DEMUXER)
+    set(DASH_FILES 
+            dash/conversions.cpp
+            dash/conversions.h
+            dash/MPDParser.cpp
+            dash/MPDParser.h
+            dash/MPDPlayList.cpp
+            dash/MPDPlayList.h
+            dash/ProgramInfo.cpp
+            dash/ProgramInfo.h
+            dash/InheritablesAttrs.cpp
+            dash/InheritablesAttrs.h
+            dash/ISegmentBase.cpp
+            dash/ISegmentBase.h
+            dash/SegmentBase.cpp
+            dash/SegmentBase.h
+            dash/SegmentInformation.cpp
+            dash/SegmentInformation.h
+            dash/SegmentList.cpp
+            dash/SegmentList.h
+            dash/SegmentTemplate.cpp
+            dash/SegmentTemplate.h
+            dash/SegmentTimeline.cpp
+            dash/SegmentTimeline.h
+            dash/Timescale.cpp
+            dash/Timescale.h
+            dash/DashSegment.cpp
+            dash/DashSegment.h
+            dash/IDashUrl.h
+            dash/DashUrl.cpp
+            dash/DashUrl.h
+            dash/UrlTemplate.cpp
+            dash/UrlTemplate.h
+            dash/DashManager.cpp
+            dash/DashManager.h
+            dash/DashStream.cpp
+            dash/DashStream.h
+            dash/DashSegmentTracker.cpp
+            dash/DashSegmentTracker.h)
+    source_group(dash FILES ${DASH_FILES})
+    target_sources(demuxer PRIVATE ${DASH_FILES})
 endif ()
 
 if (USE_OPENSSL)

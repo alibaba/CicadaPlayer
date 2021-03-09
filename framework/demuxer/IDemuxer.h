@@ -20,6 +20,8 @@
 #include <utils/CicadaType.h>
 #include <utils/mediaTypeInternal.h>
 
+using namespace std;
+
 namespace Cicada {
     typedef enum demuxer_type {
         demuxer_type_unknown = 0,
@@ -187,6 +189,11 @@ namespace Cicada {
         }
         
         virtual bool isRealTimeStream(int index)
+        {
+            return false;
+        }
+
+        virtual bool isWallclockTimeSyncStream(int index)
         {
             return false;
         }

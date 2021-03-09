@@ -3,10 +3,17 @@
 //
 #define LOG_TAG "AdaptationSet"
 
-#include <utils/frame_work_log.h>
 #include "AdaptationSet.h"
+#include "Period.h"
+#include "Representation.h"
+#include "utils/frame_work_log.h"
 
 namespace Cicada {
+
+    AdaptationSet::AdaptationSet(Period *period) : Dash::SegmentInformation(period)
+    {
+        mPeriod = period;
+    }
 
     void AdaptationSet::addRepresentation(Representation *represent)
     {
@@ -16,6 +23,11 @@ namespace Cicada {
     void AdaptationSet::print()
     {
         AF_LOGD("%s have %d Represens\n", mDescription.c_str(), mRepresentList.size());
+    }
+
+    const std::string &AdaptationSet::getMimeType() const
+    {
+        return mimeType;
     }
 
     AdaptationSet::~AdaptationSet()

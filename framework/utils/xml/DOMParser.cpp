@@ -3,19 +3,18 @@
 //
 #define LOG_TAG "DOMParser"
 #include "DOMParser.h"
-#include "../frame_work_log.h"
+#include "utils/frame_work_log.h"
 #include <stack>
 #include <string>
-using namespace Cicada::xml;
-using namespace std;
 
+using namespace Cicada::xml;
 
 enum NodeType {
-    XML_READER_STARTELEM = XML_READER_TYPE_ELEMENT,
-    XML_READER_ENDELEM = XML_READER_TYPE_END_ELEMENT,
-    XML_READER_COMMENT = XML_READER_TYPE_COMMENT,
-    XML_READER_WHITESPACE = XML_READER_TYPE_SIGNIFICANT_WHITESPACE,
-    XML_READER_TEXT = XML_READER_TYPE_TEXT,
+    XML_READER_ERROR = -1,
+    XML_READER_NONE = 0,
+    XML_READER_STARTELEM,
+    XML_READER_ENDELEM,
+    XML_READER_TEXT,
 };
 
 
@@ -34,93 +33,104 @@ bool Cicada::DOMParser::parse(const char *buffer, int size)
     if (!mReader) {
         return false;
     }
-    if (xmlTextReaderRead(mReader)) {
-        mRoot = processNode();
-    }
+    mRoot = processNode();
     xmlFreeTextReader(mReader);
+
+    print();
 
     return mRoot != nullptr;
 }
+
 Node *Cicada::DOMParser::processNode()
 {
-    int type = xmlTextReaderNodeType(mReader);
+    const char *data;
+    int type = XML_READER_NONE;
+    std::stack<Node *> lifo;
+    while ((type = ReadNextNode(&data)) > 0) {
+        switch (type) {
+            case XML_READER_STARTELEM: {
+                bool empty = xmlTextReaderIsEmptyElement(mReader);
+                Node *node = new Node();
+                if (node) {
+                    if (!lifo.empty()) {
+                        lifo.top()->addSubNode(node);
+                    }
+                    lifo.push(node);
 
-    if (type == XML_READER_TEXT) {
-        const char *text = (const char *) xmlTextReaderReadString(mReader);
+                    node->setName(std::string(data));
+                    addAttributesToNode(node);
+                }
 
-        if (text != nullptr) {
-            Node *node = new Node();
-            node->setType(type);
-            node->setText(text);
-            delete text;
-            return node;
-        } else
-            return nullptr;
-    } else if (type == XML_READER_WHITESPACE) {
-        return nullptr;
-    }
+                if (empty && lifo.size() > 1) {
+                    lifo.pop();
+                }
+                break;
+            }
 
-    while (type == XML_READER_COMMENT || type == XML_READER_WHITESPACE) {
-        xmlTextReaderRead(mReader);
-        type = xmlTextReaderNodeType(mReader);
-    }
-    Node *node = new Node();
-    node->setType(type);
+            case XML_READER_TEXT: {
+                if (!lifo.empty()) {
+                    lifo.top()->setText(std::string(data));
+                }
+                break;
+            }
 
-    if (xmlTextReaderConstName(mReader) == nullptr) {
-        delete node;
-        return nullptr;
-    }
-    std::string name = (const char *) xmlTextReaderConstName(mReader);
-    int isEmpty = xmlTextReaderIsEmptyElement(mReader);
-    node->setName(name);
-    this->addAttributesToNode(node);
+            case XML_READER_ENDELEM: {
+                if (lifo.empty()) {
+                    return nullptr;
+                }
 
-    if (isEmpty) {
-        return node;
-    }
-    Node *subNode;
-    int ret;
+                Node *node = lifo.top();
+                lifo.pop();
+                if (lifo.empty()) {
+                    return node;
+                }
+            }
 
-    do {
-        ret = xmlTextReaderRead(mReader);
-        if (ret != 1) {
-            break;
+            default:
+                break;
         }
-        if (!strcmp(name.c_str(), (const char *) xmlTextReaderConstName(mReader))) {
-            return node;
-        }
+    }
 
-        subNode = this->processNode();
-
-        if (subNode != nullptr) {
-            node->addSubNode(subNode);
-        }
-    } while (true);
-
+    while (lifo.size() > 1) {
+        lifo.pop();
+    }
+    Node *node = (!lifo.empty()) ? lifo.top() : nullptr;
     return node;
 }
+
 void Cicada::DOMParser::addAttributesToNode(Node *node)
 {
-    if (xmlTextReaderHasAttributes(mReader)) {
-        while (xmlTextReaderMoveToNextAttribute(mReader)) {
-            std::string key = (const char *) xmlTextReaderConstName(mReader);
-            std::string value = (const char *) xmlTextReaderConstValue(mReader);
+    //if (xmlTextReaderHasAttributes(mReader)) {
+    //    while (xmlTextReaderMoveToNextAttribute(mReader)) {
+    //        std::string key = (const char *) xmlTextReaderConstName(mReader);
+    //        std::string value = (const char *) xmlTextReaderConstValue(mReader);
+    //        node->addAttribute(key, value);
+    //    }
+    //}
+    const char *attrValue;
+    const char *attrName;
+    while ((attrName = ReadNextAttr(&attrValue)) != nullptr) {
+        if (attrValue) {
+            std::string key = attrName;
+            std::string value = attrValue;
             node->addAttribute(key, value);
         }
     }
 }
+
 Node *Cicada::DOMParser::getRootNode()
 {
     return mRoot;
 }
+
 void Cicada::DOMParser::print()
 {
     print(mRoot, 0);
 }
+
 void Cicada::DOMParser::print(Node *node, int offset)
 {
-    string ss;
+    std::string ss;
     for (int i = 0; i < offset; i++) ss += " ";
 
     ss += node->getName();
@@ -141,4 +151,76 @@ void Cicada::DOMParser::print(Node *node, int offset)
     for (auto i : node->getSubNodes()) {
         this->print(i, offset);
     }
+}
+
+int Cicada::DOMParser::ReadNextNode(const char **data)
+{
+    const xmlChar *node = nullptr;
+    int ret = XML_READER_NONE;
+
+    if (mNodeText) {
+        free(mNodeText);
+        mNodeText = nullptr;
+    }
+    int readerRet = 0;
+    int retryCount = 0;
+skip:
+    readerRet = xmlTextReaderRead(mReader);
+    switch (readerRet) {
+        case 0: /* EOF */
+            return XML_READER_NONE;
+        case -1: /* error */
+        {
+            ++retryCount;
+            if (retryCount >= 5) {
+                return XML_READER_ERROR;
+            } else {
+                goto skip;
+            }
+        }
+    }
+    readerRet = xmlTextReaderNodeType(mReader);
+    switch (readerRet) {
+        case XML_READER_TYPE_ELEMENT:
+            node = xmlTextReaderConstName(mReader);
+            ret = XML_READER_STARTELEM;
+            break;
+
+        case XML_READER_TYPE_END_ELEMENT:
+            node = xmlTextReaderConstName(mReader);
+            ret = XML_READER_ENDELEM;
+            break;
+
+        case XML_READER_TYPE_CDATA:
+        case XML_READER_TYPE_TEXT:
+            node = xmlTextReaderConstValue(mReader);
+            ret = XML_READER_TEXT;
+            break;
+
+        case -1:
+            return XML_READER_ERROR;
+
+        default:
+            goto skip;
+    }
+
+    if ((node == nullptr)) {
+        return XML_READER_ERROR;
+    }
+
+    mNodeText = strdup((const char *) node);
+    if (data != NULL) *data = mNodeText;
+    return mNodeText != NULL ? ret : XML_READER_ERROR;
+}
+
+const char *Cicada::DOMParser::ReadNextAttr(const char **data)
+{
+    const xmlChar *name, *value;
+
+    if (xmlTextReaderMoveToNextAttribute(mReader) != 1 || (name = xmlTextReaderConstName(mReader)) == NULL ||
+        (value = xmlTextReaderConstValue(mReader)) == NULL)
+        return NULL;
+
+    *data = (const char *) value;
+    return (const char *) name;
 }

@@ -189,6 +189,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         if (mPlayer.mDuration < 0) {
             mPlayer.mDuration = meta->duration;
         }
+        mPlayer.mSuggestedPresentationDelay = meta->suggestedPresentationDelay;
 
         auto *info = new StreamInfo();
         info->streamIndex = i;

@@ -20,6 +20,7 @@ extern "C" {
 #include <utils/timer.h>
 #include <utils/CicadaJSON.h>
 #include "play_list/HlsParser.h"
+#include "dash/MPDParser.h"
 
 using namespace std;
 namespace Cicada {
@@ -762,6 +763,12 @@ namespace Cicada {
         }
 
 #endif
+#ifdef ENABLE_DASH_DEMUXER
+        if (Dash::MPDParser::probe(buffer, size) > 0) {
+            return false;
+        }
+#endif
+
         AVProbeData pd = {uri.c_str(), const_cast<unsigned char *>(buffer), static_cast<int>(size)};
         int score = AVPROBE_SCORE_RETRY;
         AVInputFormat *fmt = av_probe_input_format2(&pd, 1, &score);

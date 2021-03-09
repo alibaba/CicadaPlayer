@@ -5,31 +5,24 @@
 #ifndef FRAMEWORK_REPRESENTATION_H
 #define FRAMEWORK_REPRESENTATION_H
 
-#include <list>
-#include "segment.h"
-#include "SegmentList.h"
-#include "playList.h"
-#include "AdaptationSet.h"
-#include <utils/AFMediaType.h>
+#include "demuxer/dash/SegmentInformation.h"
+#include "utils/AFMediaType.h"
 #include <ctime>
-//#include "../../utils/frame_work_log.h"
-//#include "playList_demuxer.h"
+#include <list>
 
-//using namespace std;
 namespace Cicada{
+
     class AdaptationSet;
-
     class SegmentList;
-
     class playList;
 
-    class Representation {
-    public:
-        Representation(AdaptationSet *adapt)
-        {
-            mAdapt = adapt;
-        }
+    namespace Dash {
+        class SegmentTemplate;
+    }
 
+    class Representation : public Dash::SegmentInformation {
+    public:
+        Representation(AdaptationSet *adapt);
         ~Representation();
 
         void SetSegmentList(SegmentList *pSegList);
@@ -58,6 +51,21 @@ namespace Cicada{
 
         AdaptationSet *getAdaptationSet();
 
+        void addCodecs(const std::string &codecs);
+
+        std::string contextualize(size_t number, const std::string &component, const Dash::SegmentTemplate *templ) const;
+
+        int64_t getScaledTimeBySegmentNumber(uint64_t index, const Dash::SegmentTemplate *templ) const;
+
+        virtual bool needsIndex() const;
+
+        const std::string &getMimeType() const;
+
+        void updateStreamType();
+
+        bool getSegmentNumberByTime(int64_t time, uint64_t *ret) const;
+
+        int64_t getMinAheadTime(uint64_t curnum) const;
 
     public:
         // TODO use set and get
@@ -67,15 +75,15 @@ namespace Cicada{
         int mPlayListType{0};
         Stream_type mStreamType = STREAM_TYPE_MIXED;
         std::string mLang = "";
+        std::list<std::string> codecs;
+        std::string mimeType;
 
     private:
         SegmentList *mPSegList = nullptr;
-        int id = -1;
         AdaptationSet *mAdapt = nullptr;
         std::string mBaseUrl = "";
         std::string mPlaylistUrl;
         uint64_t mBandWidth = 0;
-        std::string mimeType;
         int mWidth = 0;
         int mHeight = 0;
         //std::list<std::string> lang;

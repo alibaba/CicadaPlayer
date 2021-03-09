@@ -11,9 +11,12 @@
 #include <mutex>
 #include <base/OptionOwner.h>
 
+using namespace std;
+
 namespace Cicada {
 
     class AlivcDataSource;
+    class segment;
 
     class SegmentTracker : public OptionOwner {
     public:
@@ -64,15 +67,9 @@ namespace Cicada {
 
         void setCurSegPosition(uint64_t position);
 
-        uint64_t getFirstSegNum()
-        {
-            return mRep->GetSegmentList()->getFirstSeqNum();
-        }
+        uint64_t getFirstSegNum();
 
-        uint64_t getLastSegNum()
-        {
-            return mRep->GetSegmentList()->getLastSeqNum();
-        }
+        uint64_t getLastSegNum();
 
         uint64_t getSegSize();
 

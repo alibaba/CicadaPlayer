@@ -74,7 +74,7 @@ namespace Cicada {
             }
 
             if (!mNoFile) {
-                while (mProbBufferSize < 128) {
+                while (mProbBufferSize < 256) {
                     int ret = 0;
 
                     if (mPDataSource) {
@@ -297,6 +297,15 @@ namespace Cicada {
         }
 
         return mDemuxerPtr->isRealTimeStream(index);
+    }
+
+    bool demuxer_service::isWallclockTimeSyncStream(int index)
+    {
+        if (nullptr == mDemuxerPtr) {
+            return false;
+        }
+
+        return mDemuxerPtr->isWallclockTimeSyncStream(index);
     }
 
     void demuxer_service::interrupt(int inter)

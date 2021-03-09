@@ -28,9 +28,13 @@ namespace Cicada {
 
         void print(xml::Node *node, int offset);
 
+        int ReadNextNode(const char **data);
+        const char *ReadNextAttr(const char **data);
+
     private:
         xmlTextReaderPtr mReader{nullptr};
         xml::Node *mRoot{nullptr};
+        char *mNodeText{nullptr};
     };
 }// namespace Cicada
 

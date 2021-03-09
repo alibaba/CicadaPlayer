@@ -1,4 +1,5 @@
 option(ENABLE_HLS_DEMUXER "enable hls demuxer" ON)
+option(ENABLE_DASH_DEMUXER "enable DASH demuxer" ON)
 option(ENABLE_CACHED_SOURCE "enable cached source" ON)
 option(ENABLE_CURL_SOURCE "enable curl http https source" ON)
 
