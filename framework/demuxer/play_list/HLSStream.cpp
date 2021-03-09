@@ -212,7 +212,7 @@ namespace Cicada {
         int ret;
         mInitSegPtr = 0;
 
-        if (!mCurSeg || !mCurSeg->init_section || mCurInitSeg == mCurSeg->init_section) {
+        if (!mCurSeg || !mCurSeg->init_section || (mCurInitSeg != nullptr && mCurInitSeg->mUri == mCurSeg->init_section->mUri)) {
             return 0;
         }
 
@@ -250,7 +250,7 @@ namespace Cicada {
         } while (size < mInitSegSize);
 
         mInitSegSize = size;
-        return 0;
+        return size;
     }
 
     static inline uint64_t getSize(const uint8_t *data, unsigned int len, unsigned int shift)
@@ -1021,7 +1021,15 @@ namespace Cicada {
             }
 
             if (ret >= 0) {
-                upDateInitSection();
+                ret = upDateInitSection();
+
+                if (ret > 0) {
+                    //got new initSection, need reopen curSeg.
+                    //because use same data source pointer for read init section and segment.
+                    string uri = Helper::combinePaths(mPTracker->getBaseUri(), mCurSeg->getDownloadUrl());
+                    tryOpenSegment(uri, mCurSeg->rangeStart, mCurSeg->rangeEnd);
+                }
+
                 ret = createDemuxer();
 
                 if (ret >= 0) {

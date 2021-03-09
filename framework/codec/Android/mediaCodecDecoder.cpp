@@ -393,6 +393,11 @@ namespace Cicada {
     }
 
     int mediaCodecDecoder::dequeue_decoder(unique_ptr<IAFFrame> &pFrame) {
+
+        if (!mbInit) {
+            return -EAGAIN;
+        }
+
         int ret;
         int index;
         index = mDecoder->dequeueOutputBufferIndex(1000);
