@@ -1780,6 +1780,17 @@ void SuperMediaPlayer::checkEOS()
 
 void SuperMediaPlayer::playCompleted()
 {
+    //notify seek completion if seek to the end directly.
+    if (mSeekFlag) {
+        mSeekFlag = false;
+
+        if (!mMessageControl->findMsgByType(MSG_SEEKTO)) {
+            ResetSeekStatus();
+            mPNotifier->NotifySeekEnd(mSeekInCache);
+            mSeekInCache = false;
+        }
+    }
+
     if (mSet->bLooping && mDuration > 0) {
         mSeekPos = 0;//19644161: need reset seek position
         mMsgCtrlListener->ProcessSeekToMsg(0, false);
