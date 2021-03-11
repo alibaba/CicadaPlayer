@@ -268,7 +268,7 @@ int AFAudioQueueRender::start_device()
 {
     if (!mPlaying) {
         mPlaying = true;
-        if (_audioQueueRef) {
+        if (_audioQueueRef && mBufferCount > 0 && mBufferAllocatedCount >= mBufferCount) {
             mStartStatus = AudioQueueStart(_audioQueueRef, nullptr);
             if (mStartStatus != AVAudioSessionErrorCodeNone) {
                 AF_LOGE("AudioQueue: AudioQueueStart failed (%d)\n", (int) mStartStatus);
@@ -366,6 +366,12 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
 
         for (int i = 0; i < mBufferAllocatedCount; i++) {
             AudioQueueEnqueueBuffer(_audioQueueRef, _audioQueueBufferRefArray[i], 0, nullptr);
+        }
+        if (mPlaying) {
+            mStartStatus = AudioQueueStart(_audioQueueRef, nullptr);
+            if (mStartStatus != AVAudioSessionErrorCodeNone) {
+                AF_LOGE("AudioQueue: AudioQueueStart failed (%d)\n", (int) mStartStatus);
+            }
         }
     }
     return 0;
