@@ -358,7 +358,11 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
          */
         while (mBufferAllocatedCount < mBufferCount) {
             AudioQueueBuffer *buffer = nullptr;
-            AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &buffer);
+            OSStatus err = AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &buffer);
+            if (err != noErr) {
+                AF_LOGE("AudioQueueAllocateBuffer error %d \n", err);
+                return 0;
+            }
             _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
             buffer->mAudioDataByteSize = copyAudioData(buffer, false);
             mBufferAllocatedCount++;
