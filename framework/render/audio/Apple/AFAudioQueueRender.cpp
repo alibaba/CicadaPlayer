@@ -333,7 +333,7 @@ int64_t AFAudioQueueRender::device_get_position()
 
 int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
 {
-    if (mNeedFlush || mInPut.write_available() <= 0) {
+    if (mNeedFlush) {
         return -EAGAIN;
     }
 
@@ -346,7 +346,9 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
             mBufferCount = 3;
         }
     }
-    mInPut.push(frame.release());
+    if (mInPut.write_available() > 0) {
+        mInPut.push(frame.release());
+    }
     if (mBufferAllocatedCount < mBufferCount && mInPut.size() >= mBufferCount) {
         assert(mAudioDataByteSize > 0);
         assert(mBufferCount <= MAX_QUEUE_SIZE);
@@ -361,6 +363,9 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
             OSStatus err = AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &buffer);
             if (err != noErr) {
                 AF_LOGE("AudioQueueAllocateBuffer error %d \n", err);
+                if (frame) {
+                    return -EAGAIN;
+                }
                 return 0;
             }
             _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
@@ -377,6 +382,9 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
                 AF_LOGE("AudioQueue: AudioQueueStart failed (%d)\n", (int) mStartStatus);
             }
         }
+    }
+    if (frame) {
+        return -EAGAIN;
     }
     return 0;
 }
