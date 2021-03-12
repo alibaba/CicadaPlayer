@@ -68,9 +68,19 @@ std::map<std::string, std::string> JniUtils::jmap2cmap(JNIEnv *env, jobject jobj
         for (i = 0; i < arraysize; i++) {
             jstring jkey = (jstring) env->GetObjectArrayElement(jobjArray, i);
             jstring jvalue = (jstring) env->CallObjectMethod(jobj, jgetmid, jkey);
-            GetStringUTFChars key(env, jkey);
-            GetStringUTFChars value(env, jvalue);
-            cmap[key.getChars()] = value.getChars();
+            {
+                GetStringUTFChars key(env, jkey);
+                GetStringUTFChars value(env, jvalue);
+                cmap[key.getChars()] = value.getChars();
+            }
+
+            if (jkey != nullptr) {
+                env->DeleteLocalRef(jkey);
+            }
+
+            if (jvalue != nullptr) {
+                env->DeleteLocalRef(jvalue);
+            }
         }
     }
     if (jobjArray != nullptr) {

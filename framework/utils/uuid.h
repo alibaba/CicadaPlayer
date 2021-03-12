@@ -172,7 +172,8 @@ if (attached) \
 
 static int uuid_get_uuid(char* msg_buf, int buf_len)
 {
-	jclass uuid_class = 0;
+    jclass uuidClass = 0;
+    jclass uuid_class = 0;
 	jmethodID get_uuid_method;
 	jmethodID to_string_method;
 	JNIEnv *jni_env = 0;
@@ -187,9 +188,13 @@ static int uuid_get_uuid(char* msg_buf, int buf_len)
 		goto on_error;
 	}
 
-	uuid_class = static_cast<jclass>((jni_env)->NewGlobalRef((jni_env)->FindClass("java/util/UUID")));
+    uuidClass = (jni_env)->FindClass("java/util/UUID");
+    if (uuidClass != NULL) {
+        uuid_class = static_cast<jclass>((jni_env)->NewGlobalRef(uuidClass));
+        jni_env->DeleteLocalRef(uuidClass);
+    }
 
-	if (uuid_class == 0) {
+    if (uuid_class == 0) {
 		error_code = 2;
 		goto on_error;
 	}
@@ -231,8 +236,9 @@ static int uuid_get_uuid(char* msg_buf, int buf_len)
 	strcpy(msg_buf, native_string);
 
 	(jni_env)->ReleaseStringUTFChars( uuid_string, native_string);
+    (jni_env)->DeleteLocalRef(uuid_string);
 
-	if(javaUuid != 0){
+    if(javaUuid != 0){
 		jni_env->DeleteLocalRef(javaUuid);
 	}
 
