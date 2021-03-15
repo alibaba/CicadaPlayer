@@ -230,7 +230,7 @@
 {
     CicadaPlayer *player = arr[2];
     FlutterResult result = arr[1];
-    result(@(player.duration));
+    result(@(MAX(0, player.duration)));
 }
 
 - (void)getRotateMode:(NSArray *)arr
