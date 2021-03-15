@@ -1136,15 +1136,14 @@ void SuperMediaPlayer::ProcessVideoLoop()
         return;
     }
     doReadPacket();
-
-    if (!DoCheckBufferPass()) {
-        return;
-    }
-
     doDeCode();
 
     // audio render will create after get a frame from decoder
     setUpAVPath();
+
+    if (!DoCheckBufferPass()) {
+        return;
+    }
 
     if (!mBRendingStart && mPlayStatus == PLAYER_PLAYING && !mBufferingFlag) {
         if ((mEof && (!HAVE_AUDIO || mAVDeviceManager->isAudioRenderValid()) &&
@@ -1388,6 +1387,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
         mLoadingProcess = 0;
         mTimeoutStartTime = INT64_MIN;
         mMasterClock.pause();
+        mAVDeviceManager->pauseAudioRender(true);
         return false;
     }
 
@@ -1483,6 +1483,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
 
                     if (mPlayStatus == PLAYER_PLAYING) {
                         mMasterClock.start();
+                        mAVDeviceManager->pauseAudioRender(false);
                     }
                 }
 
