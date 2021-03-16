@@ -8,10 +8,10 @@
 #ifndef AbrAlgoStrategy_h
 #define AbrAlgoStrategy_h
 
-#include <stdio.h>
+#include <cstdio>
+#include <functional>
 #include <map>
 #include <vector>
-#include <functional>
 
 using namespace std;
 
@@ -19,7 +19,7 @@ class AbrRefererData;
 
 class AbrAlgoStrategy {
 public:
-    AbrAlgoStrategy(std::function<void(int)> func);
+    explicit AbrAlgoStrategy(std::function<void(int)> func);
 
     virtual ~AbrAlgoStrategy();
 
@@ -44,7 +44,7 @@ public:
 protected:
     AbrRefererData *mRefererData = nullptr;
     map<int, int> mStreamIndexBitrateMap;
-    vector<int> mBitrates;
+    vector<int> mBitRates;
     int mCurrentBitrate = 0;
     int64_t mDurationMS = -1;
     std::function<void(int)> mFunc;

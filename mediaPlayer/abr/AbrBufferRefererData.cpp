@@ -15,14 +15,12 @@ AbrBufferRefererData::AbrBufferRefererData(void *handle)
     mHandle = handle;
 }
 
-AbrBufferRefererData::~AbrBufferRefererData()
-{
-}
+AbrBufferRefererData::~AbrBufferRefererData() = default;
 
 
 int64_t AbrBufferRefererData::GetMaxBufferDurationInConfig()
 {
-    playerHandle *handle = (playerHandle *)mHandle;
+    auto *handle = (playerHandle *) mHandle;
 
     if (handle) {
         char maxBufferDur[48] = {0};
@@ -35,10 +33,10 @@ int64_t AbrBufferRefererData::GetMaxBufferDurationInConfig()
 
 int AbrBufferRefererData::GetRemainSegmentCount()
 {
-    playerHandle *handle = (playerHandle *)mHandle;
+    auto *handle = (playerHandle *) mHandle;
 
     if (handle) {
-        return (int)CicadaGetPropertyLong(handle, PROPERTY_KEY_REMAIN_LIVE_SEG);
+        return (int) CicadaGetPropertyLong(handle, PROPERTY_KEY_REMAIN_LIVE_SEG);
     }
 
     return -1;
@@ -46,10 +44,10 @@ int AbrBufferRefererData::GetRemainSegmentCount()
 
 bool AbrBufferRefererData::GetIsConnected()
 {
-    playerHandle *handle = (playerHandle *)mHandle;
+    auto *handle = (playerHandle *) mHandle;
 
     if (handle) {
-        return (bool)CicadaGetPropertyLong(handle, PROPERTY_KEY_NETWORK_IS_CONNECTED);
+        return (bool) CicadaGetPropertyLong(handle, PROPERTY_KEY_NETWORK_IS_CONNECTED);
     }
 
     return -1;
@@ -57,7 +55,7 @@ bool AbrBufferRefererData::GetIsConnected()
 
 int64_t AbrBufferRefererData::GetCurrentPacketBufferLength()
 {
-    playerHandle *handle = (playerHandle *)mHandle;
+    auto *handle = (playerHandle *) mHandle;
 
     if (handle) {
         return CicadaGetPropertyLong(handle, PROPERTY_KEY_VIDEO_BUFFER_LEN);

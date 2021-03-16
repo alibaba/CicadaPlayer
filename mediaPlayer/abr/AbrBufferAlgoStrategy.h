@@ -13,26 +13,25 @@
 
 using namespace std;
 
-class AbrBufferAlgoStrategy:public AbrAlgoStrategy
-{
+class AbrBufferAlgoStrategy : public AbrAlgoStrategy {
 public:
-    AbrBufferAlgoStrategy(std::function<void(int)> func);
-    ~AbrBufferAlgoStrategy();
-    
+    explicit AbrBufferAlgoStrategy(std::function<void(int)> func);
+    ~AbrBufferAlgoStrategy() override;
+
 public:
-    void Reset() override;
-    
+    void Reset() final;
+
     void ProcessAbrAlgo() override;
 
     void SetCurrentBitrate(int bitrate) override;
 
-protected:
+private:
     void ComputeBufferTrend(int64_t curTime);
     void SwitchBitrate(bool up, int64_t speed, int64_t maxSpeed);
-    
-protected:
+
+private:
     bool mSwitching = false;
-    int mUpSpan = 10*1000;
+    int mUpSpan = 10 * 1000;
     int64_t mLastSwitchTimeMS = INT64_MIN;
     int64_t mLastBufferDuration = INT64_MIN;
     int64_t mLastDownloadBytes = 0;

@@ -10,19 +10,20 @@
 #include <utils/frame_work_log.h>
 #include <utils/timer.h>
 
-#define LOWER_SWITCH_VALUE_MS (15*1000)
-#define UPPER_SWITCH_VALUE_MS (30*1000)
+#include <utility>
+
+#define ENABLE_DOWNLOAD_BYTES 0
+
+#define LOWER_SWITCH_VALUE_MS (15 * 1000)
+#define UPPER_SWITCH_VALUE_MS (30 * 1000)
 #define MAX_BUFFER_STATICS_SIZE 10
 
-AbrBufferAlgoStrategy::AbrBufferAlgoStrategy(std::function<void(int)> func)
-    : AbrAlgoStrategy(func)
+AbrBufferAlgoStrategy::AbrBufferAlgoStrategy(std::function<void(int)> func) : AbrAlgoStrategy(std::move(func))
 {
     Reset();
 }
 
-AbrBufferAlgoStrategy::~AbrBufferAlgoStrategy()
-{
-}
+AbrBufferAlgoStrategy::~AbrBufferAlgoStrategy() = default;
 
 void AbrBufferAlgoStrategy::SetCurrentBitrate(int bitrate)
 {
@@ -45,7 +46,7 @@ void AbrBufferAlgoStrategy::Reset()
 
 void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
 {
-    if (mSwitching || (1 > mBitrates.size())) {
+    if (mSwitching || (mBitRates.empty())) {
         return;
     }
 
@@ -53,7 +54,7 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
         return;
     }
 
-    if (INT64_MIN == mLastBufferDuration) {
+    if (mLastBufferDuration == INT64_MIN) {
         mLastBufferDuration = mRefererData->GetCurrentPacketBufferLength() / 1000;
         return;
     }
@@ -62,16 +63,10 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
     int64_t bufferDuration = mRefererData->GetCurrentPacketBufferLength() / 1000;
     bool bufferFull = (bufferDuration >= (maxBufferDuration - 1000));
 
-    if (0 == mDurationMS) {
-        bool connect = mRefererData->GetIsConnected();
-
-//        AF_LOGI("BA connect %d full:%d", connect, bufferFull);
-        if (connect) {
-            int64_t remainSeg = mRefererData->GetRemainSegmentCount();
-
-            if (0 == remainSeg) {
-                bufferFull = true;
-            }
+    if (mDurationMS == 0) {
+        //        AF_LOGI("BA connect %d full:%d", connect, bufferFull);
+        if (mRefererData->GetIsConnected()) {
+            bufferFull = mRefererData->GetRemainSegmentCount() == 0;
         }
     }
 
@@ -95,8 +90,8 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
 
     int64_t maxSpeed = 0;
     int64_t averageSpeed = 0;
-
-    if (mDownloadSpeed.size() > 0) {
+#if ENABLE_DOWNLOAD_BYTES
+    if (!mDownloadSpeed.empty()) {
         std::list<int64_t> downloadSpeed = mDownloadSpeed;
         downloadSpeed.sort(std::greater<int64_t>());
         int count = 0;
@@ -116,17 +111,15 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
 
         maxSpeed = downloadSpeed.front();
     }
-
+#endif
     AF_LOGD("BA bufferUp:%d,bufferDuration:%lld,isFull:%d Max:%lld average:%lld", bufferUp, bufferDuration, bufferFull, maxSpeed,
             averageSpeed);
 
-    if (((bufferDuration < LOWER_SWITCH_VALUE_MS) && (bufferUp <= -(MAX_BUFFER_STATICS_SIZE - 2)))
-            || bufferDuration < 100) {
+    if (((bufferDuration < LOWER_SWITCH_VALUE_MS) && (bufferUp <= -(MAX_BUFFER_STATICS_SIZE - 2))) || bufferDuration < 100) {
         SwitchBitrate(false, averageSpeed, maxSpeed);
-    } else if ((bufferDuration >= UPPER_SWITCH_VALUE_MS || bufferFull)
-               && (bufferUp >= MAX_BUFFER_STATICS_SIZE - 2)) {
+    } else if ((bufferDuration >= UPPER_SWITCH_VALUE_MS || bufferFull) && (bufferUp >= MAX_BUFFER_STATICS_SIZE - 2)) {
         // if last BA down
-        if (mIsUpHistory.size() > 0 && !mIsUpHistory.back()) {
+        if (!mIsUpHistory.empty() && !mIsUpHistory.back()) {
             // wait more time
             int64_t time = af_getsteady_ms();
 
@@ -147,25 +140,22 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
 void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpeed)
 {
     int currentIndex = -1;
-    int count = (int) mBitrates.size();
+    int count = (int) mBitRates.size();
 
     for (int i = 0; i < count; i++) {
-        if (mBitrates[i] == mCurrentBitrate) {
+        if (mBitRates[i] == mCurrentBitrate) {
             currentIndex = i;
             break;
         }
     }
+    assert(currentIndex >= 0 && currentIndex < count);
 
     int bitrate = -1;
 
     if (up) {
-        if (currentIndex >= (count - 1)) {
-            return;
-        }
+        bitrate = mBitRates[currentIndex + 1];
 
-        bitrate = mBitrates[currentIndex + 1];
-
-        if (mIsUpHistory.size() > 0 && speed > 0) {
+        if (!mIsUpHistory.empty() && speed > 0) {
             // last BA down
             if (!mIsUpHistory.back() && maxSpeed < bitrate) {
                 AF_LOGI("last BA down, maxSpeed:%lld, nextBitrate:%d", maxSpeed, bitrate);
@@ -174,27 +164,28 @@ void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpe
         }
 
         for (int i = currentIndex + 2; i < count; ++i) {
-            if (speed >= mBitrates[i]) {
-                bitrate = mBitrates[i];
+            if (speed >= mBitRates[i]) {
+                bitrate = mBitRates[i];
             }
         }
     } else {
-        if (currentIndex <= 0) {
+        if (currentIndex == 0) {
+            // lowest already
             return;
         }
 
-        if (0 == maxSpeed) {
-            bitrate = mBitrates[currentIndex - 1];
+        if (maxSpeed == 0) {
+            bitrate = mBitRates[currentIndex - 1];
         } else {
             for (int i = currentIndex - 1; i >= 0; --i) {
-                if (maxSpeed >= mBitrates[i]) {
-                    bitrate = mBitrates[i];
+                if (maxSpeed >= mBitRates[i]) {
+                    bitrate = mBitRates[i];
                     break;
                 }
             }
 
             if (-1 == bitrate) {
-                bitrate = mBitrates[0];
+                bitrate = mBitRates[0];
             }
         }
     }
@@ -202,7 +193,7 @@ void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpe
     if (bitrate != -1 && mCurrentBitrate != bitrate) {
         AF_LOGI("BA switch to bitrate:%d", bitrate);
         mCurrentBitrate = bitrate;
-        map<int, int>::iterator iter = mStreamIndexBitrateMap.find(mCurrentBitrate);
+        auto iter = mStreamIndexBitrateMap.find(mCurrentBitrate);
 
         if (iter != mStreamIndexBitrateMap.end()) {
             mSwitching = true;
@@ -232,8 +223,7 @@ void AbrBufferAlgoStrategy::ProcessAbrAlgo()
     }
 
     int64_t curTime = af_getsteady_ms();
-#ifndef WIN32
-
+#if ENABLE_DOWNLOAD_BYTES
     if (mLastDownloadBytes == 0) {
         mLastDownloadBytes = mRefererData->GetDownloadedBytes();
         return;
@@ -247,7 +237,6 @@ void AbrBufferAlgoStrategy::ProcessAbrAlgo()
     if (mDownloadSpeed.size() > 30) {
         mDownloadSpeed.pop_front();
     }
-
 #endif
     ComputeBufferTrend(curTime);
 }

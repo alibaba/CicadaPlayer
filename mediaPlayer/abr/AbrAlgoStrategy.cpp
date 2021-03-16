@@ -5,26 +5,25 @@
 //  Created by shiping.csp on 2018/11/1.
 //
 
-#include <algorithm>
 #include "AbrAlgoStrategy.h"
 #include "AbrRefererData.h"
+#include <algorithm>
+#include <utility>
 
 AbrAlgoStrategy::AbrAlgoStrategy(std::function<void(int)> func)
 {
-    mFunc = func;
+    mFunc = std::move(func);
     mCurrentBitrate = -1;
 }
 
 AbrAlgoStrategy::~AbrAlgoStrategy()
 {
-    if (mRefererData) {
-        delete mRefererData;
-    }
+    delete mRefererData;
 }
 
 void AbrAlgoStrategy::Clear()
 {
-    mBitrates.clear();
+    mBitRates.clear();
     mStreamIndexBitrateMap.clear();
     mCurrentBitrate = -1;
 }
@@ -32,8 +31,8 @@ void AbrAlgoStrategy::Clear()
 void AbrAlgoStrategy::AddStreamInfo(int streamIndex, int bitrate)
 {
     mStreamIndexBitrateMap.insert(pair<int, int>(bitrate, streamIndex));
-    mBitrates.push_back(bitrate);
-    sort(mBitrates.begin(), mBitrates.end(), std::less<int>());
+    mBitRates.push_back(bitrate);
+    sort(mBitRates.begin(), mBitRates.end(), std::less<int>());
 }
 
 void AbrAlgoStrategy::SetCurrentBitrate(int bitrate)

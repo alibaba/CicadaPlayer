@@ -8,28 +8,27 @@
 #ifndef AbrBufferRefererData_h
 #define AbrBufferRefererData_h
 
-#include <stdio.h>
 #include "AbrRefererData.h"
+#include <cstdio>
 
-class AbrBufferRefererData : public AbrRefererData
-{
+class AbrBufferRefererData : public AbrRefererData {
 public:
-    AbrBufferRefererData(void* playerPtr);
-    virtual ~AbrBufferRefererData();
-    
+    explicit AbrBufferRefererData(void *playerPtr);
+    ~AbrBufferRefererData() override;
+
 public:
     //measure current packet length
-    virtual int64_t GetCurrentPacketBufferLength();
-    
+    int64_t GetCurrentPacketBufferLength() override;
+
     //get max buffer duration
-    virtual int64_t GetMaxBufferDurationInConfig();
+    int64_t GetMaxBufferDurationInConfig() override;
 
-    virtual int GetRemainSegmentCount();
+    int GetRemainSegmentCount() override;
 
-    virtual bool GetIsConnected();
+    bool GetIsConnected() override;
 
 private:
-    void* mHandle = nullptr;
+    void *mHandle = nullptr;
 };
 
 #endif /* AbrBufferRefererData_h */
