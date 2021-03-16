@@ -77,7 +77,7 @@ enum AFCodecID {
 
     AF_CODEC_ID_WEBVTT,
     //    AF_CODEC_ID_TEXT,
-    //    AF_CODEC_ID_SSA,
+    AF_CODEC_ID_ASS,
     //    AF_CODEC_ID_SRT,
 };
 

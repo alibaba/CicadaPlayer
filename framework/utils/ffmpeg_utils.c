@@ -309,9 +309,10 @@ enum AFCodecID AVCodec2CicadaCodec(enum AVCodecID codec)
         /* subtitle */
         case AV_CODEC_ID_WEBVTT:
             return AF_CODEC_ID_WEBVTT;
-            //
-            //        case AV_CODEC_ID_SSA:
-            //            return AF_CODEC_ID_SSA;
+
+        case AV_CODEC_ID_SSA:
+        case AV_CODEC_ID_ASS:
+            return AF_CODEC_ID_ASS;
             //
             //        case AV_CODEC_ID_SRT:
             //            return AF_CODEC_ID_SRT;
