@@ -8,10 +8,10 @@
 #ifndef AbrManager_h
 #define AbrManager_h
 
-#include <stdio.h>
-#include <mutex>
-#include <condition_variable>
 #include <atomic>
+#include <condition_variable>
+#include <cstdio>
+#include <mutex>
 
 class afThread;
 

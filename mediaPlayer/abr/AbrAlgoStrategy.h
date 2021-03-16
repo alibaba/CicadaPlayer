@@ -41,6 +41,11 @@ public:
 
     virtual void ProcessAbrAlgo() = 0;
 
+    virtual uint32_t GetBitRateCount()
+    {
+        return mBitRates.size();
+    }
+
 protected:
     AbrRefererData *mRefererData = nullptr;
     map<int, int> mStreamIndexBitrateMap;

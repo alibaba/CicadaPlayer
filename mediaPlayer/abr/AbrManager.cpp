@@ -8,8 +8,8 @@
 #define LOG_TAG "AbrManager"
 
 #include "AbrManager.h"
-#include "utils/afThread.h"
 #include "AbrAlgoStrategy.h"
+#include "utils/afThread.h"
 #include "utils/timer.h"
 
 AbrManager::AbrManager()
@@ -39,7 +39,9 @@ void AbrManager::Start()
         std::unique_lock<std::mutex> uMutex(mMutex);
         mRunning = true;
     }
-    mPMainThread->start();
+    if (mAlgoStrategy && mAlgoStrategy->GetBitRateCount() > 1) {
+        mPMainThread->start();
+    }
 }
 
 void AbrManager::Pause()
@@ -77,7 +79,7 @@ int AbrManager::AbrAdjustFun()
     std::unique_lock<std::mutex> uMutex(mMutex);
     mCondition.wait_for(uMutex, std::chrono::milliseconds(mMsgProcessTime), [this]() { return !mRunning; });
 
-    if (mAlgoStrategy && mEnableAbr) {
+    if (mAlgoStrategy && mEnableAbr && mRunning) {
         mAlgoStrategy->ProcessAbrAlgo();
     }
 

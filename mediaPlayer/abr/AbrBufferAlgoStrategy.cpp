@@ -218,7 +218,7 @@ void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpe
 
 void AbrBufferAlgoStrategy::ProcessAbrAlgo()
 {
-    if (mRefererData == nullptr || mCurrentBitrate == -1) {
+    if (mRefererData == nullptr || mCurrentBitrate == -1 || mBitRates.size() < 2) {
         return;
     }
 
