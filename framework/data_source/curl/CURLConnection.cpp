@@ -378,6 +378,7 @@ int Cicada::CURLConnection::esayHandle_set_common_opt()
     curl_easy_setopt(mHttp_handle, CURLOPT_DEBUGDATA, this);
     curl_easy_setopt(mHttp_handle, CURLOPT_HEADERFUNCTION, write_response);
     curl_easy_setopt(mHttp_handle, CURLOPT_HEADERDATA, this);
+    curl_easy_setopt(mHttp_handle, CURLOPT_BUFFERSIZE, CURL_MAX_READ_SIZE);
     return 0;
 }
 
