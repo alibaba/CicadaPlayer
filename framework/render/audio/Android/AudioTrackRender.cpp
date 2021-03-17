@@ -276,7 +276,7 @@ void AudioTrackRender::device_mute(bool bMute)
         if (audio_track && method_setVolume) {
             JniEnv jniEnv;
             JNIEnv *handle = jniEnv.getEnv();
-            handle->CallIntMethod(audio_track, method_setVolume, 0, 0);
+            handle->CallIntMethod(audio_track, method_setVolume, 0.0f, 0.0f);
         }
     } else {
         device_setVolume(mVolume);
