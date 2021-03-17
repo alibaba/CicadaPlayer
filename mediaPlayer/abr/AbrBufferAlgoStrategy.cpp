@@ -9,7 +9,7 @@
 #include "AbrBufferRefererData.h"
 #include <utils/frame_work_log.h>
 #include <utils/timer.h>
-
+#include <cassert>
 #include <utility>
 
 #define ENABLE_DOWNLOAD_BYTES 0
