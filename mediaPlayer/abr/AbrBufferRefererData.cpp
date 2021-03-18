@@ -63,3 +63,12 @@ int64_t AbrBufferRefererData::GetCurrentPacketBufferLength()
 
     return 0;
 }
+bool AbrBufferRefererData::GetReBuffering()
+{
+    auto *handle = (playerHandle *) mHandle;
+
+    if (handle) {
+        return CicadaGetPropertyLong(handle, PROPERTY_KEY_RE_BUFFERING);
+    }
+    return false;
+}

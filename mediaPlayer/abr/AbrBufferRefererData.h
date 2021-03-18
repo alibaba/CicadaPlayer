@@ -27,6 +27,8 @@ public:
 
     bool GetIsConnected() override;
 
+    bool GetReBuffering() override;
+
 private:
     void *mHandle = nullptr;
 };

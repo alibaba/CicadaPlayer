@@ -32,6 +32,8 @@ public:
 
     //measure network strength
     virtual int64_t GetDownloadedBytes();
+
+    virtual bool GetReBuffering() = 0;
 };
 
 #endif /* AbrRefererData_h */

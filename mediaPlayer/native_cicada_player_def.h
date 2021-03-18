@@ -157,6 +157,7 @@ typedef enum PropertyKey {
     PROPERTY_KEY_PLAY_CONFIG = 8,
     PROPERTY_KEY_DECODE_INFO = 9,
     PROPERTY_KEY_HLS_KEY_URL = 10,
+    PROPERTY_KEY_RE_BUFFERING,
 } PropertyKey;
 
 typedef enum VideoTag {

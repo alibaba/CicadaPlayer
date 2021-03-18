@@ -59,6 +59,8 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
         return;
     }
 
+    bool buffering = mRefererData->GetReBuffering();
+
     int64_t maxBufferDuration = mRefererData->GetMaxBufferDurationInConfig() / 1000;
     int64_t bufferDuration = mRefererData->GetCurrentPacketBufferLength() / 1000;
     bool bufferFull = (bufferDuration >= (maxBufferDuration - 1000));
@@ -70,10 +72,15 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
         }
     }
 
-    if ((bufferDuration > mLastBufferDuration) || bufferFull) {
-        mBufferStatics.push_back(1);
-    } else {
+    if (buffering) {
+        assert(!bufferFull);
         mBufferStatics.push_back(-1);
+    } else {
+        if ((bufferDuration > mLastBufferDuration) || bufferFull) {
+            mBufferStatics.push_back(1);
+        } else {
+            mBufferStatics.push_back(-1);
+        }
     }
 
     mLastBufferDuration = bufferDuration;

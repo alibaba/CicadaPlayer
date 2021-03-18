@@ -782,6 +782,9 @@ int64_t SuperMediaPlayer::GetPropertyInt(PropertyKey key)
         case PROPERTY_KEY_NETWORK_IS_CONNECTED:
             return mSourceListener->isConnected();
 
+        case PROPERTY_KEY_RE_BUFFERING:
+            return mBufferingFlag;
+
         default:
             break;
     }
