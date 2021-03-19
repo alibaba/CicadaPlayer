@@ -118,6 +118,10 @@ static bool CicadaOnRenderFrame(void *userData, IAFFrame *frame)
     //    AF_LOGD("render a video frame %lld\n", frame->getInfo().pts);
     return false;
 }
+static void onSeekEnd(int64_t position, void *userData)
+{
+    //  AF_LOGD("seek end\n");
+}
 
 int main(int argc, char *argv[])
 {
@@ -143,6 +147,7 @@ int main(int argc, char *argv[])
     pListener.ErrorCallback = onError;
     pListener.Prepared = onPrepared;
     pListener.CurrentDownLoadSpeed = currentDownLoadSpeed;
+    pListener.SeekEnd = onSeekEnd;
     cicadaEventListener eListener(player.get());
 #ifdef ENABLE_SDL
     SDLEventReceiver receiver(eListener);
