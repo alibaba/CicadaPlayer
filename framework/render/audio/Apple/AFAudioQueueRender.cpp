@@ -60,7 +60,7 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
 }
 UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer, bool CopyFull)
 {
-    if (!mPlaying) {
+    if (!mRunning) {
         return 0;
     }
     UInt32 copySize = 0;
@@ -369,7 +369,7 @@ int AFAudioQueueRender::audioQueueLoop()
         if (mBufferAllocatedCount < mBufferCount && mInPut.size() >= mBufferCount) {
             assert(mAudioDataByteSize > 0);
             assert(mBufferCount <= MAX_QUEUE_SIZE);
-            while (mBufferAllocatedCount < mBufferCount) {
+            while (mBufferAllocatedCount < mBufferCount && mRunning) {
                 AudioQueueBuffer *buffer = nullptr;
                 OSStatus err = AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &buffer);
                 if (err != noErr) {
@@ -378,7 +378,12 @@ int AFAudioQueueRender::audioQueueLoop()
                 }
                 _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
                 buffer->mAudioDataByteSize = copyAudioData(buffer, false);
-                AudioQueueEnqueueBuffer(_audioQueueRef, buffer, 0, nullptr);
+                assert(buffer->mAudioDataByteSize > 0);
+                err = AudioQueueEnqueueBuffer(_audioQueueRef, buffer, 0, nullptr);
+                if (err != noErr) {
+                    AF_LOGE("AudioQueueEnqueueBuffer error %d \n", err);
+                    assert(0);
+                }
                 mBufferAllocatedCount++;
             }
         }
