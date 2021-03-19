@@ -23,10 +23,10 @@ AFActiveVideoRender::~AFActiveVideoRender()
     if (mRendingFrame) {
         mRendingFrame->setDiscard(true);
     }
+    mVSync->pause();
     while (mInputQueue.size() > 0) {
         dropFrame();
     }
-    mVSync->pause();
     mVSync = nullptr;
 }
 
