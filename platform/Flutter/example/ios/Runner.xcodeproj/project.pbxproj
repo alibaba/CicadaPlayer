@@ -17,6 +17,114 @@
 		99EA63BEFF74B6B7ADAEBDEF /* libPods-Runner.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ADF6B0FDBA1DDA4F867CEC70 /* libPods-Runner.a */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		F3939B912604861300C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 5FB020D6B2BC4C788C4758C4;
+			remoteInfo = CicadaPlayerSDK;
+		};
+		F3939B932604861300C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6C643AA73A0B43098E332C1E;
+			remoteInfo = alivcffmpeg;
+		};
+		F3939B952604861300C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = DAED30877A2544E1A8ECB352;
+			remoteInfo = cacheModule;
+		};
+		F3939B972604861300C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6AE258CA38FB43619E724479;
+			remoteInfo = communication;
+		};
+		F3939B992604861300C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 245D474C5DB743A3B3D05B77;
+			remoteInfo = data_source;
+		};
+		F3939B9B2604861300C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C89BF58610B44A9B8F7FC182;
+			remoteInfo = demuxer;
+		};
+		F3939B9D2604861300C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = A30E8F9031F745E0BC57C818;
+			remoteInfo = framework_drm;
+		};
+		F3939B9F2604861300C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1C57D7BFC645448D81246335;
+			remoteInfo = framework_filter;
+		};
+		F3939BA12604861300C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 2A226DE277514BCBAAC192FD;
+			remoteInfo = framework_utils;
+		};
+		F3939BA32604861300C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 39DC2EDD81A841FA8F097F10;
+			remoteInfo = media_player;
+		};
+		F3939BA52604861300C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = B0D2BCE43DA54EF6A8AB6BD2;
+			remoteInfo = muxer;
+		};
+		F3939BA72604861300C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 741EE5AECB904375AD355216;
+			remoteInfo = plugin;
+		};
+		F3939BA92604861300C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = B1AC8245984740E7B8881BCA;
+			remoteInfo = render;
+		};
+		F3939BAB2604861300C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E6735C86320E43E298171D60;
+			remoteInfo = videodec;
+		};
+		F3939BCA260486A800C20130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 30D11CF4F068429B9A29491A;
+			remoteInfo = install;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		9705A1C41CF9048500538489 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -49,6 +157,7 @@
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9CD611CF24CE643A5E0C0B24 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		ADF6B0FDBA1DDA4F867CEC70 /* libPods-Runner.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Runner.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = CicadaPlayerSDK.xcodeproj; path = ../../../Apple/demo/iOS/SDK/CicadaPlayerSDK.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,6 +194,7 @@
 		97C146E51CF9000F007C117D = {
 			isa = PBXGroup;
 			children = (
+				F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */,
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
 				97C146EF1CF9000F007C117D /* Products */,
@@ -135,6 +245,27 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		F3939B7E2604861300C20130 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F3939B922604861300C20130 /* CicadaPlayerSDK.framework/CicadaPlayerSDK */,
+				F3939B942604861300C20130 /* alivcffmpeg.framework/alivcffmpeg */,
+				F3939B962604861300C20130 /* libcacheModule.a */,
+				F3939B982604861300C20130 /* libcommunication.a */,
+				F3939B9A2604861300C20130 /* libdata_source.a */,
+				F3939B9C2604861300C20130 /* libdemuxer.a */,
+				F3939B9E2604861300C20130 /* libframework_drm.a */,
+				F3939BA02604861300C20130 /* libframework_filter.a */,
+				F3939BA22604861300C20130 /* libframework_utils.a */,
+				F3939BA42604861300C20130 /* libmedia_player.a */,
+				F3939BA62604861300C20130 /* libmuxer.a */,
+				F3939BA82604861300C20130 /* libplugin.a */,
+				F3939BAA2604861300C20130 /* librender.a */,
+				F3939BAC2604861300C20130 /* libvideodec.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -154,6 +285,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				F3939BCB260486A800C20130 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			productName = Runner;
@@ -185,12 +317,121 @@
 			mainGroup = 97C146E51CF9000F007C117D;
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = F3939B7E2604861300C20130 /* Products */;
+					ProjectRef = F3939B7D2604861300C20130 /* CicadaPlayerSDK.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		F3939B922604861300C20130 /* CicadaPlayerSDK.framework/CicadaPlayerSDK */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			name = CicadaPlayerSDK.framework/CicadaPlayerSDK;
+			path = CicadaPlayerSDK.framework;
+			remoteRef = F3939B912604861300C20130 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F3939B942604861300C20130 /* alivcffmpeg.framework/alivcffmpeg */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			name = alivcffmpeg.framework/alivcffmpeg;
+			path = alivcffmpeg.framework;
+			remoteRef = F3939B932604861300C20130 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F3939B962604861300C20130 /* libcacheModule.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcacheModule.a;
+			remoteRef = F3939B952604861300C20130 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F3939B982604861300C20130 /* libcommunication.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcommunication.a;
+			remoteRef = F3939B972604861300C20130 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F3939B9A2604861300C20130 /* libdata_source.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libdata_source.a;
+			remoteRef = F3939B992604861300C20130 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F3939B9C2604861300C20130 /* libdemuxer.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libdemuxer.a;
+			remoteRef = F3939B9B2604861300C20130 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F3939B9E2604861300C20130 /* libframework_drm.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libframework_drm.a;
+			remoteRef = F3939B9D2604861300C20130 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F3939BA02604861300C20130 /* libframework_filter.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libframework_filter.a;
+			remoteRef = F3939B9F2604861300C20130 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F3939BA22604861300C20130 /* libframework_utils.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libframework_utils.a;
+			remoteRef = F3939BA12604861300C20130 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F3939BA42604861300C20130 /* libmedia_player.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libmedia_player.a;
+			remoteRef = F3939BA32604861300C20130 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F3939BA62604861300C20130 /* libmuxer.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libmuxer.a;
+			remoteRef = F3939BA52604861300C20130 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F3939BA82604861300C20130 /* libplugin.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libplugin.a;
+			remoteRef = F3939BA72604861300C20130 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F3939BAA2604861300C20130 /* librender.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = librender.a;
+			remoteRef = F3939BA92604861300C20130 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F3939BAC2604861300C20130 /* libvideodec.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libvideodec.a;
+			remoteRef = F3939BAB2604861300C20130 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		97C146EC1CF9000F007C117D /* Resources */ = {
@@ -219,7 +460,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
+			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin\n";
 		};
 		3CA7E1F5530ED793A8831A3B /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -288,6 +529,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F3939BCB260486A800C20130 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = install;
+			targetProxy = F3939BCA260486A800C20130 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		97C146FA1CF9000F007C117D /* Main.storyboard */ = {
