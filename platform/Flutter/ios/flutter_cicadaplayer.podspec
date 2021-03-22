@@ -15,7 +15,7 @@ A new flutter plugin project.
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
-  s.vendored_frameworks = 'IOS_SDK/SDK/Debug/*.framework'
+  s.vendored_frameworks = 'IOS_SDK/SDK/ARM_SIMULATOR/*.framework'
   s.dependency 'Flutter'
 #  s.dependency 'AliPlayerSDK_iOS'
   s.dependency 'MJExtension'
