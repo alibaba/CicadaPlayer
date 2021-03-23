@@ -101,6 +101,10 @@ namespace Cicada {
 
     int SegmentList::merge(SegmentList *pSList)
     {
+        if (pSList == nullptr) {
+            return -1;
+        }
+
         int seqNum = static_cast<int>(mLastSeqNum);
         auto &sList = pSList->getSegments();
         int size = sList.size();
