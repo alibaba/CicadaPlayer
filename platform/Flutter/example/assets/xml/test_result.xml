@@ -4,19 +4,19 @@
 -->
 <test_result start="" duation="xx" count="200" fail="100">
     <case name="test_case_name">
-        <resources>
+        <resource>
             <name>resource_id</name>
             <start>time</start>
             <duration>100</duration>
             <result>success</result>
             <description>"xxx"</description>
-        </resources>
-        <resurces>
+        </resource>
+        <resurce>
             <name>resource_id</name>
             <start>time</start>
             <duration>100</duration>
             <result>fail</result>
             <description>"xxx"</description>
-        </resurces>
+        </resurce>
     </case>
 </test_result>

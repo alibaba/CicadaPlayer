@@ -19,6 +19,7 @@ dependencies:
   pull_to_refresh: ^1.6.3
   fluttertoast: ^7.1.4
   connectivity: ^2.0.2
+  xml_parser: ^0.1.2
   qrcode_reader:
     git:
       url: "https://github.com/bcko/flutter_qrcode_reader.git"
@@ -39,12 +40,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_driver:
-    sdk: flutter
-  test: any
-    
-  xml_parser: ^0.1.2
-
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -61,6 +56,11 @@ flutter:
     - assets/encryptedApp.dat
     - assets/encryptedApp_ios.dat
     - images/default_cover.png
+
+    - assets/xml/test_case.xml
+    - assets/xml/test_resources.xml
+    - assets/xml/test_result.xml
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

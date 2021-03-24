@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cicadaplayer_example/mytest/t_player.dart';
 import 'package:flutter_cicadaplayer_example/page/setting_page.dart';
 import 'package:flutter_cicadaplayer_example/page/url_page.dart';
 import 'package:flutter_cicadaplayer_example/util/common_utils.dart';
@@ -16,7 +17,8 @@ class HomePage extends StatefulWidget {
 class _MyAppState extends State<HomePage> {
   List titleArr = [
     'URL播放',
-    '本地文件'
+    '本地文件',
+    '测试'
   ];
 
   @override
@@ -56,6 +58,9 @@ class _MyAppState extends State<HomePage> {
                       if (Platform.isAndroid) {
                         CommomUtils.pushPage(context, LocalPage());
                       }
+                      break;
+                    case 2:
+                        CommomUtils.pushPage(context, TestPlayerPage());
                       break;
                     default:
                   }

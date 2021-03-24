@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <test_resources>
     <resource id='http_mp4_h264_aac'>
-        <id>http_mp4_h264_aac</id>
         <url>http://player.alicdn.com/video/aliyunmedia.mp4</url>
         <duration>00:04:22.08</duration> <!-- 时长 格式?-->
         <container>mp4</container>

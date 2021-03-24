@@ -12,8 +12,8 @@
     <casegroup casegroup_name="format">
         <case case_name="format_http_mp4_h264_aac">
             <resources>
-                <id>http_mp4_h264_aac</id>
                 <id>https_mp4_h264_aac</id>
+                <id>http_mp4_h264_aac</id>
             </resources>
         </case>
     </casegroup>
