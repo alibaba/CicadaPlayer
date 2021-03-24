@@ -46,8 +46,6 @@ namespace Cicada{
             return 0;
         };
 
-        bool supportReuse() override ;
-
     private:
         static bool checkSupport(const Stream_meta &meta, uint64_t flags, int maxSize);
 
@@ -122,7 +120,7 @@ namespace Cicada{
         int naluLengthSize = 0;
         bool isADTS = false;
 
-        std::unique_ptr<WideVineDrmHandler> mDrmHandler = nullptr;
+        WideVineDrmHandler* mDrmHandler = nullptr;
 
     };
 }
