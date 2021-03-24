@@ -5,6 +5,7 @@
 
 #include "ActiveDecoder.h"
 #include "utils/timer.h"
+#include <utils/errors/framework_error.h>
 #include <utils/frame_work_log.h>
 
 //TODO: can set
@@ -253,6 +254,14 @@ int ActiveDecoder::thread_send_packet(unique_ptr<IAFPacket> &packet)
     // TODO: don't free the packet when queue is full;
     if (!mErrorQueue.empty()) {
         status |= STATUS_HAVE_ERROR;
+
+        for (decoder_error_info &info : mErrorQueue) {
+            int errorCode = info.error;
+            if (get_eclass(errorCode) == error_class_drm) {
+                status |= STATUS_DRM_ERROR;
+                break;
+            }
+        }
     }
 
     return status;

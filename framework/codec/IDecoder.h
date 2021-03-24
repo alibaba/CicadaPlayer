@@ -24,6 +24,7 @@ enum decoder_status {
     vt_session_invalid,
     decoder_background,
     decoder_create_fail,
+    decoder_drm_error,
 };
 
 typedef enum DECODER_FRAME_STATUS {
@@ -41,6 +42,7 @@ typedef enum DECODER_FRAME_STATUS {
 #define STATUS_VT_SESSION_INVALID  1 << vt_session_invalid
 #define STATUS_VT_DECODER_BACKGROUND  1 << decoder_background
 #define STATUS_CREATE_FAIL 1 << decoder_create_fail
+#define STATUS_DRM_ERROR 1 << decoder_drm_error
 
 
 namespace Cicada {

@@ -24,6 +24,7 @@ namespace Cicada {
             std::unique_ptr<IDecoder> decoder{nullptr};
             Stream_meta meta{};
             bool valid{false};
+            bool decoderError{false};
             uint64_t decFlag;
             void *device;
             uint32_t mDstFormat{0};
@@ -40,7 +41,7 @@ namespace Cicada {
                 }
 #endif
                 return (pDevice == device) && (flag == decFlag) && (pMeta->codec == meta.codec) && (dstFormat == mDstFormat) &&
-                       (mDrmInfo == info);
+                       (mDrmInfo == info) && !decoderError;
             }
         };
 

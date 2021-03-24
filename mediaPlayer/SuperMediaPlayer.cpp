@@ -1874,6 +1874,10 @@ int SuperMediaPlayer::DecodeVideoPacket(unique_ptr<IAFPacket> &pVideoPacket)
             }
         }
 
+        if (ret & STATUS_DRM_ERROR) {
+            haveError = true;
+        }
+
         //            if (ret & STATUS_CREATE_FAIL) {
         //                haveError = true;
         //            }
@@ -2420,6 +2424,10 @@ int SuperMediaPlayer::DecodeAudio(unique_ptr<IAFPacket> &pPacket)
             if (mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)->get_error_frame_no() > MAX_DECODE_ERROR_FRAME) {
                 haveError = true;
             }
+        }
+
+        if (ret & STATUS_DRM_ERROR) {
+            haveError = true;
         }
 
         if (ret & STATUS_CREATE_FAIL) {

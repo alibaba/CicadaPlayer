@@ -102,6 +102,7 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
     decoderHandle->valid = true;
     return 0;
 }
+
 SMPAVDeviceManager::DecoderHandle *SMPAVDeviceManager::getDecoderHandle(const SMPAVDeviceManager::deviceType &type)
 {
     DecoderHandle *decoderHandle = nullptr;
@@ -182,8 +183,17 @@ int SMPAVDeviceManager::sendPacket(std::unique_ptr<IAFPacket> &packet, deviceTyp
     if (decoderHandle == nullptr || !decoderHandle->valid) {
         return -EINVAL;
     }
+
+    if (decoderHandle->decoderError) {
+        return -EINVAL;
+    }
+
     assert(decoderHandle->decoder);
-    return decoderHandle->decoder->send_packet(packet, timeOut);
+    int ret = decoderHandle->decoder->send_packet(packet, timeOut);
+
+    decoderHandle->decoderError = (ret & STATUS_DRM_ERROR);
+
+    return ret;
 }
 int SMPAVDeviceManager::setVolume(float volume)
 {
