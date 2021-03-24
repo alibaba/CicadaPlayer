@@ -120,7 +120,7 @@ namespace Cicada{
         int naluLengthSize = 0;
         bool isADTS = false;
 
-        WideVineDrmHandler* mDrmHandler = nullptr;
+        std::unique_ptr<WideVineDrmHandler> mDrmHandler = nullptr;
 
     };
 }

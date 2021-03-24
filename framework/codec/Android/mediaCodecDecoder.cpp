@@ -107,11 +107,10 @@ namespace Cicada {
         setCSD(meta);
 
         if (drmInfo != nullptr) {
-            if (mRequireDrmHandlerCallback != nullptr) {
-                mDrmHandler = dynamic_cast<WideVineDrmHandler *>(mRequireDrmHandlerCallback(
-                        *drmInfo));
-                assert(mDrmHandler != nullptr);
-            }
+            auto *pDrmHandler = dynamic_cast<WideVineDrmHandler *>(DrmHandlerPrototype::create(*drmInfo));
+            assert(pDrmHandler != nullptr);
+
+            mDrmHandler = std::unique_ptr<WideVineDrmHandler>(pDrmHandler);
 
             int ret = initDrmHandler();
             if (ret == -EAGAIN) {
