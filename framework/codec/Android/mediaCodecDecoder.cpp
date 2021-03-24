@@ -555,4 +555,9 @@ namespace Cicada {
         }
         return -EAGAIN;
     }
+
+    bool mediaCodecDecoder::supportReuse() {
+        bool drmHandlerError = mDrmHandler != nullptr && mDrmHandler->isErrorState();
+        return !drmHandlerError;
+    }
 }

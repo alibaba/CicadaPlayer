@@ -46,6 +46,8 @@ namespace Cicada{
             return 0;
         };
 
+        bool supportReuse() override ;
+
     private:
         static bool checkSupport(const Stream_meta &meta, uint64_t flags, int maxSize);
 
