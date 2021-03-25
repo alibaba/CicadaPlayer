@@ -73,7 +73,7 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
     }
 
     if (buffering) {
-        assert(!bufferFull);
+        //        assert(!bufferFull);
         mBufferStatics.push_back(-1);
     } else {
         if ((bufferDuration > mLastBufferDuration) || bufferFull) {
@@ -160,6 +160,9 @@ void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpe
     int bitrate = -1;
 
     if (up) {
+        if (currentIndex >= (count - 1)) {
+            return;
+        }
         bitrate = mBitRates[currentIndex + 1];
 
         if (!mIsUpHistory.empty() && speed > 0) {
