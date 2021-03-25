@@ -1,11 +1,23 @@
 //
 // Created by pingkai on 2021/3/9.
 //
-
+#define LOG_TAG "UTCTime"
 #include "UTCTimer.h"
+#include "frame_work_log.h"
 #include <cinttypes>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <iomanip>
+#include <netdb.h>
+#include <netinet/in.h>
 #include <sstream>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <utility>
+
+#define NTP_TIMESTAMP_DELTA 2208988800ull
 using namespace Cicada;
 using namespace std;
 class UTCTime {
@@ -17,6 +29,34 @@ public:
 private:
     uint64_t t;
 };
+typedef struct ntp_packet_t {
+
+    uint8_t li_vn_mode;// Eight bits. li, vn, and mode.
+    // li.   Two bits.   Leap indicator.
+    // vn.   Three bits. Version number of the protocol.
+    // mode. Three bits. Client will pick mode 3 for client.
+
+    uint8_t stratum;  // Eight bits. Stratum level of the local clock.
+    uint8_t poll;     // Eight bits. Maximum interval between successive messages.
+    uint8_t precision;// Eight bits. Precision of the local clock.
+
+    uint32_t rootDelay;     // 32 bits. Total round trip delay time.
+    uint32_t rootDispersion;// 32 bits. Max error aloud from primary clock source.
+    uint32_t refId;         // 32 bits. Reference clock identifier.
+
+    uint32_t refTm_s;// 32 bits. Reference time-stamp seconds.
+    uint32_t refTm_f;// 32 bits. Reference time-stamp fraction of a second.
+
+    uint32_t origTm_s;// 32 bits. Originate time-stamp seconds.
+    uint32_t origTm_f;// 32 bits. Originate time-stamp fraction of a second.
+
+    uint32_t rxTm_s;// 32 bits. Received time-stamp seconds.
+    uint32_t rxTm_f;// 32 bits. Received time-stamp fraction of a second.
+
+    uint32_t txTm_s;// 32 bits and the most important field the client cares about. Transmit time-stamp seconds.
+    uint32_t txTm_f;// 32 bits. Transmit time-stamp fraction of a second.
+
+} ntp_packet;
 
 UTCTime::UTCTime(const string &str)
 {
@@ -121,4 +161,93 @@ UTCTimer::operator std::string()
 void UTCTimer::start()
 {
     mClock.start();
+}
+NTPClient::NTPClient(string server, int64_t port) : mServer(std::move(server)), mPort(port)
+{
+    if (!mThread) {
+        mThread = unique_ptr<afThread>(NEW_AF_THREAD(getNTPTime));
+        mThread->start();
+    }
+}
+NTPClient::~NTPClient() = default;
+int64_t NTPClient::get() const
+{
+    if (mTime == 0) {
+        return -EAGAIN;
+    } else if (mTime < 0) {
+        return mTime;
+    }
+    return mTime;
+}
+NTPClient::NTPClient()
+{
+    if (!mThread) {
+        mThread = unique_ptr<afThread>(NEW_AF_THREAD(getNTPTime));
+        mThread->start();
+    }
+};
+int NTPClient::getNTPTime()
+{
+    ntp_packet packet = {
+            0,
+    };
+    int sockfd, n;
+    *((char *) &packet + 0) = 0x1b;
+
+    struct sockaddr_in serv_addr {
+    };
+    struct hostent *server;
+    sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+    if (sockfd < 0) {
+        AF_LOGE("ERROR opening socket");
+        mTime = -errno;
+        return -1;
+    }
+
+    server = gethostbyname(mServer.c_str());
+
+    if (server == nullptr) {
+        AF_LOGE("ERROR, no such host");
+        mTime = -errno;
+        return -1;
+    }
+    memset((char *) &serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    bcopy((char *) server->h_addr, (char *) &serv_addr.sin_addr.s_addr, server->h_length);
+    serv_addr.sin_port = htons(mPort);
+    if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+        AF_LOGE("ERROR connecting");
+        mTime = -errno;
+        return -1;
+    }
+    n = write(sockfd, (char *) &packet, sizeof(ntp_packet));
+    if (n < 0) {
+        AF_LOGE("ERROR writing to socket");
+        mTime = -errno;
+        return -1;
+    }
+    n = read(sockfd, (char *) &packet, sizeof(ntp_packet));
+    if (n < 0) {
+        AF_LOGE("ERROR reading from socket");
+        mTime = -errno;
+        return -1;
+    }
+    packet.txTm_s = ntohl(packet.txTm_s);
+    packet.txTm_f = ntohl(packet.txTm_f);
+
+    mTime = (packet.txTm_s - NTP_TIMESTAMP_DELTA);
+
+    AF_LOGD("Time: %s", ctime((const time_t *) &mTime));
+    return -1;
+}
+NTPClient::operator std::string()
+{
+#define BUFLEN 255
+    if (mTime <= 0) {
+        return "";
+    }
+    char tmpBuf[BUFLEN];
+    strftime(tmpBuf, BUFLEN, "%Y-%m-%dT%H:%M:%SZ", gmtime(&mTime));
+    return string(tmpBuf);
 }

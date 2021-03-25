@@ -26,3 +26,23 @@ TEST(time, utcTime)
         af_msleep(1000);
     }
 }
+TEST(time, NTPTime)
+{
+    NTPClient ntpClient{};
+    int64_t time;
+
+    do {
+        time = ntpClient.get();
+        if (time == -EAGAIN) {
+            usleep(10000);
+        }
+    } while (time == -EAGAIN);
+
+    UTCTimer utcTime((string) ntpClient);
+    utcTime.start();
+    int index = 0;
+    while (++index < 10) {
+        cout << (string) utcTime << endl;
+        af_msleep(1000);
+    }
+}
