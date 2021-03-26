@@ -17,7 +17,10 @@
 using namespace Cicada;
 using namespace std;
 SMPAVDeviceManager::SMPAVDeviceManager()
-{}
+{
+    mDrmManager = static_cast<std::unique_ptr<DrmManager>>(new DrmManager());
+}
+
 SMPAVDeviceManager::~SMPAVDeviceManager()
 {
     if (mAudioDecoder.decoder) {
@@ -40,6 +43,8 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
     if (decoderHandle->valid) {
         return 0;
     }
+
+    mDrmManager->clearErrorItems();
 
     DrmInfo drmInfo{};
     if (meta->keyFormat != nullptr) {
@@ -80,7 +85,8 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
     if (decoderHandle->decoder == nullptr) {
         return gen_framework_errno(error_class_codec, codec_error_video_not_support);
     }
-    decoderHandle->decoder->setRequireDrmHandlerCallback(mRequireDrmHandlerCallback);
+    decoderHandle->decoder->setRequireDrmHandlerCallback(
+            [this](const DrmInfo &info) -> std::shared_ptr<DrmHandler> { return move(mDrmManager->require(info)); });
     int ret;
     if (dstFormat) {
 #ifdef __APPLE__
@@ -354,7 +360,7 @@ void SMPAVDeviceManager::destroyVideoRender()
     mVideoRenderValid = false;
 }
 
-void SMPAVDeviceManager::setRequireDrmHandlerCallback(const std::function<std::shared_ptr<DrmHandler>(const DrmInfo &)> &callback)
+void SMPAVDeviceManager::setDrmRequestCallback(const function<DrmResponseData *(const DrmRequestParam &)> &drmCallback)
 {
-    mRequireDrmHandlerCallback = callback;
+    mDrmManager->setDrmCallback(drmCallback);
 }

@@ -6,6 +6,7 @@
 #define CICADAMEDIA_SMPAVDEVICEMANAGER_H
 
 #include <codec/IDecoder.h>
+#include <drm/DrmManager.h>
 #include <render/audio/IAudioRender.h>
 #include <render/video/IVideoRender.h>
 
@@ -125,7 +126,7 @@ namespace Cicada {
 
         int renderVideoFrame(std::unique_ptr<IAFFrame> &frame);
 
-        void setRequireDrmHandlerCallback(const std::function<std::shared_ptr<DrmHandler>(const DrmInfo &drmInfo)> &callback);
+        void setDrmRequestCallback(const std::function<DrmResponseData *(const DrmRequestParam &drmRequestParam)> &drmCallback);
 
     private:
         DecoderHandle *getDecoderHandle(const deviceType &type);
@@ -141,7 +142,8 @@ namespace Cicada {
         std::unique_ptr<IVideoRender> mVideoRender{nullptr};
         bool mVideoRenderValid{false};
         uint64_t mVideoRenderFlags{0};
-        std::function<std::shared_ptr<DrmHandler>(const DrmInfo &drmInfo)> mRequireDrmHandlerCallback{nullptr};
+
+        std::unique_ptr<DrmManager> mDrmManager{};
     };
 }// namespace Cicada
 

@@ -64,10 +64,7 @@ SuperMediaPlayer::SuperMediaPlayer()
     mApsaraThread = static_cast<unique_ptr<afThread>>(new afThread([this]() -> int { return this->mainService(); }, LOG_TAG));
     mSourceListener = static_cast<unique_ptr<SuperMediaPlayerDataSourceListener>>(new SuperMediaPlayerDataSourceListener(*this));
     mDcaManager = static_cast<unique_ptr<SMP_DCAManager>>(new SMP_DCAManager(*this));
-    mDrmManager = static_cast<std::unique_ptr<DrmManager>>(new DrmManager());
     mAVDeviceManager = static_cast<unique_ptr<SMPAVDeviceManager>>(new SMPAVDeviceManager());
-    mAVDeviceManager->setRequireDrmHandlerCallback(
-            [this](const DrmInfo &info) -> std::shared_ptr<DrmHandler> { return mDrmManager->require(info); });
     mRecorderSet = static_cast<unique_ptr<SMPRecorderSet>>(new SMPRecorderSet());
 
     mPNotifier = new PlayerNotifier();
@@ -418,7 +415,6 @@ int SuperMediaPlayer::Stop()
     Reset();
 
     mRecorderSet->reset();
-    mDrmManager->clearErrorItems();
 
     AF_LOGD("stop spend time is %lld", af_gettime_ms() - t1);
     return 0;
@@ -3744,7 +3740,7 @@ int SuperMediaPlayer::invokeComponent(std::string content)
 }
 
 void SuperMediaPlayer::setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)>  &drmCallback) {
-    mDrmManager->setDrmCallback(drmCallback);
+    mAVDeviceManager->setDrmRequestCallback(drmCallback);
 }
 
 void SuperMediaPlayer::ProcessUpdateView()

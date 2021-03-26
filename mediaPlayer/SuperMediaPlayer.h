@@ -32,7 +32,6 @@ using namespace std;
 #include "CicadaPlayerPrototype.h"
 #include <cacheModule/CacheModule.h>
 #include <cacheModule/cache/CacheConfig.h>
-#include <drm/DrmManager.h>
 #include <codec/IDecoder.h>
 
 #ifdef __APPLE__
@@ -423,7 +422,6 @@ namespace Cicada {
         IDataSource *mDataSource{nullptr};
         std::atomic_bool mCanceled{false};
         std::unique_ptr<demuxer_service> mDemuxerService{nullptr};
-        std::unique_ptr<DrmManager> mDrmManager{};
         std::queue<unique_ptr<IAFFrame>> mVideoFrameQue{};
         std::deque<unique_ptr<IAFFrame>> mAudioFrameQue{};
         unique_ptr<streamMeta> mCurrentVideoMeta{};
