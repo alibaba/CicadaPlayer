@@ -81,6 +81,9 @@ int AudioTrackRender::init_device()
     mSimpleSize = mOutputInfo.nb_samples;
 
     mWriteThread = NEW_AF_THREAD(write_loop);
+    if (mRunning) {
+        mWriteThread->start();
+    }
     return 0;
 }
 
@@ -170,7 +173,9 @@ int AudioTrackRender::init_jni()
 int AudioTrackRender::pause_device()
 {
     mRunning = false;
-    mWriteThread->pause();
+    if (mWriteThread) {
+        mWriteThread->pause();
+    }
     if (audio_track && method_pause) {
         JniEnv  jniEnv;
         JNIEnv *handle = jniEnv.getEnv();
@@ -201,7 +206,9 @@ int AudioTrackRender::start_device()
         }
     }
     mRunning = true;
-    mWriteThread->start();
+    if (mWriteThread) {
+        mWriteThread->start();
+    }
 
     return 0;
 }
