@@ -146,7 +146,7 @@ namespace Cicada{
 
         if (CFStringCompare(name, (__bridge CFStringRef) UIApplicationDidEnterBackgroundNotification, 0) == kCFCompareEqualTo) {
             manager->HandleSystemNotification(IOSResignActive);
-        } else if (CFStringCompare(name, (__bridge CFStringRef) UIApplicationWillEnterForegroundNotification, 0) == kCFCompareEqualTo) {
+        } else if (CFStringCompare(name, (__bridge CFStringRef) UIApplicationDidBecomeActiveNotification, 0) == kCFCompareEqualTo) {
             manager->HandleSystemNotification(IOSBecomeActive);
         }
     }
@@ -176,7 +176,7 @@ namespace Cicada{
                                         CFNotificationSuspensionBehaviorDeliverImmediately);
 
         CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), this, &IOSNotificationHandler,
-                                        (__bridge CFStringRef) UIApplicationWillEnterForegroundNotification, NULL,
+                                        (__bridge CFStringRef) UIApplicationDidBecomeActiveNotification, NULL,
                                         CFNotificationSuspensionBehaviorDeliverImmediately);
 
         dispatch_async(dispatch_get_main_queue(), ^{
