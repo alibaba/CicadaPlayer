@@ -2060,9 +2060,10 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
              * the pts maybe accurate for 1/1000 s (eg. flv file), so can't increase the deltaTimeTmp when
              * offset little than 1ms.
              */
-            if (llabs(offset) > mCATimeBase) {
+            if (llabs(offset)) {
                 AF_LOGW("offset is %lld,pts is %lld", offset, pts);
                 mAudioTime.deltaTimeTmp += offset;
+                mPlayedAudioPts += offset;
             }
 
             if (llabs(mAudioTime.deltaTimeTmp) > 100000) {
@@ -2088,7 +2089,10 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
         mCurrentPos = position;
     }
 
-    mPlayedAudioPts = pts;
+    if (mPlayedAudioPts != INT64_MIN) {
+        mPlayedAudioPts += duration;
+    } else
+        mPlayedAudioPts = pts;
     mLastAudioFrameDuration = duration;
 
     if (mAudioChangedFirstPts == pts && !mMixMode) {
