@@ -66,9 +66,8 @@ SuperMediaPlayer::SuperMediaPlayer()
     mDcaManager = static_cast<unique_ptr<SMP_DCAManager>>(new SMP_DCAManager(*this));
     mDrmManager = static_cast<std::unique_ptr<DrmManager>>(new DrmManager());
     mAVDeviceManager = static_cast<unique_ptr<SMPAVDeviceManager>>(new SMPAVDeviceManager());
-    mAVDeviceManager->setRequireDrmHandlerCallback([this](const DrmInfo& info) -> DrmHandler* {
-        return  mDrmManager->require(info);
-    });
+    mAVDeviceManager->setRequireDrmHandlerCallback(
+            [this](const DrmInfo &info) -> std::shared_ptr<DrmHandler> { return mDrmManager->require(info); });
     mRecorderSet = static_cast<unique_ptr<SMPRecorderSet>>(new SMPRecorderSet());
 
     mPNotifier = new PlayerNotifier();

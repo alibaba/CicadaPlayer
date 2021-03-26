@@ -24,7 +24,6 @@ namespace Cicada {
             std::unique_ptr<IDecoder> decoder{nullptr};
             Stream_meta meta{};
             bool valid{false};
-            bool decoderError{false};
             uint64_t decFlag;
             void *device;
             uint32_t mDstFormat{0};
@@ -41,7 +40,7 @@ namespace Cicada {
                 }
 #endif
                 return (pDevice == device) && (flag == decFlag) && (pMeta->codec == meta.codec) && (dstFormat == mDstFormat) &&
-                       (mDrmInfo == info) && !decoderError;
+                       (mDrmInfo == info);
             }
         };
 
@@ -126,7 +125,7 @@ namespace Cicada {
 
         int renderVideoFrame(std::unique_ptr<IAFFrame> &frame);
 
-        void setRequireDrmHandlerCallback(const std::function<DrmHandler*(const DrmInfo& drmInfo)>& callback);
+        void setRequireDrmHandlerCallback(const std::function<std::shared_ptr<DrmHandler>(const DrmInfo &drmInfo)> &callback);
 
     private:
         DecoderHandle *getDecoderHandle(const deviceType &type);
@@ -142,7 +141,7 @@ namespace Cicada {
         std::unique_ptr<IVideoRender> mVideoRender{nullptr};
         bool mVideoRenderValid{false};
         uint64_t mVideoRenderFlags{0};
-        std::function<DrmHandler*(const DrmInfo& drmInfo)> mRequireDrmHandlerCallback{nullptr};
+        std::function<std::shared_ptr<DrmHandler>(const DrmInfo &drmInfo)> mRequireDrmHandlerCallback{nullptr};
     };
 }// namespace Cicada
 

@@ -184,14 +184,8 @@ int SMPAVDeviceManager::sendPacket(std::unique_ptr<IAFPacket> &packet, deviceTyp
         return -EINVAL;
     }
 
-    if (decoderHandle->decoderError) {
-        return -EINVAL;
-    }
-
     assert(decoderHandle->decoder);
     int ret = decoderHandle->decoder->send_packet(packet, timeOut);
-
-    decoderHandle->decoderError = (ret & STATUS_DRM_ERROR);
 
     return ret;
 }
@@ -360,7 +354,7 @@ void SMPAVDeviceManager::destroyVideoRender()
     mVideoRenderValid = false;
 }
 
-void SMPAVDeviceManager::setRequireDrmHandlerCallback(
-       const std::function<DrmHandler *(const DrmInfo &)>& callback) {
-        mRequireDrmHandlerCallback  = callback;
+void SMPAVDeviceManager::setRequireDrmHandlerCallback(const std::function<std::shared_ptr<DrmHandler>(const DrmInfo &)> &callback)
+{
+    mRequireDrmHandlerCallback = callback;
 }

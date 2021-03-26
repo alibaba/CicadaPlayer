@@ -16,7 +16,8 @@ DrmManager::~DrmManager() {
     mDrmMap.clear();
 }
 
-DrmHandler *DrmManager::require(const DrmInfo &drmInfo) {
+std::shared_ptr<DrmHandler> DrmManager::require(const DrmInfo &drmInfo)
+{
 
     std::lock_guard<std::mutex> drmLock(mDrmMutex);
 
@@ -24,7 +25,7 @@ DrmHandler *DrmManager::require(const DrmInfo &drmInfo) {
         for (auto &item : mDrmMap) {
             auto &drmItem = (DrmInfo &) item.first;
             if (drmItem == drmInfo) {
-                return item.second.get();
+                return item.second;
             }
         }
     }
@@ -38,9 +39,9 @@ DrmHandler *DrmManager::require(const DrmInfo &drmInfo) {
     }
 
     pDrmHandler->setDrmCallback(mDrmCallback);
-    mDrmMap[drmInfo] = std::unique_ptr<DrmHandler>(pDrmHandler);
+    mDrmMap[drmInfo] = std::shared_ptr<DrmHandler>(pDrmHandler);
 
-    return pDrmHandler;
+    return mDrmMap[drmInfo];
 }
 
 void DrmManager::clearErrorItems() {

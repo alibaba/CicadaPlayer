@@ -108,8 +108,7 @@ namespace Cicada {
 
         if (drmInfo != nullptr) {
             if (mRequireDrmHandlerCallback != nullptr) {
-                mDrmHandler = dynamic_cast<WideVineDrmHandler *>(mRequireDrmHandlerCallback(
-                        *drmInfo));
+                mDrmHandler = std::dynamic_pointer_cast<WideVineDrmHandler>(mRequireDrmHandlerCallback(*drmInfo));
                 assert(mDrmHandler != nullptr);
             }
 
@@ -344,6 +343,7 @@ namespace Cicada {
 
                 uint8_t *new_data = nullptr;
                 int new_size = 0;
+
                 mDrmHandler->convertData(naluLengthSize, &new_data, &new_size, data, size);
 
                 if (new_data != nullptr) {
@@ -536,7 +536,6 @@ namespace Cicada {
     }
 
     int mediaCodecDecoder::initDrmHandler() {
-
         mDrmHandler->open();
 
         int state = mDrmHandler->getState();
@@ -555,5 +554,10 @@ namespace Cicada {
             return mDrmHandler->getErrorCode();
         }
         return -EAGAIN;
+    }
+
+    bool mediaCodecDecoder::supportReuse()
+    {
+        return mDrmHandler != nullptr && !mDrmHandler->isErrorState();
     }
 }

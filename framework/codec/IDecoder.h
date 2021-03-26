@@ -178,8 +178,9 @@ namespace Cicada {
         {
             return true;
         }
-        
-        void setRequireDrmHandlerCallback(std::function<DrmHandler*(const DrmInfo& drmInfo)> callback){
+
+        void setRequireDrmHandlerCallback(std::function<std::shared_ptr<DrmHandler>(const DrmInfo &drmInfo)> callback)
+        {
             mRequireDrmHandlerCallback  = callback;
         }
 
@@ -194,7 +195,7 @@ namespace Cicada {
         bool bNeedKeyFrame{true};
         int64_t keyPts = INT64_MIN;
 
-        std::function<DrmHandler*(const DrmInfo& drmInfo)> mRequireDrmHandlerCallback{nullptr};
+        std::function<std::shared_ptr<DrmHandler>(const DrmInfo &drmInfo)> mRequireDrmHandlerCallback{nullptr};
     };
 }
 

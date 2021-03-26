@@ -24,13 +24,13 @@ namespace Cicada {
             mDrmCallback = callback;
         }
 
-        DrmHandler *require(const DrmInfo &drmInfo);
+        std::shared_ptr<DrmHandler> require(const DrmInfo &drmInfo);
 
         void clearErrorItems();
 
     private:
         std::mutex mDrmMutex{};
-        std::map<DrmInfo, std::unique_ptr<DrmHandler>  , DrmInfo::DrmInfoCompare> mDrmMap{};
+        std::map<DrmInfo, std::shared_ptr<DrmHandler>, DrmInfo::DrmInfoCompare> mDrmMap{};
         std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)>  mDrmCallback{nullptr};
     };
 

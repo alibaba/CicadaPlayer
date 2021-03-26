@@ -87,6 +87,8 @@ namespace Cicada{
 
         static mediaCodecDecoder se;
 
+        bool supportReuse() override;
+
     private:
         int width{0};
         int height{0};
@@ -120,8 +122,7 @@ namespace Cicada{
         int naluLengthSize = 0;
         bool isADTS = false;
 
-        WideVineDrmHandler* mDrmHandler = nullptr;
-
+        std::shared_ptr<WideVineDrmHandler> mDrmHandler{nullptr};
     };
 }
 
