@@ -1720,13 +1720,6 @@ void SuperMediaPlayer::doDeCode()
             } else
                 break;
 
-            int64_t duration = mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO);
-            if (duration < 0 && !mAudioFrameQue.empty()) {
-                //If audio duration is unknow when demux , update duration after decode one frame.
-                IAFFrame::AFFrameInfo frameInfo = mAudioFrameQue.front()->getInfo();
-                int64_t packetDuration = (int64_t) frameInfo.audio.nb_samples * 1000000 / frameInfo.audio.sample_rate;
-                mBufferController->SetOnePacketDuration(BUFFER_TYPE_AUDIO, packetDuration);
-            }
         }
 
         //            AF_LOGD("mAudioFrameQue.size is %d\n", mAudioFrameQue.size());
@@ -2361,6 +2354,14 @@ int SuperMediaPlayer::DecodeAudio(unique_ptr<IAFPacket> &pPacket)
         }
 
         if (frame != nullptr) {
+
+            int64_t duration = mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO);
+            if (duration < 0) {
+                //If audio duration is unknow when demux , update duration after decode one frame.
+                IAFFrame::AFFrameInfo frameInfo = frame->getInfo();
+                int64_t packetDuration = (int64_t) frameInfo.audio.nb_samples * 1000000 / frameInfo.audio.sample_rate;
+                mBufferController->SetOnePacketDuration(BUFFER_TYPE_AUDIO, packetDuration);
+            }
 
             if(mRecorderSet->decodeFirstAudioFrameInfo.waitFirstFrame) {
                 DecodeFirstFrameInfo &info = mRecorderSet->decodeFirstAudioFrameInfo;
