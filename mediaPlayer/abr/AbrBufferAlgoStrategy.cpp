@@ -12,7 +12,7 @@
 #include <cassert>
 #include <utility>
 
-#define ENABLE_DOWNLOAD_BYTES 0
+#define ENABLE_DOWNLOAD_BYTES 1
 
 #define LOWER_SWITCH_VALUE_MS (15 * 1000)
 #define UPPER_SWITCH_VALUE_MS (30 * 1000)
