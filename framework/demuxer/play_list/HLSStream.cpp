@@ -1305,7 +1305,7 @@ namespace Cicada {
                     us);
             // us's accuracy is ms, so change duration's accuracy to ms
             bool seekOnLast = false;
-            if (us == (mPTracker->getDuration() / 1000 * 1000)) {
+            if (us >= (mPTracker->getDuration() / 1000 * 1000)) {
                 num = mPTracker->getLastSegNum();
 
                 // reopen will -- it
