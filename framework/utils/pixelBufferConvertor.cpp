@@ -370,6 +370,7 @@ int pixelBufferConvertor::init(const IAFFrame::videoInfo &src)
         sws_ctx = nullptr;
     }
     av_frame_free(&mOutFrame);
+    dstFormat = static_cast<AVPixelFormat>(dst.format);
 
     if (src != dst) {
 
