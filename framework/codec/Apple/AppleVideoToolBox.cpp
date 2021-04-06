@@ -827,7 +827,9 @@ namespace Cicada {
     {
         std::lock_guard<std::mutex> lock(mActiveStatusMutex);
         AF_LOGD("ios bg decoder appDidBecomeActive");
-        mThrowPacket = true;
+        if (mResignActive) {
+            mThrowPacket = true;
+        }
         mActive = true;
     }
 
