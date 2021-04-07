@@ -55,7 +55,12 @@ int DisplayLayerImpl::renderFrame(IAFFrame *frame)
         mFrameWidth = frame->getInfo().video.width;
         mFrameDar = frame->getInfo().video.dar;
 
-        mFrameDisplayWidth = static_cast<int>(frame->getInfo().video.dar * frame->getInfo().video.height);
+
+        if (mFrameDar) {
+            mFrameDisplayWidth = static_cast<int>(frame->getInfo().video.dar * frame->getInfo().video.height);
+        } else {
+            mFrameDisplayWidth = frame->getInfo().video.width;
+        }
         mFrameDisplayHeight = frame->getInfo().video.height;
         CGSize size;
         size.width = mFrameDisplayWidth;
