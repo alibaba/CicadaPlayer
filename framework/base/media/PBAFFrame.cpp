@@ -129,6 +129,7 @@ PBAFFrame::operator AVAFFrame *()
     pFrame->pts = mInfo.pts;
     pFrame->pkt_duration = mInfo.duration;
     AVAFFrame *pAvFrame = new AVAFFrame(pFrame, FrameTypeVideo);
+    pAvFrame->getInfo().timePosition = mInfo.timePosition;
     av_frame_free(&pFrame);
     return pAvFrame;
 }
