@@ -2062,6 +2062,12 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
         mMasterClock.setReferenceClock(getAudioPlayTimeStampCB, this);
     } else {
         if (mLastAudioFrameDuration > 0) {
+            if (!mAudioPtsRevert) {
+                mAudioPtsRevert = pts < mPlayedAudioPts - mPtsDiscontinueDelta;
+                if (mAudioPtsRevert) {
+                    AF_LOGI("PTS_REVERTING audio start\n");
+                }
+            }
             int64_t offset = pts - (mPlayedAudioPts + mLastAudioFrameDuration);
 
             /*
@@ -2082,14 +2088,6 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
                 mAudioTime.deltaTime += mAudioTime.deltaTimeTmp;
                 mAudioTime.deltaTimeTmp = 0;
             }
-        }
-    }
-
-    if (!mAudioPtsRevert) {
-        mAudioPtsRevert = mPlayedAudioPts != INT64_MIN && pts < mPlayedAudioPts - mPtsDiscontinueDelta;
-
-        if (mAudioPtsRevert) {
-            AF_LOGI("PTS_REVERTING audio start\n");
         }
     }
 
