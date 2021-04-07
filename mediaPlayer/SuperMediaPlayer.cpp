@@ -2067,7 +2067,7 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
              * offset little than 1ms.
              */
             if (llabs(offset)) {
-                AF_LOGW("offset is %lld,pts is %lld", offset, pts);
+                //    AF_LOGW("offset is %lld,pts is %lld", offset, pts);
                 mAudioTime.deltaTimeTmp += offset;
                 mPlayedAudioPts += offset;
             }
