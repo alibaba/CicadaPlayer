@@ -82,6 +82,9 @@ public:
 public:
     // TODO: std::move constructor
     IAFPacket() = default;
+    IAFPacket(const IAFPacket &pkt)
+    {}
+
 
     virtual ~IAFPacket() = default;
 

@@ -128,6 +128,21 @@ namespace Cicada {
         return INT64_MIN;
     }
 
+    void BufferController::Rewind(BUFFER_TYPE type)
+    {
+        if (type & BUFFER_TYPE_AUDIO) {
+            mAudioPacketQueue.Rewind();
+        }
+
+        if (type & BUFFER_TYPE_VIDEO) {
+            mVideoPacketQueue.Rewind();
+        }
+
+        if (type & BUFFER_TYPE_SUBTITLE) {
+            mSubtitlePacketQueue.Rewind();
+        }
+    }
+
     int64_t BufferController::ClearPacketBeforePts(BUFFER_TYPE type, int64_t pts)
     {
         int64_t drop = 0;
@@ -239,6 +254,25 @@ namespace Cicada {
         }
 
         return 0;
+    }
+    int64_t BufferController::GetPacketFirstTimePos(BUFFER_TYPE type)
+    {
+        switch (type) {
+            case BUFFER_TYPE_AUDIO:
+                return mAudioPacketQueue.GetFirstTimePos();
+
+            case BUFFER_TYPE_VIDEO:
+                return mVideoPacketQueue.GetFirstTimePos();
+
+            case BUFFER_TYPE_SUBTITLE:
+                return mSubtitlePacketQueue.GetFirstTimePos();
+
+            default:
+                AF_LOGE("error media type");
+                break;
+        }
+
+        return INT64_MIN;
     }
 
     int64_t BufferController::FindSeamlessPointTimePosition(BUFFER_TYPE type, int &count)
@@ -352,6 +386,20 @@ namespace Cicada {
 
         if (type & BUFFER_TYPE_SUBTITLE) {
             mSubtitlePacketQueue.ClearQueue();
+        }
+    }
+    void BufferController::SetMaxBackwardDuration(BUFFER_TYPE type, uint64_t duration)
+    {
+        if (type & BUFFER_TYPE_AUDIO) {
+            mAudioPacketQueue.SetMaxBackwardDuration(duration);
+        }
+
+        if (type & BUFFER_TYPE_VIDEO) {
+            mVideoPacketQueue.SetMaxBackwardDuration(duration);
+        }
+
+        if (type & BUFFER_TYPE_SUBTITLE) {
+            mSubtitlePacketQueue.SetMaxBackwardDuration(duration);
         }
     }
 

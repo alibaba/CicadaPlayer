@@ -47,6 +47,7 @@ namespace Cicada {
         bool mDisableVideo;
 
         int mPositionTimerIntervalMs;
+        uint64_t mMaxBackwardBufferDuration;
 
     public:
         std::string toString() const;

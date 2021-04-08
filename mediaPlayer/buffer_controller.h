@@ -14,8 +14,7 @@ namespace Cicada {
         BUFFER_TYPE_SUBTITLE = (1 << 2),
 
         BUFFER_TYPE_AV = (BUFFER_TYPE_VIDEO | BUFFER_TYPE_AUDIO),
-        BUFFER_TYPE_ALL = (BUFFER_TYPE_VIDEO | BUFFER_TYPE_AUDIO
-                           | BUFFER_TYPE_SUBTITLE),
+        BUFFER_TYPE_ALL = (BUFFER_TYPE_VIDEO | BUFFER_TYPE_AUDIO | BUFFER_TYPE_SUBTITLE),
     } BUFFER_TYPE;
 
     class BufferController {
@@ -24,7 +23,6 @@ namespace Cicada {
 
         ~BufferController();
 
-    public:
         int64_t GetPacketDuration(BUFFER_TYPE type);
 
         void SetOnePacketDuration(BUFFER_TYPE type, int64_t duration);
@@ -51,9 +49,13 @@ namespace Cicada {
 
         int64_t GetKeyTimePositionBefore(BUFFER_TYPE type, int64_t pts);
 
+        void Rewind(BUFFER_TYPE type);
+
         int64_t GetKeyPTSBefore(BUFFER_TYPE type, int64_t pts);
 
         int64_t GetPacketLastTimePos(BUFFER_TYPE type);
+
+        int64_t GetPacketFirstTimePos(BUFFER_TYPE type);
 
         int64_t GetPacketLastPTS(BUFFER_TYPE type);
 
@@ -61,7 +63,7 @@ namespace Cicada {
 
         void ClearPacketAfterTimePosition(BUFFER_TYPE type, int64_t pts);
 
-//       std::deque<std::shared_ptr<IAFPacket>> CopyVideoCacheQueue();
+        void SetMaxBackwardDuration(BUFFER_TYPE type, uint64_t duration);
 
     private:
         MediaPacketQueue mVideoPacketQueue;
@@ -69,5 +71,5 @@ namespace Cicada {
         MediaPacketQueue mSubtitlePacketQueue;
     };
 
-} // namespace Cicada
-#endif // CICADA_BUFFER_CONTROL_H
+}// namespace Cicada
+#endif// CICADA_BUFFER_CONTROL_H

@@ -1,11 +1,11 @@
 //
 // Created by moqi on 2019-07-05.
 //
-#include <utils/frame_work_log.h>
-#include <cassert>
-#include "base/media/IAFPacket.h"
 #include "AVAFPacket.h"
+#include "base/media/IAFPacket.h"
 #include "utils/ffmpeg_utils.h"
+#include <cassert>
+#include <utils/frame_work_log.h>
 #ifdef __APPLE__
 #include "PBAFFrame.h"
 #endif
@@ -73,7 +73,7 @@ uint8_t *AVAFPacket::getData()
 
 unique_ptr<IAFPacket> AVAFPacket::clone() const
 {
-    return unique_ptr<IAFPacket>(new AVAFPacket(mpkt, mIsProtected));
+    return unique_ptr<IAFPacket>(new AVAFPacket(*this));
 }
 
 int64_t AVAFPacket::getSize()
@@ -104,7 +104,7 @@ AVAFPacket::operator AVPacket *()
 
 bool AVAFPacket::getEncryptionInfo(IAFPacket::EncryptionInfo *dst)
 {
-    if(mAVEncryptionInfo == nullptr) {
+    if (mAVEncryptionInfo == nullptr) {
 
         int encryption_info_size;
         const uint8_t *new_encryption_info = av_packet_get_side_data(mpkt, AV_PKT_DATA_ENCRYPTION_INFO, &encryption_info_size);
@@ -142,9 +142,9 @@ bool AVAFPacket::getEncryptionInfo(IAFPacket::EncryptionInfo *dst)
 
     if (mAVEncryptionInfo->subsample_count > 0) {
         dst->subsample_count = mAVEncryptionInfo->subsample_count;
-        for(int i = 0; i < mAVEncryptionInfo->subsample_count; i++) {
+        for (int i = 0; i < mAVEncryptionInfo->subsample_count; i++) {
             SubsampleEncryptionInfo subInfo{};
-            subInfo.bytes_of_protected_data =  mAVEncryptionInfo->subsamples[i].bytes_of_protected_data;
+            subInfo.bytes_of_protected_data = mAVEncryptionInfo->subsamples[i].bytes_of_protected_data;
             subInfo.bytes_of_clear_data = mAVEncryptionInfo->subsamples[i].bytes_of_clear_data;
             dst->subsamples.push_back(subInfo);
         }
@@ -157,6 +157,16 @@ bool AVAFPacket::getEncryptionInfo(IAFPacket::EncryptionInfo *dst)
     }
 
     return true;
+}
+AVAFPacket::AVAFPacket(const AVAFPacket &pkt) : IAFPacket(pkt)
+{
+    mpkt = av_packet_alloc();
+    av_init_packet(mpkt);
+    av_packet_ref(mpkt, pkt.mpkt);
+    copyInfo();
+    mIsProtected = pkt.mIsProtected;
+    setExtraData(pkt.mInfo.extra_data, pkt.mInfo.extra_data_size);
+    mInfo.timePosition = pkt.mInfo.timePosition;
 }
 
 
@@ -198,8 +208,7 @@ AVAFFrame::AVAFFrame(AVFrame **frame, IAFFrame::FrameType type) : mType(type)
 }
 
 
-AVAFFrame::AVAFFrame(AVFrame *frame, FrameType type) : mAvFrame(av_frame_clone(frame)),
-                                                       mType(type)
+AVAFFrame::AVAFFrame(AVFrame *frame, FrameType type) : mAvFrame(av_frame_clone(frame)), mType(type)
 {
     assert(mAvFrame != nullptr);
     copyInfo();

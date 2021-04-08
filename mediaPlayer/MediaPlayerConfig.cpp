@@ -23,6 +23,7 @@ namespace Cicada {
         mDisableAudio = false;
         mDisableVideo = false;
         mPositionTimerIntervalMs = 500;
+        mMaxBackwardBufferDuration = 0;
     }
 
     std::string MediaPlayerConfig::toString() const

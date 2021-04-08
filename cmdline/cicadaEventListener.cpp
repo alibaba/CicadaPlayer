@@ -28,7 +28,9 @@ void cicadaEventListener::onStepSeek(bool forward)
         time = -time;
     }
 
-    mediaPlayer->SeekTo(mediaPlayer->GetCurrentPosition() + time, SEEK_MODE_INACCURATE);
+    int64_t pos = mediaPlayer->GetCurrentPosition() + time;
+
+    mediaPlayer->SeekTo(pos < 0 ? 0 : pos, SEEK_MODE_INACCURATE);
 }
 void cicadaEventListener::onPercentageSeek(int percent)
 {

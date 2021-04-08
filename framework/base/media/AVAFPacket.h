@@ -25,6 +25,8 @@ public:
 
     explicit AVAFPacket(AVPacket **pkt, bool isProtected = false);
 
+    AVAFPacket(const AVAFPacket &pkt);
+
     ~AVAFPacket() override;
 
     void setDiscard(bool discard) override;

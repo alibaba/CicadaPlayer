@@ -44,7 +44,11 @@ namespace Cicada {
 
         int64_t ClearPacketBeforePTS(int64_t pts);
 
+        void Rewind();
+
         int64_t GetLastTimePos();
+
+        int64_t GetFirstTimePos();
 
         int64_t GetLastPTS();
 
@@ -52,13 +56,21 @@ namespace Cicada {
 
         void ClearPacketAfterTimePosition(int64_t pts);
 
+        void SetMaxBackwardDuration(uint64_t duration)
+        {
+            mMAXBackwardDuration = duration;
+        }
+
         int mMediaType = 0;
 
     private:
-        std::deque<mediaPacket> mQueue;
+        std::list<mediaPacket> mQueue;
+        std::list<mediaPacket>::iterator mCurrent;
         std::recursive_mutex mMutex;
         int mPacketDuration = 0;
         int64_t mDuration = 0;
+        int64_t mTotalDuration = 0;
+        uint64_t mMAXBackwardDuration{0};
     };
 
 } // namespace Cicada

@@ -572,6 +572,8 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
         }
     } else if (theKey == "networkRetryCount") {
         mSet->netWorkRetryCount = (int) atol(value);
+    } else if (theKey == "maxBackwardBufferDuration") {
+        mBufferController->SetMaxBackwardDuration(BUFFER_TYPE_ALL, atol(value) * 1000);
     }
 
     return 0;
@@ -3013,14 +3015,30 @@ bool SuperMediaPlayer::SeekInCache(int64_t pos)
         // no video and audio ?
     }
 
-    //seek before
-    if (pos < getCurrentPosition()) {
+    //seek bigger than last frame
+    if (minLastPos > 0 && pos > minLastPos) {
         return false;
     }
 
-    //seek bigger than last frame
-    if (pos > minLastPos) {
-        return false;
+    //seek back
+    if (pos <= mCurrentPos) {
+        mBufferController->Rewind(BUFFER_TYPE_ALL);
+        int64_t audioFirstPos = mBufferController->GetPacketFirstTimePos(BUFFER_TYPE_AUDIO);
+        int64_t videoFirstPos = mBufferController->GetPacketFirstTimePos(BUFFER_TYPE_VIDEO);
+        int64_t maxFirstPos = -1;
+        if (HAVE_VIDEO && HAVE_AUDIO) {
+            maxFirstPos = std::max(audioFirstPos, videoFirstPos);
+        } else if (HAVE_VIDEO) {
+            maxFirstPos = videoFirstPos;
+        } else if (HAVE_AUDIO) {
+            maxFirstPos = audioFirstPos;
+        } else {
+            // no video and audio ?
+        }
+
+        if (maxFirstPos > 0 && pos < maxFirstPos) {
+            return false;
+        }
     }
 
     int64_t keyPosBefore = INT64_MIN;
