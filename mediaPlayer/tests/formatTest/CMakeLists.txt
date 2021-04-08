@@ -40,6 +40,7 @@ target_link_libraries(mediaPlayerFormatTest PRIVATE
         avformat
         avcodec
         swresample
+        swscale
         avutil
         xml2
         curl
