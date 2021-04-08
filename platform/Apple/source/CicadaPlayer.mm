@@ -245,6 +245,7 @@ static int logOutput = 1;
             mConfig.disableAudio = config->mDisableAudio;
             mConfig.disableVideo = config->mDisableVideo;
             mConfig.positionTimerIntervalMs = config->mPositionTimerIntervalMs;
+            mConfig.mMAXBackwardDuration = config->mMaxBackwardBufferDuration;
 
             [mConfig.httpHeaders removeAllObjects];
             for (int i=0;i<config->customHeaders.size();i++) {

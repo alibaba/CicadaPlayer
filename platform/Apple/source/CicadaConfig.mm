@@ -25,6 +25,7 @@
 @synthesize liveStartIndex;
 @synthesize disableAudio;
 @synthesize disableVideo;
+@synthesize mMAXBackwardDuration;
 
 - (instancetype)init{
     if (self = [super init]) {
@@ -43,6 +44,7 @@
         disableAudio = NO;
         disableVideo = NO;
         positionTimerIntervalMs = 500;
+        mMAXBackwardDuration = 0;
     }
     return self;
 }
