@@ -194,7 +194,7 @@ namespace Cicada {
         return base && base->subsegments.empty();
     }
 
-    const std::string &Representation::getMimeType() const
+    std::string Representation::getMimeType() const
     {
         if (!mimeType.empty()) {
             return mimeType;

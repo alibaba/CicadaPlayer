@@ -2,11 +2,10 @@
 // Created by moqi on 2018/4/25.
 //
 
+#define LOG_TAG "Period"
 #include "Period.h"
 #include "AdaptationSet.h"
 #include "utils/frame_work_log.h"
-
-#define LOG_TAG "Period"
 
 namespace Cicada {
 

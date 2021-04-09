@@ -59,7 +59,7 @@ namespace Cicada{
 
         virtual bool needsIndex() const;
 
-        const std::string &getMimeType() const;
+        std::string getMimeType() const;
 
         void updateStreamType();
 

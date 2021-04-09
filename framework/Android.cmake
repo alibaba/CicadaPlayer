@@ -12,6 +12,7 @@ set(COMMON_INC_DIR ${COMMON_INC_DIR}
         ${EXTERN_INSTALL_DIR_ANDROID}/../build/ffmpeg/Android/${ANDROID_ABI}/
         ${EXTERN_INSTALL_DIR_ANDROID}/curl/Android/${ANDROID_ABI}/include/
         ${EXTERN_INSTALL_DIR_ANDROID}/openssl/Android/${ANDROID_ABI}/include/
+        ${EXTERN_INSTALL_DIR_ANDROID}/libxml2/Android/${ANDROID_ABI}/include/libxml2/
         ${CMAKE_CURRENT_LIST_DIR}/../external/boost/
         ${PROJECT_SOURCE_DIR}
         ${PROJECT_SOURCE_DIR}/../

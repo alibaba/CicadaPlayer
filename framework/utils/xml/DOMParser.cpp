@@ -204,7 +204,7 @@ skip:
             goto skip;
     }
 
-    if ((node == nullptr)) {
+    if (node == nullptr) {
         return XML_READER_ERROR;
     }
 

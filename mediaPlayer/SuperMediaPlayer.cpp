@@ -1503,7 +1503,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
                 lastPos = lastAudioPos < lastVideoPos ? lastAudioPos : lastVideoPos;
             }
 
-            lastPos -= std::min(mSuggestedPresentationDelay, 500 * 1000ll);
+            lastPos -= std::min(mSuggestedPresentationDelay, (int64_t)(500 * 1000ll));
             int64_t lastVideoKeyTimePos = mBufferController->GetKeyTimePositionBefore(BUFFER_TYPE_VIDEO, lastPos);
             if (lastVideoKeyTimePos != INT64_MIN) {
                 AF_LOGD("drop left lastPts %lld, lastVideoKeyPts %lld", lastPos, lastVideoKeyTimePos);
