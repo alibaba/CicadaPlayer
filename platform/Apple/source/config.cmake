@@ -41,6 +41,7 @@ set(ALI_SRC_LIBRARIES
         muxer
         render
         communication
+        xml2
         z
         iconv
         resolv
