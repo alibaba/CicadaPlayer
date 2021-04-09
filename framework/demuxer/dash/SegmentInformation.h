@@ -8,8 +8,8 @@
 #include "IDashUrl.h"
 #include "InheritablesAttrs.h"
 #include "demuxer/play_list/playList.h"
+#include <memory>
 #include <vector>
-
 namespace Cicada {
 
     class playList;
@@ -49,7 +49,7 @@ namespace Cicada {
             virtual void pruneByPlaybackTime(int64_t time);
 
             virtual DashUrl getUrlSegment() const override;
-            DashUrl *baseUrl = nullptr;
+            std::unique_ptr<DashUrl> baseUrl = nullptr;
 
             ISegmentBase *getProfile() const;
             void updateSegmentList(SegmentList *list, bool restamp = false);

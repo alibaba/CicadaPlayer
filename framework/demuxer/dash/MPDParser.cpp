@@ -580,7 +580,7 @@ void MPDParser::parseBaseUrl(MPDPlayList *mpd, xml::Node *containerNode, Segment
 {
     xml::Node *baseUrl = DOMHelper::getFirstChildElementByName(containerNode, "BaseURL");
     if (baseUrl) {
-        parent->baseUrl = new DashUrl(baseUrl->getText());
+        parent->baseUrl = static_cast<unique_ptr<DashUrl>>(new DashUrl(baseUrl->getText()));
         parseAvailability<SegmentInformation>(mpd, baseUrl, parent);
     }
 }
