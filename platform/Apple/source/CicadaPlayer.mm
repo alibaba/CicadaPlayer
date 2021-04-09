@@ -188,6 +188,7 @@ static int logOutput = 1;
         alivcConfig.mDisableVideo = config.disableVideo;
         alivcConfig.mDisableAudio = config.disableAudio;
         alivcConfig.mPositionTimerIntervalMs = config.positionTimerIntervalMs;
+        alivcConfig.mMAXBackwardDuration = config.mMAXBackwardDuration;
 
         if (nil != config.httpProxy) {
             alivcConfig.httpProxy = [config.httpProxy UTF8String];
