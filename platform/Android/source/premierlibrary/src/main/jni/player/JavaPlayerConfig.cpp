@@ -35,6 +35,7 @@ jfieldID  gj_playerconfig_LiveStartIndex            = nullptr;
 jfieldID  gj_playerconfig_DisableAudio              = nullptr;
 jfieldID  gj_playerconfig_DisableVideo              = nullptr;
 jfieldID gj_playerconfig_PositionTimerIntervalMs = nullptr;
+jfieldID gj_playerconfig_MaxBackwardBufferDuration = nullptr;
 
 
 void JavaPlayerConfig::init(JNIEnv *env)
@@ -98,6 +99,7 @@ void JavaPlayerConfig::init(JNIEnv *env)
                                                        "mDisableVideo",
                                                        "Z");
         gj_playerconfig_PositionTimerIntervalMs = env->GetFieldID(gj_PlayerConfig_class, "mPositionTimerIntervalMs", "I");
+        gj_playerconfig_MaxBackwardBufferDuration = env->GetFieldID(gj_PlayerConfig_class, "mMaxBackwardBufferDurationMs", "J");
     }
 }
 
@@ -136,6 +138,7 @@ jobject JavaPlayerConfig::getJPlayerConfig(JNIEnv *mEnv, const MediaPlayerConfig
     mEnv->SetBooleanField(jPlayerConfig, gj_playerconfig_DisableAudio,  (jboolean)playerConfig->mDisableAudio);
     mEnv->SetBooleanField(jPlayerConfig, gj_playerconfig_DisableVideo,  (jboolean)playerConfig->mDisableVideo);
     mEnv->SetIntField(jPlayerConfig, gj_playerconfig_PositionTimerIntervalMs, (jint) playerConfig->mPositionTimerIntervalMs);
+    mEnv->SetLongField(jPlayerConfig, gj_playerconfig_MaxBackwardBufferDuration, (jlong) playerConfig->mMaxBackwardBufferDuration);
     NewStringUTF tmpreferrer(mEnv, playerConfig->referer.c_str());
     jstring      referrer  = tmpreferrer.getString();
     mEnv->SetObjectField(jPlayerConfig, gj_playerconfig_Referrer, referrer);
@@ -205,6 +208,7 @@ MediaPlayerConfig JavaPlayerConfig::convertTo(JNIEnv *env, jobject playerConfig)
     jboolean          disableVideo              = env->GetBooleanField(playerConfig,
                                                                        gj_playerconfig_DisableVideo);
     jint positionTimerIntervalMs = env->GetIntField(playerConfig, gj_playerconfig_PositionTimerIntervalMs);
+    jlong maxBackwardBufferDurationMs = env->GetLongField(playerConfig, gj_playerconfig_MaxBackwardBufferDuration);
     GetStringUTFChars tmpHttpProxy(env, httpProxyStr);
     char              *httpProxy                = tmpHttpProxy.getChars();
     GetStringUTFChars tmpreferrer(env, referrerStr);
@@ -226,6 +230,7 @@ MediaPlayerConfig JavaPlayerConfig::convertTo(JNIEnv *env, jobject playerConfig)
     config.mDisableVideo          = disableVideo;
     config.mDisableAudio          = disableAudio;
     config.mPositionTimerIntervalMs = positionTimerIntervalMs;
+    config.mMaxBackwardBufferDuration = maxBackwardBufferDurationMs;
     CallObjectMethod getHeaderMethod(env, playerConfig, gj_playerconfig_getCustomHeaders);
     jobjectArray     headersArray = (jobjectArray) getHeaderMethod.getValue();
 

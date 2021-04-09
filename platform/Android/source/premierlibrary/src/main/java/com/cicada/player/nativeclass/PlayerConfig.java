@@ -135,6 +135,14 @@ public class PlayerConfig {
      */
     public int mPositionTimerIntervalMs = 500;
 
+    /**
+     * 往前缓存的最大buffer时长。
+     */
+    /****
+     *  max backward buffer duration.
+     */
+    public long mMaxBackwardBufferDurationMs = 0;
+
     private String[] mCustomHeaders = null;
 
     public String[] getCustomHeaders() {
