@@ -31,6 +31,9 @@ DashStream::DashStream(DashSegmentTracker *pTracker, int id) : mPTracker(pTracke
 DashStream::~DashStream()
 {
     close();
+    if (mInitSegBuffer) {
+        free(mInitSegBuffer);
+    }
     delete mThreadPtr;
     delete mPTracker;
     mStreamStartTimeMap.clear();

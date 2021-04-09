@@ -16,6 +16,7 @@
 #include "demuxer/play_list/Representation.h"
 #include "utils/xml/DOMHelper.h"
 #include "utils/xml/DOMParser.h"
+#include <limits>
 #include <locale>
 
 using namespace Cicada;
@@ -182,7 +183,7 @@ void MPDParser::parseProgramInformation(MPDPlayList *mpd, xml::Node *node)
         info->moreInformationUrl = node->getAttributeValue("moreInformationURL");
     }
 
-    mpd->programInfo = info;
+    mpd->programInfo = static_cast<unique_ptr<ProgramInfo>>(info);
 }
 
 void MPDParser::parseMPDBaseUrl(MPDPlayList *mpd, xml::Node *root)

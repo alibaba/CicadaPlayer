@@ -5,6 +5,7 @@
 #include "DashUrl.h"
 #include "demuxer/play_list/Helper.h"
 #include "demuxer/play_list/Representation.h"
+#include <cstring>
 #include <sstream>
 
 using namespace Cicada;
@@ -127,7 +128,7 @@ static bool isurialnum(int c)
 
 static bool isurisafe(int c)
 {
-    /* These are the _unreserved_ URI characters (RFC3986 ¡ì2.3) */
+    /* These are the _unreserved_ URI characters (RFC3986 ï¿½ï¿½2.3) */
     return isurialnum(c) || (strchr("-._~", c) != NULL);
 }
 

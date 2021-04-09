@@ -5,6 +5,7 @@
 #include "ISegmentBase.h"
 #include "DashSegment.h"
 #include "SegmentTimeline.h"
+#include <limits>
 
 using namespace Cicada::Dash;
 
@@ -14,7 +15,9 @@ ISegmentBase::ISegmentBase(SegmentInformation *parent, Type type) : AttrsNode(ty
 }
 
 ISegmentBase::~ISegmentBase()
-{}
+{
+    delete mInitSegment;
+}
 
 DashSegment *ISegmentBase::getInitSegment() const
 {

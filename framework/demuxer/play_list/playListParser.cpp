@@ -15,4 +15,8 @@ namespace Cicada {
         mUseCallBack = true;
         mDataSourceIO = nullptr;
     }
+    playListParser::~playListParser()
+    {
+        delete mDataSourceIO;
+    }
 }

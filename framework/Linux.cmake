@@ -16,6 +16,7 @@ set(COMMON_INC_DIR ${COMMON_INC_DIR}
         ${INSTALL_DIR}/openssl/Linux/x86_64/include
         ${INSTALL_DIR}/ffmpeg/Linux/x86_64/include
         ${INSTALL_DIR}/cares/Linux/x86_64/include
+        ${INSTALL_DIR}/libxml2/Linux/x86_64/include/libxml2
         ${INSTALL_DIR}/../build/ffmpeg/Linux/x86_64/
         ${INSTALL_DIR}/../boost/
         ${INSTALL_DIR}/../external/external/ffmpeg/

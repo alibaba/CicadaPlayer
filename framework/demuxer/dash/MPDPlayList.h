@@ -7,6 +7,7 @@
 
 #include "ProgramInfo.h"
 #include <demuxer/play_list/playList.h>
+#include <memory>
 
 namespace Cicada {
     namespace Dash {
@@ -42,7 +43,7 @@ namespace Cicada {
         public:
             bool needsUpdates{false};
             bool lowLatency{false};
-            ProgramInfo *programInfo{nullptr};
+            std::unique_ptr<ProgramInfo> programInfo{nullptr};
             ProfileName mProfileName = ProfileName::Unknown;
         };
     }// namespace Dash

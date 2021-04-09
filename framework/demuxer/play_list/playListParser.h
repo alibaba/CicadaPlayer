@@ -5,22 +5,21 @@
 #ifndef FRAMEWORK_PLAYLISTPARSER_H
 #define FRAMEWORK_PLAYLISTPARSER_H
 
-#include <cstdint>
-#include <string>
 #include "base/media/framework_type.h"
 #include "playList.h"
+#include <cstdint>
+#include <data_source/dataSourceIO.h>
+#include <string>
 
 using namespace std;
 namespace Cicada{
     class playList;
 
-    class dataSourceIO;
-
     class playListParser {
     public:
         playListParser() = default;
 
-        virtual ~playListParser() = default;
+        virtual ~playListParser();
 
         virtual playList *parse(const std::string &playlistur) = 0;
 

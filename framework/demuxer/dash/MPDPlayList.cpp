@@ -11,7 +11,9 @@ MPDPlayList::MPDPlayList()
 {}
 
 MPDPlayList::~MPDPlayList()
-{}
+{
+    delete mUtcTimer;
+}
 
 bool MPDPlayList::isLive() const
 {

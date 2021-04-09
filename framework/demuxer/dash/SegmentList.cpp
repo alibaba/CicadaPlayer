@@ -6,6 +6,7 @@
 #include "DashSegment.h"
 #include "SegmentInformation.h"
 #include "SegmentTimeline.h"
+#include <limits>
 
 using namespace Cicada::Dash;
 

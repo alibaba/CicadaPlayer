@@ -4,6 +4,7 @@
 #define LOG_TAG "DOMParser"
 #include "DOMParser.h"
 #include "utils/frame_work_log.h"
+#include <cstring>
 #include <stack>
 #include <string>
 
@@ -24,6 +25,9 @@ Cicada::DOMParser::DOMParser()
 Cicada::DOMParser::~DOMParser()
 {
     xmlCleanupParser();
+    if (mNodeText) {
+        free(mNodeText);
+    }
     delete mRoot;
 }
 
@@ -209,7 +213,9 @@ skip:
     }
 
     mNodeText = strdup((const char *) node);
-    if (data != NULL) *data = mNodeText;
+    if (data != NULL) {
+        *data = mNodeText;
+    }
     return mNodeText != NULL ? ret : XML_READER_ERROR;
 }
 
