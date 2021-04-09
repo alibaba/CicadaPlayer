@@ -11,10 +11,10 @@
 @implementation CicadaConfig (refresh)
 
 - (instancetype)refreshConfigWithArray:(NSArray *)array {
-    if (array.count != 9) {
+    if (array.count != 10) {
         return self;
     }
-        
+
     int startBufferDuration = [array[0] intValue];
     int highBufferDuration = [array[1] intValue];
     int maxBufferDuration = [array[2] intValue];
@@ -23,14 +23,16 @@
     NSString *referer = array[5];
     NSString *httpProxy = array[6];
     int retryCount = [array[7] intValue];
-    NSString *clearShowWhenStop = array[8];
-    
+    int mMAXBackwardDuration = [array[8] intValue];
+    NSString *clearShowWhenStop = array[9];
+
     self.startBufferDuration = startBufferDuration;
     self.highBufferDuration = highBufferDuration;
     self.maxBufferDuration = maxBufferDuration;
     self.maxDelayTime = maxDelayTime;
     self.networkTimeout = networkTimeout;
     self.networkRetryCount = retryCount;
+    self.mMAXBackwardDuration = mMAXBackwardDuration;
     if (referer.length != 0) {
         self.referer = referer;
     }

@@ -146,8 +146,15 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 1F7561AD2369505B001A5B1E /* CicadaPlayerSDK.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1CCA6A9F9969404588A651B2;
+			remoteGlobalIDString = 30D11CF4F068429B9A29491A;
 			remoteInfo = install;
+		};
+		F3C2D0982620355200CAB6BB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F7561AD2369505B001A5B1E /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 657DC7ABB3084EB6BA60A5F5;
+			remoteInfo = framework_drm;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -434,6 +441,7 @@
 				CB5A797324C941650005ABD3 /* libcommunication.a */,
 				1F7561CC2369505B001A5B1E /* libdata_source.a */,
 				1F7561CE2369505B001A5B1E /* libdemuxer.a */,
+				F3C2D0992620355200CAB6BB /* libframework_drm.a */,
 				1F7561D02369505B001A5B1E /* libframework_filter.a */,
 				1F7561D22369505B001A5B1E /* libframework_utils.a */,
 				9EAE8FA823AB212E0026C695 /* libmedia_player.a */,
@@ -535,7 +543,7 @@
 				TargetAttributes = {
 					18FCB28D21D6126A00289843 = {
 						CreatedOnToolsVersion = 9.2;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 					9E2ABC52239FBDE800753787 = {
 						CreatedOnToolsVersion = 11.1;
@@ -662,6 +670,13 @@
 			fileType = archive.ar;
 			path = libcommunication.a;
 			remoteRef = CB5A797224C941650005ABD3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F3C2D0992620355200CAB6BB /* libframework_drm.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libframework_drm.a;
+			remoteRef = F3C2D0982620355200CAB6BB /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -908,9 +923,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = CRDEY67TWJ;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = A2YNUJF7T7;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -927,7 +942,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.aliyun.CicadaDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = AliLive_iOS_development;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -940,8 +955,8 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = CRDEY67TWJ;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = A2YNUJF7T7;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -959,7 +974,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.aliyun.CicadaDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = AliLive_iOS_development;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

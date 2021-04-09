@@ -8,5 +8,6 @@
     "httpProxy": "",
     "networkRetryCount": "2",
     "maxDuration": "300",
-    "maxSizeMB": "200"
+    "maxSizeMB": "200",
+    "mMAXBackwardDuration":"0"
 }
