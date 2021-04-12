@@ -30,7 +30,8 @@ namespace Cicada {
 
         private:
             static void parseMPDAttributes(MPDPlayList *mpd, xml::Node *node);
-            void parseProgramInformation(MPDPlayList *, xml::Node *node);
+            void parseProgramInformation(MPDPlayList *mpd, xml::Node *node);
+            void parseUtcTiming(MPDPlayList *mpd, xml::Node *node);
             void parseMPDBaseUrl(MPDPlayList *mpd, xml::Node *root);
             void parsePeriods(MPDPlayList *mpd, xml::Node *root);
             size_t parseSegmentInformation(MPDPlayList *mpd, xml::Node *node, SegmentInformation *info, uint64_t *nextid);

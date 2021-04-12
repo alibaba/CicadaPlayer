@@ -3,6 +3,8 @@
 //
 
 #include "MPDPlayList.h"
+#include "UTCTiming.h"
+#include "data_source/dataSourcePrototype.h"
 #include "utils/UTCTimer.h"
 
 using namespace Cicada::Dash;
@@ -36,10 +38,44 @@ void MPDPlayList::setLowLatency(bool b)
 
 void MPDPlayList::InitUtcTime()
 {
-    // TODO: use ntp server address in mpd instead of default
-    NTPClient ntpClient;
-    ntpClient.getTimeSync();
-    std::string utcTime = (std::string)ntpClient;
+    std::string utcTime;
+    if (mUtcTiming) {
+        if (mUtcTiming->mUtcType == UTCTimingDirect) {
+            utcTime = mUtcTiming->mValue;
+        } else if (mUtcTiming->mUtcType == UTCTimingNtp) {
+            NTPClient ntpClient(mUtcTiming->mValue);
+            ntpClient.getTimeSync();
+            utcTime = (std::string) ntpClient;
+        } else if (mUtcTiming->mUtcType == UTCTimingXsdate) {
+            // TODO: get utctime
+            std::string url = mUtcTiming->mValue;
+            IDataSource *dataSource = dataSourcePrototype::create(url, nullptr);
+            dataSource->Open(0);
+
+            int size = dataSource->Seek(0, SEEK_SIZE);
+            auto *buffer = static_cast<char *>(malloc(size));
+            int len = 0;
+            while (len < size) {
+                int ret = dataSource->Read(buffer + len, size - len);
+                if (ret > 0) {
+                    len += ret;
+                } else {
+                    break;
+                }
+            }
+            if (len > 0) {
+                utcTime.assign(buffer, len);
+            }
+            free(buffer);
+            delete dataSource;
+        }
+    }
+    if (utcTime.empty()) {
+        // use default ntp
+        NTPClient ntpClient;
+        ntpClient.getTimeSync();
+        utcTime = (std::string) ntpClient;
+    }
     mUtcTimer = new UTCTimer(utcTime);
     mUtcTimer->start();
 }

@@ -12,6 +12,8 @@
 namespace Cicada {
     namespace Dash {
 
+        class UTCTiming;
+
         enum class ProfileName {
             Unknown,
             Full,
@@ -45,6 +47,7 @@ namespace Cicada {
             bool lowLatency{false};
             std::unique_ptr<ProgramInfo> programInfo{nullptr};
             ProfileName mProfileName = ProfileName::Unknown;
+            UTCTiming *mUtcTiming = nullptr;
         };
     }// namespace Dash
 }// namespace Cicada

@@ -23,7 +23,7 @@ namespace Cicada {
 
     class NTPClient {
     public:
-        NTPClient(std::string server, int64_t port);
+        NTPClient(std::string server, int64_t port = 123);
         NTPClient();
         ~NTPClient();
         int64_t get() const;

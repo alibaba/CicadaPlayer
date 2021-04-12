@@ -266,10 +266,11 @@ int NTPClient::getNTPTime()
 NTPClient::operator std::string()
 {
 #define BUFLEN 255
-    if (mTime <= 0) {
-        return "";
+    time_t t = time(nullptr);
+    if (mTime > 0) {
+        t = mTime;
     }
     char tmpBuf[BUFLEN];
-    strftime(tmpBuf, BUFLEN, "%Y-%m-%dT%H:%M:%SZ", gmtime(&mTime));
+    strftime(tmpBuf, BUFLEN, "%Y-%m-%dT%H:%M:%SZ", gmtime(&t));
     return string(tmpBuf);
 }

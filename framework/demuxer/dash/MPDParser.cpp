@@ -8,6 +8,7 @@
 #include "SegmentList.h"
 #include "SegmentTemplate.h"
 #include "SegmentTimeline.h"
+#include "UTCTiming.h"
 #include "conversions.h"
 #include "data_source/dataSourceIO.h"
 #include "demuxer/play_list/AdaptationSet.h"
@@ -60,6 +61,7 @@ Cicada::playList *MPDParser::parse(const std::string &playlistur)
     }
     parseMPDAttributes(mpd, mRoot);
     parseProgramInformation(mpd, DOMHelper::getFirstChildElementByName(mRoot, "ProgramInformation"));
+    parseUtcTiming(mpd, DOMHelper::getFirstChildElementByName(mRoot, "UTCTiming"));
     parseMPDBaseUrl(mpd, mRoot);
     parsePeriods(mpd, mRoot);
     mpd->InitUtcTime();
@@ -184,6 +186,22 @@ void MPDParser::parseProgramInformation(MPDPlayList *mpd, xml::Node *node)
     }
 
     mpd->programInfo = static_cast<unique_ptr<ProgramInfo>>(info);
+}
+
+void MPDParser::parseUtcTiming(MPDPlayList *mpd, xml::Node *node)
+{
+    if (!node) {
+        return;
+    }
+
+    std::string schemeIdUri, value;
+    if (node->hasAttribute("schemeIdUri")) {
+        schemeIdUri = node->getAttributeValue("schemeIdUri");
+    }
+    if (node->hasAttribute("value")) {
+        value = node->getAttributeValue("value");
+    }
+    mpd->mUtcTiming = new UTCTiming(schemeIdUri, value);
 }
 
 void MPDParser::parseMPDBaseUrl(MPDPlayList *mpd, xml::Node *root)

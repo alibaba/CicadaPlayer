@@ -127,7 +127,9 @@ if (ENABLE_DASH_DEMUXER)
             dash/DashStream.cpp
             dash/DashStream.h
             dash/DashSegmentTracker.cpp
-            dash/DashSegmentTracker.h)
+            dash/DashSegmentTracker.h
+            dash/UTCTiming.cpp
+            dash/UTCTiming.h)
     source_group(dash FILES ${DASH_FILES})
     target_sources(demuxer PRIVATE ${DASH_FILES})
 endif ()
