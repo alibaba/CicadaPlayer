@@ -73,7 +73,10 @@ Dash::DashSegment *DashSegmentTracker::getStartSegment()
     if (mRep == nullptr) {
         return nullptr;
     }
-    mCurrentSegNumber = getStartSegmentNumber(mRep);
+    uint64_t startNumber = getStartSegmentNumber(mRep);
+    if (mCurrentSegNumber < startNumber) {
+        mCurrentSegNumber = startNumber;
+    }
     Dash::DashSegment *segment = nullptr;
     bool b_gap = false;
     segment = mRep->getNextMediaSegment(mCurrentSegNumber, &mCurrentSegNumber, &b_gap);
