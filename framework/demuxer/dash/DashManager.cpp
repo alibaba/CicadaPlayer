@@ -43,7 +43,7 @@ int DashManager::init()
     int id = 0;
 
     for (auto &pit : periodList) {
-        std::list<AdaptationSet *> &adaptSetList = FindSuitableAdaptationSets(pit);
+        std::list<AdaptationSet *> adaptSetList = FindSuitableAdaptationSets(pit);
 
         for (auto &ait : adaptSetList) {
             auto representList = ait->getRepresentations();
