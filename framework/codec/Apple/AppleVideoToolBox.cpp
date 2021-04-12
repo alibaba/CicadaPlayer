@@ -442,7 +442,7 @@ namespace Cicada {
             free(meta->extradata);
         }
 
-        meta->extradata = static_cast<uint8_t *>(av_malloc(meta->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE));
+        meta->extradata = static_cast<uint8_t *>(av_malloc(pPacket->getInfo().extra_data_size + AV_INPUT_BUFFER_PADDING_SIZE));
         meta->extradata_size = pPacket->getInfo().extra_data_size;
         memcpy(meta->extradata, pPacket->getInfo().extra_data, pPacket->getInfo().extra_data_size);
         unique_ptr<bitStreamParser> parser = unique_ptr<bitStreamParser>(new bitStreamParser());
