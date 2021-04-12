@@ -12,7 +12,7 @@
 #include <cassert>
 #include <utility>
 
-#define ENABLE_DOWNLOAD_BYTES 1
+#define ENABLE_DOWNLOAD_BYTES 0
 
 #define LOWER_SWITCH_VALUE_MS (15 * 1000)
 #define UPPER_SWITCH_VALUE_MS (30 * 1000)
@@ -46,7 +46,7 @@ void AbrBufferAlgoStrategy::Reset()
 
 void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
 {
-    if (mSwitching || (mBitRates.empty())) {
+    if (mSwitching || (mBitRates.empty()) || mRefererData->IsDownloadCompleted()) {
         return;
     }
 
@@ -69,6 +69,14 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
         //        AF_LOGI("BA connect %d full:%d", connect, bufferFull);
         if (mRefererData->GetIsConnected()) {
             bufferFull = mRefererData->GetRemainSegmentCount() == 0;
+        }
+    }
+
+    if (!bufferFull) {
+        mDownloadSpeed.push_back(mRefererData->GetCurrentDownloadSpeed());
+
+        if (mDownloadSpeed.size() > 30) {
+            mDownloadSpeed.pop_front();
         }
     }
 
@@ -97,7 +105,6 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
 
     int64_t maxSpeed = 0;
     int64_t averageSpeed = 0;
-#if ENABLE_DOWNLOAD_BYTES
     if (!mDownloadSpeed.empty()) {
         std::list<int64_t> downloadSpeed = mDownloadSpeed;
         downloadSpeed.sort(std::greater<int64_t>());
@@ -118,7 +125,6 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
 
         maxSpeed = downloadSpeed.front();
     }
-#endif
     AF_LOGD("BA bufferUp:%d,bufferDuration:%lld,isFull:%d Max:%lld average:%lld", bufferUp, bufferDuration, bufferFull, maxSpeed,
             averageSpeed);
 
@@ -247,6 +253,7 @@ void AbrBufferAlgoStrategy::ProcessAbrAlgo()
     if (mDownloadSpeed.size() > 30) {
         mDownloadSpeed.pop_front();
     }
+#else
 #endif
     ComputeBufferTrend(curTime);
 }
