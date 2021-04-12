@@ -13,7 +13,6 @@
 #include "media_player_api.h"
 #include "abr/AbrManager.h"
 #include "abr/AbrBufferAlgoStrategy.h"
-#include "abr/AbrBufferRefererData.h"
 
 #include "analytics/AnalyticsCollectorFactory.h"
 #include "analytics/AnalyticsQueryListener.h"
@@ -74,8 +73,8 @@ namespace Cicada {
             return this->abrChanged(stream);
         };
         mAbrAlgo = new AbrBufferAlgoStrategy(fun);
-        AbrBufferRefererData *pRefererData = new AbrBufferRefererData(handle);
-        mAbrAlgo->SetRefererData(pRefererData);
+        mAbrRefData = new AbrBufferRefererData(handle);
+        mAbrAlgo->SetRefererData(mAbrRefData);
         mAbrManager->SetAbrAlgoStrategy(mAbrAlgo);
 
         refreshPlayerSessionId();
@@ -127,6 +126,7 @@ namespace Cicada {
         delete mQueryListener;
         delete mAbrManager;
         delete mAbrAlgo;
+        delete mAbrRefData;
         playerHandle *handle = (playerHandle *) mPlayerHandle;
         delete mConfig;
         CicadaReleasePlayer(&handle);
@@ -881,6 +881,9 @@ namespace Cicada {
 
         if (player->mListener.CurrentDownLoadSpeed) {
             player->mListener.CurrentDownLoadSpeed(speed, player->mListener.userData);
+        }
+        if (player->mAbrRefData) {
+            player->mAbrRefData->setCurrentDownloadSpeed(speed);
         }
     }
 

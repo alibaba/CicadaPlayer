@@ -34,6 +34,10 @@ public:
     virtual int64_t GetDownloadedBytes();
 
     virtual bool GetReBuffering() = 0;
+
+    virtual int64_t GetCurrentDownloadSpeed() = 0;
+
+    virtual bool IsDownloadCompleted() = 0;
 };
 
 #endif /* AbrRefererData_h */

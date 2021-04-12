@@ -72,3 +72,20 @@ bool AbrBufferRefererData::GetReBuffering()
     }
     return false;
 }
+int64_t AbrBufferRefererData::GetCurrentDownloadSpeed()
+{
+    return mCurrentDownloadSpeed;
+}
+void AbrBufferRefererData::setCurrentDownloadSpeed(int64_t speed)
+{
+    mCurrentDownloadSpeed = speed;
+}
+bool AbrBufferRefererData::IsDownloadCompleted()
+{
+    auto *handle = (playerHandle *) mHandle;
+
+    if (handle) {
+        return CicadaGetPropertyLong(handle, PROPERTY_KEY_DOWNLOAD_COMPLETED);
+    }
+    return false;
+}

@@ -9,6 +9,7 @@
 #define CicadaPlayer_h
 
 #include "MediaPlayerConfig.h"
+#include "abr/AbrBufferRefererData.h"
 #include "native_cicada_player_def.h"
 #include <stdio.h>
 
@@ -424,6 +425,7 @@ namespace Cicada {
         IAnalyticsCollectorFactory &mCollectorFactory;
         AbrManager *mAbrManager;
         AbrAlgoStrategy *mAbrAlgo;
+        AbrBufferRefererData *mAbrRefData{nullptr};
 
         std::mutex mMutexAbr;
 

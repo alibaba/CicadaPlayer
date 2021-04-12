@@ -785,6 +785,9 @@ int64_t SuperMediaPlayer::GetPropertyInt(PropertyKey key)
         case PROPERTY_KEY_RE_BUFFERING:
             return mBufferingFlag;
 
+        case PROPERTY_KEY_DOWNLOAD_COMPLETED:
+            return mEof;
+
         default:
             break;
     }

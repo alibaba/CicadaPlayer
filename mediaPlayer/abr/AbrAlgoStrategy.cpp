@@ -18,7 +18,7 @@ AbrAlgoStrategy::AbrAlgoStrategy(std::function<void(int)> func)
 
 AbrAlgoStrategy::~AbrAlgoStrategy()
 {
-    delete mRefererData;
+    //  delete mRefererData;
 }
 
 void AbrAlgoStrategy::Clear()

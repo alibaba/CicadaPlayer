@@ -29,8 +29,16 @@ public:
 
     bool GetReBuffering() override;
 
+    int64_t GetCurrentDownloadSpeed() override;
+
+    void setCurrentDownloadSpeed(int64_t speed);
+
+    bool IsDownloadCompleted() override;
+
+
 private:
     void *mHandle = nullptr;
+    int64_t mCurrentDownloadSpeed{0};
 };
 
 #endif /* AbrBufferRefererData_h */
