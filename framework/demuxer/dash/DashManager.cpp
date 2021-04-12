@@ -43,7 +43,7 @@ int DashManager::init()
     int id = 0;
 
     for (auto &pit : periodList) {
-        std::list<AdaptationSet *> &adaptSetList = pit->GetAdaptSets();
+        std::list<AdaptationSet *> &adaptSetList = FindSuitableAdaptationSets(pit);
 
         for (auto &ait : adaptSetList) {
             auto representList = ait->getRepresentations();
@@ -556,4 +556,44 @@ int64_t DashManager::getTargetDuration()
         return 0;
     }
     return mPList->maxSegmentDuration;
+}
+
+std::list<AdaptationSet *> DashManager::FindSuitableAdaptationSets(Period* period)
+{
+    std::list<AdaptationSet *> &adaptSetList = period->GetAdaptSets();
+    AdaptationSet *suitableVideo = nullptr;
+    AdaptationSet *suitableAudio = nullptr;
+
+    for (auto &ait : adaptSetList) {
+        auto representList = ait->getRepresentations();
+        std::string mimeType = ait->getMimeType();
+        if (mimeType.empty()) {
+            for (auto &rit : representList) {
+                mimeType = rit->getMimeType();
+                if (!mimeType.empty()) {
+                    break;
+                }
+            }
+        }
+        if (mimeType == "video/mp4") {
+            if (suitableVideo) {
+                continue;
+            }
+            suitableVideo = ait;
+        } else if (mimeType == "audio/mp4") {
+            if (suitableAudio) {
+                continue;
+            }
+            suitableAudio = ait;
+        }
+        // TODO: subtitle
+    }
+    std::list<AdaptationSet *> ret;
+    if (suitableVideo) {
+        ret.push_back(suitableVideo);
+    }
+    if (suitableAudio) {
+        ret.push_back(suitableAudio);
+    }
+    return ret;
 }

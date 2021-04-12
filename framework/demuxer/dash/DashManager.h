@@ -10,6 +10,8 @@
 namespace Cicada {
 
     class DashStream;
+    class AdaptationSet;
+    class Period;
 
     class DashManager : public PlaylistManager {
 
@@ -62,6 +64,7 @@ namespace Cicada {
         int64_t getTargetDuration() override;
 
     private:
+        std::list<AdaptationSet *> FindSuitableAdaptationSets(Period* period);
         std::list<DashStreamInfo *> mStreamInfoList{};
         DashStream *mMuxedStream = nullptr;
         bool mStarted = false;
