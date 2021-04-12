@@ -31,10 +31,6 @@ namespace Cicada {
     HlsParser::~HlsParser()
     {
         delete[] mBuffer;
-
-        if (mUseCallBack) {
-            delete mDataSourceIO;
-        }
     }
 
     int HlsParser::probe(const uint8_t *buffer, int size)

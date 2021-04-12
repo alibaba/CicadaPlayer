@@ -217,8 +217,7 @@ namespace Cicada {
             }
 
             auto *parser = new HlsParser(pUri->c_str());
-            dataSourceIO *dio = new dataSourceIO(mPDataSource);
-            parser->setDataSourceIO(dio);
+            parser->setDataSourceIO(new dataSourceIO(mPDataSource));
             playList *pPlayList = parser->parse(*pUri);
 
             //  mPPlayList->dump();
@@ -261,7 +260,6 @@ namespace Cicada {
             // mRep->mStreamType = rep->mStreamType;
             // TODO save parser
             delete parser;
-            delete dio;
             return 0;
         }
 
