@@ -1713,6 +1713,7 @@ void SuperMediaPlayer::doRender()
             if (!mAudioFrameQue.empty()) {
                 NotifyPosition(mAudioFrameQue.front()->getInfo().timePosition);
                 rendered = true;
+                mCurrentPos = mAudioFrameQue.front()->getInfo().timePosition;
                 mAudioTime.startTime = mAudioFrameQue.front()->getInfo().pts;
             }
         }
