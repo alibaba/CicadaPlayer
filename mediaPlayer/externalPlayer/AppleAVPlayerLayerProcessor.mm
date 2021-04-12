@@ -88,17 +88,19 @@
     CGRect bounds = self.playerLayer.bounds;
     if (_scaleMode == SM_FIT) {
         float scale = 1;
-        if(_isFillWidth){
+        if ((_videoSize.width > _videoSize.height && _rotateMode % 180 == 0) ||
+            (_videoSize.width < _videoSize.height && _rotateMode % 180 != 0)) {
             scale = self.playerLayer.bounds.size.width/[self getVideoSize].width;
-        }else{
+        } else {
             scale = self.playerLayer.bounds.size.height/[self getVideoSize].height;
         }
         _scaleTransform = CATransform3DMakeScale(scale, scale, 1);
     }else if (_scaleMode == SM_CROP){
         float scale = 1;
-        if(!_isFillWidth){
+        if (!((_videoSize.width > _videoSize.height && _rotateMode % 180 == 0) ||
+              (_videoSize.width < _videoSize.height && _rotateMode % 180 != 0))) {
             scale = self.playerLayer.bounds.size.width/[self getVideoSize].width;
-        }else{
+        } else {
             scale = self.playerLayer.bounds.size.height/[self getVideoSize].height;
         }
         _scaleTransform = CATransform3DMakeScale(scale, scale, 1);
