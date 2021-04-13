@@ -4,6 +4,7 @@
 #define LOG_TAG "UTCTime"
 #include "UTCTimer.h"
 #include "frame_work_log.h"
+#include "utils/timer.h"
 #include <cinttypes>
 #include <cstdlib>
 #include <cstring>
@@ -12,7 +13,6 @@
 #include <sstream>
 #include <sys/types.h>
 #include <utility>
-#include <utils/timer.h>
 #ifdef WIN32
 #include <winsock.h>
 #else
@@ -237,7 +237,7 @@ static int sendPacket(int fd)
     int64_t now = af_gettime_relative();
     data[10] = htonl(now / 1000000 + JAN_1970);
     data[11] = htonl(NTPFRAC(now % 1000000));
-    return send(fd, data, 48, 0);
+    return send(fd, (char *) data, 48, 0);
 }
 static void getNewTime(unsigned int *data, struct timeval *ptimeval)
 {
@@ -275,9 +275,13 @@ static int64_t getServerTime(int sockfd, sockaddr_in serv_addr)
             continue;
         }
         if (FD_ISSET(sockfd, &fds)) {
+#ifdef WIN32
+            recv_len = recvfrom(sockfd, (char*)buf, sizeof(buf), 0, (struct sockaddr *) &serv_addr, &addr_len);
+#else
             recv_len = recvfrom(sockfd, buf, sizeof(buf), 0, (struct sockaddr *) &serv_addr, (socklen_t *) &addr_len);
+#endif
             if (recv_len == -1) {
-                close(sockfd);
+                shutdown(sockfd, 2);
                 return -1;
             } else if (recv_len > 0) {
                 getNewTime(buf, &TimeSet);
@@ -329,11 +333,11 @@ int NTPClient::getNTPTime()
     if (n < 0) {
         AF_LOGE("ERROR writing to socket");
         mTime = -errno;
-        close(sockfd);
+        shutdown(sockfd, 2);
         return -1;
     }
     mTime = getServerTime(sockfd, serv_addr);
-    close(sockfd);
+    shutdown(sockfd, 2);
     return -1;
 }
 NTPClient::operator std::string()
