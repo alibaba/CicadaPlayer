@@ -186,12 +186,13 @@ void afThread::forceStop()
     }
 }
 
-//void afThread::detach()
-//{
-//    std::unique_lock<std::mutex> uMutex(mMutex);
-//    if (mThreadPtr->joinable())
-//        mThreadPtr->detach();
-//}
+void afThread::detach()
+{
+    std::unique_lock<std::mutex> uMutex(mMutex);
+    if (mThreadPtr && mThreadPtr->joinable()) {
+        mThreadPtr->detach();
+    }
+}
 
 afThread::~afThread()
 {

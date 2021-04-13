@@ -27,6 +27,8 @@ namespace Cicada {
         NTPClient();
         ~NTPClient();
         int64_t get() const;
+
+        // TODO: delete it
         int64_t getTimeSync() const;
         explicit operator std::string();
 

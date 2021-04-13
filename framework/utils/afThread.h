@@ -52,7 +52,7 @@ public:
     void setBeginCallback(const thread_beginCallback &callback);
 
     void setEndCallback(const thread_endCallback &callback);
-    //void detach();
+    void detach();
 
 private:
     static void threadRun(void *arg);
