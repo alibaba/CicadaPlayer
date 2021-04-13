@@ -194,12 +194,18 @@ int64_t NTPClient::get() const
     return mTime;
 }
 
-int64_t NTPClient::getTimeSync() const
+int64_t NTPClient::getTimeSync(int timeoutMs) const
 {
-    if (mThread) {
-        mThread->stop();
-    }
-    return mTime;
+    int64_t time;
+    int tryTimes = timeoutMs / 100;
+    do {
+        time = get();
+        if (time == -EAGAIN) {
+            af_msleep(100);
+        }
+        tryTimes--;
+    } while (time == -EAGAIN && tryTimes >= 0);
+    return time;
 }
 
 NTPClient::NTPClient()

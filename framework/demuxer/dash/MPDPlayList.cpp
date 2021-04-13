@@ -44,10 +44,9 @@ void MPDPlayList::InitUtcTime()
             utcTime = mUtcTiming->mValue;
         } else if (mUtcTiming->mUtcType == UTCTimingNtp) {
             NTPClient ntpClient(mUtcTiming->mValue);
-            ntpClient.getTimeSync();
+            ntpClient.getTimeSync(50000);
             utcTime = (std::string) ntpClient;
         } else if (mUtcTiming->mUtcType == UTCTimingXsdate) {
-            // TODO: get utctime
             std::string url = mUtcTiming->mValue;
             IDataSource *dataSource = dataSourcePrototype::create(url, nullptr);
             dataSource->Open(0);
@@ -73,7 +72,7 @@ void MPDPlayList::InitUtcTime()
     if (utcTime.empty()) {
         // use default ntp
         NTPClient ntpClient;
-        ntpClient.getTimeSync();
+        ntpClient.getTimeSync(50000);
         utcTime = (std::string) ntpClient;
     }
     mUtcTimer = new UTCTimer(utcTime);
