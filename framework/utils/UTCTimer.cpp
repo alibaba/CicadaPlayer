@@ -291,7 +291,7 @@ static int64_t getServerTime(int sockfd, sockaddr_in serv_addr)
                 return -1;
             } else if (recv_len > 0) {
                 getNewTime(buf, &TimeSet);
-                return TimeSet.tv_sec * 1000000 + TimeSet.tv_usec;
+                return TimeSet.tv_sec * 1000000ll + TimeSet.tv_usec;
             }
         } else {
             AF_LOGD("count %d \n", count);
