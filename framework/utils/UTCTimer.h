@@ -12,6 +12,7 @@ namespace Cicada {
     class UTCTimer {
     public:
         explicit UTCTimer(const std::string &time);
+        explicit UTCTimer(time_t time);
         ~UTCTimer() = default;
         int64_t get();
         void start();

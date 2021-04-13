@@ -29,6 +29,7 @@ using namespace std;
 class UTCTime {
 public:
     explicit UTCTime(const string &);
+    explicit UTCTime(time_t);
     uint64_t mtime() const;
     time_t time() const;
 
@@ -143,6 +144,11 @@ UTCTime::UTCTime(const string &str)
     }
 }
 
+UTCTime::UTCTime(time_t t_)
+{
+    t = t_ * 1000;
+}
+
 uint64_t UTCTime::mtime() const
 {
     return t;
@@ -152,6 +158,13 @@ time_t UTCTime::time() const
     return t / 1000;
 }
 UTCTimer::UTCTimer(const std::string &time)
+{
+    int64_t t = af_getsteady_ms();
+    UTCTime utcTime(time);
+    int64_t delta = af_getsteady_ms() - t;
+    mClock.set((utcTime.mtime() + delta) * 1000);
+}
+UTCTimer::UTCTimer(time_t time)
 {
     int64_t t = af_getsteady_ms();
     UTCTime utcTime(time);
@@ -349,10 +362,10 @@ int NTPClient::getNTPTime()
 NTPClient::operator std::string()
 {
 #define BUFLEN 255
-    time_t t = time(nullptr);
-    if (mTime > 0) {
-        t = mTime / 1000000;
+    if (mTime <= 0) {
+        return "";
     }
+    time_t t = mTime / 1000000;
     char tmpBuf[BUFLEN];
     size_t len = strftime(tmpBuf, BUFLEN, "%Y-%m-%dT%H:%M:%S", gmtime(&t));
     sprintf(tmpBuf + len, ".%03dZ", (int) (mTime % 1000000) / 1000);

@@ -6,6 +6,7 @@
 #include "UTCTiming.h"
 #include "data_source/dataSourcePrototype.h"
 #include "utils/UTCTimer.h"
+#include "utils/frame_work_log.h"
 
 using namespace Cicada::Dash;
 
@@ -70,12 +71,17 @@ void MPDPlayList::InitUtcTime()
         }
     }
     if (utcTime.empty()) {
-        // use default ntp
+        AF_LOGD("[dash] get utc time in mpd failed, use default ntp server");
         NTPClient ntpClient;
         ntpClient.getTimeSync(50000);
         utcTime = (std::string) ntpClient;
     }
-    mUtcTimer = new UTCTimer(utcTime);
+    if (utcTime.empty()) {
+        mUtcTimer = new UTCTimer(time(nullptr));
+        AF_LOGD("[dash] get utc time failed, use local time");
+    } else {
+        mUtcTimer = new UTCTimer(utcTime);
+    }
     mUtcTimer->start();
 }
 
