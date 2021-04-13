@@ -133,9 +133,21 @@ Dash::DashSegment *DashSegmentTracker::getIndexSegment()
 
 int DashSegmentTracker::GetRemainSegmentCount()
 {
-    std::unique_lock<std::recursive_mutex> locker(mMutex);
     int count = -1;
-
+    auto rep = getNextRepresentation(mAdapt, nullptr);
+    if (rep == nullptr) {
+        return count;
+    }
+    const Dash::ISegmentBase *profile = rep->inheritSegmentProfile();
+    if (profile == nullptr) {
+        return count;
+    }
+    int64_t remainDuration = getMinAheadTime();
+    int64_t scaledSegDuration = profile->inheritDuration();
+    const Dash::Timescale timescale = profile->inheritTimescale();
+    const int64_t segDuration = timescale.ToTime(scaledSegDuration);
+    count = remainDuration / segDuration;
+    //AF_LOGD("[dash] GetRemainSegmentCount = %d", count);
     return count;
 }
 
