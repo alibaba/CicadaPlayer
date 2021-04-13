@@ -672,6 +672,12 @@ int getPCMFrameDuration(const AVFrame *frame)
     return (int) (frame->nb_samples / ((double) (frame->sample_rate) / 1000000));
 }
 
+bool isAudioPlanar(const AVFrame *frame)
+{
+    int sampleSize = av_get_bytes_per_sample((enum AVSampleFormat)(frame->format));
+    return (av_sample_fmt_is_planar((enum AVSampleFormat) frame->format));
+}
+
 void copyPCMData(const AVFrame *frame, uint8_t *buffer)
 {
     int offset = 0;

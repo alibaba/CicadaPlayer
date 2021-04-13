@@ -407,6 +407,11 @@ int AudioTrackRender::device_write_internal(IAFFrame *frame)
         jbuffer = handle->NewGlobalRef(handle->NewByteArray(len));
     }
 
+    bool rendered = false;
+    if (mRenderingCb != nullptr) {
+        rendered = mRenderingCb(mRenderingCbUserData, frame);
+    }
+
     if (audio_track && method_write) {
         handle->SetByteArrayRegion(static_cast<jbyteArray>(jbuffer), 0, len, (jbyte *) frame->getData()[0]);
         handle->CallIntMethod(audio_track, method_write, jbuffer, 0, len);

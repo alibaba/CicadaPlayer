@@ -3,9 +3,12 @@
 //
 #define LOG_TAG "GLRender_OESContext"
 
-#include <utils/timer.h>
-#include <render/video/glRender/base/utils.h>
 #include "OESProgramContext.h"
+#include <base/media/AFMediaCodecFrame.h>
+#include <render/video/glRender/base/utils.h>
+#include <utils/CicadaJSON.h>
+#include <utils/af_string.h>
+#include <utils/timer.h>
 
 using namespace cicada;
 
@@ -342,7 +345,11 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
         return -1;
     }
 
-    frame = nullptr;
+    AFMediaCodecFrame *codecFrame = nullptr;
+    if (frame != nullptr) {
+        codecFrame = dynamic_cast<AFMediaCodecFrame *>(frame.get());
+        codecFrame->releaseIndex();
+    }
 
     {
         std::unique_lock<std::mutex> waitLock(mFrameAvailableMutex);
@@ -375,6 +382,19 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
 
     mDecoderSurface->UpdateTexImg();
     mDecoderSurface->GetTransformMatrix(mOESSTMatrix);
+
+    bool rendered = false;
+    if (mRenderingCb) {
+        CicadaJSONItem params{};
+        params.addValue("glContext", (long) mGLContext);
+        params.addValue("oesId", (int) mOutTextureId);
+        params.addValue("matrix", (long) mOESSTMatrix);
+        rendered = mRenderingCb(mRenderingCbUserData, codecFrame, params);
+    }
+
+    if (rendered) {
+        return -1;
+    }
 
     glUniformMatrix4fv(mMVPMatrixLocation, 1, GL_FALSE, mOESMVMatrix);
     glUniformMatrix4fv(mSTMatrixLocation, 1, GL_FALSE, mOESSTMatrix);

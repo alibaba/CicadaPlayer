@@ -6,6 +6,7 @@
 
 #include "SuperMediaPlayer.h"
 #include "media_player_error_def.h"
+#include <cassert>
 #include <climits>
 #include <data_source/dataSourcePrototype.h>
 #include <utils/CicadaUtils.h>

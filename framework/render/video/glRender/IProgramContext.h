@@ -63,6 +63,22 @@ public:
 
     virtual int updateFrame(std::unique_ptr<IAFFrame> &frame) = 0;
 
+    virtual void setRenderingCb(videoRenderingFrameCB cb, void *userData)
+    {
+        mRenderingCb = cb;
+        mRenderingCbUserData = userData;
+    }
+
+    virtual void setGLContext(void *glContext)
+    {
+        mGLContext = glContext;
+    }
+
+protected:
+    videoRenderingFrameCB mRenderingCb{nullptr};
+    void *mRenderingCbUserData{nullptr};
+
+    void *mGLContext{nullptr};
 };
 
 

@@ -61,6 +61,8 @@ int getPCMFrameDuration(const AVFrame *frame);
 
 void copyPCMData(const AVFrame *frame, uint8_t *buffer);
 
+bool isAudioPlanar(const AVFrame *frame);
+
 // read frame from frameOffset, and return copy size.
 // frameClear will set to true if all the data in the frame be copyed
 size_t copyPCMDataWithOffset(const AVFrame *frame, int frameOffset, uint8_t *outBuffer, size_t size, bool *frameClear);
