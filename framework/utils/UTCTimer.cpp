@@ -12,6 +12,7 @@
 #include <sstream>
 #include <sys/types.h>
 #include <utility>
+#include <utils/timer.h>
 #ifdef WIN32
 #include <winsock.h>
 #else
@@ -152,8 +153,10 @@ time_t UTCTime::time() const
 }
 UTCTimer::UTCTimer(const std::string &time)
 {
+    int64_t t = af_getsteady_ms();
     UTCTime utcTime(time);
-    mClock.set(utcTime.mtime() * 1000);
+    int64_t delta = af_getsteady_ms() - t;
+    mClock.set((utcTime.mtime() + delta) * 1000);
 }
 int64_t UTCTimer::get()
 {
@@ -164,7 +167,8 @@ UTCTimer::operator std::string()
 #define BUFLEN 255
     time_t t = mClock.get() / 1000000;
     char tmpBuf[BUFLEN];
-    strftime(tmpBuf, BUFLEN, "%Y-%m-%d %H:%M:%S", gmtime(&t));
+    size_t len = strftime(tmpBuf, BUFLEN, "%Y-%m-%d %H:%M:%S", gmtime(&t));
+    sprintf(tmpBuf + len, ".%d", (int) (mClock.get() % 1000000) / 1000);
     return string(tmpBuf);
 }
 void UTCTimer::start()

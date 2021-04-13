@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 
 TEST(time, utcTime)
 {
-    UTCTimer utcTime("2021-03-09T06:35:09Z");
+    UTCTimer utcTime("2021-04-13T01:34:44.130Z");
 
     utcTime.start();
     int index = 0;
