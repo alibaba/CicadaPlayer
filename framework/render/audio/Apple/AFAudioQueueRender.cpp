@@ -235,7 +235,6 @@ int AFAudioQueueRender::start_device()
 void AFAudioQueueRender::flush_device()
 {
     mNeedFlush = true;
-    mPlayedBufferSize = 0;
 }
 void AFAudioQueueRender::flushAudioQueue()
 { /*
@@ -260,6 +259,7 @@ void AFAudioQueueRender::flushAudioQueue()
         mInPut.pop();
     }
     mReadOffset = 0;
+    mPlayedBufferSize = 0;
     if (mPlaying) {
         AudioQueueStart(_audioQueueRef, nullptr);
     }
@@ -280,6 +280,9 @@ void AFAudioQueueRender::device_setVolume(float gain)
 
 int64_t AFAudioQueueRender::device_get_position()
 {
+    if (mNeedFlush) {
+        return 0;
+    }
     return static_cast<int64_t>(mPlayedBufferSize / (mAudioFormat.mBytesPerFrame * (mAudioFormat.mSampleRate / 1000000)));
 }
 

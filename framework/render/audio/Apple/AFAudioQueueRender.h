@@ -92,7 +92,7 @@ namespace Cicada {
         AudioQueueRef _audioQueueRef{nullptr};
         AudioStreamBasicDescription mAudioFormat{};
         SpscQueue<IAFFrame *> mInPut{10};
-        uint64_t mPlayedBufferSize{0};
+        int64_t mPlayedBufferSize{0};
         uint8_t mBufferAllocatedCount{0};
         bool mNeedFlush{false};
         bool mRunning{false};
