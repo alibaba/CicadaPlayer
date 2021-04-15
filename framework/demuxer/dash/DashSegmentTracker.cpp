@@ -74,7 +74,7 @@ Dash::DashSegment *DashSegmentTracker::getStartSegment()
         return nullptr;
     }
     uint64_t startNumber = getStartSegmentNumber(mRep);
-    if (mCurrentSegNumber < startNumber) {
+    if (mCurrentSegNumber < startNumber || mCurrentSegNumber == std::numeric_limits<uint64_t>::max()) {
         mCurrentSegNumber = startNumber;
     }
     Dash::DashSegment *segment = nullptr;

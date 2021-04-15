@@ -233,6 +233,9 @@ int DashStream::open_internal()
 
     mStopOnSegEnd = false;
     mCurSeg = nullptr;
+    if (!mPTracker->bufferingAvailable()) {
+        return -EAGAIN;
+    }
     mCurSeg = mPTracker->getStartSegment();
     int trySegmentTimes = 0;
 

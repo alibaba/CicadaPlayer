@@ -45,7 +45,7 @@ void MPDPlayList::InitUtcTime()
             utcTime = mUtcTiming->mValue;
         } else if (mUtcTiming->mUtcType == UTCTimingNtp) {
             NTPClient ntpClient(mUtcTiming->mValue);
-            ntpClient.getTimeSync(50000);
+            ntpClient.getTimeSync(5000);
             utcTime = (std::string) ntpClient;
         } else if (mUtcTiming->mUtcType == UTCTimingXsdate) {
             std::string url = mUtcTiming->mValue;
@@ -73,7 +73,7 @@ void MPDPlayList::InitUtcTime()
     if (utcTime.empty()) {
         AF_LOGD("[dash] get utc time in mpd failed, use default ntp server");
         NTPClient ntpClient;
-        ntpClient.getTimeSync(50000);
+        ntpClient.getTimeSync(5000);
         utcTime = (std::string) ntpClient;
     }
     if (utcTime.empty()) {

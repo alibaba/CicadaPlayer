@@ -127,7 +127,7 @@ namespace Cicada {
 
         bool mRealtime = false;
 
-        uint64_t mCurrentSegNumber = 0;
+        uint64_t mCurrentSegNumber = std::numeric_limits<uint64_t>::max();
     };
 }
 

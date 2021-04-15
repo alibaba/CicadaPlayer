@@ -82,6 +82,9 @@ uint64_t SegmentTemplate::getLiveTemplateNumber(int64_t playbacktime, bool abs) 
             streamstart += parentSegmentInformation->getPeriodStart();
             playbacktime -= streamstart;
         }
+        if (playbacktime < 0) {
+            playbacktime = 0;
+        }
         int64_t elapsed = timescale.ToScaled(playbacktime) - dur;
         if (elapsed > 0) {
             number += elapsed / dur;
