@@ -23,6 +23,8 @@ public:
 
     void captureScreen(std::function<void(uint8_t *, int, int)> func);
 
+    void SetVideoRenderingCallBack(videoRenderingFrameCB cb, void *userData);
+
 private:
     void applyRotate();
 
@@ -38,6 +40,9 @@ private:
     int mFrameWidth{0};
     int mFrameHeight{0};
     double mFrameDar{0};
+
+    videoRenderingFrameCB mRenderingCb{nullptr};
+    void *mRenderingCbUserData{nullptr};
 };
 
 #endif//CICADAMEDIA_DISPLAYLAYERIMPL_H

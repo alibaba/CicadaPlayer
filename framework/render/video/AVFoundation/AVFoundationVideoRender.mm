@@ -92,3 +92,8 @@ void AVFoundationVideoRender::captureScreen(std::function<void(uint8_t *, int, i
 {
     mRender->captureScreen(func);
 }
+
+void AVFoundationVideoRender::setVideoRenderingCb(videoRenderingFrameCB cb, void *userData)
+{
+    mRender->SetVideoRenderingCallBack(cb, userData);
+}

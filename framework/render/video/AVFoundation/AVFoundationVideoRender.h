@@ -35,6 +35,8 @@ public:
 
     void captureScreen(std::function<void(uint8_t *, int, int)> func) override;
 
+    void setVideoRenderingCb(videoRenderingFrameCB cb, void *userData) override;
+
 private:
     std::unique_ptr<DisplayLayerImpl> mRender;
     uint32_t mStatisticsFrameCount{0};

@@ -42,6 +42,12 @@ void DisplayLayerImpl::applyRotate()
     [(__bridge id) renderHandle setRotateMode:rotate];
 }
 
+void DisplayLayerImpl::SetVideoRenderingCallBack(videoRenderingFrameCB cb, void *userData)
+{
+    mRenderingCb = cb;
+    mRenderingCbUserData = userData;
+}
+
 int DisplayLayerImpl::renderFrame(std::unique_ptr<IAFFrame> &frame)
 {
     if (!frame) {
@@ -67,6 +73,18 @@ int DisplayLayerImpl::renderFrame(std::unique_ptr<IAFFrame> &frame)
         size.height = mFrameDisplayHeight;
         [(__bridge id) renderHandle setVideoSize:size];
     }
+
+    bool rendered = false;
+    if (mRenderingCb) {
+        CicadaJSONItem params{};
+        rendered = mRenderingCb(mRenderingCbUserData, frame.get(), params);
+    }
+
+    if (rendered) {
+        return -1;
+    }
+
+
     if (pbafFrame) {
         [(__bridge id) renderHandle displayPixelBuffer:pbafFrame->getPixelBuffer()];
     }
