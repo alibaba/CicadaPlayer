@@ -29,12 +29,12 @@ using namespace std;
 class UTCTime {
 public:
     explicit UTCTime(const string &);
-    explicit UTCTime(time_t);
+    explicit UTCTime(uint64_t);
     uint64_t mtime() const;
-    time_t time() const;
+    uint64_t time() const;
 
 private:
-    uint64_t t;
+    uint64_t t;//us
 };
 typedef struct ntp_packet_t {
 
@@ -129,12 +129,12 @@ UTCTime::UTCTime(const string &str)
 #if defined _WIN32
             time_t mst = _mkgmtime(&tm);
 #else
-            time_t mst = timegm(&tm);
+            uint64_t mst = timegm(&tm);
 #endif
             mst += values[UTCTIME_TZ] * -60;
             mst *= 1000;
             mst += values[UTCTIME_MSEC];
-            t = mst;
+            t = mst * 1000;
         } else {
             // Failure parsing time string
             t = 0;
@@ -144,18 +144,18 @@ UTCTime::UTCTime(const string &str)
     }
 }
 
-UTCTime::UTCTime(time_t t_)
+UTCTime::UTCTime(uint64_t t_)
 {
-    t = t_ * 1000;
+    t = t_;
 }
 
 uint64_t UTCTime::mtime() const
 {
-    return t;
-}
-time_t UTCTime::time() const
-{
     return t / 1000;
+}
+uint64_t UTCTime::time() const
+{
+    return t;
 }
 UTCTimer::UTCTimer(const std::string &time)
 {
@@ -164,12 +164,9 @@ UTCTimer::UTCTimer(const std::string &time)
     int64_t delta = af_getsteady_ms() - t;
     mClock.set((utcTime.mtime() + delta) * 1000);
 }
-UTCTimer::UTCTimer(time_t time)
+UTCTimer::UTCTimer(uint64_t timeMs)
 {
-    int64_t t = af_getsteady_ms();
-    UTCTime utcTime(time);
-    int64_t delta = af_getsteady_ms() - t;
-    mClock.set((utcTime.mtime() + delta) * 1000);
+    mClock.set(timeMs * 1000);
 }
 int64_t UTCTimer::get()
 {

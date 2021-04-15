@@ -12,7 +12,7 @@ namespace Cicada {
     class UTCTimer {
     public:
         explicit UTCTimer(const std::string &time);
-        explicit UTCTimer(time_t time);
+        explicit UTCTimer(uint64_t timeMs);
         ~UTCTimer() = default;
         int64_t get();
         void start();
@@ -39,7 +39,7 @@ namespace Cicada {
         std::string mServer = "ntp.aliyun.com";
         int64_t mPort = 123;
         std::unique_ptr<afThread> mThread{};
-        time_t mTime{0};
+        int64_t mTime{0};
     };
 }// namespace Cicada
 
