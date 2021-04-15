@@ -3185,7 +3185,6 @@ int SuperMediaPlayer::setUpAudioRender(const IAFFrame::audioInfo &info)
 
     if (!mSecretPlayBack) {
         mAVDeviceManager->setAudioRenderingCb(mAudioRenderingCb, mAudioRenderingCbUserData);
-        mAVDeviceManager->setVideoRenderingCb(mVideoRenderingCb, mVideoRenderingCbUserData);
     }
     return 0;
 }
@@ -3371,6 +3370,11 @@ bool SuperMediaPlayer::CreateVideoRender(uint64_t flags)
     }
 
     mAVDeviceManager->setSpeed(mSet->rate);
+
+    if (!mSecretPlayBack) {
+        mAVDeviceManager->setVideoRenderingCb(mVideoRenderingCb, mVideoRenderingCbUserData);
+    }
+
     return true;
 }
 
@@ -3706,12 +3710,18 @@ void SuperMediaPlayer::SetAudioRenderingCallBack(onRenderFrame cb, void *userDat
 {
     mAudioRenderingCb = cb;
     mAudioRenderingCbUserData = userData;
+    if (!mSecretPlayBack) {
+        mAVDeviceManager->setAudioRenderingCb(mAudioRenderingCb, mAudioRenderingCbUserData);
+    }
 }
 
 void SuperMediaPlayer::SetVideoRenderingCallBack(videoRenderingFrameCB cb, void *userData)
 {
     mVideoRenderingCb = cb;
     mVideoRenderingCbUserData = userData;
+    if (!mSecretPlayBack) {
+        mAVDeviceManager->setVideoRenderingCb(mVideoRenderingCb, mVideoRenderingCbUserData);
+    }
 }
 
 int SuperMediaPlayer::invokeComponent(std::string content)
