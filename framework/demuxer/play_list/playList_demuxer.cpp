@@ -219,6 +219,14 @@ namespace Cicada {
         return false;
     }
 
+    int64_t playList_demuxer::getDurationToStartStream(int index)
+    {
+        if (mPPlaylistManager) {
+            return mPPlaylistManager->getDurationToStartStream(index);
+        }
+        return 0;
+    }
+
     int64_t playList_demuxer::getMaxGopTimeUs()
     {
         if (mPPlaylistManager) {

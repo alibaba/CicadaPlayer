@@ -550,6 +550,16 @@ bool DashManager::isWallclockTimeSyncStream(int index)
     return mPList->isLive();
 }
 
+int64_t DashManager::getDurationToStartStream(int index)
+{
+    for (auto &i : mStreamInfoList) {
+        if (i->mPStream->getId() == index) {
+            return i->mPStream->getDurationToStartStream();
+        }
+    }
+    return 0;
+}
+
 int64_t DashManager::getTargetDuration()
 {
     if (mPList == nullptr) {

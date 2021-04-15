@@ -60,6 +60,7 @@ namespace Cicada {
 
         bool isRealTimeStream(int index) override;
         bool isWallclockTimeSyncStream(int index) override;
+        int64_t getDurationToStartStream(int index) override;
 
         int64_t getTargetDuration() override;
 

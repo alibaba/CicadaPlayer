@@ -190,6 +190,11 @@ int DashStream::UpdateInitSection()
     return 0;
 }
 
+int64_t DashStream::getDurationToStartStream()
+{
+    return mPTracker->getDurationToStartStream();
+}
+
 static inline uint64_t getSize(const uint8_t *data, unsigned int len, unsigned int shift)
 {
     uint64_t size(0);

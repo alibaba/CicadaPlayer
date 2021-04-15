@@ -198,6 +198,11 @@ namespace Cicada {
             return false;
         }
 
+        virtual int64_t getDurationToStartStream(int index)
+        {
+            return 0;
+        }
+
     protected:
         demuxer_callback_read mReadCb{nullptr};
         demuxer_callback_seek mSeekCb{nullptr};

@@ -67,6 +67,10 @@ namespace Cicada{
         {
             return false;
         }
+        virtual int64_t getDurationToStartStream(int index)
+        {
+            return 0;
+        }
 
         virtual int64_t getTargetDuration() = 0;
 

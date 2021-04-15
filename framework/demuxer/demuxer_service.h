@@ -108,6 +108,8 @@ namespace Cicada {
 
         bool isWallclockTimeSyncStream(int index);
 
+        int64_t getDurationToStartStream(int index);
+
         int SwitchStreamAligned(int from, int to);
 
         void interrupt(int inter);

@@ -83,6 +83,7 @@ namespace Cicada{
         
         bool isRealTimeStream(int index) override;
         bool isWallclockTimeSyncStream(int index) override;
+        int64_t getDurationToStartStream(int index) override;
 
     private:
         explicit playList_demuxer(int dummy) : IDemuxer("")

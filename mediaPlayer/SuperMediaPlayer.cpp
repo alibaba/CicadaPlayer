@@ -1321,7 +1321,25 @@ bool SuperMediaPlayer::DoCheckBufferPass()
         }
     }
 
+    bool isTimeSync = false;
+    if (mDemuxerService != nullptr) {
+        isTimeSync = mDemuxerService->isWallclockTimeSyncStream(mCurrentVideoIndex);
+    }
+
     if (mPlayStatus == PLAYER_PREPARING) {
+
+        if (isTimeSync) {
+            int currentStreamIndex = mCurrentAudioIndex;
+            if (!HAVE_AUDIO) {
+                currentStreamIndex = mCurrentVideoIndex;
+            }
+            int64_t durationToStart = mDemuxerService->getDurationToStartStream(currentStreamIndex);
+            if (durationToStart < 0) {
+                mPNotifier->NotifyPosition(durationToStart / 1000);
+                return false;
+            }
+        }
+
         if ((cur_buffer_duration >= HighBufferDur &&
              (!HAVE_VIDEO || !mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO) || videoDecoderFull ||
               APP_BACKGROUND == mAppStatus || !mSet->mFastStart)) ||
@@ -1471,10 +1489,6 @@ bool SuperMediaPlayer::DoCheckBufferPass()
         break;
     }
 
-    bool isTimeSync = false;
-    if (mDemuxerService != nullptr) {
-        isTimeSync = mDemuxerService->isWallclockTimeSyncStream(mCurrentVideoIndex);
-    }
     while (isTimeSync && mSuggestedPresentationDelay > 0) {
         if (!HAVE_AUDIO) {
             int64_t maxBufferDuration = getPlayerBufferDuration(true, false);

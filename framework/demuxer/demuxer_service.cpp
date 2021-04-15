@@ -308,6 +308,15 @@ namespace Cicada {
         return mDemuxerPtr->isWallclockTimeSyncStream(index);
     }
 
+    int64_t demuxer_service::getDurationToStartStream(int index)
+    {
+        if (nullptr == mDemuxerPtr) {
+            return 0;
+        }
+
+        return mDemuxerPtr->getDurationToStartStream(index);
+    }
+
     void demuxer_service::interrupt(int inter)
     {
         AF_TRACE;

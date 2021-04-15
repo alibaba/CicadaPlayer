@@ -82,6 +82,7 @@ namespace Cicada {
         bool bufferingAvailable() const;
         int64_t getMinAheadTime() const;
         int64_t getLiveDelay() const;
+        int64_t getDurationToStartStream() const;
 
     private:
         int loadPlayList();

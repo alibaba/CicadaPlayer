@@ -82,6 +82,8 @@ namespace Cicada {
 
         int UpdateInitSection();
 
+        int64_t getDurationToStartStream();
+
     private:
 
         static int read_callback(void *arg, uint8_t *buffer, int size);
