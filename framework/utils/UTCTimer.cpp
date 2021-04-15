@@ -197,7 +197,7 @@ NTPClient::NTPClient(string server, int64_t port) : mServer(std::move(server)), 
 }
 NTPClient::~NTPClient()
 {
-    mThread->detach();
+    //mThread->detach();
 }
 int64_t NTPClient::get() const
 {
