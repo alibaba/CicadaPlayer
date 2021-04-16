@@ -416,6 +416,7 @@ IAFFrame *pixelBufferConvertor::convert(IAFFrame *frame)
 
     UpdateColorInfo(colorInfo, pixelBuffer);
     auto *pBFrame = new PBAFFrame(pixelBuffer, frame->getInfo().pts, frame->getInfo().duration);
+    pBFrame->getInfo().video = frame->getInfo().video;
     CFRelease(pixelBuffer);
     return pBFrame;
 }
