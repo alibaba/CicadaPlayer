@@ -131,7 +131,6 @@ namespace Cicada{
         bool mIsDummy = false;
         int mPocErrorCount{0};
         OSType outPutFormat{0};
-        _Nullable CGColorSpaceRef m_ColorSpace{nullptr};
     };
 
 }

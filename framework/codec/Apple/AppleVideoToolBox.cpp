@@ -44,7 +44,6 @@ namespace Cicada {
         }
 
         close();
-        CGColorSpaceRelease(m_ColorSpace);
 #if TARGET_OS_IPHONE
         RemoveIOSNotificationObserver(this);
 #endif
@@ -456,18 +455,13 @@ namespace Cicada {
 
         CM_NULLABLE CMVideoFormatDescriptionRef videoFormatDesRef{nullptr};
         CM_NULLABLE CFDictionaryRef decoder_spec{nullptr};
-        int rv = createVideoFormatDesc(pPacket->getInfo().extra_data, pPacket->getInfo().extra_data_size, 0, 0, decoder_spec,
-                                       videoFormatDesRef);
+        int rv = createVideoFormatDesc(pPacket->getInfo().extra_data, pPacket->getInfo().extra_data_size, meta->width, meta->height,
+                                       decoder_spec, videoFormatDesRef);
 
         if (rv == 0) {
             if (!VTDecompressionSessionCanAcceptFormatDescription(mVTDecompressSessionRef, videoFormatDesRef)) {
                 flushReorderQueue();
                 close_decoder();
-                meta = ((Stream_meta *) (*(mPInMeta)));
-                delete[] meta->extradata;
-                meta->extradata = new uint8_t[pPacket->getInfo().extra_data_size];
-                meta->extradata_size = pPacket->getInfo().extra_data_size;
-                memcpy(meta->extradata, pPacket->getInfo().extra_data, pPacket->getInfo().extra_data_size);
                 mVideoFormatDesRef = videoFormatDesRef;
                 mDecoder_spec = decoder_spec;
                 rv = init_decoder_internal();
