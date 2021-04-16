@@ -81,6 +81,7 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
     decoderHandle->decoder =
             decoderFactory::create(*meta, decFlag, std::max(meta->height, meta->width), drmInfo.empty() ? nullptr : &drmInfo);
     decoderHandle->mDrmInfo = drmInfo;
+    decoderHandle->mDstFormat = dstFormat;
 
     if (decoderHandle->decoder == nullptr) {
         return gen_framework_errno(error_class_codec, codec_error_video_not_support);
