@@ -7,6 +7,7 @@
 #include "DashSegmentTracker.h"
 #include "DashSegment.h"
 #include "ISegmentBase.h"
+#include "MPDParser.h"
 #include "SegmentBase.h"
 #include "SegmentList.h"
 #include "SegmentTemplate.h"
@@ -32,6 +33,8 @@ const static int SAFETY_BUFFERING_EDGE_OFFSET = 1;
 const static int SAFETY_EXPURGING_OFFSET = 2;
 const static int64_t BUFFERING_LOWEST_LIMIT = 1000000 * 2;
 
+std::atomic<time_t> DashSegmentTracker::mLastLoadTime{10 * 1000000};
+
 
 DashSegmentTracker::DashSegmentTracker(AdaptationSet *adapt, Representation *rep, const IDataSource::SourceConfig &sourceConfig)
     : mAdapt(adapt), mRep(rep), mSourceConfig(sourceConfig)
@@ -42,8 +45,11 @@ DashSegmentTracker::DashSegmentTracker(AdaptationSet *adapt, Representation *rep
     }
     if (mRep) {
         mPPlayList = mRep->getPlaylist();
-        playListOwnedByMe = false;
     }
+    if (mPPlayList) {
+        mMinUpdatePeriod = mPPlayList->minUpdatePeriod;
+    }
+    mLastLoadTime = af_gettime_relative();
 }
 
 DashSegmentTracker::~DashSegmentTracker()
@@ -57,10 +63,6 @@ DashSegmentTracker::~DashSegmentTracker()
     delete mThread;
     std::unique_lock<std::recursive_mutex> locker(mMutex);
 
-    if (playListOwnedByMe) {
-        delete mPPlayList;
-    }
-
     if (mPDataSource) {
         mPDataSource->Interrupt(true);
         mPDataSource->Close();
@@ -70,6 +72,7 @@ DashSegmentTracker::~DashSegmentTracker()
 
 Dash::DashSegment *DashSegmentTracker::getStartSegment()
 {
+    std::unique_lock<std::recursive_mutex> locker(mMutex);
     if (mRep == nullptr) {
         return nullptr;
     }
@@ -115,6 +118,7 @@ Dash::DashSegment *DashSegmentTracker::getNextSegment()
 
 Dash::DashSegment *DashSegmentTracker::getInitSegment()
 {
+    std::unique_lock<std::recursive_mutex> locker(mMutex);
     auto rep = getNextRepresentation(mAdapt, nullptr);
     if (rep) {
         return rep->getInitSegment();
@@ -124,6 +128,7 @@ Dash::DashSegment *DashSegmentTracker::getInitSegment()
 
 Dash::DashSegment *DashSegmentTracker::getIndexSegment()
 {
+    std::unique_lock<std::recursive_mutex> locker(mMutex);
     auto rep = getNextRepresentation(mAdapt, nullptr);
     if (rep) {
         return rep->getIndexSegment();
@@ -133,6 +138,7 @@ Dash::DashSegment *DashSegmentTracker::getIndexSegment()
 
 int DashSegmentTracker::GetRemainSegmentCount()
 {
+    std::unique_lock<std::recursive_mutex> locker(mMutex);
     int count = -1;
     auto rep = getNextRepresentation(mAdapt, nullptr);
     if (rep == nullptr) {
@@ -154,6 +160,51 @@ int DashSegmentTracker::GetRemainSegmentCount()
 int DashSegmentTracker::loadPlayList()
 {
     int ret = 0;
+
+    string uri;
+
+    if (mRep == nullptr || mPPlayList == nullptr) {
+        return -EINVAL;
+    }
+
+    {
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
+        uri = Helper::combinePaths(mRep->getPlaylist()->getPlaylistUrl(), mRep->getPlaylistUrl());
+    }
+
+    AF_LOGD("[dash] DashSegmentTracker::loadPlayList, uri is [%s]\n", uri.c_str());
+
+    if (mPDataSource == nullptr) {
+        {
+            std::unique_lock<std::recursive_mutex> locker(mMutex);
+            mPDataSource = dataSourcePrototype::create(uri, mOpts);
+            mPDataSource->Set_config(mSourceConfig);
+            mPDataSource->Interrupt(mInterrupted);
+        }
+        ret = mPDataSource->Open(0);
+    } else {
+        ret = mPDataSource->Open(uri);
+    }
+
+    AF_LOGD("ret is %d\n", ret);
+
+    if (ret < 0) {
+        AF_LOGE("open url error %s\n", framework_err2_string(ret));
+        return ret;
+    }
+
+    auto *parser = new Dash::MPDParser(uri.c_str());
+    parser->setDataSourceIO(new dataSourceIO(mPDataSource));
+    playList *pPlayList = parser->parse(uri);
+
+    if (pPlayList) {
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
+        mPPlayList->updateWith(pPlayList);
+        delete pPlayList;
+    }
+
+    delete parser;
+    return 0;
 
     return ret;
 }
@@ -204,6 +255,7 @@ void DashSegmentTracker::print()
 
 int DashSegmentTracker::getStreamInfo(int *width, int *height, uint64_t *bandwidth, std::string &language)
 {
+    std::unique_lock<std::recursive_mutex> locker(mMutex);
     if (mRep == nullptr) {
         return -1;
     }
@@ -212,6 +264,7 @@ int DashSegmentTracker::getStreamInfo(int *width, int *height, uint64_t *bandwid
 
 std::string DashSegmentTracker::getDescriptionInfo()
 {
+    std::unique_lock<std::recursive_mutex> locker(mMutex);
     return mAdapt->getDescription();
 }
 
@@ -239,15 +292,15 @@ int DashSegmentTracker::reLoadPlayList()
 {
     //   AF_TRACE;
     if (isLive()) {
+        int64_t reloadInterval = mMinUpdatePeriod;
         int64_t time = af_gettime_relative();
-
-        // todo: reload interval
-        int64_t reloadInterval = 2;
         if (time - mLastLoadTime > reloadInterval) {
-            std::unique_lock<std::mutex> locker(mSegMutex);
-            mNeedUpdate = true;
-            mSegCondition.notify_all();
             mLastLoadTime = time;
+            {
+                std::unique_lock<std::mutex> locker(mSegMutex);
+                mNeedUpdate = true;
+                mSegCondition.notify_all();
+            }
         }
         return mPlayListStatus;
     }

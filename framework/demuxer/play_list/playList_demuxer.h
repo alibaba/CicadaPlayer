@@ -10,10 +10,11 @@
 
 using namespace std;
 
+#include "PlaylistManager.h"
 #include "demuxer/IDemuxer.h"
 #include "demuxer/demuxerPrototype.h"
 #include "playListParser.h"
-#include "PlaylistManager.h"
+#include "utils/xml/DOMParser.h"
 
 namespace Cicada{
 
@@ -89,6 +90,9 @@ namespace Cicada{
         explicit playList_demuxer(int dummy) : IDemuxer("")
         {
             addPrototype(this);
+            // need to call xmlInitParser() in the "main" thread before using any of the libxml2 API
+            // see http://www.xmlsoft.org/threads.html
+            Cicada::DOMParser::InitXml();
         }
 
         Cicada::IDemuxer *clone(const string &uri, int type, const Cicada::DemuxerMeta *meta) override

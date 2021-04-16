@@ -102,12 +102,9 @@ namespace Cicada {
         Representation *mRep = nullptr;
         playList *mPPlayList = nullptr;
 
-        std::string mLocation = "";
-        std::atomic<time_t> mTargetDuration{0};
-        std::atomic<time_t> mPartTargetDuration{0};
-
-        int64_t mLastLoadTime = 0;
-        bool playListOwnedByMe = false;
+        // all segment tracker share same reload interval
+        static std::atomic<time_t> mLastLoadTime;
+        std::atomic<time_t> mMinUpdatePeriod{10 * 1000000};
 
         bool mInited = false;
 

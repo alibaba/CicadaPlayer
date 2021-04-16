@@ -103,4 +103,21 @@ namespace Cicada {
             mPeriodList.erase(i);
         }
     }
+
+    void playList::updateWith(playList *updatedPlaylist)
+    {
+        if (updatedPlaylist == nullptr) {
+            return;
+        }
+        availabilityEndTime = updatedPlaylist->availabilityEndTime;
+        baseUrls = updatedPlaylist->baseUrls;
+
+        auto itP1 = mPeriodList.begin();
+        auto itP2 = updatedPlaylist->mPeriodList.begin();
+        for (; itP1 != mPeriodList.end() && itP2 != updatedPlaylist->mPeriodList.end();) {
+            (*itP1)->updateWith(*itP2);
+            itP1++;
+            itP2++;
+        }
+    }
 }

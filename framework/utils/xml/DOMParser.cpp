@@ -24,7 +24,6 @@ Cicada::DOMParser::DOMParser()
 
 Cicada::DOMParser::~DOMParser()
 {
-    xmlCleanupParser();
     if (mNodeText) {
         free(mNodeText);
     }
@@ -130,6 +129,11 @@ Node *Cicada::DOMParser::getRootNode()
 void Cicada::DOMParser::print()
 {
     print(mRoot, 0);
+}
+
+void Cicada::DOMParser::InitXml()
+{
+    xmlInitParser();
 }
 
 void Cicada::DOMParser::print(Node *node, int offset)

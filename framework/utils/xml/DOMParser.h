@@ -21,6 +21,8 @@ namespace Cicada {
 
         void print();
 
+        static void InitXml();
+
     private:
         xml::Node *processNode();
 

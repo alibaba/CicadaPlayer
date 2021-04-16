@@ -50,6 +50,7 @@ Cicada::playList *MPDParser::parse(const std::string &playlistur)
 
     DOMParser domParser;
     domParser.parse((const char *) buffer, size);
+
     mRoot = domParser.getRootNode();
     if (mRoot == nullptr) {
         return nullptr;
@@ -394,6 +395,7 @@ void MPDParser::parseRepresentations(MPDPlayList *mpd, xml::Node *adaptationSetN
             }
         }
 
+        currentRepresentation->setPlaylistUrl(playlisturl);
         adaptationSet->addRepresentation(currentRepresentation);
     }
 }

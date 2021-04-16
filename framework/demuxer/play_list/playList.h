@@ -66,6 +66,8 @@ namespace Cicada{
             return 0;
         }
 
+        void updateWith(playList *updatedPlaylist);
+
     public:
         int64_t minUpdatePeriod{0};
         int64_t maxSegmentDuration{0};
