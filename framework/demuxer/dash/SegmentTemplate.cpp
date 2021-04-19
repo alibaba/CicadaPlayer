@@ -138,17 +138,15 @@ DashSegment *SegmentTemplate::getNextMediaSegment(uint64_t i_pos, uint64_t *pi_n
         const playList *playlist = parentSegmentInformation->getPlayList();
         const Timescale timescale = inheritTimescale();
         const int64_t segmentduration = inheritDuration();
-        if (!playlist->isLive()) {
-            int64_t totalduration = parentSegmentInformation->getPeriodDuration();
-            if (totalduration == 0) {
-                totalduration = playlist->getDuration();
-            }
-            if (totalduration && segmentduration) {
-                uint64_t endnum = inheritStartNumber() + (timescale.ToScaled(totalduration) + segmentduration - 1) / segmentduration;
-                if (i_pos >= endnum) {
-                    *pi_newpos = i_pos;
-                    return nullptr;
-                }
+        int64_t totalduration = parentSegmentInformation->getPeriodDuration();
+        if (totalduration == 0) {
+            totalduration = playlist->getDuration();
+        }
+        if (totalduration && segmentduration) {
+            uint64_t endnum = inheritStartNumber() + (timescale.ToScaled(totalduration) + segmentduration - 1) / segmentduration;
+            if (i_pos >= endnum - 1) {
+                *pi_newpos = i_pos;
+                return nullptr;
             }
         }
         *pi_newpos = i_pos;
