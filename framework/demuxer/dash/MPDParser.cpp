@@ -147,6 +147,9 @@ void MPDParser::parseMPDAttributes(MPDPlayList *mpd, xml::Node *node)
     it = attr.find("availabilityEndTime");
     if (it != attr.end()) {
         mpd->availabilityEndTime = UTCTimeGetUS(it->second);
+        if (mpd->getDuration() == 0) {
+            mpd->setDuration(mpd->availabilityEndTime - mpd->availabilityStartTime);
+        }
     }
 
     it = attr.find("timeShiftBufferDepth");
