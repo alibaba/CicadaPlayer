@@ -104,7 +104,7 @@ namespace Cicada {
 
         // all segment tracker share same reload interval
         static std::atomic<time_t> mLastLoadTime;
-        std::atomic<time_t> mMinUpdatePeriod{10 * 1000000};
+        std::atomic<time_t> mMinUpdatePeriod{24 * 3600 * 1000000};
 
         bool mInited = false;
 

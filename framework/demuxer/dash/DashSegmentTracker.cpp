@@ -46,7 +46,7 @@ DashSegmentTracker::DashSegmentTracker(AdaptationSet *adapt, Representation *rep
     if (mRep) {
         mPPlayList = mRep->getPlaylist();
     }
-    if (mPPlayList) {
+    if (mPPlayList && mPPlayList->minUpdatePeriod > 0) {
         mMinUpdatePeriod = mPPlayList->minUpdatePeriod;
     }
     mLastLoadTime = af_gettime_relative();

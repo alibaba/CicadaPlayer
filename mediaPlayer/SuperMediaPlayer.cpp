@@ -1648,7 +1648,7 @@ void SuperMediaPlayer::LiveTimeSync(int64_t delayTime)
     if (maxGopTime > mSuggestedPresentationDelay) {
         maxGopTime = mSuggestedPresentationDelay;
     }
-    int64_t bufferDelay = mSuggestedPresentationDelay - maxGopTime;
+    int64_t bufferDelay = mSuggestedPresentationDelay;
     if ((delayTime > bufferDelay + maxGopTime * 0.5) && (delayTime > 150 * 1000)) {
         mMsgCtrlListener->ProcessSetSpeed(1.2);
         mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncCatchUp;
