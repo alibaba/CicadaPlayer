@@ -220,7 +220,7 @@ template<class T>
 static void parseAvailability(MPDPlayList *mpd, xml::Node *node, T *s)
 {
     if (node->hasAttribute("availabilityTimeOffset")) {
-        double val = std::stod(node->getAttributeValue("availabilityTimeOffset"));
+        double val = std::strtod(node->getAttributeValue("availabilityTimeOffset").c_str(), nullptr);
         s->addAttribute(new AvailabilityTimeOffsetAttr(val * 1000000));
     }
     if (node->hasAttribute("availabilityTimeComplete")) {
@@ -265,7 +265,7 @@ size_t MPDParser::parseSegmentInformation(MPDPlayList *mpd, xml::Node *node, Seg
 
     if (node->hasAttribute("timescale")) {
         std::string str_timescale = node->getAttributeValue("timescale");
-        uint64_t ull_timescale = std::stoull(str_timescale);
+        uint64_t ull_timescale = std::strtoull(str_timescale.c_str(), nullptr, 0);
         info->addAttribute(new TimescaleAttr(Timescale(ull_timescale)));
     }
 
@@ -365,15 +365,15 @@ void MPDParser::parseRepresentations(MPDPlayList *mpd, xml::Node *adaptationSetN
         }
 
         if (repNode->hasAttribute("width")) {
-            currentRepresentation->setWidth(std::stoi(repNode->getAttributeValue("width")));
+            currentRepresentation->setWidth(std::strtol(repNode->getAttributeValue("width").c_str(), nullptr, 0));
         }
 
         if (repNode->hasAttribute("height")) {
-            currentRepresentation->setHeight(std::stoi(repNode->getAttributeValue("height")));
+            currentRepresentation->setHeight(std::strtol(repNode->getAttributeValue("height").c_str(), nullptr, 0));
         }
 
         if (repNode->hasAttribute("bandwidth")) {
-            currentRepresentation->setBandwidth(std::stoi(repNode->getAttributeValue("bandwidth")));
+            currentRepresentation->setBandwidth(std::strtol(repNode->getAttributeValue("bandwidth").c_str(), nullptr, 0));
         }
 
         if (repNode->hasAttribute("mimeType")) {
@@ -429,7 +429,9 @@ size_t MPDParser::parseSegmentList(MPDPlayList *mpd, xml::Node *segListNode, Seg
                 if (segmentURL->hasAttribute("mediaRange")) {
                     std::string range = segmentURL->getAttributeValue("mediaRange");
                     size_t pos = range.find("-");
-                    seg->setByteRange(std::stoi(range.substr(0, pos)), std::stoi(range.substr(pos + 1, range.size())));
+                    int64_t byteStart = std::strtoll(range.substr(0, pos).c_str(), nullptr, 0);
+                    int64_t byteEnd = std::strtoll(range.substr(pos + 1, range.size()).c_str(), nullptr, 0);
+                    seg->setByteRange(byteStart, byteEnd);
                 }
 
                 int64_t duration = list->inheritDuration();
@@ -498,7 +500,7 @@ void MPDParser::parseTimeline(MPDPlayList *mpd, xml::Node *node, ISegmentBase *b
 
     uint64_t number = 0;
     if (node->hasAttribute("startNumber")) {
-        number = std::stoull(node->getAttributeValue("startNumber"));
+        number = std::strtoull(node->getAttributeValue("startNumber").c_str(), nullptr, 0);
     } else if (base->inheritStartNumber()) {
         number = base->inheritStartNumber();
     }
@@ -513,17 +515,17 @@ void MPDParser::parseTimeline(MPDPlayList *mpd, xml::Node *node, ISegmentBase *b
             {
                 continue;
             }
-            int64_t d = std::stoll(s->getAttributeValue("d"));
+            int64_t d = std::strtoll(s->getAttributeValue("d").c_str(), nullptr, 0);
             int64_t r = 0;// never repeats by default
             if (s->hasAttribute("r")) {
-                r = std::stoll(s->getAttributeValue("r"));
+                r = std::strtoll(s->getAttributeValue("r").c_str(), nullptr, 0);
                 if (r < 0) {
                     r = std::numeric_limits<unsigned>::max();
                 }
             }
 
             if (s->hasAttribute("t")) {
-                int64_t t = std::stoll(s->getAttributeValue("t"));
+                int64_t t = std::strtoll(s->getAttributeValue("t").c_str(), nullptr, 0);
                 timeline->addElement(number, d, r, t);
             } else {
                 timeline->addElement(number, d, r);
@@ -558,7 +560,8 @@ void MPDParser::parseCommonSegmentBase(MPDPlayList *mpd, xml::Node *node, ISegme
     }
 
     if (node->hasAttribute("timescale")) {
-        TimescaleAttr *prop = new TimescaleAttr(Timescale(std::stoull(node->getAttributeValue("timescale"))));
+        uint64_t timescale = std::strtoull(node->getAttributeValue("timescale").c_str(), nullptr, 0);
+        TimescaleAttr *prop = new TimescaleAttr(Timescale(timescale));
         base->addAttribute(prop);
     }
 }
@@ -568,11 +571,13 @@ void MPDParser::parseCommonMultiSegmentBase(MPDPlayList *mpd, xml::Node *node, I
     parseCommonSegmentBase(mpd, node, base, parent);
 
     if (node->hasAttribute("duration")) {
-        base->addAttribute(new DurationAttr(std::stoll(node->getAttributeValue("duration"))));
+        int64_t duration = std::strtoll(node->getAttributeValue("duration").c_str(), nullptr, 0);
+        base->addAttribute(new DurationAttr(duration));
     }
 
     if (node->hasAttribute("startNumber")) {
-        base->addAttribute(new StartnumberAttr(std::stoull(node->getAttributeValue("startNumber"))));
+        uint64_t startNumber = std::strtoull(node->getAttributeValue("startNumber").c_str(), nullptr, 0);
+        base->addAttribute(new StartnumberAttr(startNumber));
     }
 
     parseTimeline(mpd, DOMHelper::getFirstChildElementByName(node, "SegmentTimeline"), base);
@@ -590,7 +595,9 @@ void MPDParser::parseInitSegment(xml::Node *initNode, ISegmentBase *base, Segmen
     if (initNode->hasAttribute("range")) {
         std::string range = initNode->getAttributeValue("range");
         size_t pos = range.find("-");
-        seg->setByteRange(std::stoi(range.substr(0, pos)), std::stoi(range.substr(pos + 1, range.size())));
+        int64_t byteStart = std::strtoll(range.substr(0, pos).c_str(), nullptr, 0);
+        int64_t byteEnd = std::strtoll(range.substr(pos + 1, range.size()).c_str(), nullptr, 0);
+        seg->setByteRange(byteStart, byteEnd);
     }
     seg->isInitSegment = true;
     base->setInitSegment(seg);
