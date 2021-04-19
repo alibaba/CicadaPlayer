@@ -29,14 +29,19 @@ double us_strtod(const char *str, char **end)
     return res;
 }
 
-static time_t str_duration(const char *psz_duration)
+int64_t Cicada::IsoTimeGetUs(const std::string &str)
 {
     bool timeDesignatorReached = false;
     time_t res = 0;
     char *end_ptr;
 
-    if (psz_duration == nullptr) return -1;
-    if ((*(psz_duration++)) != 'P') return -1;
+    if (str.empty()) {
+        return -1;
+    }
+    const char *psz_duration = str.data();
+    if ((*(psz_duration++)) != 'P') {
+        return -1;
+    }
     do {
         double number = us_strtod(psz_duration, &end_ptr);
         double mul = 0;
@@ -66,14 +71,12 @@ static time_t str_duration(const char *psz_duration)
             default:
                 break;
         }
-        res += (time_t)(mul * number);
-        if (*psz_duration) psz_duration++;
+        res += (time_t)(mul * number * 1000000);
+        if (*psz_duration) {
+            psz_duration++;
+        }
     } while (*psz_duration);
     return res;
-}
-int64_t Cicada::IsoTimeGetUs(const std::string &str)
-{
-    return str_duration(str.c_str()) * 1000000;
 }
 
 int64_t Cicada::UTCTimeGetUS(const std::string &str)
