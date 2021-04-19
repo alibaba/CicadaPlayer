@@ -639,7 +639,7 @@ int DashStream::updateSegment()
             return ret;
         }
         return 0;
-    } else if (!mPTracker->isLive()) {
+    } else {
         AF_LOGE("EOS");
         mIsDataEOS = true;
         return -EAGAIN;
@@ -847,7 +847,7 @@ int DashStream::GetStreamMeta(Stream_meta *meta, int index, bool sub) const
 
     meta->lang = strdup(lang.c_str());
     meta->bandwidth = bandwidth;
-    meta->duration = mPTracker->getDuration();
+    meta->duration = mPTracker->isLive() ? 0 : mPTracker->getDuration();
 
     if (!mPTracker->getDescriptionInfo().empty()) {
         meta->description = strdup(mPTracker->getDescriptionInfo().c_str());

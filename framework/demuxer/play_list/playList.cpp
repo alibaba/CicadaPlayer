@@ -111,6 +111,7 @@ namespace Cicada {
         }
         availabilityEndTime = updatedPlaylist->availabilityEndTime;
         baseUrls = updatedPlaylist->baseUrls;
+        mDuration = updatedPlaylist->getDuration();
 
         auto itP1 = mPeriodList.begin();
         auto itP2 = updatedPlaylist->mPeriodList.begin();
