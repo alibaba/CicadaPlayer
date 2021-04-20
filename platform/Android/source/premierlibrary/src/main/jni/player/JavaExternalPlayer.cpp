@@ -557,6 +557,11 @@ void JavaExternalPlayer::SetAudioRenderingCallBack(onRenderFrame cb, void *userD
     //TODO
 }
 
+void JavaExternalPlayer::SetVideoRenderingCallBack(videoRenderingFrameCB cb, void *userData)
+{
+    //TODO
+}
+
 void JavaExternalPlayer::SetView(void *view) {
     jobject surface = (jobject) view;
     jCallRvPo("SetView", surface);
