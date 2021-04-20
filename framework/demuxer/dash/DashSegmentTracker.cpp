@@ -377,14 +377,12 @@ std::string DashSegmentTracker::getPlayListUri()
 
 uint64_t DashSegmentTracker::getCurSegPosition()
 {
-    assert(false && "not implement");
-    return 0;
+    return getCurSegNum();
 }
 
 void DashSegmentTracker::setCurSegPosition(uint64_t position)
 {
-    assert(false && "not implement");
-    return;
+    setCurSegNum(position);
 }
 
 uint64_t DashSegmentTracker::getLastSegNum()

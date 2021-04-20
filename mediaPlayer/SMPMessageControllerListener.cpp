@@ -508,17 +508,30 @@ void SMPMessageControllerListener::ProcessSwitchStreamMsg(int index)
     }
 
     if (mPlayer.mDuration == 0) {
-        int id = GEN_STREAM_INDEX(index);
+        int toIndex = index;
+        int fromIndex = 0;
 
-        if (mPlayer.mMainStreamId == -1 || mPlayer.mMainStreamId == id) {
-            AF_LOGD("current stream index is the same");
-            return;
+        if (type == STREAM_TYPE_MIXED) {
+            if (mPlayer.mMainStreamId == -1 || mPlayer.mMainStreamId == toIndex) {
+                AF_LOGD("current stream index is the same");
+                return;
+            }
+            fromIndex = mPlayer.mMainStreamId;
+            toIndex = GEN_STREAM_INDEX(index);
+            mPlayer.mAudioChangedFirstPts = INT64_MAX;
+            mPlayer.mEof = false;
+        } else if (type == STREAM_TYPE_VIDEO) {
+            fromIndex = mPlayer.mCurrentVideoIndex;
+            mPlayer.mWillChangedVideoStreamIndex = index;
+        } else if (type == STREAM_TYPE_AUDIO) {
+            fromIndex = mPlayer.mCurrentAudioIndex;
+            mPlayer.mWillChangedVideoStreamIndex = index;
+        } else if (type == STREAM_TYPE_SUB) {
+            fromIndex = mPlayer.mCurrentSubtitleIndex;
+            mPlayer.mWillChangedVideoStreamIndex = index;
         }
-
         mPlayer.mVideoChangedFirstPts = INT64_MAX;
-        mPlayer.mAudioChangedFirstPts = INT64_MAX;
-        mPlayer.mEof = false;
-        mPlayer.mDemuxerService->SwitchStreamAligned(mPlayer.mMainStreamId, id);
+        mPlayer.mDemuxerService->SwitchStreamAligned(fromIndex, toIndex);
         return;
     }
 
