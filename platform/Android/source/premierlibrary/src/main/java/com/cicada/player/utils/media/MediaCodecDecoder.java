@@ -125,15 +125,10 @@ public class MediaCodecDecoder {
     private String findDecoderName(MediaFormat videoFormat) {
         boolean needSecureDecoder = false;
         if (mediaCrypto != null) {
-            needSecureDecoder = !forceInsecureDecoder && mediaCrypto.requiresSecureDecoderComponent(mMime);
+            needSecureDecoder = forceInsecureDecoder || mediaCrypto.requiresSecureDecoderComponent(mMime);
         }
 
         String codecName = getDecoderName(videoFormat, needSecureDecoder);
-
-        if (TextUtils.isEmpty(codecName) && needSecureDecoder) {
-            needSecureDecoder = false;
-            codecName = getDecoderName(videoFormat, needSecureDecoder);
-        }
 
         Logger.d(TAG, "findDecoderName : " + codecName + " , secure = " + needSecureDecoder);
         return codecName;
@@ -143,7 +138,7 @@ public class MediaCodecDecoder {
         List<MediaCodecInfo> mediaCodecInfoList = MediaCodecUtils.getCodecInfos(mMime, needSecureDecoder, videoFormat);
         String codecName = getNotBlackCodecName(mediaCodecInfoList);
 
-        if (TextUtils.isEmpty(codecName) && !mediaCodecInfoList.isEmpty()) {
+        if (needSecureDecoder && TextUtils.isEmpty(codecName) && !mediaCodecInfoList.isEmpty()) {
             codecName = mediaCodecInfoList.get(0).getName();
         }
 

@@ -4,6 +4,7 @@ import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.os.Build;
+import android.util.Range;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +72,9 @@ public class MediaCodecUtils {
                 if (videoCapabilities == null) {
                     isFormatSupported = false;
                 } else {
-                    isFormatSupported = videoCapabilities.isSizeSupported(tmpWidth, tmpHeight);
+                    Range<Integer> supportedWidths = videoCapabilities.getSupportedWidths();
+                    Range<Integer> supportedHeights = videoCapabilities.getSupportedHeights();
+                    isFormatSupported = supportedWidths.contains(tmpWidth) && supportedHeights.contains(tmpHeight);
                 }
             } else {
                 isFormatSupported = true;
