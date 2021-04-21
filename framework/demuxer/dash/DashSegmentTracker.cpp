@@ -29,7 +29,7 @@
 
 using namespace Cicada;
 
-const static int SAFETY_BUFFERING_EDGE_OFFSET = 1;
+const static int SAFETY_BUFFERING_EDGE_OFFSET = 0;
 const static int SAFETY_EXPURGING_OFFSET = 2;
 const static int64_t BUFFERING_LOWEST_LIMIT = 1000000 * 2;
 
@@ -495,6 +495,9 @@ uint64_t DashSegmentTracker::getLiveStartSegmentNumber(Representation *rep) cons
         const int64_t duration = getSegmentDuration();
         if (duration <= 0) {
             return startnumber;
+        }
+        if (i_buffering >= duration * 2) {
+            playbacktime += duration;
         }
 
         /* restrict to DVR window */
