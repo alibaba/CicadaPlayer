@@ -140,18 +140,11 @@ int DashSegmentTracker::GetRemainSegmentCount()
 {
     std::unique_lock<std::recursive_mutex> locker(mMutex);
     int count = -1;
-    auto rep = getNextRepresentation(mAdapt, nullptr);
-    if (rep == nullptr) {
-        return count;
-    }
-    const Dash::ISegmentBase *profile = rep->inheritSegmentProfile();
-    if (profile == nullptr) {
-        return count;
-    }
     int64_t remainDuration = getMinAheadTime();
-    int64_t scaledSegDuration = profile->inheritDuration();
-    const Dash::Timescale timescale = profile->inheritTimescale();
-    const int64_t segDuration = timescale.ToTime(scaledSegDuration);
+    const int64_t segDuration = getSegmentDuration();
+    if (segDuration <= 0) {
+        return count;
+    }
     count = remainDuration / segDuration;
     //AF_LOGD("[dash] GetRemainSegmentCount = %d", count);
     return count;
@@ -216,9 +209,6 @@ int DashSegmentTracker::init()
     if (!mInited) {
         if (isLive()) {
             mThread->start();
-            //if (mPPlayList && mPPlayList->maxSegmentDuration <= 2 * 1000000) {
-            //    mRealtime = true;
-            //}
         }
         mInited = true;
     }
@@ -497,52 +487,45 @@ uint64_t DashSegmentTracker::getLiveStartSegmentNumber(Representation *rep) cons
     } else if (mediaSegmentTemplate) {
         /* Else compute, current time and timeshiftdepth based */
         uint64_t start = 0;
-        int64_t scaledduration = mediaSegmentTemplate->inheritDuration();
-        if (scaledduration) {
-            /* Compute playback offset and effective finished segment from wall time */
-            int64_t now = playlist->GetUtcTime();
-            int64_t playbacktime = now - i_buffering;
-            int64_t minavailtime = playlist->availabilityStartTime + rep->getPeriodStart();
-            const uint64_t startnumber = mediaSegmentTemplate->inheritStartNumber();
-            const Dash::Timescale timescale = mediaSegmentTemplate->inheritTimescale();
-            if (!timescale) {
-                return startnumber;
-            }
-            const int64_t duration = timescale.ToTime(scaledduration);
-            if (!duration) {
-                return startnumber;
-            }
-
-            /* restrict to DVR window */
-            if (playlist->timeShiftBufferDepth) {
-                int64_t elapsed = now - minavailtime;
-                elapsed = elapsed - (elapsed % duration); /* align to last segment */
-                int64_t alignednow = minavailtime + elapsed;
-                if (playlist->timeShiftBufferDepth < elapsed) {
-                    minavailtime = alignednow - playlist->timeShiftBufferDepth;
-                }
-
-                if (playbacktime < minavailtime) {
-                    playbacktime = minavailtime;
-                }
-            }
-            /* Get completed segment containing the time ref */
-            start = mediaSegmentTemplate->getLiveTemplateNumber(playbacktime);
-            if (start < startnumber) {
-                assert(startnumber > start); /* blame getLiveTemplateNumber() */
-                start = startnumber;
-            }
-
-            const uint64_t max_safety_offset = playbacktime - minavailtime / duration;
-            const uint64_t safety_offset = std::min((uint64_t) SAFETY_BUFFERING_EDGE_OFFSET, max_safety_offset);
-            if (startnumber + safety_offset <= start) {
-                start -= safety_offset;
-            } else {
-                start = startnumber;
-            }
-
-            return start;
+        /* Compute playback offset and effective finished segment from wall time */
+        int64_t now = playlist->GetUtcTime();
+        int64_t playbacktime = now - i_buffering;
+        int64_t minavailtime = playlist->availabilityStartTime + rep->getPeriodStart();
+        const uint64_t startnumber = mediaSegmentTemplate->inheritStartNumber();
+        const int64_t duration = getSegmentDuration();
+        if (duration <= 0) {
+            return startnumber;
         }
+
+        /* restrict to DVR window */
+        if (playlist->timeShiftBufferDepth) {
+            int64_t elapsed = now - minavailtime;
+            elapsed = elapsed - (elapsed % duration); /* align to last segment */
+            int64_t alignednow = minavailtime + elapsed;
+            if (playlist->timeShiftBufferDepth < elapsed) {
+                minavailtime = alignednow - playlist->timeShiftBufferDepth;
+            }
+
+            if (playbacktime < minavailtime) {
+                playbacktime = minavailtime;
+            }
+        }
+        /* Get completed segment containing the time ref */
+        start = mediaSegmentTemplate->getLiveTemplateNumber(playbacktime);
+        if (start < startnumber) {
+            assert(startnumber > start); /* blame getLiveTemplateNumber() */
+            start = startnumber;
+        }
+
+        const uint64_t max_safety_offset = playbacktime - minavailtime / duration;
+        const uint64_t safety_offset = std::min((uint64_t) SAFETY_BUFFERING_EDGE_OFFSET, max_safety_offset);
+        if (startnumber + safety_offset <= start) {
+            start -= safety_offset;
+        } else {
+            start = startnumber;
+        }
+
+        return start;
     } else if (segmentList && !segmentList->getSegments().empty()) {
         const Dash::Timescale timescale = segmentList->inheritTimescale();
         const std::vector<Dash::DashSegment *> &list = segmentList->getSegments();
@@ -734,4 +717,20 @@ int64_t DashSegmentTracker::getDurationToStartStream() const
     int64_t minavailtime = mPPlayList->availabilityStartTime + mRep->getPeriodStart();
     int64_t duration = mPPlayList->GetUtcTime() - (minavailtime + getLiveDelay());
     return duration;
+}
+
+int64_t DashSegmentTracker::getSegmentDuration() const
+{
+    auto rep = getNextRepresentation(mAdapt, nullptr);
+    if (rep == nullptr) {
+        return 0;
+    }
+    const Dash::ISegmentBase *profile = rep->inheritSegmentProfile();
+    if (profile == nullptr) {
+        return 0;
+    }
+    int64_t scaledSegDuration = profile->inheritDuration();
+    const Dash::Timescale timescale = profile->inheritTimescale();
+    const int64_t segDuration = timescale.ToTime(scaledSegDuration);
+    return segDuration;
 }

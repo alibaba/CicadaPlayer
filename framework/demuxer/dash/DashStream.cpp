@@ -598,8 +598,19 @@ int DashStream::updateSegment()
         return -EAGAIN;
     }
     Dash::DashSegment *seg = nullptr;
-    AF_LOGD("getCurSegNum is %lld\n", mPTracker->getCurSegNum());
+    AF_LOGD("getCurSegNum is %llu\n", mPTracker->getCurSegNum());
     seg = mPTracker->getNextSegment();
+
+    // if current segment time > live delay, discard it
+    if (isLive()) {
+        int64_t liveDelay = mPTracker->getLiveDelay();
+        int64_t segmentDuration = mPTracker->getSegmentDuration();
+        while (mPTracker->getMinAheadTime() > liveDelay + segmentDuration) {
+            AF_LOGD("discard segment %llu because it is too late", mPTracker->getCurSegNum());
+            seg = mPTracker->getNextSegment();
+        }
+    }
+
     int ret = 0;
     mCurSeg = nullptr;
 
