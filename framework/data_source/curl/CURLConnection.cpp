@@ -29,6 +29,11 @@ using namespace Cicada;
 #define FALSE 0L
 #define TRUE  1L
 
+#define CURL_LOGD(...)                                                                                                                     \
+    do {                                                                                                                                   \
+        if (mPConfig == nullptr || mPConfig->enableLog) __log_print(AF_LOG_LEVEL_DEBUG, LOG_TAG, __VA_ARGS__);                             \
+    } while (0)
+
 static int getErrorCode(const CURLcode &CURLResult)
 {
     if (CURLResult == CURLE_COULDNT_RESOLVE_HOST) {
@@ -55,12 +60,12 @@ Cicada::CURLConnection::CURLConnection(Cicada::IDataSource::SourceConfig *pConfi
     m_bFirstLoop = 1;
     mPConfig = pConfig;
 
-    if (pConfig) {
+    if (mPConfig) {
         so_rcv_size = pConfig->so_rcv_size;
         string &http_proxy = pConfig->http_proxy;
 
         if (!http_proxy.empty()) {
-            AF_LOGD("http_proxy is %s\n", http_proxy.c_str());
+            CURL_LOGD("http_proxy is %s\n", http_proxy.c_str());
 
             if (http_proxy == "never") {
                 curl_easy_setopt(mHttp_handle, CURLOPT_PROXY, NULL);
@@ -72,26 +77,26 @@ Cicada::CURLConnection::CURLConnection(Cicada::IDataSource::SourceConfig *pConfi
         string &refer = pConfig->refer;
 
         if (!refer.empty()) {
-            AF_LOGD("refer is %s\n", refer.c_str());
+            CURL_LOGD("refer is %s\n", refer.c_str());
             curl_easy_setopt(mHttp_handle, CURLOPT_REFERER, refer.c_str());
         }
 
         string &userAgent = pConfig->userAgent;
 
         if (!userAgent.empty()) {
-            AF_LOGD("userAgent is %s\n", userAgent.c_str());
+            CURL_LOGD("userAgent is %s\n", userAgent.c_str());
             curl_easy_setopt(mHttp_handle, CURLOPT_USERAGENT, userAgent.c_str());
         }
 
         if (pConfig->low_speed_limit && pConfig->low_speed_time_ms) {
-            AF_LOGD("set low_speed_limit to %d\n", pConfig->low_speed_limit);
-            AF_LOGD("set low_speed_time to %d(ms)\n", pConfig->low_speed_time_ms);
+            CURL_LOGD("set low_speed_limit to %d\n", pConfig->low_speed_limit);
+            CURL_LOGD("set low_speed_time to %d(ms)\n", pConfig->low_speed_time_ms);
             curl_easy_setopt(mHttp_handle, CURLOPT_LOW_SPEED_LIMIT, (long) pConfig->low_speed_limit);
             curl_easy_setopt(mHttp_handle, CURLOPT_LOW_SPEED_TIME, (long) pConfig->low_speed_time_ms / 1000);
         }
 
         if (pConfig->connect_time_out_ms > 0) {
-            AF_LOGD("set connect_time to %d(ms)\n", pConfig->connect_time_out_ms);
+            CURL_LOGD("set connect_time to %d(ms)\n", pConfig->connect_time_out_ms);
             curl_easy_setopt(mHttp_handle, CURLOPT_CONNECTTIMEOUT, (long) pConfig->connect_time_out_ms / 1000);
         }
 
@@ -236,7 +241,7 @@ void Cicada::CURLConnection::debugHeader(bool in, char *data, size_t size)
     }
 
     if (header->compare(header->length() - 4, 4, "\r\n\r\n") == 0) {
-        AF_LOGD("<= %s header \n%s", in ? "Recv" : "Send", header->c_str());
+        CURL_LOGD("<= %s header \n%s", in ? "Recv" : "Send", header->c_str());
         *header = "";
     }
 }
@@ -326,8 +331,9 @@ int CURLConnection::my_trace(CURL *handle, curl_infotype type,
 
     switch (type) {
         case CURLINFO_TEXT:
-
-            AF_LOGD("== Info: %s", data);
+            if (pHandle->mPConfig->enableLog) {
+                AF_LOGD("== Info: %s", data);
+            }
         default: /* in case a new one is introduced to shock us */
             return 0;
 
@@ -356,7 +362,7 @@ int CURLConnection::my_trace(CURL *handle, curl_infotype type,
             break;
     }
 
-    //  AF_LOGD("%s\n", text);
+    //  CURL_LOGD("%s\n", text);
     return 0;
 }
 

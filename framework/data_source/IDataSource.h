@@ -56,6 +56,7 @@ namespace Cicada {
             std::vector<std::string> customHeaders;
             Listener *listener = nullptr;
             IpResolveType resolveType{IpResolveWhatEver};
+            bool enableLog{true};
 
             std::string toString();
         };

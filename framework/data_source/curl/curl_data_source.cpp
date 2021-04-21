@@ -36,6 +36,11 @@
 
 #define MIN_SO_RCVBUF_SIZE 1024*64
 
+#define CURL_LOGD(...)                                                                                                                     \
+    do {                                                                                                                                   \
+        if (mConfig.enableLog) __log_print(AF_LOG_LEVEL_DEBUG, LOG_TAG, __VA_ARGS__);                                                      \
+    } while (0)
+
 //static pthread_mutex_t g_mutex; ///< we have nowhere to destroy this.
 //static int g_lock_inited = 0;
 
@@ -49,7 +54,7 @@ using std::string;
 
 CURLConnection *CurlDataSource::initConnection()
 {
-    auto *pHandle = new CURLConnection(pConfig);
+    auto *pHandle = new CURLConnection(&mConfig);
     pHandle->setSSLBackEnd(g_sslbackend);
     pHandle->setSource(mLocation, headerList);
     pHandle->setPost(mBPost, mPostSize, mPostData);
@@ -63,7 +68,7 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
     char *ipstr = nullptr;
     double length;
     long response;
-    AF_LOGD("start connect %lld\n", filePos);
+    CURL_LOGD("start connect %lld\n", filePos);
     pConnection->SetResume(filePos);
     pConnection->start();
 
@@ -72,7 +77,7 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
         return ret;
     }
 
-    AF_LOGD("connected\n");
+    CURL_LOGD("connected\n");
 
     if (CURLE_OK ==
             curl_easy_getinfo(pConnection->getCurlHandle(), CURLINFO_CONTENT_LENGTH_DOWNLOAD, &length)) {
@@ -312,9 +317,9 @@ void CurlDataSource::closeConnections(bool current)
 
 int64_t CurlDataSource::Seek(int64_t offset, int whence)
 {
-//    AF_LOGD("CurlDataSource::Seek position is %lld,when is %d", offset, whence);
-if (!mPConnection) {
-    return -(ESPIPE);
+    //    CURL_LOGD("CurlDataSource::Seek position is %lld,when is %d", offset, whence);
+    if (!mPConnection) {
+        return -(ESPIPE);
 }
     if (whence == SEEK_SIZE) {
         return mFileSize;
@@ -546,7 +551,7 @@ void CurlDataSource::fillConnectInfo()
     }
 
     mConnectInfo = Json.printJSON();
-    AF_LOGD("connectInfo is %s\n", mConnectInfo.c_str());
+    CURL_LOGD("connectInfo is %s\n", mConnectInfo.c_str());
 }
 
 bool CurlDataSource::probe(const string &path)

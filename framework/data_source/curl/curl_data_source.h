@@ -86,6 +86,7 @@ namespace Cicada {
         std::string mConnectInfo;
         bool mBDummy = false;
         std::vector<CURLConnection *>* mConnections {nullptr};
+        bool mEnableLog{true};
     };
 }
 
