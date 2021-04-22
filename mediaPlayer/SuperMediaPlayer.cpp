@@ -1852,7 +1852,6 @@ void SuperMediaPlayer::doDeCode()
                 DecodeAudio(packet);
             } else
                 break;
-
         }
 
         //            AF_LOGD("mAudioFrameQue.size is %d\n", mAudioFrameQue.size());
@@ -2264,8 +2263,13 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
         videoPts = mPlayedVideoPts + 1;
     }
 
-    int frameWidth = videoFrame->getInfo().video.width;
+    int frameWidth;
     int frameHeight = videoFrame->getInfo().video.height;
+    if (videoFrame->getInfo().video.dar != 0) {
+        frameWidth = videoFrame->getInfo().video.dar * videoFrame->getInfo().video.height;
+    } else {
+        frameWidth = videoFrame->getInfo().video.width;
+    }
     videoFrame->getInfo().video.rotate = mVideoRotation;
 
     if (!mVideoPtsRevert) {
@@ -3506,8 +3510,8 @@ void SuperMediaPlayer::updateVideoMeta()
     mDemuxerService->GetStreamMeta(mCurrentVideoMeta, mCurrentVideoIndex, false);
     auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
     if (mVideoWidth != meta->width || mVideoHeight != meta->height || mVideoRotation != meta->rotate) {
-        mVideoWidth = meta->width;
-        mVideoHeight = meta->height;
+        mVideoWidth = meta->displayWidth;
+        mVideoHeight = meta->displayHeight;
         mVideoRotation = meta->rotate;
         mPNotifier->NotifyVideoSizeChanged(mVideoWidth, mVideoHeight);
     }
@@ -3887,7 +3891,8 @@ int SuperMediaPlayer::invokeComponent(std::string content)
     return mDcaManager->invoke(content);
 }
 
-void SuperMediaPlayer::setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)>  &drmCallback) {
+void SuperMediaPlayer::setDrmRequestCallback(const std::function<DrmResponseData *(const DrmRequestParam &drmRequestParam)> &drmCallback)
+{
     mAVDeviceManager->setDrmRequestCallback(drmCallback);
 }
 
