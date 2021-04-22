@@ -78,6 +78,8 @@ namespace Cicada {
 
         bool isRealTimeStream(int index) override;
 
+        bool isTSDiscontinue() override;
+
     protected:
         explicit avFormatDemuxer(int dummy);
 

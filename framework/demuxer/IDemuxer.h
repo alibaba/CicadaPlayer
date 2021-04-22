@@ -202,6 +202,7 @@ namespace Cicada {
         {
             return 0;
         }
+        virtual bool isTSDiscontinue() = 0;
 
     protected:
         demuxer_callback_read mReadCb{nullptr};

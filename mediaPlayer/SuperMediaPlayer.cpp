@@ -2307,10 +2307,10 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
     /* video early more than 10ms, don't (render||drop) it, deal it next time
          * if the pts is not continue drop it
 
-         -------------------early----------------------------|------------------------late--------------
+         ---------------------------------------early----------------------------|------------------------late--------------
 
-         --------------|-------------------------------|-----|-------------|--------------------------------------->
-             drop      10s       render next time     10ms   0            500ms     drop
+         ----------------------------------|-------------------------------|-----|-------------|--------------------------------------->
+         drop if pts discontinue          10s       render next time     10ms   0            500ms     drop
 
                                                        |--------render-----|
 
@@ -2319,7 +2319,7 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
     bool render = force_render;
 
     if (!force_render) {
-        if (videoLateUs < -10 * 1000 && videoLateUs > -mPtsDiscontinueDelta) {
+        if (videoLateUs < -10 * 1000 && (!mDemuxerService->getDemuxerHandle()->isTSDiscontinue() || videoLateUs > -mPtsDiscontinueDelta)) {
             return false;
         }
 

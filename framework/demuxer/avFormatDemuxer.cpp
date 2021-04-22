@@ -818,5 +818,11 @@ namespace Cicada {
         }
         return pos >= mCtx->duration - 2 * AV_TIME_BASE ? mCtx->duration - 2 * AV_TIME_BASE : pos;
     }
-
+    bool avFormatDemuxer::isTSDiscontinue()
+    {
+        if (mCtx) {
+            return (mCtx->iformat->flags & AVFMT_TS_DISCONT);
+        }
+        return true;
+    }
 }

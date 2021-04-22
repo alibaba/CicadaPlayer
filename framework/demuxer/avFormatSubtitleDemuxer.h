@@ -55,6 +55,11 @@ namespace Cicada {
             ffmpeg_init();
             addPrototype(this);
         };
+        bool isTSDiscontinue() override
+        {
+            return false;
+        }
+
     private:
 
         Cicada::IDemuxer *clone(const string &uri, int type, const Cicada::DemuxerMeta *meta) override
