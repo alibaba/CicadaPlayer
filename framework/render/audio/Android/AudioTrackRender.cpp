@@ -172,10 +172,15 @@ int AudioTrackRender::init_jni()
 
 int AudioTrackRender::pause_device()
 {
-    mRunning = false;
-    if (mWriteThread) {
-        mWriteThread->pause();
+    if (mWriteThread && std::this_thread::get_id() == mWriteThread->getId()) {
+        //same thread
+    } else {
+        mRunning = false;
+        if (mWriteThread) {
+            mWriteThread->pause();
+        }
     }
+
     if (audio_track && method_pause) {
         JniEnv  jniEnv;
         JNIEnv *handle = jniEnv.getEnv();
@@ -205,16 +210,21 @@ int AudioTrackRender::start_device()
             return -1;
         }
     }
-    mRunning = true;
-    if (mWriteThread) {
-        mWriteThread->start();
+
+    if (mWriteThread && std::this_thread::get_id() == mWriteThread->getId()) {
+        //same thread
+    } else {
+        mRunning = true;
+        if (mWriteThread) {
+            mWriteThread->start();
+        }
     }
 
     return 0;
 }
 
 
-void AudioTrackRender::flush_device_inner()
+void AudioTrackRender::flush_device_inner(bool clearFrameQueue)
 {
     JniEnv  jniEnv;
     JNIEnv *handle = jniEnv.getEnv();
@@ -238,10 +248,13 @@ void AudioTrackRender::flush_device_inner()
 
     mSendSimples = 0;
 
-    while (!mFrameQueue.empty()) {
-        delete mFrameQueue.front();
-        mFrameQueue.pop();
+    if (clearFrameQueue) {
+        while (!mFrameQueue.empty()) {
+            delete mFrameQueue.front();
+            mFrameQueue.pop();
+        }
     }
+
     mMaxQueSize = 2;
 
     /* work around some device position didn't set to zero, and MUST get after start_device */
@@ -257,7 +270,7 @@ void AudioTrackRender::flush_device_inner()
 
 void AudioTrackRender::flush_device()
 {
-    flush_device_inner();
+    flush_device_inner(true);
 }
 
 void AudioTrackRender::device_setVolume(float gain)
@@ -360,17 +373,21 @@ int AudioTrackRender::write_loop()
     }
     return 0;
 }
+
+#define OVERFLOW_SAMPLES (0x7F000000)
+
 int AudioTrackRender::device_write_internal(IAFFrame *frame)
 {
-
     uint64_t playedSamples = getDevicePlayedSimples();
-    if (playedSamples >= 0x7F000000) {
-        uint64_t deviceQueDuration = device_get_que_duration();
+    if (playedSamples >= OVERFLOW_SAMPLES) {
+        uint64_t deviceQueDuration = getDeviceQuequedDuration();
+        AF_LOGW("device_write_internal() will over flow  deviceQueDuration= %lld", deviceQueDuration);
         if (deviceQueDuration > 0) {
             //will over flow , wait to que buffer be played
             return -EAGAIN;
         } else {
-            flush_device_inner();
+            flush_device_inner(false);
+            //FIXME : Some devices position is not be reset to 0 after flush, need create new AudioTrack.
         }
     }
 
@@ -415,4 +432,14 @@ uint64_t AudioTrackRender::device_get_que_duration()
     }
 
     return static_cast<uint64_t>(duration + (mSendSimples - playedSimples) / (float(mOutputInfo.sample_rate) / 1000000));
+}
+
+uint64_t AudioTrackRender::getDeviceQuequedDuration()
+{
+    uint64_t playedSimples = getDevicePlayedSimples() - mAudioFlushPosition;
+    if (mSendSimples < playedSimples) {
+        return 0;
+    }
+
+    return static_cast<uint64_t>((mSendSimples - playedSimples) / (float(mOutputInfo.sample_rate) / 1000000));
 }

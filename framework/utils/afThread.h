@@ -54,6 +54,8 @@ public:
     void setEndCallback(const thread_endCallback &callback);
     void detach();
 
+    std::thread::id getId();
+
 private:
     static void threadRun(void *arg);
 

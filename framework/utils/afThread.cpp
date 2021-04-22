@@ -223,3 +223,11 @@ void afThread::setEndCallback(const thread_endCallback &callback)
 {
     mThreadEndCallback = callback;
 }
+
+std::thread::id afThread::getId()
+{
+    if (mThreadPtr) {
+        return mThreadPtr->get_id();
+    }
+    return {};
+}

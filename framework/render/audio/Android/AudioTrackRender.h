@@ -78,7 +78,9 @@ private:
 
     uint64_t getDevicePlayedSimples();
 
-    void flush_device_inner() ;
+    uint64_t getDeviceQuequedDuration();
+
+    void flush_device_inner(bool clearFrameQueue);
 
     int write_loop();
 
