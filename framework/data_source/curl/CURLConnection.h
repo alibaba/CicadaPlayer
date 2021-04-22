@@ -54,6 +54,7 @@ namespace Cicada {
         CURL *getCurlHandle(){
             return mHttp_handle;
         }
+        void disableCallBack();
 
     private:
         int esayHandle_set_common_opt();

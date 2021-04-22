@@ -776,3 +776,15 @@ void CURLConnection::updateHeaderList(struct curl_slist *headerList)
         curl_easy_setopt(mHttp_handle, CURLOPT_HTTPHEADER, NULL);
     }
 }
+void CURLConnection::disableCallBack()
+{
+    if (mHttp_handle) {
+        curl_easy_setopt(mHttp_handle, CURLOPT_VERBOSE, FALSE);
+        curl_easy_setopt(mHttp_handle, CURLOPT_WRITEDATA, nullptr);
+        curl_easy_setopt(mHttp_handle, CURLOPT_WRITEFUNCTION, nullptr);
+        curl_easy_setopt(mHttp_handle, CURLOPT_HEADERFUNCTION, nullptr);
+        curl_easy_setopt(mHttp_handle, CURLOPT_HEADERDATA, nullptr);
+        curl_easy_setopt(mHttp_handle, CURLOPT_SOCKOPTFUNCTION, nullptr);
+        curl_easy_setopt(mHttp_handle, CURLOPT_SOCKOPTDATA, nullptr);
+    }
+}
