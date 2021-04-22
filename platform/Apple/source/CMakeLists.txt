@@ -77,8 +77,6 @@ set(SOURCE_LIST
         CicadaRenderDelegate.h
         CicadaRenderCBWrapper.h
         CicadaRenderCBWrapper.mm
-        CicadaRenderingCBWrapper.h
-        CicadaRenderingCBWrapper.mm
         CicadaFrameInfo.h
         CicadaFrameInfo.mm
         ${TOP_DIR}/framework/render/audio/Apple/CicadaAudioSessionDelegate.h
