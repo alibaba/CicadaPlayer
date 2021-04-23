@@ -9,6 +9,7 @@ set(COMMON_LIB_DIR ${COMMON_LIB_DIR}
         ${INSTALL_DIR}/ffmpeg/Linux/x86_64/lib
         ${INSTALL_DIR}/fdk-aac/Linux/x86_64/lib
         ${INSTALL_DIR}/cares/Linux/x86_64/lib
+        ${INSTALL_DIR}/libxml2/Linux/x86_64/lib
         )
 set(COMMON_INC_DIR ${COMMON_INC_DIR}
         ${INSTALL_DIR}/curl/Linux/x86_64/include
@@ -20,6 +21,7 @@ set(COMMON_INC_DIR ${COMMON_INC_DIR}
         ${INSTALL_DIR}/../build/ffmpeg/Linux/x86_64/
         ${INSTALL_DIR}/../boost/
         ${INSTALL_DIR}/../external/external/ffmpeg/
+        /usr/include/SDL2
         ${PROJECT_SOURCE_DIR})
 
 
