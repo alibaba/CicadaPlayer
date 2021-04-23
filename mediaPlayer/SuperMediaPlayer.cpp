@@ -3360,6 +3360,32 @@ int SuperMediaPlayer::setUpAudioRender(const IAFFrame::audioInfo &info)
     return 0;
 }
 
+int SuperMediaPlayer::setUpVideoRender(uint64_t flags)
+{
+    if (mSet->mView != nullptr && (!mAVDeviceManager->isVideoRenderValid() || mAVDeviceManager->getVideoRender()->getFlags() != flags)) {
+        if (mAppStatus == APP_BACKGROUND) {
+            AF_LOGW("create video render in background");
+        }
+        AF_LOGD("SetUpVideoRender start");
+        CreateVideoRender(flags);
+        if (!mAVDeviceManager->isVideoRenderValid()) {
+            AF_LOGE("can't create video render\n");
+            mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_VIDEO_RENDER_INIT_ERROR, "init video render failed");
+            return -EINVAL;
+        }
+    }
+
+    //re set view in case for not set view before
+    if (mSet->mView) {
+        if (mAVDeviceManager->isVideoRenderValid()) {
+            mAVDeviceManager->getVideoRender()->setDisPlay(mSet->mView);
+        }
+    }
+
+    return 0;
+}
+
+
 int SuperMediaPlayer::SetUpVideoPath()
 {
     if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO) && (mAVDeviceManager->isVideoRenderValid())) {
@@ -3388,64 +3414,6 @@ int SuperMediaPlayer::SetUpVideoPath()
      */
     updateVideoMeta();
     auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
-    uint64_t flags = 0;
-
-    if (isHDRVideo(meta)) {
-        /*
-         * HDR video must use mediaCodec to render direct on Android,
-         * we use a dummy render to release the frame simply
-         */
-#ifdef ANDROID
-        flags |= IVideoRender::FLAG_DUMMY;
-#else
-        flags |= IVideoRender::FLAG_HDR;
-#endif
-    }
-#ifdef ANDROID
-    bool isWideVine = isWideVineVideo(meta);
-#endif
-    /*
-     * HDR video, try use decoder to render first
-     */
-    if (mSet->bEnableTunnelRender
-#ifdef ANDROID
-        || isWideVine
-#endif
-    ) {
-        flags |= IVideoRender::FLAG_DUMMY;
-    }
-
-    int ret = 0;
-
-    if (mSet->mView != nullptr && !mAVDeviceManager->isVideoRenderValid()) {
-        if (mAppStatus == APP_BACKGROUND) {
-            AF_LOGW("create video render in background");
-        }
-        AF_LOGD("SetUpVideoRender start");
-        CreateVideoRender(flags);
-        if (!mAVDeviceManager->isVideoRenderValid()) {
-            AF_LOGE("can't create video render\n");
-            mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_VIDEO_RENDER_INIT_ERROR, "init video render failed");
-            return -EINVAL;
-        }
-    }
-
-    //re set view in case for not set view before
-    if (mSet->mView) {
-        if (mAVDeviceManager->isVideoRenderValid()) {
-            mAVDeviceManager->getVideoRender()->setDisPlay(mSet->mView);
-        }
-    }
-
-    if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
-        return 0;
-    }
-
-    AF_LOGD("SetUpVideoDecoder start");
-
-    if (meta->interlaced == InterlacedType_UNKNOWN) {
-        meta->interlaced = mVideoInterlaced;
-    }
 
     bool bHW = false;
     if (mSet->bEnableHwVideoDecode) {
@@ -3467,11 +3435,67 @@ int SuperMediaPlayer::SetUpVideoPath()
         }
     }
 
+    bool tunnelRender = mSet->bEnableTunnelRender;
+    if (!mSet->bEnableHwVideoDecode || !bHW) {
+        //soft decoder not support tunnel Render
+        tunnelRender = false;
+    }
+
+    uint64_t flags = 0;
+
+
+    if (isHDRVideo(meta)) {
+        /*
+         * HDR video must use mediaCodec to render direct on Android,
+         * we use a dummy render to release the frame simply
+         */
+#ifdef ANDROID
+        flags |= IVideoRender::FLAG_DUMMY;
+#else
+        flags |= IVideoRender::FLAG_HDR;
+#endif
+    }
+#ifdef ANDROID
+    bool isWideVine = isWideVineVideo(meta);
+#endif
+
+    if (tunnelRender
+#ifdef ANDROID
+        || isWideVine
+#endif
+    ) {
+        flags |= IVideoRender::FLAG_DUMMY;
+    }
+
+    int ret = setUpVideoRender(flags);
+    if (ret < 0) {
+        return ret;
+    }
+
+    if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
+        return 0;
+    }
+
+    AF_LOGD("SetUpVideoDecoder start");
+
+    if (meta->interlaced == InterlacedType_UNKNOWN) {
+        meta->interlaced = mVideoInterlaced;
+    }
+
     int64_t startTimeMs = af_getsteady_ms();
     ret = CreateVideoDecoder(bHW, *meta);
 
     if (ret < 0) {
         if (bHW) {
+
+            if (flags & IVideoRender::FLAG_DUMMY) {
+                flags &= ~IVideoRender::FLAG_DUMMY;
+                ret = setUpVideoRender(flags);
+                if (ret < 0) {
+                    return ret;
+                }
+            }
+
             ret = CreateVideoDecoder(false, *meta);
         }
     }
@@ -3519,7 +3543,7 @@ void SuperMediaPlayer::updateVideoMeta()
 
 bool SuperMediaPlayer::CreateVideoRender(uint64_t flags)
 {
-    if (mAVDeviceManager->isVideoRenderValid()) {
+    if (mAVDeviceManager->isVideoRenderValid() && mAVDeviceManager->getVideoRender()->getFlags() == flags) {
         return true;
     }
 

@@ -358,6 +358,8 @@ namespace Cicada {
 
         void checkFirstRender();
 
+        int setUpVideoRender(uint64_t renderFlags);
+
         class ApsaraAudioRenderCallback : public IAudioRenderListener {
         public:
             explicit ApsaraAudioRenderCallback(SuperMediaPlayer &player) : mPlayer(player)

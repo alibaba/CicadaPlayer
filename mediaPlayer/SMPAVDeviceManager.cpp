@@ -317,7 +317,7 @@ uint64_t SMPAVDeviceManager::getVideoDecoderFlags()
 }
 int SMPAVDeviceManager::createVideoRender(uint64_t flags)
 {
-    if (mVideoRenderValid) {
+    if (mVideoRenderValid && mVideoRenderFlags == flags) {
         return 0;
     }
     if (mVideoRender  && mVideoRenderFlags == flags) {
