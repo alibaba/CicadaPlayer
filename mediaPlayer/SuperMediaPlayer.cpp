@@ -318,7 +318,7 @@ int SuperMediaPlayer::Stop()
 
     std::unique_lock<std::mutex> uMutex(mPlayerMutex);
     AF_LOGI("Player ReadPacket Stop");
-    int64_t t1 = af_gettime_ms();
+    int64_t t1 = af_getsteady_ms();
     AF_TRACE;
     waitingForStart = false;
     mCanceled = true;
@@ -416,7 +416,7 @@ int SuperMediaPlayer::Stop()
 
     mRecorderSet->reset();
 
-    AF_LOGD("stop spend time is %lld", af_gettime_ms() - t1);
+    AF_LOGD("stop spend time is %lld", af_getsteady_ms() - t1);
     return 0;
 }
 
@@ -1476,10 +1476,10 @@ bool SuperMediaPlayer::DoCheckBufferPass()
 
         if ((lastAudio != INT64_MIN) && (mPlayedAudioPts != INT64_MIN)) {
             int64_t delayTime = lastAudio - mPlayedAudioPts;
-            static int64_t lastT = af_gettime_ms();
+            static int64_t lastT = af_getsteady_ms();
 
-            if (af_gettime_ms() - lastT > 1000) {
-                lastT = af_gettime_ms();
+            if (af_getsteady_ms() - lastT > 1000) {
+                lastT = af_getsteady_ms();
                 AF_LOGD("lastAudio:%lld mPlayedAudioPts:%lld, delayTime:%lld", lastAudio, mPlayedAudioPts, delayTime);
             }
 
@@ -1547,10 +1547,10 @@ bool SuperMediaPlayer::DoCheckBufferPass()
 
         if ((lastAudio != INT64_MIN) && (mPlayedAudioPts != INT64_MIN)) {
             int64_t delayTime = lastAudio - mPlayedAudioPts;
-            static int64_t lastT = af_gettime_ms();
+            static int64_t lastT = af_getsteady_ms();
 
-            if (af_gettime_ms() - lastT > 1000) {
-                lastT = af_gettime_ms();
+            if (af_getsteady_ms() - lastT > 1000) {
+                lastT = af_getsteady_ms();
                 AF_LOGD("lastAudio:%lld mPlayedAudioPts:%lld, delayTime:%lld", lastAudio, mPlayedAudioPts, delayTime);
             }
 
