@@ -432,7 +432,7 @@ uint64_t DashSegmentTracker::getLiveStartSegmentNumber(Representation *rep) cons
         uint64_t safeMinElementNumber = timeline->minElementNumber();
         uint64_t safeMaxElementNumber = timeline->maxElementNumber();
         int64_t safeedgetime, safestarttime, duration;
-        for (unsigned i = 0; i < SAFETY_BUFFERING_EDGE_OFFSET; i++) {
+        for (int i = 0; i < SAFETY_BUFFERING_EDGE_OFFSET; i++) {
             if (safeMinElementNumber == safeMaxElementNumber) {
                 break;
             }
