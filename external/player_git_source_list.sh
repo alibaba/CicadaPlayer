@@ -34,7 +34,7 @@ clone_git $OPENSSL_GIT $OPENSSL_BRANCH
 if [ -z "${CURL_GIT}" ];then
     CURL_GIT="https://github.com/curl/curl.git"
 fi
-CURL_BRANCH="curl-7_63_0"
+CURL_BRANCH="curl-7_69_1"
 clone_git $CURL_GIT "$CURL_BRANCH"
 
 if [[ -z "${LIBXML2_GIT}" ]];then
