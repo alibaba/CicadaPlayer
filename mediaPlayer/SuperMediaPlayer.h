@@ -314,6 +314,8 @@ namespace Cicada {
 
         void updateVideoMeta();
 
+        void setUpVideoRender(uint64_t renderFlags);
+
         class ApsaraAudioRenderCallback : public IAudioRenderListener {
         public:
             explicit ApsaraAudioRenderCallback(SuperMediaPlayer &player) : mPlayer(player)

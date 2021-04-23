@@ -3197,6 +3197,28 @@ int SuperMediaPlayer::setUpAudioRender(const IAFFrame::audioInfo &info)
     return 0;
 }
 
+void SuperMediaPlayer::setUpVideoRender(uint64_t renderFlags)
+{
+    if (mSet->mView != nullptr && !mAVDeviceManager->isVideoRenderValid()) {
+        if (mAppStatus == APP_BACKGROUND) {
+            AF_LOGW("create video render in background");
+        }
+        AF_LOGD("SetUpVideoRender start");
+        CreateVideoRender(renderFlags);
+        if (!mAVDeviceManager->isVideoRenderValid()) {
+            AF_LOGI("try use decoder to render video\n");
+            mNeedVideoRender = false;
+        }
+    }
+
+    //re set view in case for not set view before
+    if (mSet->mView) {
+        if (mAVDeviceManager->isVideoRenderValid()) {
+            mAVDeviceManager->getVideoRender()->setDisPlay(mSet->mView);
+        }
+    }
+}
+
 int SuperMediaPlayer::SetUpVideoPath()
 {
     if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO) &&
@@ -3232,52 +3254,6 @@ int SuperMediaPlayer::SetUpVideoPath()
 #ifdef ANDROID
     bool isWideVineVideo = (meta->keyFormat != nullptr && strcmp(meta->keyFormat, "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed") == 0);
 #endif
-    /*
-     * HDR video, try use decoder to render first
-     */
-    if (mSet->bEnableTunnelRender
-#ifdef ANDROID
-    || isWideVineVideo
-#endif
-    ) {
-        mAVDeviceManager->destroyVideoRender();
-        mNeedVideoRender = false;
-    }
-
-    int ret = 0;
-
-    if (mNeedVideoRender && mSet->mView != nullptr && !mAVDeviceManager->isVideoRenderValid()) {
-        if (mAppStatus == APP_BACKGROUND) {
-            AF_LOGW("create video render in background");
-        }
-        AF_LOGD("SetUpVideoRender start");
-        uint64_t flags = 0;
-        if (isHDRVideo){
-            flags |= videoRenderFactory::FLAG_HDR;
-        }
-        CreateVideoRender(flags);
-        if (!mAVDeviceManager->isVideoRenderValid()) {
-            AF_LOGI("try use decoder to render video\n");
-            mNeedVideoRender = false;
-        }
-    }
-
-    //re set view in case for not set view before
-    if (mSet->mView) {
-        if (mAVDeviceManager->isVideoRenderValid()) {
-            mAVDeviceManager->getVideoRender()->setDisPlay(mSet->mView);
-        }
-    }
-
-    if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
-        return 0;
-    }
-
-    AF_LOGD("SetUpVideoDecoder start");
-
-    if (meta->interlaced == InterlacedType_UNKNOWN) {
-        meta->interlaced = mVideoInterlaced;
-    }
 
     bool bHW = false;
     if (mSet->bEnableHwVideoDecode) {
@@ -3299,11 +3275,54 @@ int SuperMediaPlayer::SetUpVideoPath()
         }
     }
 
+    bool tunnelRender = mSet->bEnableTunnelRender;
+    if (!mSet->bEnableHwVideoDecode || !bHW) {
+        //soft decoder not support tunnel Render
+        tunnelRender = false;
+    }
+
+    /*
+     * HDR video, try use decoder to render first
+     */
+    if (tunnelRender
+#ifdef ANDROID
+        || isWideVineVideo
+#endif
+    ) {
+        mAVDeviceManager->destroyVideoRender();
+        mNeedVideoRender = false;
+    }
+
+    uint64_t renderFlags = 0;
+    if (isHDRVideo) {
+        renderFlags |= videoRenderFactory::FLAG_HDR;
+    }
+
+    if (mNeedVideoRender) {
+        setUpVideoRender(renderFlags);
+    }
+
+    if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
+        return 0;
+    }
+
+    AF_LOGD("SetUpVideoDecoder start");
+
+    if (meta->interlaced == InterlacedType_UNKNOWN) {
+        meta->interlaced = mVideoInterlaced;
+    }
+
+    int ret = 0;
+
     int64_t startTimeMs = af_getsteady_ms();
     ret = CreateVideoDecoder(bHW, *meta);
 
     if (ret < 0) {
         if (bHW) {
+
+            mNeedVideoRender = true;
+            setUpVideoRender(renderFlags);
+
             ret = CreateVideoDecoder(false, *meta);
         }
     }
