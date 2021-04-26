@@ -34,9 +34,7 @@ namespace Cicada {
 
             virtual bool isLowLatency() const override;
 
-            virtual void InitUtcTime() override;
-
-            virtual int64_t GetUtcTime() const override;
+            void InitUtcTime();
 
             void setLowLatency(bool b);
 

@@ -488,7 +488,7 @@ uint64_t DashSegmentTracker::getLiveStartSegmentNumber(Representation *rep) cons
         /* Else compute, current time and timeshiftdepth based */
         uint64_t start = 0;
         /* Compute playback offset and effective finished segment from wall time */
-        int64_t now = playlist->GetUtcTime();
+        int64_t now = af_get_utc_time();
         int64_t playbacktime = now - i_buffering;
         int64_t minavailtime = playlist->availabilityStartTime + rep->getPeriodStart();
         const uint64_t startnumber = mediaSegmentTemplate->inheritStartNumber();
@@ -718,7 +718,7 @@ int64_t DashSegmentTracker::getDurationToStartStream() const
         return -1;
     }
     int64_t minavailtime = mPPlayList->availabilityStartTime + mRep->getPeriodStart();
-    int64_t duration = mPPlayList->GetUtcTime() - (minavailtime + getLiveDelay());
+    int64_t duration = af_get_utc_time() - (minavailtime + getLiveDelay());
     return duration;
 }
 

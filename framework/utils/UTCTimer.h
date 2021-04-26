@@ -16,6 +16,8 @@ namespace Cicada {
         ~UTCTimer() = default;
         int64_t get();
         void start();
+        void setTime(const std::string &time);
+        void setTime(uint64_t timeMs);
         explicit operator std::string();
 
     private:

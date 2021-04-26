@@ -26,6 +26,10 @@ extern "C" {
 
     CICADA_EXTERN int af_make_abstime_latems(struct timespec *pAbstime, uint32_t ms);
 
+    CICADA_EXTERN void af_init_utc_time(const char *time);
+    CICADA_EXTERN void af_init_utc_time_ms(int64_t timeMs);
+    CICADA_EXTERN int64_t af_get_utc_time();
+
 #ifdef __cplusplus
 };
 #endif

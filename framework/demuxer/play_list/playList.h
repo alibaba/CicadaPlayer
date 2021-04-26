@@ -56,16 +56,6 @@ namespace Cicada{
 
         void addBaseUrl (const std::string &url);
 
-        virtual void InitUtcTime()
-        {
-            return;
-        }
-
-        virtual int64_t GetUtcTime() const
-        {
-            return 0;
-        }
-
         void updateWith(playList *updatedPlaylist);
 
     public:

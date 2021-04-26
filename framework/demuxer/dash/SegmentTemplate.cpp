@@ -6,6 +6,7 @@
 #include "SegmentInformation.h"
 #include "SegmentTimeline.h"
 #include "demuxer/play_list/playList.h"
+#include "utils/timer.h"
 #include <algorithm>
 #include <time.h>
 
@@ -102,7 +103,7 @@ int64_t SegmentTemplate::getMinAheadTime(uint64_t number) const
         return timescale.ToTime(timeline->getMinAheadScaledTime(number));
     } else {
         const Timescale timescale = inheritTimescale();
-        uint64_t current = getLiveTemplateNumber(parentSegmentInformation->getPlayList()->GetUtcTime());
+        uint64_t current = getLiveTemplateNumber(af_get_utc_time());
         int64_t i_length = (current - number) * inheritDuration();
         return timescale.ToTime(i_length);
     }
@@ -176,7 +177,7 @@ bool SegmentTemplate::getSegmentNumberByTime(int64_t time, uint64_t *ret) const
     if (duration && mParent) {
         playList *playlist = mParent->getPlayList();
         if (playlist->isLive()) {
-            int64_t now = playlist->GetUtcTime();
+            int64_t now = af_get_utc_time();
             if (playlist->availabilityStartTime) {
                 if (time >= playlist->availabilityStartTime && time < now) {
                     *ret = getLiveTemplateNumber(time, true);

@@ -78,22 +78,11 @@ void MPDPlayList::InitUtcTime()
         utcTime = (std::string) ntpClient;
     }
     if (utcTime.empty()) {
-        mUtcTimer = new UTCTimer(af_gettime_ms());
+        af_init_utc_time_ms(af_gettime_ms());
         AF_LOGW("[dash] get utc time failed, use local time");
     } else {
-        mUtcTimer = new UTCTimer(utcTime);
+        af_init_utc_time(utcTime.c_str());
     }
-    mUtcTimer->start();
-}
-
-int64_t MPDPlayList::GetUtcTime() const
-{
-    int64_t utcTime = 0;
-    if (mUtcTimer) {
-        utcTime = mUtcTimer->get();
-        std::string t = (std::string)(*mUtcTimer);
-    }
-    return utcTime;
 }
 
 void MPDPlayList::setProfile(const std::string &urns)

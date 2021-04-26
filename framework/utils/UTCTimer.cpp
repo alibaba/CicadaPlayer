@@ -159,14 +159,11 @@ uint64_t UTCTime::time() const
 }
 UTCTimer::UTCTimer(const std::string &time)
 {
-    int64_t t = af_getsteady_ms();
-    UTCTime utcTime(time);
-    int64_t delta = af_getsteady_ms() - t;
-    mClock.set((utcTime.mtime() + delta) * 1000);
+    setTime(time);
 }
 UTCTimer::UTCTimer(uint64_t timeMs)
 {
-    mClock.set(timeMs * 1000);
+    setTime(timeMs);
 }
 int64_t UTCTimer::get()
 {
@@ -185,6 +182,20 @@ void UTCTimer::start()
 {
     mClock.start();
 }
+
+void UTCTimer::setTime(const std::string &time)
+{
+    int64_t t = af_getsteady_ms();
+    UTCTime utcTime(time);
+    int64_t delta = af_getsteady_ms() - t;
+    mClock.set((utcTime.mtime() + delta) * 1000);
+}
+
+void UTCTimer::setTime(uint64_t timeMs)
+{
+    mClock.set(timeMs * 1000);
+}
+
 NTPClient::NTPClient(string server, int64_t port) : mServer(std::move(server)), mPort(port)
 {
     if (!mThread) {

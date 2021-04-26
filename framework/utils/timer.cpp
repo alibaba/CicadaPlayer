@@ -1,10 +1,11 @@
 //
 // Created by moqi on 2018/5/12.
 //
-#include <ctime>
-#include <chrono>
-#include <thread>
 #include "timer.h"
+#include "UTCTimer.h"
+#include <chrono>
+#include <ctime>
+#include <thread>
 
 int64_t af_gettime_ms()
 {
@@ -48,4 +49,27 @@ int af_make_abstime_latems(struct timespec *pAbstime, uint32_t ms)
         pAbstime->tv_nsec -= 1000000000l;
     }
     return 0;
+}
+
+static Cicada::UTCTimer gUtcTimer(0);
+
+void af_init_utc_time(const char *time)
+{
+    if (time == nullptr) {
+        return;
+    }
+    std::string strTime(time);
+    gUtcTimer.setTime(strTime);
+    gUtcTimer.start();
+}
+
+void af_init_utc_time_ms(int64_t timeMs)
+{
+    gUtcTimer.setTime(timeMs);
+    gUtcTimer.start();
+}
+
+int64_t af_get_utc_time()
+{
+    return gUtcTimer.get();
 }
