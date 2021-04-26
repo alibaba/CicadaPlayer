@@ -45,6 +45,10 @@ public:
 
         void dump();
 
+        void setExtraData(const uint8_t *extraData, int extraDataSize);
+
+        packetInfo &operator=(const packetInfo &a);
+
         ~packetInfo()
         {
             delete[](extra_data);
@@ -115,12 +119,7 @@ public:
 
     void setExtraData(const uint8_t *extra_data, int extra_data_size)
     {
-        if (extra_data) {
-            delete[] mInfo.extra_data;
-            mInfo.extra_data = new uint8_t[extra_data_size];
-            mInfo.extra_data_size = extra_data_size;
-            memcpy(mInfo.extra_data, extra_data, mInfo.extra_data_size);
-        }
+        return mInfo.setExtraData(extra_data, extra_data_size);
     }
 
     virtual std::string getMagicKey()

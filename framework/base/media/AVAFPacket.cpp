@@ -165,8 +165,7 @@ AVAFPacket::AVAFPacket(const AVAFPacket &pkt) : IAFPacket(pkt)
     av_packet_ref(mpkt, pkt.mpkt);
     copyInfo();
     mIsProtected = pkt.mIsProtected;
-    setExtraData(pkt.mInfo.extra_data, pkt.mInfo.extra_data_size);
-    mInfo.timePosition = pkt.mInfo.timePosition;
+    mInfo = pkt.mInfo;
 }
 
 
