@@ -12,6 +12,10 @@ set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET ${IPHONEOS_DEPLOYMENT_TARGE
 set(IOS_INSTALL_DIR ${CMAKE_CURRENT_LIST_DIR}/../external/install)
 set(CICADA_TOP ${CMAKE_CURRENT_LIST_DIR}/..)
 
+set(COMMON_LIB_DIR ${COMMON_LIB_DIR}
+        ${IOS_INSTALL_DIR}/openssl/iOS/fat/lib
+        )
+
 set(COMMON_INC_DIR ${COMMON_INC_DIR}
         ${IOS_INSTALL_DIR}/ffmpeg/iOS/arm64/include
         ${IOS_INSTALL_DIR}/../build/ffmpeg/iOS/arm64/
