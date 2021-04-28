@@ -97,6 +97,10 @@ Dash::DashSegment *DashSegmentTracker::getNextSegment()
 {
     std::unique_lock<std::recursive_mutex> locker(mMutex);
 
+    if (mCurrentSegNumber == std::numeric_limits<uint64_t>::max()) {
+        return getStartSegment();
+    }
+
     if (mRep == nullptr) {
         return nullptr;
     }
