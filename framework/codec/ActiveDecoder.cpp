@@ -508,5 +508,9 @@ uint32_t ActiveDecoder::getInputPaddingSize()
 {
     return mInputQueue.size();
 }
+void ActiveDecoder::updateMetaData(const Stream_meta *meta)
+{
+    decoder_updateMetaData(meta);
+}
 
 #endif

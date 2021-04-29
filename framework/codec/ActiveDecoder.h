@@ -48,6 +48,8 @@ public:
 
     uint32_t getInputPaddingSize() override;
 
+    void updateMetaData(const Stream_meta *meta) override;
+
 private:
 
     virtual int enqueue_decoder(std::unique_ptr<IAFPacket> &pPacket) = 0;
@@ -61,6 +63,8 @@ private:
     virtual void flush_decoder() = 0;
 
     virtual int get_decoder_recover_size() = 0;
+
+    virtual void decoder_updateMetaData(const Stream_meta *meta) = 0;
 
 
 private:

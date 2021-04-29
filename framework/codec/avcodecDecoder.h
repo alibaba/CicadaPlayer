@@ -99,6 +99,9 @@ namespace Cicada{
         };
         virtual bool supportReuse() override;
 
+        void decoder_updateMetaData(const Stream_meta *meta) override
+        {}
+
     private:
         decoder_handle_v *mPDecoder = nullptr;
     };

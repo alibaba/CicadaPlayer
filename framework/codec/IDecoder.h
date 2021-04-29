@@ -70,6 +70,8 @@ namespace Cicada {
 
         virtual void flush() = 0;
 
+        virtual void updateMetaData(const Stream_meta *meta){};
+
         virtual void close() = 0;
 
         virtual void prePause() = 0;

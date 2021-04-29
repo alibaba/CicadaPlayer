@@ -847,5 +847,11 @@ namespace Cicada {
                 return -1;
         }
     }
+    void AFVTBDecoder::decoder_updateMetaData(const Stream_meta *meta)
+    {
+        Stream_meta *pMeta = ((Stream_meta *) (*(mPInMeta)));
+        pMeta->displayHeight = meta->displayHeight;
+        pMeta->displayWidth = meta->displayWidth;
+    }
 
 }// namespace Cicada

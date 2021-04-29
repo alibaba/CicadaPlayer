@@ -62,6 +62,7 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
             decoderHandle->mDrmInfo = drmInfo;
             flushVideoRender();
             decoderHandle->decoder->flush();
+            decoderHandle->decoder->updateMetaData(meta);
             decoderHandle->decoder->pause(false);
             return 0;
         }

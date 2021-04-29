@@ -42,6 +42,8 @@ namespace Cicada{
 
         int get_decoder_recover_size() override;
 
+        void decoder_updateMetaData(const Stream_meta *meta) override;
+
         void flushReorderQueue();
 
     private:
