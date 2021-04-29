@@ -106,6 +106,7 @@ namespace Cicada {
         float mQueueSpeed{1.0};
         float mVolume{1.0};
         bool mMute{false};
+        std::atomic<uint64_t> mQueueDuration{0};
     };
 }// namespace Cicada
 

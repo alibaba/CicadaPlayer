@@ -306,10 +306,7 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
 
 uint64_t AFAudioQueueRender::device_get_que_duration()
 {
-    if (mInPut.empty()) {
-        return 0;
-    }
-    return mInPut.size() * mInPut.front()->getInfo().duration;
+    return mQueueDuration;
 }
 int AFAudioQueueRender::audioQueueLoop()
 {
@@ -391,6 +388,10 @@ int AFAudioQueueRender::audioQueueLoop()
             }
         }
         CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.2, 1);
+        if (mInPut.empty())
+            mQueueDuration = 0;
+        else
+            mQueueDuration = mInPut.size() * mInPut.front()->getInfo().duration;
     }
     if (_audioQueueRef) {
         AudioQueueStop(_audioQueueRef, true);
