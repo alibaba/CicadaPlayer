@@ -160,35 +160,36 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 
 - (CATransform3D)CalculateTransform
 {
+    CGSize disPlaySize = [self getVideoSize];
     CATransform3D transform = CATransform3DConcat(_mirrorTransform, _rotateTransform);
-    if (videoGravity == AVLayerVideoGravityResizeAspect) {
-        float scale = 1;
-        if (_isFillWidth) {
-            scale = static_cast<float>(self.displayLayer.bounds.size.width / [self getVideoSize].width);
-        } else {
-            scale = static_cast<float>(self.displayLayer.bounds.size.height / [self getVideoSize].height);
-        }
-        _scaleTransform = CATransform3DMakeScale(scale, scale, 1);
-    } else if (videoGravity == AVLayerVideoGravityResizeAspectFill) {
-        float scale = 1;
-        if (!_isFillWidth) {
-            scale = static_cast<float>(self.displayLayer.bounds.size.width / [self getVideoSize].width);
-        } else {
-            scale = static_cast<float>(self.displayLayer.bounds.size.height / [self getVideoSize].height);
-        }
-        _scaleTransform = CATransform3DMakeScale(scale, scale, 1);
-    } else if (videoGravity == AVLayerVideoGravityResize) {
-        float scalex;
-        float scaley;
-        if (!_isFillWidth) {
-            scalex = static_cast<float>(self.displayLayer.bounds.size.width / [self getVideoSize].width);
-            scaley = static_cast<float>(self.displayLayer.bounds.size.height / [self getVideoSize].height);
-        } else {
-            scalex = static_cast<float>(self.displayLayer.bounds.size.width / [self getVideoSize].width);
-            scaley = static_cast<float>(self.displayLayer.bounds.size.height / [self getVideoSize].height);
-        }
-        _scaleTransform = CATransform3DMakeScale(scalex, scaley, 1);
+    if (_rotateMode % 180) {
+        std::swap(disPlaySize.width, disPlaySize.height);
     }
+
+    bool bFillWidth = self.displayLayer.bounds.size.width / self.displayLayer.bounds.size.height < disPlaySize.width / disPlaySize.height;
+
+    float scalex = 1.0;
+    float scaley = 1.0;
+
+    if (videoGravity == AVLayerVideoGravityResizeAspect) {
+        if (bFillWidth) {
+            scalex = static_cast<float>(self.displayLayer.bounds.size.width / disPlaySize.width);
+        } else {
+            scalex = static_cast<float>(self.displayLayer.bounds.size.height / disPlaySize.height);
+        }
+        scaley = scalex;
+    } else if (videoGravity == AVLayerVideoGravityResizeAspectFill) {
+        if (!bFillWidth) {
+            scalex = static_cast<float>(self.displayLayer.bounds.size.width / disPlaySize.width);
+        } else {
+            scalex = static_cast<float>(self.displayLayer.bounds.size.height / disPlaySize.height);
+        }
+        scaley = scalex;
+    } else if (videoGravity == AVLayerVideoGravityResize) {
+        scalex = static_cast<float>(self.displayLayer.bounds.size.width / disPlaySize.width);
+        scaley = static_cast<float>(self.displayLayer.bounds.size.height / disPlaySize.height);
+    }
+    _scaleTransform = CATransform3DMakeScale(scalex, scaley, 1);
     return CATransform3DConcat(transform, _scaleTransform);
 }
 
@@ -288,11 +289,9 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
         newSize = CGSizeMake(self.displayLayer.bounds.size.width * scale, self.displayLayer.bounds.size.height * scale);
     }
 
+    CGSize disPlaySize = [self getVideoSize];
     if (renderingBuffer && self.displayLayer) {
-        CGSize imageSize = CGSizeMake(_videoSize.width * scale, _videoSize.height * scale);
-        if (_rotateMode % 180) {
-            imageSize = CGSizeMake(_videoSize.height * scale, _videoSize.width * scale);
-        }
+        CGSize imageSize = CGSizeMake(disPlaySize.width * scale, disPlaySize.height * scale);
         CIImage *ciImage = [CIImage imageWithCVPixelBuffer:renderingBuffer];
         uiImage = [UIImage imageWithCIImage:ciImage];
         UIGraphicsBeginImageContext(imageSize);
@@ -381,20 +380,13 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 - (CGSize)getVideoSize
 {
     float scale = 1;
-
-    _isFillWidth = self.displayLayer.bounds.size.width / self.displayLayer.bounds.size.height < _frameSize.width / _frameSize.height;
-
-    if (_isFillWidth) {
+    bool bFillWidth = self.displayLayer.bounds.size.width / self.displayLayer.bounds.size.height < _frameSize.width / _frameSize.height;
+    if (bFillWidth) {
         scale = static_cast<float>(self.displayLayer.bounds.size.width / _frameSize.width);
     } else {
         scale = static_cast<float>(self.displayLayer.bounds.size.height / _frameSize.height);
     }
-    if (_rotateMode % 180) {
-        _videoSize = CGSizeMake(_frameSize.height * scale, _frameSize.width * scale);
-    } else {
-        _videoSize = CGSizeMake(_frameSize.width * scale, _frameSize.height * scale);
-    }
-    return _videoSize;
+    return CGSizeMake(_frameSize.width * scale, _frameSize.height * scale);
 }
 
 - (void)displayPixelBuffer:(CVPixelBufferRef)pixelBuffer

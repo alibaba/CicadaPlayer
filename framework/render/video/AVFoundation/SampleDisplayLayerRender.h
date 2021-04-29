@@ -16,12 +16,8 @@
 @property CATransform3D scaleTransform;
 @property CATransform3D mirrorTransform;
 @property CATransform3D rotateTransform;
-
-@property(nonatomic, assign) BOOL isFillWidth;
-@property(nonatomic) CGSize videoSize;
 @property(nonatomic) CGSize frameSize;
 @property(nonatomic) CGColorRef bGColour;
-
 @property(nonatomic) int rotateMode;
 
 - (int)createLayer;
