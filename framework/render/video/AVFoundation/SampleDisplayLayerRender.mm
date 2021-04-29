@@ -163,8 +163,7 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     CATransform3D transform = CATransform3DConcat(_mirrorTransform, _rotateTransform);
     if (videoGravity == AVLayerVideoGravityResizeAspect) {
         float scale = 1;
-        if ((_frameSize.width > _frameSize.height && _rotateMode % 180 == 0) ||
-            (_frameSize.width < _frameSize.height && _rotateMode % 180 != 0)) {
+        if (_isFillWidth) {
             scale = static_cast<float>(self.displayLayer.bounds.size.width / [self getVideoSize].width);
         } else {
             scale = static_cast<float>(self.displayLayer.bounds.size.height / [self getVideoSize].height);
@@ -172,8 +171,7 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
         _scaleTransform = CATransform3DMakeScale(scale, scale, 1);
     } else if (videoGravity == AVLayerVideoGravityResizeAspectFill) {
         float scale = 1;
-        if (!((_frameSize.width > _frameSize.height && _rotateMode % 180 == 0) ||
-              (_frameSize.width < _frameSize.height && _rotateMode % 180 != 0))) {
+        if (!_isFillWidth) {
             scale = static_cast<float>(self.displayLayer.bounds.size.width / [self getVideoSize].width);
         } else {
             scale = static_cast<float>(self.displayLayer.bounds.size.height / [self getVideoSize].height);
