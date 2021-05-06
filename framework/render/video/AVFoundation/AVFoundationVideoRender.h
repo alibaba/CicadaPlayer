@@ -33,10 +33,9 @@ public:
     }
     void setBackgroundColor(uint32_t color) override;
 
-    void captureScreen(std::function<void(uint8_t *, int, int)> func) override;
-
 private:
     bool deviceRenderFrame(IAFFrame *frame) override;
+    void device_captureScreen(std::function<void(uint8_t *, int, int)> func) override;
 
 private:
     std::unique_ptr<DisplayLayerImpl> mRender;
