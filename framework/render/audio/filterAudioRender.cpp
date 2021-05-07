@@ -204,6 +204,9 @@ namespace Cicada {
         mSpeedDeltaDuration = 0;
         mRenderFrame = nullptr;
 
+        //nb_samples could changed when reuse
+        mOutputInfo.nb_samples = 0;
+
         if (running) {
             startThread();
         }
