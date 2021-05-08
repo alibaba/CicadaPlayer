@@ -25,6 +25,7 @@ public:
 
 private:
     void applyRotate();
+    void setFilpByRotate();
 
 private:
     void *renderHandle{nullptr};

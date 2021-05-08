@@ -88,32 +88,37 @@ void DisplayLayerImpl::setScale(IVideoRender::Scale scale)
     [(__bridge id) renderHandle setVideoScale:scale];
 }
 
+void DisplayLayerImpl::setFilpByRotate()
+{
+    int rotate = static_cast<int>(llabs((mFrameRotate + mRotate) % 180));
+    switch (mFlip) {
+        case IVideoRender::Flip_None:
+            [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(0, 0, 0, 0)];
+            break;
+        case IVideoRender::Flip_Horizontal:
+            if (rotate == 0) {
+                [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(M_PI, 0, 1, 0)];
+            } else {
+                [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(M_PI, 1, 0, 0)];
+            }
+            break;
+        case IVideoRender::Flip_Vertical:
+            if (rotate == 0) {
+                [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(M_PI, 1, 0, 0)];
+            } else {
+                [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(M_PI, 0, 1, 0)];
+            }
+            break;
+        default:
+            break;
+    }
+}
+
 void DisplayLayerImpl::setFlip(IVideoRender::Flip flip)
 {
     if (mFlip != flip) {
         mFlip = flip;
-        int rotate = static_cast<int>(llabs((mFrameRotate + mRotate) % 180));
-        switch (flip) {
-            case IVideoRender::Flip_None:
-                [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(0, 0, 0, 0)];
-                break;
-            case IVideoRender::Flip_Horizontal:
-                if (rotate == 0) {
-                    [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(M_PI, 0, 1, 0)];
-                } else {
-                    [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(M_PI, 1, 0, 0)];
-                }
-                break;
-            case IVideoRender::Flip_Vertical:
-                if (rotate == 0) {
-                    [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(M_PI, 1, 0, 0)];
-                } else {
-                    [(__bridge id) renderHandle setMirrorTransform:CATransform3DMakeRotation(M_PI, 0, 1, 0)];
-                }
-                break;
-            default:
-                break;
-        }
+        setFilpByRotate();
         [(__bridge id) renderHandle applyTransform];
     }
 }
@@ -142,6 +147,7 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 {
     if (mRotate != rotate) {
         mRotate = rotate;
+        setFilpByRotate();
         applyRotate();
     }
 }
