@@ -18,6 +18,7 @@ AVFoundationVideoRender::AVFoundationVideoRender()
 }
 AVFoundationVideoRender::~AVFoundationVideoRender()
 {
+    mVSync->pause();
     delete mConvertor;
 }
 int AVFoundationVideoRender::init()

@@ -56,10 +56,10 @@ private:
     void dropFrame();
     void calculateFPS(int64_t tick);
 
-
-private:
+protected:
     std::unique_ptr<IVSync> mVSync{};
 
+private:
     Cicada::SpscQueue<IAFFrame *> mInputQueue;
     //    std::mutex mFrameMutex;
     //    std::queue<std::unique_ptr<IAFFrame>> mInputQueue;
