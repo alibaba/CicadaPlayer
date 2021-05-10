@@ -348,7 +348,7 @@ int pixelBufferConvertor::init(const IAFFrame::videoInfo &src)
         case AF_PIX_FMT_UYVY422:
         case AF_PIX_FMT_NV12:
         case AF_PIX_FMT_YUV420P:
-            break;
+            //            break;
         default:
             dst.format = AV_PIX_FMT_NV12;
     }
