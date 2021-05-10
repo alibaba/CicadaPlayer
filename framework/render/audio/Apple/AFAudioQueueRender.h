@@ -87,7 +87,7 @@ namespace Cicada {
 
 #endif
     private:
-#define MAX_QUEUE_SIZE 3
+#define MAX_QUEUE_SIZE 4
         AudioQueueBufferRef _audioQueueBufferRefArray[MAX_QUEUE_SIZE]{};
         AudioQueueRef _audioQueueRef{nullptr};
         AudioStreamBasicDescription mAudioFormat{};
