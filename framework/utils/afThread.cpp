@@ -169,7 +169,11 @@ void afThread::stop()
     mSleepCondition.notify_one();
 
     if (mThreadPtr && mThreadPtr->joinable()) {
-        mThreadPtr->join();
+        if (mThreadPtr->get_id() != std::this_thread::get_id()) {
+            mThreadPtr->join();
+        } else {
+            mThreadPtr->detach();
+        }
     }
 
     delete mThreadPtr;
