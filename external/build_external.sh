@@ -18,7 +18,7 @@ function patch_ffmpeg() {
 
     cd ${FFMPEG_SOURCE_DIR}
     git_am_patch ../../contribute/ffmpeg/0001-chore-win32-fix-not-find-openssl-1.1.1.patch
-    git_am_patch ../../contribute/ffmpeg/0002-chore-avformat-change-MAX_PES_PAYLOAD-to-5M.patch
+#    git_am_patch ../../contribute/ffmpeg/0002-chore-avformat-change-MAX_PES_PAYLOAD-to-5M.patch
     git_am_patch ../../contribute/ffmpeg/0003-chore-libavformat-exoport-some-functions.patch
     git_am_patch ../../contribute/ffmpeg/0004-chore-fix-Linux-build.patch
     git_am_patch ../../contribute/ffmpeg/0005-chore-disable-libdav1d-check.patch
