@@ -13,6 +13,7 @@ set(COMMON_LIB_DIR ${COMMON_LIB_DIR}
         ${MAC_INSTALL_DIR}/fdk-aac/Darwin/x86_64/lib
         ${MAC_INSTALL_DIR}/cares/Darwin/x86_64/lib
         ${MAC_INSTALL_DIR}/dav1d/Darwin/x86_64/lib
+        /opt/homebrew/lib/
         )
 set(COMMON_INC_DIR ${COMMON_INC_DIR}
         ${MAC_INSTALL_DIR}/curl/Darwin/x86_64/include
@@ -23,6 +24,7 @@ set(COMMON_INC_DIR ${COMMON_INC_DIR}
         ${MAC_INSTALL_DIR}/../build/ffmpeg/Darwin/x86_64/
         ${MAC_INSTALL_DIR}/../boost/
         ${MAC_INSTALL_DIR}/../external/ffmpeg/
+        /opt/homebrew/include/
         ${PROJECT_SOURCE_DIR})
 
 
