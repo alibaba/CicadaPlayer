@@ -82,7 +82,7 @@ IAFPacket::packetInfo &IAFPacket::packetInfo::operator=(const IAFPacket::packetI
 }
 void IAFPacket::packetInfo::setExtraData(const uint8_t *extraData, int extraDataSize)
 {
-    if (extraData) {
+    if (extraData && extraData != extra_data) {
         delete[] extra_data;
         extra_data = new uint8_t[extraDataSize];
         extra_data_size = extraDataSize;
