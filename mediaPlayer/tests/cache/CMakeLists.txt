@@ -51,7 +51,9 @@ target_link_libraries(mediaPlayerCacheTest PRIVATE
 target_link_directories(mediaPlayerCacheTest PRIVATE
         ../../../external/install/ffmpeg/${CMAKE_SYSTEM_NAME}/x86_64/lib
         ../../../external/install/curl/${CMAKE_SYSTEM_NAME}/x86_64/lib
-        ../../../external/install/openssl/${CMAKE_SYSTEM_NAME}/x86_64/lib)
+        ../../../external/install/openssl/${CMAKE_SYSTEM_NAME}/x86_64/lib
+        ${COMMON_LIB_DIR}
+        )
 
 if (ENABLE_SDL)
     target_link_libraries(mediaPlayerCacheTest PUBLIC
