@@ -493,7 +493,11 @@ int SdlAFVideoRender::setDisPlay(void *view)
     }
     if (display->type == CicadaSDLViewType_NATIVE_WINDOW) {
         mVideoWindow = SDL_CreateWindowFrom(display->view);
-        SDL_ShowWindow(mVideoWindow);
+        if (mVideoWindow) {
+            SDL_ShowWindow(mVideoWindow);
+        } else {
+            AF_LOGE("SDL_CreateWindowFrom failed! SDL_Error: %s\n", SDL_GetError());
+        }
         mWindowNeedRelease = true;
     } else {
         mVideoWindow = static_cast<SDL_Window *>(display->view);
