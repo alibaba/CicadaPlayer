@@ -50,6 +50,7 @@ private:
     bool                    mbNeedReleaseSurface{false};
     jobject                 mSurface{nullptr};
     jobject                 mSurfaceTexture{nullptr};
+    jfloatArray mTransformMatrix{nullptr};
     DecoderSurfaceCallback* mCallback{nullptr};
 
 };

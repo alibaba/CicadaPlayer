@@ -86,6 +86,10 @@ namespace Cicada {
                 // delete instance
                 handle->DeleteGlobalRef(mSurfaceTexture);
             }
+
+            if (mTransformMatrix) {
+                handle->DeleteGlobalRef(mTransformMatrix);
+            }
         }
     }
 
@@ -154,19 +158,25 @@ namespace Cicada {
         JNIEnv* handle = jniEnv.getEnv();
 
         if (handle) {
-            AndroidJniHandle<jfloatArray> arrMatrix(handle->NewFloatArray(16));
-            handle->CallVoidMethod(mSurfaceTexture, gj_ds_GetTransformMatrix, (jfloatArray)arrMatrix);
 
-            if (arrMatrix != nullptr) {
-                jfloat *matrix_get = handle->GetFloatArrayElements(arrMatrix, JNI_FALSE);
-
-                for (int i = 0; i < 16; ++i) {
-                    matrix[i] = matrix_get[i];
-                }
-
-                handle->ReleaseFloatArrayElements(arrMatrix, matrix_get, 0);
-                ret = true;
+            if (mTransformMatrix == nullptr) {
+                jfloatArray pArray = handle->NewFloatArray(16);
+                mTransformMatrix = static_cast<jfloatArray>(handle->NewGlobalRef(pArray));
+                handle->DeleteLocalRef(pArray);
             }
+
+            if (mTransformMatrix == nullptr) {
+                AF_LOGE("mTransformMatrix is nullptr");
+                return false;
+            }
+
+            handle->CallVoidMethod(mSurfaceTexture, gj_ds_GetTransformMatrix, mTransformMatrix);
+            jfloat *matrix_get = handle->GetFloatArrayElements(mTransformMatrix, JNI_FALSE);
+            for (int i = 0; i < 16; ++i) {
+                matrix[i] = matrix_get[i];
+            }
+            handle->ReleaseFloatArrayElements(mTransformMatrix, matrix_get, 0);
+            ret = true;
         }
 
         return ret;
@@ -212,6 +222,5 @@ namespace Cicada {
         mCallback->onFrameAvailable();
 //        UpdateTexImg();
     }
-
 
 }
