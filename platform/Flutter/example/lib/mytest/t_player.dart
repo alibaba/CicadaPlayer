@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_cicadaplayer/flutter_cicadaplayer.dart';
-import 'package:flutter_cicadaplayer/flutter_cicadaplayer_factory.dart';
-import 'package:flutter_cicadaplayer_example/mytest/test_resource_model.dart';
-import 'package:flutter_cicadaplayer_example/mytest/test_result_model.dart';
-
-import 'package:xml_parser/xml_parser.dart';
+import 'package:flutter_cicadaplayer_example/mytest/command/command_engine.dart';
+import 'package:flutter_cicadaplayer_example/mytest/model/test_case_model.dart';
+import 'package:flutter_cicadaplayer_example/mytest/model/test_resource_model.dart';
+import 'package:flutter_cicadaplayer_example/mytest/model/test_result_model.dart';
 
 class TestPlayerPage extends StatefulWidget {
   @override
@@ -13,11 +11,11 @@ class TestPlayerPage extends StatefulWidget {
 }
 
 class _TestPlayerPageState extends State<TestPlayerPage> {
-
-  XmlElement rootNode;
-
   TestResultModel testResultModel;
   TestResourceModel testResourceModel;
+  TestCaseModel testCaseModel;
+
+  CommandEngine engine;
 
   @override
   void initState() {
@@ -29,10 +27,13 @@ class _TestPlayerPageState extends State<TestPlayerPage> {
   @override
   void dispose() {
     super.dispose();
+    engine.clear();
   }
 
   @override
   Widget build(BuildContext context) {
+    var colorList = [Colors.grey,Colors.orange,Colors.green,Colors.red];
+
     var x = 0.0;
     var y = 0.0;
     Orientation orientation = MediaQuery.of(context).orientation;
@@ -50,94 +51,99 @@ class _TestPlayerPageState extends State<TestPlayerPage> {
         y: y,
         width: width,
         height: height);
-    return OrientationBuilder(
-      builder: (BuildContext context, Orientation orientation) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text("TestCase"),
-          ),
-          body: Column(
-            children: [
-              Stack(
-                children: [
-                  Container(
-                      color: Colors.black,
-                      child: cicadaPlayerView,
-                      width: width,
-                      height: height),
-                ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("TestCase"),
+      ),
+      body: Column(
+        children: [
+          Container(
+              color: Colors.black,
+              child: cicadaPlayerView,
+              width: width,
+              height: height),
+          Expanded(
+            child: Container(
+              child: Scrollbar(
+                child: SingleChildScrollView(
+                  child: ExpansionPanelList(
+                    expandedHeaderPadding: EdgeInsets.symmetric(vertical: 1),
+                    expansionCallback: (index, bool) {
+                      TestCaseGroup group = testCaseModel.contentMap.values
+                          .toList()
+                          .elementAt(index);
+                      setState(() {
+                        group.isExpanded = !group.isExpanded;
+                      });
+                    },
+                    children: testCaseModel.contentMap.values
+                        .map((item) => ExpansionPanel(
+                              isExpanded: item.isExpanded,
+                              canTapOnHeader: true,
+                              headerBuilder: (context, isExpanded) {
+                                return Text('${item.name}',style: TextStyle(fontWeight: FontWeight.bold),);
+                              },
+                              body: Column(
+                                  children: item.children
+                                      .map((e) => Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Expanded(child: Text(e.name)),
+                                                Text(e.getStatusStr(),
+                                                style: TextStyle(color:colorList[e.status]),)
+                                              ],
+                                            ),
+                                      ))
+                                      .toList()),
+                            ))
+                        .toList(),
+                  ),
+                ),
               ),
-            ],
-          ),
-        );
-      },
+            ),
+          )
+        ],
+      ),
     );
   }
 
   void onViewPlayerCreated() async {}
 
   void loadXml() async {
-    String contents = await rootBundle.loadString("assets/xml/test_case.xml");
-    XmlDocument xmlDocument = XmlDocument.fromString(contents);
-    rootNode = xmlDocument.getElement('test');
+    testCaseModel = TestCaseModel();
+    await testCaseModel.load();
 
     testResourceModel = TestResourceModel();
     await testResourceModel.load();
 
-    testResultModel = TestResultModel(start: DateTime.now().toString(),children: List<TestResultCaseModel>());
-    testFormat();
+    setState(() {});
+
+    testResultModel = TestResultModel(
+        start: DateTime.now().toString(),
+        children: List<TestResultCaseModel>());
+
+    engine = CommandEngine(
+        testCaseModel: testCaseModel,
+        testResourceModel: testResourceModel,
+        testResultModel: testResultModel,
+        onStatusUpdate: () {
+          setState(() {});
+        },)
+      ..assemble()
+      ..next();
   }
 
-  // 测试方法
-  void testFormat() async {
-    List<TestResultItemModel> children = new List<TestResultItemModel>();
-    TestResultCaseModel resultCase = TestResultCaseModel(name: 'format',children: children);
-    testResultModel.children.add(resultCase);
-
-    FlutterCicadaPlayer fCicadaPlayer = FlutterCicadaPlayerFactory().createCicadaPlayer();
-    fCicadaPlayer.setAutoPlay(true);
-
-    final casegroups = rootNode.getElementsWhere(
-      name: 'casegroup',
-      attributes: [XmlAttribute('casegroup_name', 'format')],
-    );
-    final resources =
-        casegroups.first.getElement('resources').getChildren('id');
-
-    int resIdx = 0;
-    
-    fCicadaPlayer.setOnCompletion(() {
-      TestResultItemModel model =resultCase.children.last;
-      model.finish(result:'ok',description: 'ok');
-      resIdx++;
-      if(resIdx<resources.length){
-        fCicadaPlayer.stop();
-        XmlElement item = resources[resIdx];
-        resultCase.children.add(playItem(fCicadaPlayer, item));
-      }else{
-        //完成
-        close(fCicadaPlayer);
-      }
-    });
-
-    fCicadaPlayer.setOnError((errorCode, errorExtra, errorMsg) {
-      TestResultItemModel model =resultCase.children.last;
-      model.finish(result:'failed',description: 'errorCode=$errorCode,errorExtra=$errorExtra,errorMsg=$errorMsg');
-      close(fCicadaPlayer);
-    });
-
-    XmlElement item = resources[resIdx];
-    resultCase.children.add(playItem(fCicadaPlayer, item));
-  }
-
-  TestResultItemModel playItem(FlutterCicadaPlayer player, XmlElement item) {
-    print('id = ${item.text}');
-    TestResourceItemModel model = testResourceModel.findItemById(item.text);
+  TestResultItemModel playItem(FlutterCicadaPlayer player, String resId) {
+    print('id = ${resId}');
+    TestResourceItemModel model = testResourceModel.findItemById(resId);
     print('url = ${model.url}');
     player.setUrl(model.url);
     player.prepare();
 
-    TestResultItemModel resultItem = TestResultItemModel(id: item.text,start: DateTime.now().toString());
+    TestResultItemModel resultItem =
+        TestResultItemModel(id: resId, start: DateTime.now().toString());
     return resultItem;
   }
 
@@ -147,6 +153,4 @@ class _TestPlayerPageState extends State<TestPlayerPage> {
 
     testResultModel.saveToFile();
   }
-
-
 }

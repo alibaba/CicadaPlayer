@@ -18,29 +18,29 @@
         </case>
     </casegroup>
     <!--seek 测试，
-    one_by_one: seek后收到seek完成，并检查播放器回调的position是否正确，不能回跳
+    one_by_one: seek后收到seek完成，并检查播放器回调的position是否正确，不能回跳  one_by_one 用-1代替
     preview: seek过程中暂停，资源必须用有视频的，seek完成后要保证对应的画面出来
     -->
-    <casegroup casegroup_name="operation_seek" accurate="false" preview="false" interval="one_by_one" time="1" loop="true">
+    <casegroup casegroup_name="operation_seek" accurate="false" preview="false" interval="-1" time="1" loop="true">
         <case case_name="operation_seek_one_by_one">
             <accurate>false</accurate>
-            <time>1000</time>
-            <interval>one_by_one</interval>
+            <time>10</time>
+            <interval>-1</interval>
             <resources>
                 <id>http_mp4_h264_aac</id>
             </resources>
         </case>
         <case case_name="operation_seek_one_by_one_accurate">
             <accurate>true</accurate>
-            <time>1000</time>
-            <interval>one_by_one</interval>
+            <time>10</time>
+            <interval>-1</interval>
             <resources>
                 <id>http_mp4_h264_aac</id>
             </resources>
         </case>
         <case case_name="operation_seek_by_time">
             <accurate>false</accurate>
-            <time>1000</time>
+            <time>10</time>
             <interval>1</interval> <!--秒-->
             <resources>
                 <id>http_mp4_h264_aac</id>
@@ -48,7 +48,7 @@
         </case>
         <case case_name="operation_seek_by_time_accurate">
             <accurate>true</accurate>
-            <time>1000</time>
+            <time>10</time>
             <interval>1</interval> <!--秒-->
             <resources>
                 <id>http_mp4_h264_aac</id>
@@ -57,7 +57,7 @@
         <case case_name="operation_seek_preview">
             <accurate>false</accurate>
             <preview>true</preview>
-            <time>1000</time>
+            <time>10</time>
             <interval>1</interval> <!--秒-->
             <resources>
                 <id>http_mp4_h264_aac</id>
@@ -66,7 +66,7 @@
         <case case_name="operation_seek_preview_accurate">
             <accurate>true</accurate>
             <preview>true</preview>
-            <time>1000</time>
+            <time>10</time>
             <interval>1</interval> <!--秒-->
             <resources>
                 <id>http_mp4_h264_aac</id>
