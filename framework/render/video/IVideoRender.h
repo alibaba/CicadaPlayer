@@ -156,14 +156,6 @@ public:
 
     }
 
-    virtual void enterForeground(){
-
-    }
-
-    virtual void enterBackground(){
-
-    }
-
     virtual void setFilter(IVideoRenderFilter *filter)
     {
         mFilter = filter;
