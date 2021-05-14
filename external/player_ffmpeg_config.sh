@@ -25,9 +25,9 @@ ffmpeg_config_add_filters atempo aresample aformat volume
 #ffmpeg_config_add_demuxers dash
 
 #for ffmpeg concat demuxer
-ffmpeg_config_add_demuxers concat
+#ffmpeg_config_add_demuxers concat
 
-ffmpeg_config_add_protocols http https
+#ffmpeg_config_add_protocols http https
 
 if [[ "$TARGET_PLATFORM" != "Android" ]];then
     ffmpeg_config_add_protocols udp
