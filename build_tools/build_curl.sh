@@ -7,7 +7,7 @@ function build_curl(){
     if [ ! -f ${CURL_SOURCE_DIR}/configure ]
     then
         cd ${CURL_SOURCE_DIR}
-        ./buildconf
+        autoreconf -fi
         if [ -n "$MTL" ]
         then
             cp ${BUILD_TOOLS_DIR}/automake_config/config.guess ./
