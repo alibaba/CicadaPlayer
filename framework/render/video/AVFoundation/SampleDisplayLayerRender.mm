@@ -142,6 +142,10 @@ void DisplayLayerImpl::captureScreen(std::function<void(uint8_t *, int, int)> fu
 //    CFRelease(img);
 #endif
 }
+void DisplayLayerImpl::reDraw()
+{
+    [(__bridge id) renderHandle reDraw];
+}
 
 void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 {
@@ -395,16 +399,23 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     return CGSizeMake(_frameSize.width * scale, _frameSize.height * scale);
 }
 
+- (void)reDraw
+{
+    [self displayPixelBuffer:renderingBuffer];
+}
+
 - (void)displayPixelBuffer:(CVPixelBufferRef)pixelBuffer
 {
     if (!pixelBuffer || !self.displayLayer) {
         return;
     }
 
-    if (renderingBuffer) {
-        CVPixelBufferRelease(renderingBuffer);
+    if (pixelBuffer != renderingBuffer) {
+        if (renderingBuffer) {
+            CVPixelBufferRelease(renderingBuffer);
+        }
+        renderingBuffer = CVPixelBufferRetain(pixelBuffer);
     }
-    renderingBuffer = CVPixelBufferRetain(pixelBuffer);
 
     CMSampleTimingInfo timing = {kCMTimeInvalid, kCMTimeInvalid, kCMTimeInvalid};
 

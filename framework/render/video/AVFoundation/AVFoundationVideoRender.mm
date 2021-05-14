@@ -12,12 +12,18 @@ using namespace Cicada;
 
 AVFoundationVideoRender::AVFoundationVideoRender()
 {
+#if TARGET_OS_IPHONE
+    RegisterIOSNotificationObserver(this, (int) (IOSResignActive | IOSBecomeActive));
+#endif
     mRender = static_cast<unique_ptr<DisplayLayerImpl>>(new DisplayLayerImpl());
     mRender->init();
     mRender->createLayer();
 }
 AVFoundationVideoRender::~AVFoundationVideoRender()
 {
+#if TARGET_OS_IPHONE
+    RemoveIOSNotificationObserver(this);
+#endif
     mVSync->pause();
     delete mConvertor;
 }
@@ -83,4 +89,12 @@ bool AVFoundationVideoRender::deviceRenderFrame(IAFFrame *frame)
 void AVFoundationVideoRender::device_captureScreen(std::function<void(uint8_t *, int, int)> func)
 {
     mRender->captureScreen(func);
+}
+void AVFoundationVideoRender::AppDidBecomeActive()
+{
+    oNRedraw();
+}
+void AVFoundationVideoRender::deviceReDraw()
+{
+    mRender->reDraw();
 }

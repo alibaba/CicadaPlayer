@@ -91,6 +91,10 @@ int AFActiveVideoRender::onVSync(int64_t tick)
         mNeedCaptureScreen = false;
         device_captureScreen(mCAPFunc);
     }
+    if (mNeedReDraw) {
+        mNeedReDraw = false;
+        deviceReDraw();
+    }
     while (mNeedFlushSize > 0) {
         if (mRendingFrame) {
             mRendingFrame->setDiscard(true);

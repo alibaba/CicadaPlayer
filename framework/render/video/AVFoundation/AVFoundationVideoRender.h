@@ -8,10 +8,11 @@
 #include "../AFActiveVideoRender.h"
 #include "../IVideoRender.h"
 #include "../vsync/IVSync.h"
+#include <codec/utils_ios.h>
 #include <memory>
 #include <utils/pixelBufferConvertor.h>
 class DisplayLayerImpl;
-class AVFoundationVideoRender : public AFActiveVideoRender {
+class AVFoundationVideoRender : public AFActiveVideoRender, private Cicada::IOSNotificationObserver {
 public:
     AVFoundationVideoRender();
     ~AVFoundationVideoRender() override;
@@ -36,6 +37,8 @@ public:
 private:
     bool deviceRenderFrame(IAFFrame *frame) override;
     void device_captureScreen(std::function<void(uint8_t *, int, int)> func) override;
+    void deviceReDraw() override;
+    void AppDidBecomeActive() override;
 
 private:
     std::unique_ptr<DisplayLayerImpl> mRender;

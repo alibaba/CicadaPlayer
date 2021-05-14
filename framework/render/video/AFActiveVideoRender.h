@@ -29,8 +29,13 @@ public:
     {
         return mFps;
     }
-
     void captureScreen(std::function<void(uint8_t *, int, int)> func) override;
+
+protected:
+    void oNRedraw()
+    {
+        mNeedReDraw = true;
+    }
 
 private:
     int VSyncOnInit() override
@@ -47,10 +52,8 @@ private:
 
     virtual void device_captureScreen(std::function<void(uint8_t *, int, int)> func)
     {}
-
-private:
     virtual bool deviceRenderFrame(IAFFrame *frame) = 0;
-
+    virtual void deviceReDraw(){};
 
 private:
     void dropFrame();
@@ -71,6 +74,7 @@ private:
     size_t mNeedFlushSize{0};
     std::unique_ptr<IAFFrame> mRendingFrame{nullptr};
     std::atomic_bool mNeedCaptureScreen{false};
+    bool mNeedReDraw{false};
     std::function<void(uint8_t *, int, int)> mCAPFunc{nullptr};
 };
 

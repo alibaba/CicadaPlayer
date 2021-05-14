@@ -23,6 +23,8 @@ public:
 
     void captureScreen(std::function<void(uint8_t *, int, int)> func);
 
+    void reDraw();
+
 private:
     void applyRotate();
     void setFilpByRotate();
