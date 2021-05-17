@@ -30,8 +30,6 @@ namespace Cicada {
 
         ~AFAudioQueueRender() override;
 
-        int setSpeed(float speed) override;
-
     private:
         int init_device() override;
 
@@ -42,6 +40,8 @@ namespace Cicada {
         void flush_device() override;
 
         void device_setVolume(float gain) override;
+
+        int device_setSpeed(float speed) override;
 
         int64_t device_get_position() override;
 

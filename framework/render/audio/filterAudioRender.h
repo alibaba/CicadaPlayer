@@ -53,6 +53,11 @@ namespace Cicada {
 
         virtual void device_setVolume(float gain) = 0;
 
+        virtual int device_setSpeed(float speed)
+        {
+            return -ENOTSUP;
+        }
+
         virtual int64_t device_get_position() = 0;
 
         virtual int device_write(unique_ptr<IAFFrame> &frame) = 0;

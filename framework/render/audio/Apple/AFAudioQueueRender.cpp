@@ -179,7 +179,7 @@ void AFAudioQueueRender::fillAudioFormat()
     mAudioDataByteSize = (mAudioFormat.mBytesPerFrame * mAudioFormat.mSampleRate) / 10;
 }
 
-int AFAudioQueueRender::setSpeed(float speed)
+int AFAudioQueueRender::device_setSpeed(float speed)
 {
     //  return filterAudioRender::setSpeed(speed);
     UInt32 timePitchBypass = 0;

@@ -12,6 +12,7 @@
 #include <filter/filterFactory.h>
 #include <utils/af_string.h>
 #include <utils/ffmpeg_utils.h>
+#include <utils/globalSettings.h>
 #include <utils/timer.h>
 
 namespace Cicada {
@@ -20,8 +21,7 @@ namespace Cicada {
     const static int MIN_INPUT_BUFFER_COUNT = 2;
 
     filterAudioRender::filterAudioRender()
-    {
-    }
+    {}
 
     filterAudioRender::~filterAudioRender()
     {
@@ -53,7 +53,8 @@ namespace Cicada {
 
         uint64_t device_ability = device_get_ability();
 
-        if (!(device_ability & A_FILTER_FLAG_TEMPO)) {
+        if (!(device_ability & A_FILTER_FLAG_TEMPO) ||
+            globalSettings::getSetting()->getProperty("protected.audio.render.hw.tempo") == "OFF") {
             mFilterFlags |= A_FILTER_FLAG_TEMPO;
         }
 
@@ -149,9 +150,11 @@ namespace Cicada {
 
     int filterAudioRender::setSpeed(float speed)
     {
-        assert(mFilterFlags & A_FILTER_FLAG_TEMPO);
-        mSpeed = speed;
-        return 0;
+        if (mFilterFlags & A_FILTER_FLAG_TEMPO) {
+            mSpeed = speed;
+            return 0;
+        }
+        return device_setSpeed(speed);
     }
 
     void filterAudioRender::pause(bool bPause)
@@ -356,4 +359,4 @@ namespace Cicada {
         }
         device_preClose();
     }
-}
+}// namespace Cicada
