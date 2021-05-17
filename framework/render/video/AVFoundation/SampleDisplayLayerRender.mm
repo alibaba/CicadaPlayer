@@ -409,6 +409,10 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     if (!pixelBuffer || !self.displayLayer) {
         return;
     }
+    
+    if(!self.displayLayer.superlayer.superlayer.superlayer){
+        return;
+    }
 
     if (pixelBuffer != renderingBuffer) {
         if (renderingBuffer) {
