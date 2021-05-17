@@ -1,5 +1,6 @@
 #import "CicadaPlayerGlobalSettings.h"
 #import "utils/globalSettings.h"
+#import "utils/property.h"
 
 @interface CicadaPlayerGlobalSettings ()
 {
@@ -22,6 +23,11 @@
         theip = [ip UTF8String];
         Cicada::globalSettings::getSetting()->addResolve(theHost, theip);
     }
+}
+
++ (void)enableHWAduioTempo:(bool)enable
+{
+    setProperty("protected.audio.render.hw.tempo", enable ? "ON" : "OFF");
 }
 
 @end

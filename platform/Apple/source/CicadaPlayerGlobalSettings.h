@@ -23,4 +23,12 @@ OBJC_EXPORT
  */
 +(void)setDNSResolve:(NSString *)host ip:(NSString *)ip;
 
+/**
+ @brief 设置是否使能硬件提供的音频变速播放能力，关闭后则使用软件实现音频的倍速播放，pcm回调数据的格式和此设置关联,如果修改，请在同一个线程操作,默认打开
+ */
+/****
+ @brief enable/disable hardware audio tempo, player will use soft ware tempo filter when disabled, and it will affect the pcm data that from audio rending callback, it only can be reset in the same thread, enable by default.
+ */
++ (void)enableHWAduioTempo:(bool)enable;
+
 @end

@@ -16,6 +16,8 @@ using namespace std;
 #include "cicadaEventListener.h"
 #include <utils/frame_work_log.h>
 
+#include <utils/property.h>
+
 #include <media_player_error_def.h>
 
 using IEvent = IEventReceiver::IEvent;
@@ -135,6 +137,8 @@ int main(int argc, char *argv[])
 
     log_enable_color(1);
     log_set_level(AF_LOG_LEVEL_TRACE, 1);
+    //   setProperty("protected.audio.render.hw.tempo","OFF");
+
     cicadaCont cicada{};
     unique_ptr<MediaPlayer> player = unique_ptr<MediaPlayer>(new MediaPlayer());
     cicada.player = player.get();
