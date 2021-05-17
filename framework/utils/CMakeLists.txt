@@ -65,6 +65,8 @@ set(SOURCE_FILES
         DrmUtils.h
         UTCTimer.cpp
         UTCTimer.h
+        globalNetWorkManager.cpp
+        globalNetWorkManager.h
         )
 
 list(APPEND SOURCE_FILES
