@@ -567,6 +567,7 @@ void SMPMessageControllerListener::ProcessRenderedMsg(StreamType type, IAFFrame:
         if (!rendered) {
             return;
         }
+        mPlayer.mDemuxerService->SetOption("A_FRAME_RENDERED", info.pts);
 
         if (!mPlayer.isSeeking() && info.timePosition >= 0) {
             mPlayer.mCurrentPos = info.timePosition;
@@ -603,7 +604,7 @@ void SMPMessageControllerListener::ProcessRenderedMsg(StreamType type, IAFFrame:
         }
 
         assert(mPlayer.mDemuxerService);
-        mPlayer.mDemuxerService->SetOption("FRAME_RENDERED", info.pts);
+        mPlayer.mDemuxerService->SetOption("V_FRAME_RENDERED", info.pts);
 
         if (mPlayer.mSet->bEnableVRC) {
             mPlayer.mPNotifier->NotifyVideoRendered(timeMs, info.pts);

@@ -2047,7 +2047,7 @@ int SuperMediaPlayer::FillVideoFrame()
             pFrame->getInfo().video.dar = 1.0 * pFrame->getInfo().video.width / pFrame->getInfo().video.height;
         }
 
-        mDemuxerService->SetOption("FRAME_DECODED", pts);
+        mDemuxerService->SetOption("V_FRAME_DECODED", pts);
         //            AF_LOGI("DecodeVideoPacket p_dec_delay frame :%lld pos:%lld, mPlayedAudioPts:%lld, posdiff:%lld audiodiff:%lld videodiff:%lld",
         //                    pFrame->GetPts()/1000, pos/1000, mPlayedAudioPts/1000, (pos - pFrame->GetPts())/1000,
         //                    (mLastInputAudio - mPlayedAudioPts)/1000, (mLastInputVideo - pFrame->GetPts())/1000);
@@ -2530,7 +2530,7 @@ int SuperMediaPlayer::DecodeAudio(unique_ptr<IAFPacket> &pPacket)
                     //                       assert(0);
                 }
             }
-
+            mDemuxerService->SetOption("A_FRAME_DECODED", frame->getInfo().pts);
             mAudioFrameQue.push_back(move(frame));
         }
     } while (ret != -EAGAIN && ret != -EINVAL);
@@ -2800,7 +2800,7 @@ int SuperMediaPlayer::ReadPacket()
         }
 
         mBufferController->AddPacket(move(pMedia_Frame), BUFFER_TYPE_VIDEO);
-        mDemuxerService->SetOption("FRAME_RECEIVE", pFrame->getInfo().pts);
+        mDemuxerService->SetOption("V_FRAME_RECEIVE", pFrame->getInfo().pts);
 
         if (mVideoInterlaced == InterlacedType_UNKNOWN) {
             if (mVideoParser == nullptr) {
@@ -2898,6 +2898,7 @@ int SuperMediaPlayer::ReadPacket()
         }
 
         mBufferController->AddPacket(move(pMedia_Frame), BUFFER_TYPE_AUDIO);
+        mDemuxerService->SetOption("A_FRAME_RECEIVE", pFrame->getInfo().pts);
     } else if (pFrame->getInfo().streamIndex == mCurrentSubtitleIndex || pFrame->getInfo().streamIndex == mWillChangedSubtitleStreamIndex) {
         if (mMediaFrameCb && (!pMedia_Frame->isProtected() || mDrmKeyValid)) {
             mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame.get(), ST_TYPE_SUB);
