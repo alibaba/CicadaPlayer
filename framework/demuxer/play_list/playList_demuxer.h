@@ -60,6 +60,8 @@ namespace Cicada{
 
         int GetStreamMeta(Stream_meta *meta, int index, bool sub) const override;
 
+        int GetMediaMeta(Media_meta *mediaMeta) const override;
+
         int OpenStream(int index) override;
 
         void CloseStream(int index) override;

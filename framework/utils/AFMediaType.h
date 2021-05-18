@@ -309,6 +309,9 @@ typedef struct VideoColorInfo {
     enum AFChromaLocation chroma_location;
 } VideoColorInfo;
 
+typedef struct {
+    int64_t totalBitrate;
+} Media_meta;
 
 typedef struct {
     Stream_type type;
@@ -325,6 +328,9 @@ typedef struct {
     int64_t seeked_time;
 
     int disposition; /**< AV_DISPOSITION_* bit field */
+
+    int64_t bitrate;
+    int64_t totalBitrate;
 
     // TODO:  use union
     //audio

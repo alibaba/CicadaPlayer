@@ -56,7 +56,7 @@ namespace Cicada {
         listener.SubtitleShow = subtitleShowCallback;
         listener.SubtitleHide = subtitleHideCallback;
         listener.SubtitleExtAdd = subtitleExtAddedCallback;
-        listener.StreamInfoGet = streamInfoGetCallback;
+        listener.MediaInfoGet = mediaInfoGetCallback;
         listener.StreamSwitchSuc = streamChangedSucCallback;
         listener.StatusChanged = PlayerStatusChanged;
         listener.CaptureScreen = captureScreenResult;
@@ -997,14 +997,16 @@ namespace Cicada {
         player->mAbrManager->Start();
     }
 
-    void MediaPlayer::streamInfoGetCallback(int64_t count, const void *Infos, void *userData)
+    void MediaPlayer::mediaInfoGetCallback(int64_t count, const void *Infos, void *userData)
     {
         GET_MEDIA_PLAYER
-        //add video bitrate to abr manager
-        StreamInfo **sInfos = (StreamInfo **) Infos;
 
-        for (int i = 0; i < count; i++) {
-            StreamInfo *si = sInfos[i];
+        auto *mediaInfo = (MediaInfo *) Infos;
+
+        //add video bitrate to abr manager
+
+        for (int i = 0; i < mediaInfo->mStreamInfoQueue.size(); i++) {
+            StreamInfo *si = mediaInfo->mStreamInfoQueue.at(i);
 
             if (si->type == ST_TYPE_VIDEO) {
                 player->mAbrAlgo->AddStreamInfo(si->streamIndex, si->videoBandwidth);
@@ -1022,8 +1024,8 @@ namespace Cicada {
             }
         }
 
-        if (player->mListener.StreamInfoGet) {
-            player->mListener.StreamInfoGet(count, Infos, player->mListener.userData);
+        if (player->mListener.MediaInfoGet) {
+            player->mListener.MediaInfoGet(count, Infos, player->mListener.userData);
         }
     }
 

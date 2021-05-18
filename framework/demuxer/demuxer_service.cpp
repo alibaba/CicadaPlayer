@@ -212,6 +212,13 @@ namespace Cicada {
         return mDemuxerPtr->GetSourceMeta(meta);
     }
 
+    int demuxer_service::GetMediaMeta(Media_meta *mediaMeta)
+    {
+        AF_TRACE;
+        CHECK_DEMUXER;
+        return mDemuxerPtr->GetMediaMeta(mediaMeta);
+    }
+
     int demuxer_service::GetStreamMeta(Stream_meta *meta, int index, bool sub) const
     {
 //        AF_TRACE;

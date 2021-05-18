@@ -397,7 +397,7 @@ namespace Cicada {
 
         static void PlayerStatusChanged(int64_t oldStatus, int64_t newStatus, void *userData);
 
-        static void streamInfoGetCallback(int64_t count, const void *Infos, void *userData);
+        static void mediaInfoGetCallback(int64_t count, const void *Infos, void *userData);
 
         static void captureScreenResult(int64_t width, int64_t height, const void *buffer, void *userData);
 

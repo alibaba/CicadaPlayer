@@ -49,7 +49,7 @@ namespace Cicada {
 
         void NotifyFirstFrame();
 
-        void NotifyStreamInfo(StreamInfo *info[], int size);
+        void NotifyMediaInfo(MediaInfo *mediaInfo);
 
         void NotifySubtitleEvent(subTitle_event id, IAFPacket *packet, int64_t index, const char *url);
 
@@ -74,7 +74,7 @@ namespace Cicada {
 
         void NotifyStreamChanged(StreamInfo *info, StreamType type);
 
-        void CancelNotifyStreamInfo();
+        void CancelNotifyMediaInfo();
 
         void NotifyAutoPlayStart();
 

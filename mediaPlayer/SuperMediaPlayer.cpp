@@ -254,8 +254,8 @@ StreamType SuperMediaPlayer::SwitchStream(int streamIndex)
     param.streamParam = streamParam;
     StreamType streamType = ST_TYPE_UNKNOWN;
     PlayMsgType type = MSG_INVALID;
-
-    for (auto &it : mStreamInfoQueue) {
+    std::deque<StreamInfo *> &streamInfoQueue = mMediaInfo.mStreamInfoQueue;
+    for (auto &it : streamInfoQueue) {
         if (it->streamIndex == streamIndex) {
             switch (it->type) {
                 case ST_TYPE_VIDEO:
@@ -398,18 +398,16 @@ int SuperMediaPlayer::Stop()
         }
     }
 
-    delete[] mStreamInfos;
-    mStreamInfos = nullptr;
     delete mVideoParser;
     mVideoParser = nullptr;
     {
         std::lock_guard<std::mutex> uMutex(mCreateMutex);
-
-        for (StreamInfo *info : mStreamInfoQueue) {
+        std::deque<StreamInfo *> &streamInfoQueue = mMediaInfo.mStreamInfoQueue;
+        for (StreamInfo *info : streamInfoQueue) {
             releaseStreamInfo(info);
         }
-
-        mStreamInfoQueue.clear();
+        streamInfoQueue.clear();
+        mMediaInfo.totalBitrate = 0;
     }
     mBufferController->ClearPacket(BUFFER_TYPE_SUBTITLE);
     Reset();
@@ -804,7 +802,8 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key)
             MediaPlayerUtil::addURLProperty("responseInfo", array, mDataSource);
             //if (mDemuxerService->isPlayList())
             {
-                MediaPlayerUtil::getPropertyJSONStr("responseInfo", array, false, mStreamInfoQueue, mDemuxerService.get());
+                std::deque<StreamInfo *> &streamInfoQueue = mMediaInfo.mStreamInfoQueue;
+                MediaPlayerUtil::getPropertyJSONStr("responseInfo", array, false, streamInfoQueue, mDemuxerService.get());
             }
             return array.printJSON();
         }
@@ -828,7 +827,8 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key)
             MediaPlayerUtil::addURLProperty("connectInfo", array, mDataSource);
             //if (mDemuxerService->isPlayList())
             {
-                MediaPlayerUtil::getPropertyJSONStr("openJsonInfo", array, true, mStreamInfoQueue, mDemuxerService.get());
+                std::deque<StreamInfo *> &streamInfoQueue = mMediaInfo.mStreamInfoQueue;
+                MediaPlayerUtil::getPropertyJSONStr("openJsonInfo", array, true, streamInfoQueue, mDemuxerService.get());
             }
             return array.printJSON();
         }
@@ -841,7 +841,8 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key)
             if (nullptr == mDemuxerService) {
                 return array.printJSON();
             } else if (mDemuxerService->isPlayList()) {
-                MediaPlayerUtil::getPropertyJSONStr("probeInfo", array, false, mStreamInfoQueue, mDemuxerService.get());
+                std::deque<StreamInfo *> &streamInfoQueue = mMediaInfo.mStreamInfoQueue;
+                MediaPlayerUtil::getPropertyJSONStr("probeInfo", array, false, streamInfoQueue, mDemuxerService.get());
             } else {
                 CicadaJSONItem item(mDemuxerService->GetProperty(0, "probeInfo"));
                 item.addValue("type", "video");
@@ -2579,11 +2580,12 @@ int SuperMediaPlayer::DecodeAudio(unique_ptr<IAFPacket> &pPacket)
 void SuperMediaPlayer::ProcessOpenStreamInit(int streamIndex)
 {
     AF_LOGD("ProcessOpenStreamInit ProcessOpenStreamInit start");
-    int streamCount = (int) mStreamInfoQueue.size();
+    std::deque<StreamInfo *> &streamInfoQueue = mMediaInfo.mStreamInfoQueue;
+    int streamCount = (int) streamInfoQueue.size();
     int videoStreams = 0;
 
     for (int i = 0; i < streamCount; i++) {
-        StreamInfo *info = mStreamInfoQueue[i];
+        StreamInfo *info = streamInfoQueue[i];
 
         if (info->type == ST_TYPE_VIDEO) {
             videoStreams++;
@@ -2625,17 +2627,9 @@ void SuperMediaPlayer::ProcessOpenStreamInit(int streamIndex)
         }
     }
 
-    mPNotifier->CancelNotifyStreamInfo();
+    mPNotifier->CancelNotifyMediaInfo();
     //post before PostMsg(PreparedReq). sdk will get these infos on Prepared callback.
-    delete[] mStreamInfos;
-    mStreamInfos = new StreamInfo *[mStreamInfoQueue.size()];
-    int infoIndex = 0;
-
-    for (StreamInfo *info : mStreamInfoQueue) {
-        mStreamInfos[infoIndex++] = info;
-    }
-
-    mPNotifier->NotifyStreamInfo(mStreamInfos, static_cast<int>(mStreamInfoQueue.size()));
+    mPNotifier->NotifyMediaInfo(&mMediaInfo);
 }
 
 void SuperMediaPlayer::setUpAVPath()
@@ -2761,7 +2755,8 @@ int SuperMediaPlayer::ReadPacket()
         mDuration = ((Stream_meta *) (pMeta.get()))->duration;
     }
 
-    if (id < mStreamInfoQueue.size() && mStreamInfoQueue[id]->type == ST_TYPE_VIDEO && mMainStreamId != -1 && id != mMainStreamId) {
+    std::deque<StreamInfo *> &streamInfoQueue = mMediaInfo.mStreamInfoQueue;
+    if (id < streamInfoQueue.size() && streamInfoQueue[id]->type == ST_TYPE_VIDEO && mMainStreamId != -1 && id != mMainStreamId) {
         unique_ptr<streamMeta> pMeta;
         Stream_meta *meta{};
         int count = mDemuxerService->GetNbSubStream(id);
@@ -3756,7 +3751,8 @@ StreamInfo *SuperMediaPlayer::GetCurrentStreamInfo(StreamType type)
     int streamIndex = GetCurrentStreamIndex(type);
 
     if (streamIndex != -1) {
-        for (StreamInfo *info : mStreamInfoQueue) {
+        std::deque<StreamInfo *> &streamInfoQueue = mMediaInfo.mStreamInfoQueue;
+        for (StreamInfo *info : streamInfoQueue) {
             if (info->streamIndex == streamIndex) {
                 return info;
             }

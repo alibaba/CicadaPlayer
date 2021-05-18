@@ -1,11 +1,12 @@
 #ifndef NATIVE_CICADA_PLAYER_DEF_H
 #define NATIVE_CICADA_PLAYER_DEF_H
 
+#include <base/media/IAFPacket.h>
+#include <deque>
 #include <memory>
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
-#include <base/media/IAFPacket.h>
 #include <utils/CicadaType.h>
 
 #define SELECT_TRACK_VIDEO_AUTO -1
@@ -59,6 +60,8 @@ typedef struct _StreamInfo {
     StreamType type;
     char *description;
 
+    int64_t bitrate;
+
     //video
     int videoBandwidth;
     int videoWidth;
@@ -110,7 +113,7 @@ typedef struct playerListener_t {
     playerType13Callback ErrorCallback;
 
     playerType13Callback EventCallback;
-    playerType13Callback StreamInfoGet;
+    playerType13Callback MediaInfoGet;
     playerType13Callback StreamSwitchSuc;
 
     playerType123Callback CaptureScreen;
@@ -189,6 +192,12 @@ public:
     virtual int ConvertErrorCode(int code, int &outCode, std::string &outStr) = 0;
 };
 
+class MediaInfo {
+public:
+    int64_t totalBitrate{0};
+
+    std::deque<StreamInfo *> mStreamInfoQueue{};
+};
 #define EXT_STREAM_BASE (1<<10)
 
 #endif // NATIVE_CICADA_PLAYER_DEF_H

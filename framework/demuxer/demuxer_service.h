@@ -91,6 +91,8 @@ namespace Cicada {
 
         int GetSourceMeta(Source_meta **meta);
 
+        int GetMediaMeta(Media_meta *mediaMeta);
+
         attribute_deprecated
         int GetStreamMeta(Stream_meta *meta, int index, bool sub) const;
 

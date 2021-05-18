@@ -263,26 +263,26 @@ namespace Cicada {
         NotifyVoidEvent(mListener.FirstFrameShow);
     }
 
-    void PlayerNotifier::NotifyStreamInfo(StreamInfo *info[], int size)
+    void PlayerNotifier::NotifyMediaInfo(MediaInfo *mediaInfo)
     {
-        if (!mEnable || mListener.StreamInfoGet == nullptr) {
+        if (!mEnable || mListener.MediaInfoGet == nullptr) {
             return;
         }
 
-        auto *event = new player_event(size, info, mListener.StreamInfoGet, true);
+        auto *event = new player_event(0, mediaInfo, mListener.MediaInfoGet, true);
         pushEvent(event);
     }
 
-    void PlayerNotifier::CancelNotifyStreamInfo()
+    void PlayerNotifier::CancelNotifyMediaInfo()
     {
-        if (mListener.StreamInfoGet == nullptr) {
+        if (mListener.MediaInfoGet == nullptr) {
             return;
         }
 
         std::unique_lock<std::mutex> uMutex(mMutex);
 
         for (auto &event : mEventQueue) {
-            if (event->mFunc.p13 == mListener.StreamInfoGet) {
+            if (event->mFunc.p13 == mListener.MediaInfoGet) {
                 mEventQueue.remove(event);
             }
         }

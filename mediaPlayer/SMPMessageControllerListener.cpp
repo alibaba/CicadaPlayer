@@ -196,6 +196,8 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         info->subtitleLang = nullptr;
         info->audioLang = nullptr;
         info->description = nullptr;
+        info->bitrate = meta->bitrate;
+
         AF_LOGD("get a stream %d\n", meta->type);
 
         if (!mPlayer.mSet->bDisableVideo && meta->type == STREAM_TYPE_VIDEO) {
@@ -212,7 +214,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
                 info->description = strdup((const char *) meta->description);
             }
 
-            mPlayer.mStreamInfoQueue.push_back(info);
+            mPlayer.mMediaInfo.mStreamInfoQueue.push_back(info);
             mPlayer.mVideoInterlaced = meta->interlaced;
 
             if (mPlayer.mCurrentVideoIndex < 0 && !mPlayer.mMixMode && meta->attached_pic == 0) {
@@ -238,7 +240,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
             info->nChannels = meta->channels;
             info->sampleFormat = meta->sample_fmt;
             info->sampleRate = meta->samplerate;
-            mPlayer.mStreamInfoQueue.push_back(info);
+            mPlayer.mMediaInfo.mStreamInfoQueue.push_back(info);
 
             if (mPlayer.mCurrentAudioIndex < 0 && !mPlayer.mMixMode) {
                 AF_LOGD("get a audio stream\n");
@@ -257,7 +259,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
                 info->description = strdup((const char *) meta->description);
             }
 
-            mPlayer.mStreamInfoQueue.push_back(info);
+            mPlayer.mMediaInfo.mStreamInfoQueue.push_back(info);
 
             if (mPlayer.mCurrentSubtitleIndex < 0 &&
                 /*
@@ -284,7 +286,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
                 mPlayer.mMainStreamId = i;
             }
 
-            mPlayer.mStreamInfoQueue.push_back(info);
+            mPlayer.mMediaInfo.mStreamInfoQueue.push_back(info);
         } else {
             delete info;
         }
@@ -295,6 +297,10 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
             return;
         }
     }
+
+    Media_meta pMediaMeta{};
+    mPlayer.mDemuxerService->GetMediaMeta(&pMediaMeta);
+    mPlayer.mMediaInfo.totalBitrate = pMediaMeta.totalBitrate;
 
     // TODO: why ?
     /*
@@ -692,7 +698,7 @@ void SMPMessageControllerListener::ProcessSelectExtSubtitleMsg(int index, bool s
 
 void SMPMessageControllerListener::switchVideoStream(int index, Stream_type type)
 {
-    int count = (int) mPlayer.mStreamInfoQueue.size();
+    int count = (int) mPlayer.mMediaInfo.mStreamInfoQueue.size();
     StreamInfo *currentInfo = nullptr;
     StreamInfo *willChangeInfo = nullptr;
     int i;
@@ -703,7 +709,7 @@ void SMPMessageControllerListener::switchVideoStream(int index, Stream_type type
     }
 
     for (i = 0; i < count; i++) {
-        StreamInfo *info = mPlayer.mStreamInfoQueue[i];
+        StreamInfo *info = mPlayer.mMediaInfo.mStreamInfoQueue[i];
 
         if (info->streamIndex == index) {
             willChangeInfo = info;

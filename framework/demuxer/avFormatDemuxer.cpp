@@ -596,6 +596,21 @@ namespace Cicada {
         return AVDictionary2SourceMeta(meta, mCtx->metadata);
     }
 
+    int avFormatDemuxer::GetMediaMeta(Media_meta *mediaMeta) const
+    {
+
+        if (mediaMeta == nullptr) {
+            return -1;
+        }
+
+#if AF_HAVE_PTHREAD
+        std::lock_guard<std::mutex> uLock(mCtxMutex);
+#endif
+        mediaMeta->totalBitrate = mCtx->bit_rate;
+
+        return 0;
+    }
+
     int avFormatDemuxer::GetStreamMeta(Stream_meta *meta, int index, bool sub) const
     {
 #if AF_HAVE_PTHREAD

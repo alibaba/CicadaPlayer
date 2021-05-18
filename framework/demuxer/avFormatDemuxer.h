@@ -54,6 +54,8 @@ namespace Cicada {
 
         int GetStreamMeta(Stream_meta *meta, int index, bool sub) const override;
 
+        int GetMediaMeta(Media_meta *mediaMeta) const override;
+
         void Start() override;
 
         void PreStop() override;

@@ -109,6 +109,8 @@ namespace Cicada {
 
         virtual int GetStreamMeta(unique_ptr<streamMeta> &meta, int index, bool sub) const;
 
+        virtual int GetMediaMeta(Media_meta *mediaMeta) const = 0;
+
         virtual int OpenStream(int index) = 0;
 
         virtual void CloseStream(int index) = 0;

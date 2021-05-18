@@ -454,9 +454,8 @@ namespace Cicada {
         PlayerStatus mOldPlayStatus{PLAYER_IDLE};
         atomic <PlayerStatus> mPlayStatus{PLAYER_IDLE};
         std::deque<std::unique_ptr<IAFPacket>> mSubtitleShowedQueue;
-        std::deque<StreamInfo *> mStreamInfoQueue;
-        StreamInfo **mStreamInfos{nullptr};
-//        ResolutionPolicy mResolutionPolicy{kShowAll};
+        MediaInfo mMediaInfo{};
+        //        ResolutionPolicy mResolutionPolicy{kShowAll};
         int mCurrentVideoIndex{-1};
         int mCurrentAudioIndex{-1};
         int mCurrentSubtitleIndex{-1};
