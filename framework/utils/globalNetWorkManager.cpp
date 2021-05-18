@@ -7,12 +7,10 @@
 
 using namespace Cicada;
 using namespace std;
-static globalNetWorkManager *g_globalNetWorkManager = nullptr;
+globalNetWorkManager globalNetWorkManager::sInstance{};
 globalNetWorkManager *globalNetWorkManager::getGlobalNetWorkManager()
 {
-    static std::once_flag oc;
-    std::call_once(oc, [&] { g_globalNetWorkManager = new globalNetWorkManager(); });
-    return g_globalNetWorkManager;
+    return &sInstance;
 }
 void globalNetWorkManager::addListener(globalNetWorkManager::globalNetWorkManagerListener *listener)
 {

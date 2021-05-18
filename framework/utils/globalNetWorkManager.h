@@ -21,7 +21,6 @@ namespace Cicada {
 
     public:
         static globalNetWorkManager *getGlobalNetWorkManager();
-
         void addListener(globalNetWorkManagerListener *listener);
         void removeListener(globalNetWorkManagerListener *listener);
         void reConnect();
@@ -29,8 +28,10 @@ namespace Cicada {
 
     private:
         globalNetWorkManager() = default;
+        ~globalNetWorkManager() = default;
 
     private:
+        static globalNetWorkManager sInstance;
         std::mutex mMutex;
         std::set<globalNetWorkManagerListener *> mListeners{};
     };
