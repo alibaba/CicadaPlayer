@@ -17,10 +17,9 @@ public:
 
     static void unInit(JNIEnv *pEnv);
 
-    static jobject convertTo(JNIEnv *pEnv, const void *streamInfos, int64_t count);
+    static jobject convertTo(JNIEnv *pEnv, const void *mediaInfo);
 
-    static StreamInfo **convertToStream(JNIEnv *penv, jobject mediaInfo, int * mStreamCount);
-
+    static MediaInfo *convertToStream(JNIEnv *penv, jobject jmediaInfo);
 };
 
 

@@ -97,7 +97,7 @@ void NativeBase::java_Construct(JNIEnv *env, jobject instance , jstring name)
     listener.LoadingProgress = jni_onLoadingProgress;
     listener.LoadingEnd = jni_onLoadingEnd;
     listener.SeekEnd = jni_onSeekEnd;
-    listener.StreamInfoGet = jni_onStreamInfoGet;
+    listener.MediaInfoGet = jni_onMediaInfoGet;
     listener.StreamSwitchSuc = jni_onSwitchStreamSuccess;
     listener.StatusChanged = jni_onPlayerStatusChanged;
     listener.CaptureScreen = jni_onCaptureScreen;
@@ -1641,9 +1641,9 @@ void NativeBase::jni_onCompletion(void *userData)
     JniException::clearException(mEnv);
 }
 
-void NativeBase::jni_onStreamInfoGet(int64_t count, const void *infos, void *userData)
+void NativeBase::jni_onMediaInfoGet(int64_t count, const void *infos, void *userData)
 {
-    if (userData == nullptr || count == 0 || infos == nullptr) {
+    if (userData == nullptr || infos == nullptr) {
         return;
     }
 
@@ -1654,7 +1654,7 @@ void NativeBase::jni_onStreamInfoGet(int64_t count, const void *infos, void *use
         return;
     }
 
-    jobject jMediaInfo = JavaMediaInfo::convertTo(mEnv, infos, count);
+    jobject jMediaInfo = JavaMediaInfo::convertTo(mEnv, infos);
     mEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onStreamInfoGet, jMediaInfo);
     mEnv->DeleteLocalRef(jMediaInfo);
     JniException::clearException(mEnv);

@@ -27,7 +27,7 @@ public:
     static jobjectArray
     getTrackInfoArray(JNIEnv *mEnv, const std::vector<StreamInfo> &streamInfos, int len);
 
-    static jobjectArray getTrackInfoArray(JNIEnv *mEnv, StreamInfo **streamInfos, int len);
+    static jobjectArray getTrackInfoArray(JNIEnv *mEnv, MediaInfo *mediaInfo);
 };
 
 

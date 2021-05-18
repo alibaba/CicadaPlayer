@@ -13,6 +13,7 @@ jclass gj_MediaInfoClass = nullptr;
 jmethodID gj_MediaInfo_init = nullptr;
 jmethodID gj_MediaInfo_setTrackInfos = nullptr;
 jmethodID gj_MediaInfo_getTrackInfoArray = nullptr;
+jfieldID gj_MediaInfo_TotalBitRate = nullptr;
 
 void JavaMediaInfo::init(JNIEnv *env) {
     if (gj_MediaInfoClass == nullptr) {
@@ -21,6 +22,7 @@ void JavaMediaInfo::init(JNIEnv *env) {
         gj_MediaInfo_init = env->GetMethodID(gj_MediaInfoClass,
                                              "<init>",
                                              "()V");
+        gj_MediaInfo_TotalBitRate = env->GetFieldID(gj_MediaInfoClass, "mTotalBitRate", "I");
         gj_MediaInfo_setTrackInfos = env->GetMethodID(gj_MediaInfoClass,
                                                       "setTrackInfos",
                                                       "([Lcom/cicada/player/nativeclass/TrackInfo;)V");
@@ -37,40 +39,43 @@ void JavaMediaInfo::unInit(JNIEnv *pEnv) {
     }
 }
 
-jobject JavaMediaInfo::convertTo(JNIEnv *pEnv, const void *streamInfos, int64_t count) {
-    jobject mediaInfo = pEnv->NewObject(gj_MediaInfoClass, gj_MediaInfo_init);
+jobject JavaMediaInfo::convertTo(JNIEnv *pEnv, const void *mediaInfo)
+{
+    jobject jmediaInfo = pEnv->NewObject(gj_MediaInfoClass, gj_MediaInfo_init);
 
-    if (count > 0 && streamInfos != nullptr) {
-        auto **infos = (StreamInfo **) streamInfos;
-        jobjectArray trackInfos = JavaTrackInfo::getTrackInfoArray(pEnv, infos, count);
-        pEnv->CallVoidMethod(mediaInfo, gj_MediaInfo_setTrackInfos, trackInfos);
+    if (mediaInfo != nullptr) {
+        auto *infos = (MediaInfo *) mediaInfo;
+        jobjectArray trackInfos = JavaTrackInfo::getTrackInfoArray(pEnv, infos);
+        pEnv->CallVoidMethod(jmediaInfo, gj_MediaInfo_setTrackInfos, trackInfos);
         pEnv->DeleteLocalRef(trackInfos);
+
+        pEnv->SetIntField(jmediaInfo, gj_MediaInfo_TotalBitRate, infos->totalBitrate);
     }
 
-    return mediaInfo;
+    return jmediaInfo;
 }
 
-StreamInfo **JavaMediaInfo::convertToStream(JNIEnv *env, jobject mediaInfo , int* count) {
+MediaInfo *JavaMediaInfo::convertToStream(JNIEnv *penv, jobject jmediaInfo)
+{
 
-    if (mediaInfo == nullptr) {
+    if (jmediaInfo == nullptr) {
         return nullptr;
     }
 
-    jobjectArray tracks = static_cast<jobjectArray>(env->CallObjectMethod(mediaInfo,
-                                                                          gj_MediaInfo_getTrackInfoArray));
-    int length = env->GetArrayLength(tracks);
+    auto tracks = static_cast<jobjectArray>(penv->CallObjectMethod(jmediaInfo, gj_MediaInfo_getTrackInfoArray));
+    int length = penv->GetArrayLength(tracks);
 
-    StreamInfo **streamInfos = new StreamInfo *[length];
+    auto *pMediaInfo = new MediaInfo();
+    pMediaInfo->totalBitrate = penv->GetIntField(jmediaInfo, gj_MediaInfo_TotalBitRate);
 
     for (int i = 0; i < length; i++) {
-        jobject trackInfo = env->GetObjectArrayElement(tracks, i);
-        StreamInfo *info = JavaTrackInfo::getStreamInfo(env, trackInfo);
-        streamInfos[i] = info;
-        env->DeleteLocalRef(trackInfo);
+        jobject trackInfo = penv->GetObjectArrayElement(tracks, i);
+        StreamInfo *info = JavaTrackInfo::getStreamInfo(penv, trackInfo);
+        pMediaInfo->mStreamInfoQueue.push_back(info);
+        penv->DeleteLocalRef(trackInfo);
     }
-    *count = length;
 
-    env->DeleteLocalRef(tracks);
+    penv->DeleteLocalRef(tracks);
 
-    return streamInfos;
+    return pMediaInfo;
 }

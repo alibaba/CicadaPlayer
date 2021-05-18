@@ -185,7 +185,7 @@ public:
 
     static void jni_onSeekEnd(int64_t seekInCache, void *userData);
 
-    static void jni_onStreamInfoGet(int64_t count, const void *infos, void *userData);
+    static void jni_onMediaInfoGet(int64_t count, const void *infos, void *userData);
 
     static void
     jni_onSwitchStreamSuccess(int64_t type, const void *item, void *userData);

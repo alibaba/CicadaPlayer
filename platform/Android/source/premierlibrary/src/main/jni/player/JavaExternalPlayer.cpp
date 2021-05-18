@@ -304,10 +304,8 @@ void JavaExternalPlayer::java_OnStreamInfoGet(JNIEnv *pEnv, jobject object, jlon
 
     auto *player = reinterpret_cast<JavaExternalPlayer *>((long) nativeInstance);
     if (player != nullptr) {
-        player->mStreamInfos = JavaMediaInfo::convertToStream(pEnv, mediaInfo,
-                                                              &player->mStreamCount);
-        player->mPlayerListener.StreamInfoGet(player->mStreamCount, player->mStreamInfos,
-                                              player->mPlayerListener.userData);
+        player->mMediaInfo = JavaMediaInfo::convertToStream(pEnv, mediaInfo);
+        player->mPlayerListener.MediaInfoGet(0, player->mMediaInfo, player->mPlayerListener.userData);
     }
 
 }
@@ -506,21 +504,21 @@ JavaExternalPlayer::~JavaExternalPlayer() {
 
     mEnv->DeleteGlobalRef(jExternalPlayer);
 
-    if (mStreamCount > 0) {
-        for (int i = 0; i < mStreamCount; i++) {
-            StreamInfo *info = mStreamInfos[i];
+    if (mMediaInfo != nullptr) {
+        for (auto info : mMediaInfo->mStreamInfoQueue) {
             releaseStreamInfo(info);
             free(info);
         }
-        delete[] mStreamInfos;
+        mMediaInfo->mStreamInfoQueue.clear();
     }
+
+    delete mMediaInfo;
 }
 
 
 StreamInfo *JavaExternalPlayer::getStreamInfoByIndex(int index) {
-    if (mStreamCount > 0) {
-        for (int i = 0; i < mStreamCount; i++) {
-            StreamInfo *info = mStreamInfos[i];
+    if (mMediaInfo != nullptr) {
+        for (auto info : mMediaInfo->mStreamInfoQueue) {
             if (info->streamIndex == index) {
                 return info;
             }
@@ -665,9 +663,8 @@ StreamInfo *JavaExternalPlayer::GetCurrentStreamInfo(StreamType type) {
         return nullptr;
     }
 
-    if (mStreamCount > 0) {
-        for (int i = 0; i < mStreamCount; i++) {
-            StreamInfo *info = mStreamInfos[i];
+    if (mMediaInfo != nullptr) {
+        for (auto info : mMediaInfo->mStreamInfoQueue) {
             if (info->streamIndex == index) {
                 return info;
             }

@@ -192,11 +192,13 @@ JavaTrackInfo::getTrackInfoArray(JNIEnv *mEnv, const std::vector<StreamInfo> &st
     return jStreamInfoArray;
 }
 
-jobjectArray JavaTrackInfo::getTrackInfoArray(JNIEnv *mEnv, StreamInfo **streamInfos, int len) {
+jobjectArray JavaTrackInfo::getTrackInfoArray(JNIEnv *mEnv, MediaInfo *mediaInfo)
+{
+    int len = mediaInfo->mStreamInfoQueue.size();
     jobjectArray jStreamInfoArray = mEnv->NewObjectArray(len, gj_TrackInfoClass, nullptr);
 
     for (int i = 0; i < len; i++) {
-        jobject jStreamInfo = getTrackInfo(mEnv, *(streamInfos[i]));
+        jobject jStreamInfo = getTrackInfo(mEnv, *(mediaInfo->mStreamInfoQueue[i]));
 
         if (jStreamInfo != nullptr) {
             mEnv->SetObjectArrayElement(jStreamInfoArray, i, jStreamInfo);
@@ -206,6 +208,3 @@ jobjectArray JavaTrackInfo::getTrackInfoArray(JNIEnv *mEnv, StreamInfo **streamI
 
     return jStreamInfoArray;
 }
-
-
-

@@ -9,6 +9,8 @@ import java.util.List;
  */
 public class MediaInfo {
 
+    public int mTotalBitRate = 0;
+
     private List<TrackInfo> mTrackInfos = new ArrayList<TrackInfo>();
 
     /**

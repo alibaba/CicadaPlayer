@@ -295,8 +295,7 @@ private:
 
 private:
     playerListener mPlayerListener{};
-    StreamInfo ** mStreamInfos{nullptr};
-    int mStreamCount{0};
+    MediaInfo *mMediaInfo = nullptr;
     const Cicada::options *options{nullptr};
     std::function<Cicada::DrmResponseData*(const Cicada::DrmRequestParam& drmRequestParam)> mDrmCallback = nullptr;
 private:
