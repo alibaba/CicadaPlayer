@@ -161,7 +161,7 @@ void CicadaOCHelper::getListener(playerListener &listener)
     listener.CurrentDownLoadSpeed = onCurrentDownLoadSpeed;
     listener.LoadingEnd = onLoadingEnd;
     listener.SeekEnd = onSeekEnd;
-    listener.StreamInfoGet = onStreamInfoGet;
+    listener.MediaInfoGet = onMediaInfoGet;
     listener.StreamSwitchSuc = onSwitchStreamSuccess;
     listener.SubtitleExtAdd = onSubtitleExtAdd;
     listener.StatusChanged = onPlayerStatusChanged;
@@ -411,12 +411,15 @@ CicadaOCHelper::onSwitchStreamSuccess(int64_t type, const void *item, void *user
     }
 }
 
-void CicadaOCHelper::onStreamInfoGet(int64_t count, const void *infos, void *userData) {
+void CicadaOCHelper::onMediaInfoGet(int64_t count, const void *infos, void *userData)
+{
     __weak CicadaPlayer * player = getOCPlayer(userData);
     CicadaMediaInfo* mediaInfo = [player getMediaInfo];
 
-    if (count > 0 && (nullptr != infos)) {
-        auto ** streamInfos = (StreamInfo **)infos;
+    if (nullptr != infos) {
+        MediaInfo *cMediaInfo = (MediaInfo *) infos;
+        mediaInfo.totalBitrate = cMediaInfo->totalBitrate;
+        auto &streamInfos = cMediaInfo->mStreamInfoQueue;
         NSMutableArray* tracks = [[NSMutableArray alloc] init];
         for (int i = 0; i < count; ++i) {
             CicadaTrackInfo* trackInfo = getCicadaTrackInfo(streamInfos[i]);

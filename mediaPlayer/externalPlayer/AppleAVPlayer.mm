@@ -182,8 +182,8 @@ void AppleAVPlayer::Prepare()
     int size = (int) selectionOptionArray.count;
     {
         std::lock_guard<std::recursive_mutex> lock(mCreateMutex);
+        this->mMediaInfo = new MediaInfo();
 
-        this->mStreamInfos = new StreamInfo *[size];
         [selectionOptionArray enumerateObjectsUsingBlock:^(AVMediaSelectionOption *_Nonnull options, NSUInteger idx, BOOL *_Nonnull stop) {
           auto *info = new StreamInfo();
           info->streamIndex = (int) idx;
@@ -204,12 +204,12 @@ void AppleAVPlayer::Prepare()
           } else if ([options.mediaType isEqualToString:AVMediaTypeVideo]) {
               info->type = ST_TYPE_VIDEO;
           }
-          this->mStreamInfos[idx] = info;
+          this->mMediaInfo->mStreamInfoQueue.push_back(info);
         }];
     }
 
-    if (this->mListener.StreamInfoGet) {
-        this->mListener.StreamInfoGet((int64_t) size, this->mStreamInfos, this->mListener.userData);
+    if (this->mListener.MediaInfoGet) {
+        this->mListener.MediaInfoGet(0, this->mMediaInfo, this->mListener.userData);
     }
 
     if (this->isAutoPlay) {
@@ -266,8 +266,8 @@ StreamType AppleAVPlayer::SwitchStream(int index)
     {
         lock_guard<recursive_mutex> lock(mCreateMutex);
 
-        if (mStreamInfos) {
-            StreamInfo *info = this->mStreamInfos[index];
+        if (mMediaInfo) {
+            StreamInfo *info = this->mMediaInfo->mStreamInfoQueue[index];
             type = info->type;
             if (this->mListener.StreamSwitchSuc) {
                 this->mListener.StreamSwitchSuc(type, info, this->mListener.userData);
@@ -372,7 +372,8 @@ int AppleAVPlayer::Stop()
     //    this->mListener = {
     //            nullptr,
     //    };
-    this->mStreamInfos = nullptr;
+    delete this->mMediaInfo;
+    this->mMediaInfo = nullptr;
     return 0;
 }
 

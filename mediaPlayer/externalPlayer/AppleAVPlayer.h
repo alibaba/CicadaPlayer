@@ -203,7 +203,7 @@ namespace Cicada {
         void *playerHandler{nullptr};
         playerListener mListener{nullptr};
         float recordVolume = 0.0;
-        StreamInfo **mStreamInfos{nullptr};
+        MediaInfo *mMediaInfo{nullptr};
 
         void *resourceLoaderDelegate{nullptr};
         void *parentLayer{nullptr};

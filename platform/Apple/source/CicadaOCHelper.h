@@ -55,7 +55,7 @@ protected:
 
     static void onSeekEnd(int64_t seekInCache, void *userData);
 
-    static void onStreamInfoGet(int64_t count, const void *infos, void *userData);
+    static void onMediaInfoGet(int64_t count, const void *infos, void *userData);
 
     static void
     onSwitchStreamSuccess(int64_t type, const void *item, void *userData);

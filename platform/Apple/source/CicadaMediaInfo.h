@@ -115,6 +115,11 @@ OBJC_EXPORT
 @interface CicadaMediaInfo : NSObject
 
 /**
+ @brief bitrate
+ */
+@property(nonatomic, assign) int64_t totalBitrate;
+
+/**
  @brief tracks in media info
  */
 @property (nonatomic, strong) NSArray<CicadaTrackInfo*>* tracks;
