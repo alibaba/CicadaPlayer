@@ -330,7 +330,6 @@ typedef struct {
     int disposition; /**< AV_DISPOSITION_* bit field */
 
     int64_t bitrate;
-    int64_t totalBitrate;
 
     // TODO:  use union
     //audio
