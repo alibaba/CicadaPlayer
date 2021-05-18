@@ -5,20 +5,15 @@
 #define LOG_TAG "ErrorCodeMap"
 #include "ErrorCodeMap.h"
 
-#include <mutex>
 #include "media_player_error_def.h"
 #include "utils/frame_work_log.h"
 
-using  namespace Cicada;
-ErrorCodeMap *ErrorCodeMap::sInstance = nullptr;
+using namespace Cicada;
+ErrorCodeMap ErrorCodeMap::sInstance{};
 
 ErrorCodeMap *ErrorCodeMap::getInstance()
 {
-    static std::once_flag oc;
-    std::call_once(oc, [&] {
-        sInstance = new ErrorCodeMap();
-    });
-    return sInstance;
+    return &sInstance;
 }
 
 ErrorCodeMap::ErrorCodeMap()
@@ -26,9 +21,7 @@ ErrorCodeMap::ErrorCodeMap()
     init();
 }
 
-ErrorCodeMap::~ErrorCodeMap()
-{
-}
+ErrorCodeMap::~ErrorCodeMap() = default;
 
 
 void ErrorCodeMap::init()

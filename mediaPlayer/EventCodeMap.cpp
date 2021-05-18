@@ -9,15 +9,11 @@
 
 using  namespace Cicada;
 
-EventCodeMap *EventCodeMap::sEventCodeInstance = nullptr;
+EventCodeMap EventCodeMap::sEventCodeInstance{};
 
 EventCodeMap *EventCodeMap::getInstance()
 {
-    static std::once_flag oc;
-    std::call_once(oc, [&] {
-        sEventCodeInstance = new EventCodeMap();
-    });
-    return sEventCodeInstance;
+    return &sEventCodeInstance;
 }
 
 int EventCodeMap::getValue(int orignalValue)

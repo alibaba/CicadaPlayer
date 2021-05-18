@@ -18,8 +18,6 @@ namespace Cicada{
 
         int getSliceSize();
 
-        ~ISliceManager();
-
         slice *getSlice(uint64_t capacity, uint64_t position, SliceReleaseCb &release);
 
         void returnSlice(slice *pSlice);
@@ -28,6 +26,7 @@ namespace Cicada{
 
     private:
         ISliceManager();
+        ~ISliceManager();
 
     private:
         IMemPool *mBufferPool = nullptr;
@@ -35,6 +34,7 @@ namespace Cicada{
         int64_t mCapacity;
         int mSliceSize;
         mutex mSliceLock;
+        static ISliceManager sInstance;
     };
 }
 
