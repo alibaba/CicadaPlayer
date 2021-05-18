@@ -154,6 +154,9 @@ function build_libs(){
        if [[ "$1" == "Android" ]];then
            link_shared_lib_Android $1 ${arch}
        fi
+       if [[ "$1" == "win32" ]];then
+           link_shared_lib_win32 $1 ${arch}
+       fi
     done
     cd ${CWD}
 
@@ -239,4 +242,38 @@ function link_shared_lib_Android(){
     -Wl,--whole-archive   ${ldflags} -Wl,--no-whole-archive -Wl,--build-id=sha1
 
     rm build_version.cpp version.h
+}
+
+function link_shared_lib_win32(){
+    if [[ "$1" != "win32" ]];then
+        return;
+    fi
+    local install_dir=${CWD}/install/ffmpeg/win32/$2/
+    cross_compile_set_platform_win32  $2
+    if [[ -z "${LIB_NAME}" ]];then
+        export LIB_NAME=alivcffmpeg
+    fi
+
+    local curr_dir=${CWD}
+    cd ${install_dir}
+    cp lib/*.a ./
+    cp ${OPENSSL_INSTALL_DIR}/lib/*.a ./
+    echo install_dir is ${install_dir}
+    echo BUILD_TOOLS_DIR is ${BUILD_TOOLS_DIR}
+    echo OPENSSL_INSTALL_DIR is ${OPENSSL_INSTALL_DIR}
+    echo curr_dir is ${curr_dir}
+
+    cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
+    sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
+
+    local platf=""
+    if [[ "$2" == "i686" ]];then
+        platf="-m32"
+    fi
+    if [[ "$2" == "x86_64" ]];then
+        platf="-m64"
+    fi
+    ${CROSS_COMPILE}-gcc ${platf} -Wall -static -static-libgcc -static-libstdc++ -shared -o ${LIB_NAME}.dll -O2 -x c++ -I./ -I./include -I../ build_version.cpp -L./ -lavformat -lavcodec -lavutil -lavfilter -lswscale -lswresample -lssl -lcrypto -lbcrypt -lavcodec -lws2_32 -llz32 -lsecur32 -Wl,--kill-at,--out-implib=${LIB_NAME}.lib
+    rm build_version.cpp version.h
+    cd ${curr_dir}
 }
