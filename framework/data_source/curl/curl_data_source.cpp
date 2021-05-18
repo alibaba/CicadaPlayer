@@ -299,9 +299,11 @@ void CurlDataSource::closeConnections(bool current)
 
     if (pConnections) {
         if (AsyncJob::Instance()) {
+            for (auto &pConnection : *pConnections) {
+                pConnection->disableCallBack();
+            }
             AsyncJob::Instance()->addJob([pConnections] {
                 for (auto item = pConnections->begin(); item != pConnections->end();) {
-                    (*item)->disableCallBack();
                     delete *item;
                     item = pConnections->erase(item);
                 }

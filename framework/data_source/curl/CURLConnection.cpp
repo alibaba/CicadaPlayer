@@ -134,7 +134,6 @@ void CURLConnection::setSSLBackEnd(curl_sslbackend sslbackend)
 
 Cicada::CURLConnection::~CURLConnection()
 {
-    globalNetWorkManager::getGlobalNetWorkManager()->removeListener(this);
     if (multi_handle && mHttp_handle) {
         curl_multi_remove_handle(multi_handle, mHttp_handle);
     }
@@ -787,6 +786,7 @@ void CURLConnection::updateHeaderList(struct curl_slist *headerList)
 }
 void CURLConnection::disableCallBack()
 {
+    globalNetWorkManager::getGlobalNetWorkManager()->removeListener(this);
     if (mHttp_handle) {
         curl_easy_setopt(mHttp_handle, CURLOPT_VERBOSE, FALSE);
         curl_easy_setopt(mHttp_handle, CURLOPT_WRITEDATA, nullptr);
