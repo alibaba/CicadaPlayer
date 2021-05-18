@@ -536,6 +536,10 @@ IProgramContext *GLRender::getProgram(int frameFormat, IAFFrame *frame)
 {
     if (mPrograms.count(frameFormat) > 0) {
         IProgramContext *pContext = mPrograms[frameFormat].get();
+        pContext->setRenderingCb(mRenderingCb, mRenderingCbUserData);
+        if (mContext != nullptr) {
+            pContext->setGLContext(mContext->GetContext());
+        }
         pContext->useProgram();
         return pContext;
     }
@@ -569,6 +573,10 @@ IProgramContext *GLRender::getProgram(int frameFormat, IAFFrame *frame)
     int ret = targetProgram->initProgram();
 
     if (ret == 0) {
+        targetProgram->setRenderingCb(mRenderingCb, mRenderingCbUserData);
+        if (mContext != nullptr) {
+            targetProgram->setGLContext(mContext->GetContext());
+        }
         mPrograms[frameFormat] = move(targetProgram);
         return mPrograms[frameFormat].get();
     } else {

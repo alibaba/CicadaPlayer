@@ -180,6 +180,16 @@ int YUVProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
         return -1;
     }
 
+    bool rendered = false;
+    if (mRenderingCb) {
+        CicadaJSONItem params{};
+        rendered = mRenderingCb(mRenderingCbUserData, frame.get(), params);
+    }
+
+    if (rendered) {
+        return -1;
+    }
+
     if (mProjectionChanged) {
         updateUProjection();
         mProjectionChanged = false;

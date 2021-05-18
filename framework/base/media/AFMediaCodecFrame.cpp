@@ -21,5 +21,15 @@ void AFMediaCodecFrame::setDiscard(bool discard)
 
 AFMediaCodecFrame::~AFMediaCodecFrame()
 {
-    mRelease(mIndex, !mDiscard);
+    if (!mReleased) {
+        mRelease(mIndex, !mDiscard);
+    }
+}
+
+void AFMediaCodecFrame::releaseIndex()
+{
+    if (!mReleased) {
+        mReleased = true;
+        mRelease(mIndex, !mDiscard);
+    }
 }

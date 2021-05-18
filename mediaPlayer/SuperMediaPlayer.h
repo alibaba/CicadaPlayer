@@ -97,6 +97,8 @@ namespace Cicada {
 
         void SetAudioRenderingCallBack(onRenderFrame cb, void *userData) override;
 
+        void SetVideoRenderingCallBack(videoRenderingFrameCB cb, void *userData) override;
+
         void SetUpdateViewCB(UpdateViewCB cb, void *userData) override;
 
         // TODO: use setParameters and setOpt to set
@@ -543,6 +545,10 @@ namespace Cicada {
         void *mUpdateViewCBUserData{nullptr};
         onRenderFrame mAudioRenderingCb{nullptr};
         void *mAudioRenderingCbUserData{nullptr};
+
+        videoRenderingFrameCB mVideoRenderingCb{nullptr};
+        void *mVideoRenderingCbUserData{nullptr};
+
         bool mIsDummy{false};
         bool mPausedByAudioInterrupted{false};
         readCB mBSReadCb = nullptr;

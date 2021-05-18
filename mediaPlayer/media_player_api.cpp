@@ -80,6 +80,14 @@ void CicadaSetAudioRenderingCallBack(playerHandle *pHandle, onRenderFrame cb, vo
     }
 }
 
+void CicadaSetVideoRenderingCallBack(playerHandle *pHandle, videoRenderingFrameCB cb, void *userData)
+{
+    GET_PLAYER;
+    if (player) {
+        player->SetVideoRenderingCallBack(cb, userData);
+    }
+}
+
 void CicadaSetUpdateViewCallback(playerHandle *pHandle, UpdateViewCB cb, void *userData)
 {
     GET_PLAYER;

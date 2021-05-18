@@ -145,6 +145,9 @@ namespace Cicada {
         void SetAudioRenderingCallBack(onRenderFrame cb, void *userData)
         {}
 
+        void SetVideoRenderingCallBack(videoRenderingFrameCB cb, void *userData)
+        {}
+
         void SetUpdateViewCB(UpdateViewCB cb, void *userData) override
         {}
 
