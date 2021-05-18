@@ -574,5 +574,8 @@ OBJC_EXPORT
  */
 +(void) setLogCallbackInfo:(CicadaLogLevel)logLevel callbackBlock:(void (^)(CicadaLogLevel logLevel,NSString* strLog))block;
 
+
++ (void)netWorkReConnect;
+
 @end
 

@@ -10,16 +10,17 @@
 
 #import <list>
 
-#import "MediaPlayer.h"
+#import "AFAudioSession.h"
+#import "CicadaOCHelper.h"
 #import "CicadaPlayer.h"
 #import "CicadaPlayerView.h"
-#import "utils/af_string.h"
-#import "utils/CicadaDynamicLoader.h"
-#import "utils/frame_work_log.h"
-#import "thumbnail/CicadaThumbnail.h"
-#import "CicadaOCHelper.h"
-#import "AFAudioSession.h"
 #import "CicadaRenderCBWrapper.h"
+#import "MediaPlayer.h"
+#import "thumbnail/CicadaThumbnail.h"
+#import "utils/CicadaDynamicLoader.h"
+#import "utils/af_string.h"
+#import "utils/frame_work_log.h"
+#import <utils/globalNetWorkManager.h>
 
 using namespace std;
 using namespace Cicada;
@@ -992,6 +993,11 @@ int64_t CicadaClockRefer(void *arg)
 #if TARGET_OS_IPHONE
     [AFAudioSession sharedInstance].delegate = delegate;
 #endif
+}
+
++ (void)netWorkReConnect
+{
+    globalNetWorkManager::getGlobalNetWorkManager()->reConnect();
 }
 
 @end
