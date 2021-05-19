@@ -301,10 +301,10 @@ namespace Cicada {
             mSeekPendingUs = -1;
         }
 
-        AF_TRACE;
-        AF_LOGD("mPTracker->getCurSegNum is %llu", mPTracker->getCurSegNum());
-        AF_LOGD("getFirstSegNum is %llu\n", mPTracker->getFirstSegNum());
-        AF_LOGD("getSegSize is %llu\n", mPTracker->getSegSize());
+        //        AF_TRACE;
+        //        AF_LOGD("mPTracker->getCurSegNum is %llu", mPTracker->getCurSegNum());
+        //        AF_LOGD("getFirstSegNum is %llu\n", mPTracker->getFirstSegNum());
+        //        AF_LOGD("getSegSize is %llu\n", mPTracker->getSegSize());
 
         if (mPTracker->getCurSegNum() < mPTracker->getFirstSegNum() && mPTracker->isLive()) {
             AF_LOGW("skip seg %llu -->%llu", mPTracker->getCurSegNum(),
@@ -917,7 +917,7 @@ namespace Cicada {
     int HLSStream::updateSegment()
     {
         shared_ptr<segment> seg = nullptr;
-        AF_LOGD("getCurSegNum is %lld\n", mPTracker->getCurSegNum());
+        //        AF_LOGD("getCurSegNum is %lld\n", mPTracker->getCurSegNum());
         seg = mPTracker->getNextSegment();
         int ret;
         mCurSeg = nullptr;

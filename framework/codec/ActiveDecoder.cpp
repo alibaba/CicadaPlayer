@@ -489,7 +489,7 @@ int ActiveDecoder::holdOn(bool hold)
             mHoldingQueue.pop();
         }
 
-        AF_LOGD("mHoldingQueue pts  is %d\n", pts);
+        AF_LOGD("mHoldingQueue pts  is %lld\n", pts);
     }
 
     bHolding = hold;

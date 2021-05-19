@@ -233,8 +233,8 @@ int DashStream::open_internal()
         mSeekPendingUs = -1;
     }
 
-    AF_TRACE;
-    AF_LOGD("mPTracker->getCurSegNum is %llu", mPTracker->getCurSegNum());
+    //   AF_TRACE;
+    //   AF_LOGD("mPTracker->getCurSegNum is %llu", mPTracker->getCurSegNum());
 
     mStopOnSegEnd = false;
     mCurSeg = nullptr;
