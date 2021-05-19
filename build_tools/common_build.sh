@@ -267,7 +267,7 @@ function link_shared_lib_win32(){
         ldflags="$ldflags -lssl -lcrypto"
         cp ${OPENSSL_INSTALL_DIR}/lib/*.a ./
     fi
-    ldflags="$ldflags -lbcrypt -lavcodec -lws2_32 -llz32 -lsecur32"
+    ldflags="$ldflags -lbcrypt  -lws2_32 -llz32 -lsecur32"
 
     cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
     sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
@@ -279,7 +279,9 @@ function link_shared_lib_win32(){
     if [[ "$2" == "x86_64" ]];then
         platf="-m64"
     fi
-    ${CROSS_COMPILE}-gcc ${platf} -Wall -static -static-libgcc -static-libstdc++ -shared -o ${LIB_NAME}.dll -O2 -x c++ -I./include build_version.cpp -L./  ${ldflags} -Wl,--kill-at,--out-implib=${LIB_NAME}.lib
+    ${CROSS_COMPILE}-gcc build_version.cpp -Wall -static-libgcc -static-libstdc++ -shared -o ${LIB_NAME}.dll \
+     -O2  -I./include  -L./  -Wl,--kill-at,--out-implib=${LIB_NAME}.lib \
+     -Wl,--whole-archive ${ldflags} -Wl,--no-whole-archive
     rm build_version.cpp version.h
     cd ${curr_dir}
 }
