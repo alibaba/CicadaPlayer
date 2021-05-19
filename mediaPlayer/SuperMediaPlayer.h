@@ -543,6 +543,7 @@ namespace Cicada {
         bool mIsDummy{false};
         bool mPausedByAudioInterrupted{false};
         bool mNeedVideoRender{true};
+        bool mVideoCatchingUp{false};
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H
