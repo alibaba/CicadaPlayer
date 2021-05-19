@@ -556,6 +556,7 @@ namespace Cicada {
         void *mBSCbArg = nullptr;
         int64_t mSuggestedPresentationDelay = 0;
         LiveTimeSyncType mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncNormal;
+        bool mVideoCatchingUp{false};
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H

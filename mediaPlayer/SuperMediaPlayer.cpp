@@ -1084,6 +1084,9 @@ int SuperMediaPlayer::mainService()
                 return 0;
             }
         }
+        if (mVideoCatchingUp) {
+            return 0;
+        }
 
         std::unique_lock<std::mutex> uMutex(mSleepMutex);
         mPlayerCondition.wait_for(uMutex, std::chrono::milliseconds(needWait), [this]() { return this->mCanceled.load(); });
@@ -2334,6 +2337,7 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
                 if (dropVideoCount > 0) {
                     FlushVideoPath();
                     AF_LOGD("videolaterUs is %lld,drop video count is %d", videoLateUs, dropVideoCount);
+                    mVideoCatchingUp = true;
                     return false;
                 }
             }
@@ -2355,6 +2359,7 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
     }
 
     if (render) {
+        mVideoCatchingUp = false;
         SendVideoFrameToRender(move(videoFrame));
 
         if (frameWidth != mVideoWidth || frameHeight != mVideoHeight) {
@@ -2372,6 +2377,7 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
     } else {
         AF_LOGW("drop frame,master played time is %lld,video pts is %lld\n", masterPlayedTime, videoPts);
         videoFrame->setDiscard(true);
+        mVideoCatchingUp = true;
 
         if (mFrameCb && (!mSecretPlayBack || mDrmKeyValid)) {
             mFrameCb(mFrameCbUserData, videoFrame.get());
@@ -3011,6 +3017,7 @@ void SuperMediaPlayer::FlushVideoPath()
     mVideoPtsRevert = false;
     mVideoPacket = nullptr;
     dropLateVideoFrames = false;
+    mVideoCatchingUp = false;
 }
 
 void SuperMediaPlayer::FlushSubtitleInfo()
@@ -3701,6 +3708,7 @@ void SuperMediaPlayer::Reset()
     mCurrentVideoMeta = nullptr;
     mAdaptiveVideo = false;
     dropLateVideoFrames = false;
+    mVideoCatchingUp = false;
     mBRendingStart = false;
     mSubtitleEOS = false;
     mPausedByAudioInterrupted = false;
