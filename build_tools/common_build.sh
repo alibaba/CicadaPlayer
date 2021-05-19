@@ -256,12 +256,18 @@ function link_shared_lib_win32(){
 
     local curr_dir=${CWD}
     cd ${install_dir}
-    cp lib/*.a ./
-    cp ${OPENSSL_INSTALL_DIR}/lib/*.a ./
     echo install_dir is ${install_dir}
     echo BUILD_TOOLS_DIR is ${BUILD_TOOLS_DIR}
     echo OPENSSL_INSTALL_DIR is ${OPENSSL_INSTALL_DIR}
     echo curr_dir is ${curr_dir}
+
+    cp lib/*.a ./
+    local ldflags="-lavformat -lavcodec -lavutil -lavfilter -lswscale -lswresample"
+    if [[ -d "${OPENSSL_INSTALL_DIR}" ]];then
+        ldflags="$ldflags -lssl -lcrypto"
+        cp ${OPENSSL_INSTALL_DIR}/lib/*.a ./
+    fi
+    ldflags="$ldflags -lbcrypt -lavcodec -lws2_32 -llz32 -lsecur32"
 
     cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
     sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
@@ -273,7 +279,7 @@ function link_shared_lib_win32(){
     if [[ "$2" == "x86_64" ]];then
         platf="-m64"
     fi
-    ${CROSS_COMPILE}-gcc ${platf} -Wall -static -static-libgcc -static-libstdc++ -shared -o ${LIB_NAME}.dll -O2 -x c++ -I./ -I./include -I../ build_version.cpp -L./ -lavformat -lavcodec -lavutil -lavfilter -lswscale -lswresample -lssl -lcrypto -lbcrypt -lavcodec -lws2_32 -llz32 -lsecur32 -Wl,--kill-at,--out-implib=${LIB_NAME}.lib
+    ${CROSS_COMPILE}-gcc ${platf} -Wall -static -static-libgcc -static-libstdc++ -shared -o ${LIB_NAME}.dll -O2 -x c++ -I./include build_version.cpp -L./  ${ldflags} -Wl,--kill-at,--out-implib=${LIB_NAME}.lib
     rm build_version.cpp version.h
     cd ${curr_dir}
 }

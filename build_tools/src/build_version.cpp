@@ -8,19 +8,19 @@
 #endif
 
 extern "C" {
-#include "include/libavcodec/avcodec.h"
-#include "include/libavcodec/avfft.h"
-#include "include/libavformat/avformat.h"
-#include "include/libavutil/opt.h"
-#include "include/libavutil/channel_layout.h"
-#include "include/libavutil/common.h"
-#include "include/libavutil/imgutils.h"
-#include "include/libavutil/mathematics.h"
-#include "include/libavutil/samplefmt.h"
-#include "include/libavfilter/avfilter.h"
-#include "include/libswresample/swresample.h"
-#include "include/libavutil/avutil.h"
-#include "include/libswscale/swscale.h"
+#include <libavcodec/avcodec.h>
+#include <libavcodec/avfft.h>
+#include <libavformat/avformat.h>
+#include <libavutil/opt.h>
+#include <libavutil/channel_layout.h>
+#include <libavutil/common.h>
+#include <libavutil/imgutils.h>
+#include <libavutil/mathematics.h>
+#include <libavutil/samplefmt.h>
+#include <libavfilter/avfilter.h>
+#include <libswresample/swresample.h>
+#include <libavutil/avutil.h>
+#include <libswscale/swscale.h>
 }
 
 static const char *get_external_build_version();
