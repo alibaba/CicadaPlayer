@@ -17,7 +17,7 @@ namespace Cicada {
     {
         mSliceSize = sliceSize;
         mCapacity = capacity;
-        mMaxReadSliceCount = (int)maxUsedBufferSize / mSliceSize;
+        mMaxReadSliceCount = (int) (maxUsedBufferSize / mSliceSize);
         mSliceCount = static_cast<uint32_t>(mCapacity / mSliceSize);
 
         if (mCapacity % mSliceSize) {
