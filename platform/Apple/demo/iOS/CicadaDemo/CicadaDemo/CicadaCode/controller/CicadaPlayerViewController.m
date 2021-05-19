@@ -141,6 +141,7 @@
             [weakSelf.player reload];
         }else if (status == AFNetworkReachabilityStatusReachableViaWWAN) {
             //切换到流量
+            [CicadaPlayer netWorkReConnect];
             UIAlertController *alert = [UIAlertController alertControllerWithTitle:nil message:NSLocalizedString(@"当前为流量网络，是否继续?" , nil) preferredStyle:UIAlertControllerStyleAlert];
             UIAlertAction *sureAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"确认" , nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
                 weakSelf.wanWillRetry = YES;
@@ -151,6 +152,8 @@
             }];
             [alert addAction:cancelAction];
             [weakSelf presentViewController:alert animated:YES completion:nil];
+        }else if(status == AFNetworkReachabilityStatusReachableViaWiFi){
+            [CicadaPlayer netWorkReConnect];
         }
         weakSelf.currentNetworkStatus = status;
     }];
