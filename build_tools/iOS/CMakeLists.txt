@@ -21,6 +21,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fembed-bitcode")
 set(LIBRARYS ${SRC_LIBRARIES})
 
 link_directories(${SRC_LIBRARIES_DIR})
+include_directories(${SRC_INCLUDE_DIR})
 add_library(${LIB_NAME} SHARED
         build_version.cpp
         )

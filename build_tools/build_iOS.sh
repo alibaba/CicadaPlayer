@@ -69,6 +69,7 @@ function create_cmake_config(){
 #   echo -n ' ${COREFOUNDATION}' >> $CONFIG_FILE
    echo ")" >> "$CONFIG_FILE"
    echo "set(SRC_LIBRARIES_DIR ${SRC_LIBRARIES_DIR})" >>"$CONFIG_FILE"
+   echo "set(SRC_INCLUDE_DIR ${SRC_INCLUDE_DIR})" >>"$CONFIG_FILE"
    echo -n "set(LINK_FRAMEWORKS " >> "$CONFIG_FILE"
    echo -n '"-framework Security -framework AudioToolbox"' >> "$CONFIG_FILE"
    echo  ")" >> "$CONFIG_FILE"
@@ -96,6 +97,7 @@ function build_shared_framework(){
     fi
 
     SRC_LIBRARIES_DIR="$CWD/install/ffmpeg/iOS/fat/lib"
+    SRC_INCLUDE_DIR="$CWD/install/ffmpeg/iOS/arm64/include/"
 
     for support_lib in ${support_libs}
     do

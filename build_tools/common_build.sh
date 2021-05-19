@@ -235,7 +235,7 @@ function link_shared_lib_Android(){
     cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
     sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
 
-    ${CROSS_COMPILE}-gcc build_version.cpp -lm -lz -shared --sysroot=${SYSTEM_ROOT} \
+    ${CROSS_COMPILE}-gcc -std=c++11 build_version.cpp -lm -lz -shared --sysroot=${SYSTEM_ROOT} -I${FFMPEG_INSTALL_DIR}/include \
      -Wl,--no-undefined -Wl,-z,noexecstack ${CPU_LD_FLAGS}  -landroid -llog -Wl,-soname,lib${LIB_NAME}.so \
     ${objs} \
     -o ${install_dir}/lib${LIB_NAME}.so \
