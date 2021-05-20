@@ -416,8 +416,12 @@ namespace Cicada {
             pHandle->mPProbBuffer = nullptr;
         }
 
-        pHandle->mPDataSource->setRange(start, end);
-        return pHandle->mPDataSource->Open(url);
+        if (pHandle->mPDataSource) {
+            pHandle->mPDataSource->setRange(start, end);
+            return pHandle->mPDataSource->Open(url);
+        } else {
+            return 0;
+        }
     }
 
     void demuxer_service::interrupt_callback(void *arg, int inter)
