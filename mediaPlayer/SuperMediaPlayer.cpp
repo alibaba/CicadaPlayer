@@ -102,11 +102,6 @@ void SuperMediaPlayer::putMsg(PlayMsgType type, const MsgParam &param, bool trig
 void SuperMediaPlayer::SetView(void *view)
 {
     mMsgCtrlListener->ProcessSetViewMsg(view);
-
-    std::lock_guard<std::mutex> lockGuard(mViewUpdateMutex);
-    if (mInited) {
-        mViewUpdateStatus = ViewUpdateStatus::No;
-    }
 }
 
 int64_t SuperMediaPlayer::GetMasterClockPts()
@@ -3366,17 +3361,15 @@ int SuperMediaPlayer::setUpAudioRender(const IAFFrame::audioInfo &info)
 
 int SuperMediaPlayer::setUpVideoRender(uint64_t flags)
 {
-    if (mSet->mView != nullptr && (!mAVDeviceManager->isVideoRenderValid() || mAVDeviceManager->getVideoRender()->getFlags() != flags)) {
-        if (mAppStatus == APP_BACKGROUND) {
-            AF_LOGW("create video render in background");
-        }
-        AF_LOGD("SetUpVideoRender start");
-        CreateVideoRender(flags);
-        if (!mAVDeviceManager->isVideoRenderValid()) {
-            AF_LOGE("can't create video render\n");
-            mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_VIDEO_RENDER_INIT_ERROR, "init video render failed");
-            return -EINVAL;
-        }
+    if (mAppStatus == APP_BACKGROUND) {
+        AF_LOGW("create video render in background");
+    }
+    AF_LOGD("SetUpVideoRender start");
+    CreateVideoRender(flags);
+    if (!mAVDeviceManager->isVideoRenderValid()) {
+        AF_LOGE("can't create video render\n");
+        mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_VIDEO_RENDER_INIT_ERROR, "init video render failed");
+        return -EINVAL;
     }
 
     //re set view in case for not set view before
@@ -3397,14 +3390,6 @@ int SuperMediaPlayer::SetUpVideoPath()
     }
 
     if (mBufferController->IsPacketEmtpy(BUFFER_TYPE_VIDEO)) {
-        return 0;
-    }
-
-    if (mViewUpdateStatus == ViewUpdateStatus::Yes) {
-        return 0;
-    }
-
-    if (mSet->mView == nullptr && mFrameCb == nullptr) {
         return 0;
     }
 
@@ -3485,6 +3470,13 @@ int SuperMediaPlayer::SetUpVideoPath()
     if (meta->interlaced == InterlacedType_UNKNOWN) {
         meta->interlaced = mVideoInterlaced;
     }
+
+#ifdef ANDROID
+    if (bHW && mAVDeviceManager->isVideoRenderValid() && mAVDeviceManager->getVideoRender()->getFlags() & IVideoRender::FLAG_DUMMY &&
+        mSet->mView == nullptr) {
+        return 0;
+    }
+#endif
 
     int64_t startTimeMs = af_getsteady_ms();
     ret = CreateVideoDecoder(bHW, *meta);
@@ -3718,7 +3710,6 @@ void SuperMediaPlayer::Reset()
     mCurrentPos = 0;
     mCATimeBase = 0;
     mWATimeBase = 0;
-    mViewUpdateStatus = ViewUpdateStatus::Unknown;
     mSuggestedPresentationDelay = 0;
     mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncNormal;
 }
@@ -3957,18 +3948,7 @@ void SuperMediaPlayer::ProcessUpdateView()
     }
 #endif
 
-    {
-        std::lock_guard<std::mutex> lockGuard(mViewUpdateMutex);
-
-        if (mViewUpdateStatus == ViewUpdateStatus::Unknown) {
-            if (mUpdateViewCB != nullptr) {
-                bool ret = mUpdateViewCB(videoTag, mUpdateViewCBUserData);
-                mViewUpdateStatus = ret ? ViewUpdateStatus::Yes : ViewUpdateStatus::No;
-            } else {
-                mViewUpdateStatus = ViewUpdateStatus::No;
-            }
-        }
-    }
+    mUpdateViewCB(videoTag, mUpdateViewCBUserData);
 }
 
 bool SuperMediaPlayer::isWideVineVideo(const Stream_meta *meta) const

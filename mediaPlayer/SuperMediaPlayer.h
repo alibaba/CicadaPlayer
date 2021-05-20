@@ -539,8 +539,6 @@ namespace Cicada {
         uint64_t mAudioQueDuration{UINT64_MAX};
         onRenderFrame mFrameCb{nullptr};
         void *mFrameCbUserData{nullptr};
-        std::mutex mViewUpdateMutex{};
-        std::atomic<ViewUpdateStatus> mViewUpdateStatus{ViewUpdateStatus::Unknown};
         UpdateViewCB mUpdateViewCB{nullptr};
         void *mUpdateViewCBUserData{nullptr};
         onRenderFrame mAudioRenderingCb{nullptr};
