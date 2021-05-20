@@ -243,45 +243,121 @@ function link_shared_lib_Android(){
 
     rm build_version.cpp version.h
 }
-
 function link_shared_lib_win32(){
     if [[ "$1" != "win32" ]];then
         return;
     fi
-    local install_dir=${CWD}/install/ffmpeg/win32/$2/
+    local install_dir=${CWD}/install/ffmpeg/win32/$2
     cross_compile_set_platform_win32  $2
+    cup_arch=x86
     if [[ -z "${LIB_NAME}" ]];then
         export LIB_NAME=alivcffmpeg
     fi
 
-    local curr_dir=${CWD}
-    cd ${install_dir}
-    echo install_dir is ${install_dir}
-    echo BUILD_TOOLS_DIR is ${BUILD_TOOLS_DIR}
-    echo OPENSSL_INSTALL_DIR is ${OPENSSL_INSTALL_DIR}
-    echo curr_dir is ${curr_dir}
+    echo ABI is $2 FFMPEG_BUILD_DIR is $FFMPEG_BUILD_DIR
 
-    cp lib/*.a ./
-    local ldflags="-lavformat -lavcodec -lavutil -lavfilter -lswscale -lswresample"
-    if [[ -d "${OPENSSL_INSTALL_DIR}" ]];then
-        ldflags="$ldflags -lssl -lcrypto"
-        cp ${OPENSSL_INSTALL_DIR}/lib/*.a ./
-    fi
-    ldflags="$ldflags -lbcrypt  -lws2_32 -llz32 -lsecur32"
+    local objs;
+    local libraries="libavcodec libswresample libavformat libavutil libswscale libavfilter"
+    local library
+
+    for library in ${libraries};
+    do
+        if [[ -d "${FFMPEG_BUILD_DIR}/${library}/" ]]; then
+            objs="${objs} "${FFMPEG_BUILD_DIR}/${library}/*o""
+        fi
+        if [[ -d "${FFMPEG_BUILD_DIR}/${library}/${cup_arch}" ]]; then
+            objs="${objs} "${FFMPEG_BUILD_DIR}/${library}/${cup_arch}/*.o""
+        fi
+        if [[ -d "${FFMPEG_BUILD_DIR}/${library}/neon" ]]; then
+            objs="${objs} "${FFMPEG_BUILD_DIR}/${library}/neon/*.o""
+        fi
+    done
+
+    local ldflags=""
+
+#    if [[ -d "${CURL_INSTALL_DIR}" ]];then
+#        ldflags="$ldflags -lcurl -L${CURL_INSTALL_DIR}/lib/"
+#    fi
+#
+#    if [[ -d "${ARES_INSTALL_DIR}" ]];then
+#        ldflags="$ldflags -lcares -L${ARES_INSTALL_DIR}/lib/"
+#    fi
+#
+#    if [[ -d "${LIBRTMP_INSTALL_DIR}" ]];then
+#        ldflags="$ldflags -lrtmp -L${LIBRTMP_INSTALL_DIR}/lib/"
+#    fi
+#
+#    if [[ -d "${FDK_AAC_INSTALL_DIR}" ]];then
+#        ldflags="$ldflags -lfdk-aac -L${FDK_AAC_INSTALL_DIR}/lib/"
+#    fi
+#
+#    if [[ -d "${OPENSSL_INSTALL_DIR}" ]];then
+#        ldflags="$ldflags -lssl -lcrypto -L${OPENSSL_INSTALL_DIR}/lib/"
+#    fi
+#
+#    if [[ -d "${DAV1D_INSTALL_DIR}" ]];then
+#        ldflags="$ldflags -ldav1d -L${DAV1D_INSTALL_DIR}/lib/"
+#    fi
+#
+#    if [[ -d "${X264_INSTALL_DIR}" ]];then
+#        ldflags="$ldflags -lx264 -L${X264_INSTALL_DIR}/lib/"
+#    fi
+#
+#    if [[ -d "${LIBXML2_INSTALL_DIR}" ]];then
+#        ldflags="$ldflags -lxml2 -L${LIBXML2_INSTALL_DIR}/lib/"
+#    fi
 
     cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
     sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
 
-    local platf=""
-    if [[ "$2" == "i686" ]];then
-        platf="-m32"
-    fi
-    if [[ "$2" == "x86_64" ]];then
-        platf="-m64"
-    fi
-    ${CROSS_COMPILE}-gcc build_version.cpp -Wall -static-libgcc -static-libstdc++ -shared -o ${LIB_NAME}.dll \
-     -O2  -I./include  -L./  -Wl,--kill-at,--out-implib=${LIB_NAME}.lib \
-     -Wl,--whole-archive ${ldflags} -Wl,--no-whole-archive
+    ${CROSS_COMPILE}-gcc -std=c++11 ${CPU_FLAGS} build_version.cpp -static-libgcc  -static -lm  -shared  -I${FFMPEG_INSTALL_DIR}/include \
+     -Wl,--no-undefined  ${CPU_LD_FLAGS}  -Wl,-soname,lib${LIB_NAME}.so \
+    ${objs} \
+    -o ${install_dir}/lib${LIB_NAME}.dll \
+    -Wl,--kill-at,--out-implib=${install_dir}/lib${LIB_NAME}.lib   \
+    -Wl,--whole-archive   ${ldflags} -Wl,--no-whole-archive -Wl,--build-id=sha1 -lws2_32 -lbcrypt
+
     rm build_version.cpp version.h
-    cd ${curr_dir}
 }
+
+#function link_shared_lib_win321(){
+#    if [[ "$1" != "win32" ]];then
+#        return;
+#    fi
+#    local install_dir=${CWD}/install/ffmpeg/win32/$2/
+#    cross_compile_set_platform_win32  $2
+#    if [[ -z "${LIB_NAME}" ]];then
+#        export LIB_NAME=alivcffmpeg
+#    fi
+#
+#    local curr_dir=${CWD}
+#    cd ${install_dir}
+#    echo install_dir is ${install_dir}
+#    echo BUILD_TOOLS_DIR is ${BUILD_TOOLS_DIR}
+#    echo OPENSSL_INSTALL_DIR is ${OPENSSL_INSTALL_DIR}
+#    echo curr_dir is ${curr_dir}
+#
+#    cp lib/*.a ./
+#    local ldflags="-lavformat -lavcodec -lavutil -lavfilter -lswscale -lswresample"
+#    if [[ -d "${OPENSSL_INSTALL_DIR}" ]];then
+#        ldflags="$ldflags -lssl -lcrypto"
+#        cp ${OPENSSL_INSTALL_DIR}/lib/*.a ./
+#    fi
+##    ldflags="$ldflags -lbcrypt  -lws2_32 -llz32 -lsecur32"
+#
+#    cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
+#    sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
+#
+#    local platf=""
+#    if [[ "$2" == "i686" ]];then
+#        platf="-m32"
+#    fi
+#    if [[ "$2" == "x86_64" ]];then
+#        platf="-m64"
+#    fi
+#    ${CROSS_COMPILE}-gcc ${platf} build_version.cpp -Wall -static-libgcc -static-libstdc++ -static -shared -o ${LIB_NAME}.dll \
+#     -O2  -I./include  -L./  -Wl,--kill-at,--out-implib=${LIB_NAME}.lib \
+#     -Wl,--whole-archive ${ldflags} -Wl,--no-whole-archive -lbcrypt  -lws2_32 #-llz32 -lsecur32
+#    rm build_version.cpp version.h
+#    cd ${curr_dir}
+#}

@@ -17,7 +17,7 @@ ffmpeg_config_add_demuxers flv aac live_flv webvtt srt mov mp3 mpegts matroska h
 ffmpeg_config_add_muxers mp4 adts mpegts
 ffmpeg_config_add_parsers aac h264 hevc aac_latm ac3
 ffmpeg_config_add_bsfs aac_adtstoasc h264_mp4toannexb hevc_mp4toannexb extract_extradata
-ffmpeg_config_add_protocols file crypto rtmp
+ffmpeg_config_add_protocols file rtmp
 ffmpeg_config_add_filters atempo aresample aformat volume
 
 

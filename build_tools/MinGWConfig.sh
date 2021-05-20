@@ -3,14 +3,14 @@
 function MinGW_init_i686_env(){
     CPU_ARCH=i686
     CROSS_COMPILE=i686-w64-mingw32
-    CPU_FLAGS=""
+    CPU_FLAGS="-m32"
     CPU_LD_FLAGS=""
 }
 
 function MinGW_init_x86_64_env(){
     CPU_ARCH=x86_64
     CROSS_COMPILE=x86_64-w64-mingw32
-    CPU_FLAGS=""
+    CPU_FLAGS="-m64"
     CPU_LD_FLAGS=""
 }
 
