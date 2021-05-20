@@ -8,27 +8,43 @@
 
 #include "AnalyticsCollectorFactory.h"
 
-#include "AnalyticsCollectorImpl.h"
 #include <mutex>
+#include "AnalyticsCollectorImpl.h"
 
 namespace Cicada {
-    AnalyticsCollectorFactory AnalyticsCollectorFactory::sInstance{};
-    AnalyticsCollectorFactory::AnalyticsCollectorFactory() = default;
+    AnalyticsCollectorFactory *AnalyticsCollectorFactory::sInstance = NULL;
 
-    AnalyticsCollectorFactory::~AnalyticsCollectorFactory() = default;
-
-    AnalyticsCollectorFactory *AnalyticsCollectorFactory::Instance()
+    AnalyticsCollectorFactory::AnalyticsCollectorFactory()
     {
-        return &sInstance;
+
     }
 
-    IAnalyticsCollector *AnalyticsCollectorFactory::createAnalyticsCollector(AnalyticsQueryListener *Listener)
+    AnalyticsCollectorFactory::~AnalyticsCollectorFactory()
+    {
+
+    }
+
+    AnalyticsCollectorFactory *AnalyticsCollectorFactory::Instance(void)
+    {
+        static std::once_flag oc;
+        std::call_once(oc, [&] {
+            sInstance = new AnalyticsCollectorFactory();
+        });
+
+        return sInstance;
+    }
+
+    IAnalyticsCollector *
+    AnalyticsCollectorFactory::createAnalyticsCollector(AnalyticsQueryListener *Listener)
     {
         return new AnalyticsCollectorImpl(Listener);
     }
 
-    void AnalyticsCollectorFactory::destroyAnalyticsCollector(IAnalyticsCollector *analytics)
+    void
+    AnalyticsCollectorFactory::destroyAnalyticsCollector(IAnalyticsCollector *analytics)
     {
         delete analytics;
     }
 }// namespace Cicada
+
+

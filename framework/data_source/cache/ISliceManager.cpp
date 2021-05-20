@@ -19,10 +19,15 @@ using namespace std;
 #define SLICE_SIZE 1024*32
 
 namespace Cicada {
-    ISliceManager ISliceManager::sInstance{};
+    static ISliceManager *g_manager = nullptr;
+
     ISliceManager *ISliceManager::getManager()
     {
-        return &sInstance;
+        static std::once_flag oc;
+        std::call_once(oc, [&] {
+            g_manager = new ISliceManager();
+        });
+        return g_manager;
     }
 
 //TODO: set the pool size

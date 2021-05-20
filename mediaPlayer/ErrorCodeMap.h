@@ -13,7 +13,8 @@ using namespace std;
 class CICADA_CPLUS_EXTERN ErrorCodeMap {
 
 public:
-    static ErrorCodeMap sInstance;
+
+    static ErrorCodeMap* sInstance;
     static ErrorCodeMap* getInstance();
 
     int getValue(int orignalValue);

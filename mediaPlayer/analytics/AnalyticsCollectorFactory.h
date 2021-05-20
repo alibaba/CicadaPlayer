@@ -34,10 +34,10 @@ namespace Cicada {
     private:
         AnalyticsCollectorFactory();
 
-        ~AnalyticsCollectorFactory() override;
+        ~AnalyticsCollectorFactory();
 
     private:
-        static AnalyticsCollectorFactory sInstance;
+        static AnalyticsCollectorFactory *sInstance;
     };
 
 }// namespace Cicada

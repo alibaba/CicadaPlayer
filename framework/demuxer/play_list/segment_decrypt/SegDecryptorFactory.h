@@ -14,17 +14,11 @@ using namespace std;
 class SegDecryptorFactory {
 
 public:
-    static SegDecryptorFactory *getInstance();
+
+    static SegDecryptorFactory *getInstance(void);
 
     static ISegDecrypter *create(SegmentEncryption::encryption_method method, ISegDecrypter::read_cb read, void *arg);
 
-
-private:
-    SegDecryptorFactory() = default;
-    ~SegDecryptorFactory() = default;
-
-private:
-    static SegDecryptorFactory sInstance;
 };
 
 #endif //CICADA_PLAYER_SEGDECRYPTORFACTORY_H

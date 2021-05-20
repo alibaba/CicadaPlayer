@@ -7,7 +7,8 @@
 #include "AES_128Decrypter.h"
 #include "ISegDecryptorPrototype.h"
 
-SegDecryptorFactory SegDecryptorFactory::sInstance{};
+
+static SegDecryptorFactory *sInstance = nullptr;
 
 ISegDecrypter *SegDecryptorFactory::create(SegmentEncryption::encryption_method method,
         ISegDecrypter::read_cb read, void *arg)
@@ -23,5 +24,9 @@ ISegDecrypter *SegDecryptorFactory::create(SegmentEncryption::encryption_method 
 
 SegDecryptorFactory *SegDecryptorFactory::getInstance(void)
 {
-    return &sInstance;
+    static std::once_flag oc;
+    std::call_once(oc, [&] {
+        sInstance = new SegDecryptorFactory();
+    });
+    return sInstance;
 }
