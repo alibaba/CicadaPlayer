@@ -25,7 +25,7 @@ namespace Cicada {
 
     class AnalyticsCollectorFactory : public IAnalyticsCollectorFactory {
     public:
-        static AnalyticsCollectorFactory *Instance(void);
+        static AnalyticsCollectorFactory &Instance(void);
 
         IAnalyticsCollector *createAnalyticsCollector(AnalyticsQueryListener *Listener) override;
 
@@ -34,10 +34,7 @@ namespace Cicada {
     private:
         AnalyticsCollectorFactory();
 
-        ~AnalyticsCollectorFactory();
-
-    private:
-        static AnalyticsCollectorFactory *sInstance;
+        ~AnalyticsCollectorFactory() override;
     };
 
 }// namespace Cicada

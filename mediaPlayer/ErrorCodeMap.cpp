@@ -10,14 +10,10 @@
 #include "utils/frame_work_log.h"
 
 using  namespace Cicada;
-ErrorCodeMap *ErrorCodeMap::sInstance = nullptr;
 
-ErrorCodeMap *ErrorCodeMap::getInstance()
+ErrorCodeMap &ErrorCodeMap::getInstance()
 {
-    static std::once_flag oc;
-    std::call_once(oc, [&] {
-        sInstance = new ErrorCodeMap();
-    });
+    static ErrorCodeMap sInstance{};
     return sInstance;
 }
 

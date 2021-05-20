@@ -32,7 +32,7 @@ namespace Cicada {
         url = "";
         refer = "";
         timeout_ms = 15000;
-        mIpType = static_cast<IpResolveType>(globalSettings::getSetting()->getIpResolveType());
+        mIpType = static_cast<IpResolveType>(globalSettings::getSetting().getIpResolveType());
         RTMaxDelayTime = 0;
         bLooping = false;
         bDisableAudio = false;

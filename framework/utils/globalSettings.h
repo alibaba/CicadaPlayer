@@ -29,7 +29,7 @@ namespace Cicada{
 
     public:
         using type_resolve = std::map<std::string, std::set<std::string>>;
-        static globalSettings *getSetting();
+        static globalSettings &getSetting();
 
         int setProperty(const string &key, const string &value);
 

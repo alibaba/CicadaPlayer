@@ -54,7 +54,7 @@ namespace Cicada {
         uint64_t device_ability = device_get_ability();
 
         if (!(device_ability & A_FILTER_FLAG_TEMPO) ||
-            globalSettings::getSetting()->getProperty("protected.audio.render.hw.tempo") == "OFF") {
+            globalSettings::getSetting().getProperty("protected.audio.render.hw.tempo") == "OFF") {
             mFilterFlags |= A_FILTER_FLAG_TEMPO;
         }
 

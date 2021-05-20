@@ -33,8 +33,8 @@ namespace Cicada {
 
     curl_slist *CURLShareInstance::getHosts(const string &url, CURLSH **sh)
     {
-        std::unique_lock<std::mutex> uMutex(globalSettings::getSetting()->getMutex());
-        const globalSettings::type_resolve &resolve = globalSettings::getSetting()->getResolve();
+        std::unique_lock<std::mutex> uMutex(globalSettings::getSetting().getMutex());
+        const globalSettings::type_resolve &resolve = globalSettings::getSetting().getResolve();
         curl_slist *host = nullptr;
         char proto[256];
         char hostname[256];

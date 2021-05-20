@@ -15,7 +15,7 @@ class CICADA_CPLUS_EXTERN ErrorCodeMap {
 public:
 
     static ErrorCodeMap* sInstance;
-    static ErrorCodeMap* getInstance();
+    static ErrorCodeMap &getInstance();
 
     int getValue(int orignalValue);
 

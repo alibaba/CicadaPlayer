@@ -14,8 +14,7 @@ using namespace std;
 class SegDecryptorFactory {
 
 public:
-
-    static SegDecryptorFactory *getInstance(void);
+    static SegDecryptorFactory &getInstance(void);
 
     static ISegDecrypter *create(SegmentEncryption::encryption_method method, ISegDecrypter::read_cb read, void *arg);
 

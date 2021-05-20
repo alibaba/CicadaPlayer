@@ -10,9 +10,6 @@
 using namespace std;
 
 namespace Cicada {
-    static globalSettings *gSetting = nullptr;
-    static mutex globalMutex;
-
     int globalSettings::setProperty(const string &key, const string &value)
     {
         std::unique_lock<std::mutex> uMutex(mMutex);
@@ -64,14 +61,9 @@ namespace Cicada {
         return mDefaultKeyValue;
     }
 
-    globalSettings *globalSettings::getSetting()
+    globalSettings &globalSettings::getSetting()
     {
-        std::lock_guard<std::mutex> uMutex(globalMutex);
-
-        if (gSetting == nullptr) {
-            gSetting = new globalSettings();
-        }
-
+        static globalSettings gSetting {};
         return gSetting;
     }
 

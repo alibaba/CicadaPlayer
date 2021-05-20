@@ -91,8 +91,8 @@ namespace Cicada {
             delete mBufferSource;
         }
 
-        mBufferSource = new sliceBufferSource((uint64_t) ISliceManager::getManager()->getSliceSize(), mMaxUsedBufferSize, (uint64_t) mFileSize,
-                                              *this, mSliceManager);
+        mBufferSource = new sliceBufferSource((uint64_t) ISliceManager::getManager().getSliceSize(), mMaxUsedBufferSize,
+                                              (uint64_t) mFileSize, *this, mSliceManager);
         return 0;
     }
 

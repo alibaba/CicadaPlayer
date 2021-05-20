@@ -19,14 +19,9 @@ using namespace std;
 #define SLICE_SIZE 1024*32
 
 namespace Cicada {
-    static ISliceManager *g_manager = nullptr;
-
-    ISliceManager *ISliceManager::getManager()
+    ISliceManager &ISliceManager::getManager()
     {
-        static std::once_flag oc;
-        std::call_once(oc, [&] {
-            g_manager = new ISliceManager();
-        });
+        static ISliceManager g_manager{};
         return g_manager;
     }
 

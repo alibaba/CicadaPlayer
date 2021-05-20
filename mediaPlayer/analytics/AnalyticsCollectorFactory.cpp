@@ -12,8 +12,6 @@
 #include "AnalyticsCollectorImpl.h"
 
 namespace Cicada {
-    AnalyticsCollectorFactory *AnalyticsCollectorFactory::sInstance = NULL;
-
     AnalyticsCollectorFactory::AnalyticsCollectorFactory()
     {
 
@@ -24,13 +22,9 @@ namespace Cicada {
 
     }
 
-    AnalyticsCollectorFactory *AnalyticsCollectorFactory::Instance(void)
+    AnalyticsCollectorFactory &AnalyticsCollectorFactory::Instance(void)
     {
-        static std::once_flag oc;
-        std::call_once(oc, [&] {
-            sInstance = new AnalyticsCollectorFactory();
-        });
-
+        static AnalyticsCollectorFactory sInstance{};
         return sInstance;
     }
 

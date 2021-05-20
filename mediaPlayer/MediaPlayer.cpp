@@ -26,7 +26,7 @@ namespace Cicada {
 
 #define GET_PLAYER_HANDLE  playerHandle* handle = (playerHandle*)mPlayerHandle;
 #define GET_MEDIA_PLAYER MediaPlayer* player = (MediaPlayer*)userData;
-    MediaPlayer::MediaPlayer(const char *opt) : MediaPlayer(*(AnalyticsCollectorFactory::Instance()), opt)
+    MediaPlayer::MediaPlayer(const char *opt) : MediaPlayer((AnalyticsCollectorFactory::Instance()), opt)
     {
     }
 

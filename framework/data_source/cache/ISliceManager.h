@@ -14,7 +14,7 @@ namespace Cicada{
     class ISliceManager {
 
     public:
-        static ISliceManager *getManager();
+        static ISliceManager &getManager();
 
         int getSliceSize();
 

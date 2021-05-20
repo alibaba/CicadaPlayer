@@ -13,9 +13,7 @@ using namespace std;
 class CICADA_CPLUS_EXTERN EventCodeMap {
 
 public:
-
-    static EventCodeMap* sEventCodeInstance;
-    static EventCodeMap* getInstance();
+    static EventCodeMap &getInstance();
 
     int getValue(int orignalValue);
 
