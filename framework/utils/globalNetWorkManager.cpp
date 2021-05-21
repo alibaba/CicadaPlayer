@@ -7,9 +7,9 @@
 
 using namespace Cicada;
 using namespace std;
-globalNetWorkManager globalNetWorkManager::sInstance{};
 globalNetWorkManager *globalNetWorkManager::getGlobalNetWorkManager()
 {
+    static globalNetWorkManager sInstance{};
     return &sInstance;
 }
 void globalNetWorkManager::addListener(globalNetWorkManager::globalNetWorkManagerListener *listener)

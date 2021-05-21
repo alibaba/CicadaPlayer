@@ -31,7 +31,6 @@ namespace Cicada {
         ~globalNetWorkManager() = default;
 
     private:
-        static globalNetWorkManager sInstance;
         std::mutex mMutex;
         std::set<globalNetWorkManagerListener *> mListeners{};
     };
