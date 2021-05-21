@@ -1049,6 +1049,9 @@ int SuperMediaPlayer::updateLoopGap()
                 if (mCurrentVideoMeta) {
                     // the loop gap can't too low
                     int fps = std::max(25, (int) (mCurrentVideoMeta->operator Stream_meta *()->avg_fps));
+                    if (mVideoInterlaced == InterlacedType_YES) {
+                        fps *= 2;
+                    }
                     return 1000 / int(fps * mSet->rate * 1.5);
                 }
             }
