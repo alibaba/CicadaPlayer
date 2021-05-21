@@ -3946,9 +3946,8 @@ void SuperMediaPlayer::ProcessUpdateView()
         //TODO set widevine level  by user
         videoTag |= VideoTag::VIDEO_TAG_WIDEVINE_L1;
     }
-#endif
-
     mUpdateViewCB(videoTag, mUpdateViewCBUserData);
+#endif
 }
 
 bool SuperMediaPlayer::isWideVineVideo(const Stream_meta *meta) const
