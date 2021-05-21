@@ -94,6 +94,8 @@ private:
     bool mRenderNeedRelease{false};
     void* mCurrentView = nullptr;
 
+    std::atomic_bool mVideoSubSystemInited{false};
+
     std::unique_ptr<IAFFrame> mLastVideoFrame{};
     std::unique_ptr<IAFFrame> mBackFrame{};
 

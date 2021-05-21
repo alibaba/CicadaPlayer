@@ -24,7 +24,6 @@ SdlAFVideoRender::SdlAFVideoRender()
 {
     mVSync = VSyncFactory::create(*this, 60);
 //   mHz = 0;
-    SDL_InitSubSystem(SDL_INIT_VIDEO);
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
     SDL_LogSetOutputFunction(sdlLogCb, nullptr);
     mVSync->start();
@@ -48,7 +47,10 @@ SdlAFVideoRender::~SdlAFVideoRender()
         mVideoWindow = nullptr;
         mWindowNeedRelease = false;
     }
-    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+
+    if (mVideoSubSystemInited) {
+        SDL_QuitSubSystem(SDL_INIT_VIDEO);
+    }
 }
 
 
@@ -467,6 +469,9 @@ SDL_Rect SdlAFVideoRender::getSnapRect()
 
 int SdlAFVideoRender::setDisPlay(void *view)
 {
+    if (view == nullptr) {
+        return 0;
+    }
     auto *display = static_cast<CicadaSDLView *>(view);
     if (mCurrentView == display->view) {
         return 0;
@@ -475,6 +480,12 @@ int SdlAFVideoRender::setDisPlay(void *view)
     if (mCurrentView == nullptr) {
         return 0;
     }
+
+    if (!mVideoSubSystemInited) {
+        SDL_InitSubSystem(SDL_INIT_VIDEO);
+        mVideoSubSystemInited = true;
+    }
+
     if (mVideoTexture != nullptr) {
         SDL_DestroyTexture(mVideoTexture);
         mVideoTexture = nullptr;
