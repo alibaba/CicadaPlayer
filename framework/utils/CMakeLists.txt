@@ -93,14 +93,6 @@ if (APPLE)
             )
 endif ()
 
-if (MSVC)
-    set(SOURCE_FILES ${SOURCE_FILES}
-            ffmpegshim.c
-            strtok_r.c
-            mkstemp.c
-            basename.c)
-endif ()
-
 if (ANDROID)
     set(SOURCE_FILES ${SOURCE_FILES}
             ../base/media/AFMediaCodecFrame.cpp
