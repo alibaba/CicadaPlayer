@@ -16,12 +16,12 @@
     }
 
     const string theHost = [host UTF8String];
-    Cicada::globalSettings::getSetting()->removeResolve(theHost, "");
+    Cicada::globalSettings::getSetting().removeResolve(theHost, "");
 
     string theip;
     if (nil != ip && 0 < [ip length]) {
         theip = [ip UTF8String];
-        Cicada::globalSettings::getSetting()->addResolve(theHost, theip);
+        Cicada::globalSettings::getSetting().addResolve(theHost, theip);
     }
 }
 

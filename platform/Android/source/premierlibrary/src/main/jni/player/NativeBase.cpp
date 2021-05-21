@@ -1580,7 +1580,7 @@ void NativeBase::jni_onEvent(int64_t code, const void *msg, void *userData)
 
     NewStringUTF tmpmsg(mEnv, (char *) msg);
     jstring jmsg = tmpmsg.getString();
-    jint eventCode = EventCodeMap::getInstance()->getValue(code);
+    jint eventCode = EventCodeMap::getInstance().getValue(code);
     mEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onEvent, (jint) eventCode, jmsg,
                          nullptr);
     JniException::clearException(mEnv);
@@ -1601,7 +1601,7 @@ void NativeBase::jni_onError(int64_t code, const void *msg, void *userData)
 
     NewStringUTF tmpmsg(mEnv, (char *) msg);
     jstring jmsg = tmpmsg.getString();
-    int javaValue = ErrorCodeMap::getInstance()->getValue(code);
+    int javaValue = ErrorCodeMap::getInstance().getValue(code);
     mEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onError, (jint) javaValue, jmsg,
                          nullptr);
     JniException::clearException(mEnv);

@@ -244,7 +244,7 @@ void CicadaOCHelper::onError(int64_t code, const void *msg, void *userData) {
     if(player.delegate && [player.delegate respondsToSelector:@selector(onError:errorModel:)]){
         dispatch_async(dispatch_get_main_queue(), ^{
             CicadaErrorModel* model = [[CicadaErrorModel alloc] init];
-            model.code = (CicadaErrorCode)ErrorCodeMap::getInstance()->getValue(static_cast<int>(code));
+            model.code = (CicadaErrorCode) ErrorCodeMap::getInstance().getValue(static_cast<int>(code));
             model.message = errorStr;
             [player.delegate onError:player errorModel:model];
         });
@@ -481,9 +481,8 @@ void CicadaOCHelper::onEvent(int64_t code, const void *msg, void *userData) {
 
     if (player.delegate && [player.delegate respondsToSelector:@selector(onPlayerEvent:eventWithString:description:)]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-
-            CicadaEventWithString eventCode = (CicadaEventWithString)EventCodeMap::getInstance()->getValue(static_cast<int>(code));
-            [player.delegate onPlayerEvent:player eventWithString:(CicadaEventWithString)eventCode description:str];
+          CicadaEventWithString eventCode = (CicadaEventWithString) EventCodeMap::getInstance().getValue(static_cast<int>(code));
+          [player.delegate onPlayerEvent:player eventWithString:(CicadaEventWithString) eventCode description:str];
         });
     }
 }

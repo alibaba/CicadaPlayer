@@ -28,7 +28,7 @@ void JavaGlobalSettings::unInit(JNIEnv *pEnv)
 
 void JavaGlobalSettings::java_setIPResolveType(JNIEnv *mEnv, jclass clazz, jint type)
 {
-    Cicada::globalSettings::getSetting()->setIpResolveType((int)type);
+    Cicada::globalSettings::getSetting().setIpResolveType((int) type);
 }
 
 void JavaGlobalSettings::java_setDNSResolve(JNIEnv *mEnv, jclass clazz, jstring jhost, jstring jip)
@@ -40,12 +40,12 @@ void JavaGlobalSettings::java_setDNSResolve(JNIEnv *mEnv, jclass clazz, jstring 
         return;
     }
 
-    Cicada::globalSettings::getSetting()->removeResolve(hostChars, "");
+    Cicada::globalSettings::getSetting().removeResolve(hostChars, "");
     GetStringUTFChars ipStr(mEnv, jip);
     char *ipChars = ipStr.getChars();
 
     if (ipChars != nullptr && strlen(ipChars) > 0) {
-        Cicada::globalSettings::getSetting()->addResolve(hostChars, ipChars);
+        Cicada::globalSettings::getSetting().addResolve(hostChars, ipChars);
     }
 }
 

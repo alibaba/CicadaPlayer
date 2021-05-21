@@ -240,6 +240,9 @@ public:
         return 0;
     }
 
+    void SetVideoRenderingCallBack(videoRenderingFrameCB cb, void *userData) override
+    {}
+
 public:
     static bool is_supported(const Cicada::options *opts);
 
