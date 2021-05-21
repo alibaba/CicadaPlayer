@@ -18,7 +18,7 @@ class TestResultModel {
       this.children});
 
   void saveToFile() async {
-    List<XmlElement> cases = List<XmlElement>();
+    List<XmlElement> cases = [];
     for (TestResultCaseModel item in children) {
       cases.add(item.toXml());
     }
@@ -62,7 +62,7 @@ class TestResultCaseModel {
   TestResultCaseModel({this.name, this.children});
 
   XmlElement toXml() {
-    List<XmlElement> resurces = List<XmlElement>();
+    List<XmlElement> resurces = [];
     for (TestResultItemModel item in children) {
       resurces.add(item.toXml());
     }

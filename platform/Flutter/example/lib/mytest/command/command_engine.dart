@@ -3,9 +3,9 @@ import 'package:flutter_cicadaplayer/flutter_cicadaplayer.dart';
 import 'package:flutter_cicadaplayer/flutter_cicadaplayer_factory.dart';
 import 'package:flutter_cicadaplayer_example/mytest/command/command.dart';
 import 'package:flutter_cicadaplayer_example/mytest/command/command_regist.dart';
-import 'package:flutter_cicadaplayer_example/mytest/test_case_model.dart';
-import 'package:flutter_cicadaplayer_example/mytest/test_resource_model.dart';
-import 'package:flutter_cicadaplayer_example/mytest/test_result_model.dart';
+import 'package:flutter_cicadaplayer_example/mytest/model/test_case_model.dart';
+import 'package:flutter_cicadaplayer_example/mytest/model/test_resource_model.dart';
+import 'package:flutter_cicadaplayer_example/mytest/model/test_result_model.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 typedef OnStatusUpdate = void Function();
@@ -36,7 +36,7 @@ class CommandEngine with CommandRegist{
   }
 
   void run(Command command) {
-    List<TestResultItemModel> children = new List<TestResultItemModel>();
+    List<TestResultItemModel> children = [];
     TestResultCaseModel resultCase =
         TestResultCaseModel(name: command.caseName, children: children);
     testResultModel.children.add(resultCase);

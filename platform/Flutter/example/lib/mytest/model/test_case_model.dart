@@ -31,7 +31,7 @@ class TestCaseGroup{
   XmlElement element;
   bool isExpanded;
 
-  TestCaseGroup({this.name,this.children,this.element,this.isExpanded=true});
+  TestCaseGroup({this.name,this.children,this.element,this.isExpanded=false});
 
   static TestCaseGroup modelFromXml(XmlElement xml){
     TestCaseGroup model = TestCaseGroup(name: xml.getAttribute('casegroup_name'),element: xml,children:[] );

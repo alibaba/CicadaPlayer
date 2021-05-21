@@ -122,7 +122,7 @@ class _TestPlayerPageState extends State<TestPlayerPage> {
 
     testResultModel = TestResultModel(
         start: DateTime.now().toString(),
-        children: List<TestResultCaseModel>());
+        children: []);
 
     engine = CommandEngine(
         testCaseModel: testCaseModel,
