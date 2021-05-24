@@ -778,7 +778,6 @@ void CURLConnection::updateHeaderList(struct curl_slist *headerList)
 }
 void CURLConnection::disableCallBack()
 {
-    globalNetWorkManager::getGlobalNetWorkManager()->removeListener(this);
     if (mHttp_handle) {
         curl_easy_setopt(mHttp_handle, CURLOPT_VERBOSE, FALSE);
         curl_easy_setopt(mHttp_handle, CURLOPT_WRITEDATA, nullptr);

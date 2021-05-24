@@ -5,17 +5,18 @@
 #ifndef FRAMEWORK_DATASOURCE_CURLSOURCE_H
 #define FRAMEWORK_DATASOURCE_CURLSOURCE_H
 
-#include <curl/multi.h>
-#include "data_source/IDataSource.h"
-#include "utils/ringBuffer.h"
-#include <mutex>
-#include <condition_variable>
-#include "data_source/dataSourcePrototype.h"
 #include "CURLConnection.h"
+#include "data_source/IDataSource.h"
+#include "data_source/dataSourcePrototype.h"
+#include "utils/ringBuffer.h"
+#include <condition_variable>
+#include <curl/multi.h>
+#include <mutex>
+#include <utils/globalNetWorkManager.h>
 
 namespace Cicada {
 
-    class CurlDataSource : public IDataSource, private dataSourcePrototype {
+    class CurlDataSource : public IDataSource, private dataSourcePrototype, private globalNetWorkManager::globalNetWorkManagerListener {
     public:
         static bool probe(const std::string &path);
 
@@ -66,6 +67,8 @@ namespace Cicada {
 
         void closeConnections(bool current);
 
+        void OnReconnect() override;
+
     private:
         const static int max_connection = 1;
         std::string mLocation;
@@ -87,6 +90,7 @@ namespace Cicada {
         bool mBDummy = false;
         std::vector<CURLConnection *>* mConnections {nullptr};
         bool mEnableLog{true};
+        std::atomic<bool> mNeedReconnect{false};
     };
 }
 

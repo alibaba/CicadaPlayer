@@ -155,6 +155,7 @@ static void clean_curl()
 
 CurlDataSource::CurlDataSource(const string &url) : IDataSource(url)
 {
+    globalNetWorkManager::getGlobalNetWorkManager()->addListener(this);
     mFileSize = -1;
     mConnections = new std::vector<CURLConnection *>();
 }
@@ -167,6 +168,7 @@ CurlDataSource::~CurlDataSource()
         clean_curl();
         return;
     }
+    globalNetWorkManager::getGlobalNetWorkManager()->removeListener(this);
 
     Interrupt(true);
     Close();
@@ -224,6 +226,10 @@ int CurlDataSource::Open(int flags)
 
 int CurlDataSource::Open(const string &url)
 {
+    if (mNeedReconnect) {
+        Close();
+        mNeedReconnect = false;
+    }
     if (mPConnection == nullptr) {
         mUri = url;
         return Open(0);
@@ -372,6 +378,12 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
 
     CURLConnection *con = nullptr;
 
+
+    if (mNeedReconnect) {
+        Close();
+        mNeedReconnect = false;
+    }
+
     for (auto item = mConnections->begin(); item != mConnections->end();) {
         if ((*(item))->short_seek(offset) >= 0) {
             con = *item;
@@ -460,6 +472,13 @@ int CurlDataSource::Read(void *buf, size_t size)
 
     /* only request 1 byte, for truncated reads (only if not eof) */
     if (mFileSize <= 0 || mPConnection->tell() < mFileSize) {
+
+        if (mNeedReconnect) {
+            rangeStart = mPConnection->tell();
+            Close();
+            Open(0);
+            mNeedReconnect = false;
+        }
         ret = mPConnection->FillBuffer(1);
 
         if (ret < 0) {
@@ -582,4 +601,9 @@ CurlDataSource::CurlDataSource(int dummy) : IDataSource("")
 std::string CurlDataSource::GetUri()
 {
     return mLocation;
+}
+
+void CurlDataSource::OnReconnect()
+{
+    mNeedReconnect = true;
 }
