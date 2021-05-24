@@ -234,33 +234,40 @@ int SdlAFVideoRender::onVSyncInner(int64_t tick)
         }
     }
 #endif
-    IAFFrame::videoInfo &videoInfo = frame->getInfo().video;
-    recreateTextureIfNeed(videoInfo.width, videoInfo.height);
-    SDL_Rect srcRect{};
-    srcRect.x = 0;
-    srcRect.y = 0;
-    srcRect.w = mVideoWidth;
-    srcRect.h = mVideoHeight;
-    int angle = (mRotate + mVideoRotate) % 360;
-    SDL_RendererFlip flip = convertFlip();
-    SDL_Rect dstRect = getDestRet();
-    {
-        std::unique_lock<std::mutex> lock(mRenderMutex);
-        uint8_t **data = frame->getData();
-        int *lineSize = frame->getLineSize();
+    bool rendered = false;
+    if (mRenderingCb) {
+        CicadaJSONItem params{};
+        rendered = mRenderingCb(mRenderingCbUserData, frame.get(), params);
+    }
+    if (!rendered) {
+        IAFFrame::videoInfo &videoInfo = frame->getInfo().video;
+        recreateTextureIfNeed(videoInfo.width, videoInfo.height);
+        SDL_Rect srcRect{};
+        srcRect.x = 0;
+        srcRect.y = 0;
+        srcRect.w = mVideoWidth;
+        srcRect.h = mVideoHeight;
+        int angle = (mRotate + mVideoRotate) % 360;
+        SDL_RendererFlip flip = convertFlip();
+        SDL_Rect dstRect = getDestRet();
+        {
+            std::unique_lock<std::mutex> lock(mRenderMutex);
+            uint8_t **data = frame->getData();
+            int *lineSize = frame->getLineSize();
 
-        if (mVideoRender != nullptr && mVideoTexture != nullptr) {
-            SDL_UpdateYUVTexture(mVideoTexture, &srcRect, data[0], lineSize[0], data[1], lineSize[1], data[2], lineSize[2]);
-            SDL_RenderClear(mVideoRender);
-            SDL_RenderCopyEx(mVideoRender, //SDL_Renderer*          renderer,
-                             mVideoTexture,//SDL_Texture*           texture,
-                             &srcRect,     //const SDL_Rect*        srcrect,
-                             &dstRect,     //const SDL_Rect*        dstrect,
-                             angle,        //const double           angle,
-                             nullptr,      //const SDL_Point*       center,
-                             flip          //const SDL_RendererFlip flip
-            );
-            SDL_RenderPresent(mVideoRender);
+            if (mVideoRender != nullptr && mVideoTexture != nullptr) {
+                SDL_UpdateYUVTexture(mVideoTexture, &srcRect, data[0], lineSize[0], data[1], lineSize[1], data[2], lineSize[2]);
+                SDL_RenderClear(mVideoRender);
+                SDL_RenderCopyEx(mVideoRender, //SDL_Renderer*          renderer,
+                                 mVideoTexture,//SDL_Texture*           texture,
+                                 &srcRect,     //const SDL_Rect*        srcrect,
+                                 &dstRect,     //const SDL_Rect*        dstrect,
+                                 angle,        //const double           angle,
+                                 nullptr,      //const SDL_Point*       center,
+                                 flip          //const SDL_RendererFlip flip
+                );
+                SDL_RenderPresent(mVideoRender);
+            }
         }
     }
     {
