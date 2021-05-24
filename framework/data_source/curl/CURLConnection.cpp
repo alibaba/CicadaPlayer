@@ -54,7 +54,6 @@ static int getErrorCode(const CURLcode &CURLResult)
 
 Cicada::CURLConnection::CURLConnection(Cicada::IDataSource::SourceConfig *pConfig)
 {
-    globalNetWorkManager::getGlobalNetWorkManager()->addListener(this);
     mHttp_handle = curl_easy_init();
     pRbuf = RingBufferCreate(RINGBUFFER_SIZE + RINGBUFFER_BACK_SIZE);
     RingBufferSetBackSize(pRbuf, RINGBUFFER_BACK_SIZE);
@@ -451,13 +450,6 @@ int CURLConnection::FillBuffer(uint32_t want)
             continue;
         }
 
-        if (mNeedReconnect) {
-            mNeedReconnect = false;
-            disconnect();
-            SetResume(mFilePos);
-            curl_multi_add_handle(multi_handle, mHttp_handle);
-        }
-
         CURLMcode result = curl_multi_perform(multi_handle, &still_running);
 
         if (!still_running) {
@@ -796,8 +788,4 @@ void CURLConnection::disableCallBack()
         curl_easy_setopt(mHttp_handle, CURLOPT_SOCKOPTFUNCTION, nullptr);
         curl_easy_setopt(mHttp_handle, CURLOPT_SOCKOPTDATA, nullptr);
     }
-}
-void CURLConnection::OnReconnect()
-{
-    mNeedReconnect = true;
 }

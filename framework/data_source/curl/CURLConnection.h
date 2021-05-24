@@ -5,15 +5,14 @@
 #ifndef CICADAMEDIA_CURLCONNECTION_H
 #define CICADAMEDIA_CURLCONNECTION_H
 
-#include <atomic>
 #include <curl/curl.h>
-#include <data_source/IDataSource.h>
-#include <string>
-#include <utils/globalNetWorkManager.h>
 #include <utils/ringBuffer.h>
+#include <atomic>
+#include <string>
+#include <data_source/IDataSource.h>
 
 namespace Cicada {
-    class CURLConnection : private globalNetWorkManager::globalNetWorkManagerListener {
+    class CURLConnection {
     public:
         explicit CURLConnection(Cicada::IDataSource::SourceConfig *pConfig);
 
@@ -58,9 +57,6 @@ namespace Cicada {
         void disableCallBack();
 
     private:
-        void OnReconnect() override;
-
-    private:
         int esayHandle_set_common_opt();
 
         static int sockopt_callback(void *clientp, curl_socket_t curlfd, curlsocktype purpose);
@@ -94,7 +90,6 @@ namespace Cicada {
         RingBuffer *pRbuf = nullptr;
         int still_running = 0;
         char *response = nullptr;
-        std::atomic<bool> mNeedReconnect{};
     };
 };
 
