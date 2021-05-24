@@ -168,6 +168,34 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     return self;
 }
 
+- (CATransform3D)applyDARTransform:(CATransform3D)transform
+{
+    assert(self.displayLayer.videoGravity != AVLayerVideoGravityResizeAspectFill);
+    if (self.displayLayer.videoGravity == AVLayerVideoGravityResize) {
+        float scalex = 1;
+        float scaley = 1;
+
+        CGSize displaySize = [self getVideoSize];
+        float videoDar = displaySize.width / displaySize.height;
+
+        float scaleW = static_cast<float>(self.displayLayer.bounds.size.width / self.displayLayer.bounds.size.height) / videoDar;
+        bool bFillWidth = self.displayLayer.bounds.size.width / self.displayLayer.bounds.size.height < _frameSize.width / _frameSize.height;
+        if (bFillWidth) {
+            scaley = scaleW;
+        } else {
+            scalex = 1 / scaleW;
+        }
+
+        CATransform3D dar;
+        if (_rotateMode % 180 == 0) {
+            dar = CATransform3DMakeScale(scalex, scaley, 1);
+        } else
+            dar = CATransform3DMakeScale(scaley, scalex, 1);
+        return CATransform3DConcat(dar, transform);
+    }
+    return transform;
+}
+
 - (CATransform3D)CalculateTransform
 {
     CGSize disPlaySize = [self getVideoSize];
@@ -200,6 +228,7 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
         scaley = static_cast<float>(self.displayLayer.bounds.size.height / disPlaySize.height);
     }
     _scaleTransform = CATransform3DMakeScale(scalex, scaley, 1);
+    _scaleTransform = [self applyDARTransform:_scaleTransform];
     return CATransform3DConcat(transform, _scaleTransform);
 }
 
@@ -220,7 +249,7 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
         dispatch_async(dispatch_get_main_queue(), ^{
           if (!self.displayLayer) {
               self.displayLayer = [AVSampleBufferDisplayLayer layer];
-              self.displayLayer.videoGravity = AVLayerVideoGravityResizeAspect;
+              self.displayLayer.videoGravity = AVLayerVideoGravityResize;
           }
           [parentLayer addSublayer:self.displayLayer];
           if (_bGColour) {
@@ -300,6 +329,12 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     }
 
     CGSize disPlaySize = [self getVideoSize];
+    if (self.displayLayer.videoGravity == AVLayerVideoGravityResize) {
+        // function imageTransform() will apply all transforms we applied to displayLayer,
+        // so here we use the displayLayer's origin size
+        disPlaySize = self.displayLayer.bounds.size;
+    }
+
     if (renderingBuffer && self.displayLayer) {
         CGSize imageSize = CGSizeMake(disPlaySize.width * scale, disPlaySize.height * scale);
         CIImage *ciImage = [CIImage imageWithCVPixelBuffer:renderingBuffer];
