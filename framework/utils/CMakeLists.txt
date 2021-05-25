@@ -54,7 +54,6 @@ set(SOURCE_FILES
         ffmpeg_utils.c
         ../base/media/subTitlePacket.cpp
         ../base/media/subTitlePacket.h
-        stringUtil.h
         Md5Utils.cpp
         Md5Utils.h
         ../base/options.cpp

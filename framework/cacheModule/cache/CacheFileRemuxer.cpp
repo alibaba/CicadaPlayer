@@ -12,7 +12,6 @@
 #include <muxer/ffmpegMuxer/FfmpegMuxer.h>
 #include <muxer/IMuxerPrototype.h>
 #include <utils/frame_work_log.h>
-#include <utils/stringUtil.h>
 #include <utils/mediaFrame.h>
 
 using namespace Cicada;
