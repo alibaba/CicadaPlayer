@@ -1496,8 +1496,12 @@ bool SuperMediaPlayer::DoCheckBufferPass()
             int64_t maxBufferDuration = getPlayerBufferDuration(true, false);
 
             if (maxBufferDuration > mSuggestedPresentationDelay + 1000 * 1000 * 5) {
-                int64_t lastKeyPos = mBufferController->GetPacketLastKeyTimePos(BUFFER_TYPE_VIDEO);
-                mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_VIDEO, lastKeyPos);
+                int64_t lastVideoPos = mBufferController->GetPacketLastTimePos(BUFFER_TYPE_VIDEO);
+                lastVideoPos -= std::max(mSuggestedPresentationDelay, (int64_t)(500 * 1000ll));
+                int64_t lastVideoKeyTimePos = mBufferController->GetKeyTimePositionBefore(BUFFER_TYPE_VIDEO, lastVideoPos);
+                if (lastVideoKeyTimePos != INT64_MIN) {
+                    mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_VIDEO, lastVideoKeyTimePos);
+                }
                 break;
             }
 
@@ -1522,7 +1526,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
                 lastPos = lastAudioPos < lastVideoPos ? lastAudioPos : lastVideoPos;
             }
 
-            lastPos -= std::min(mSuggestedPresentationDelay, (int64_t)(500 * 1000ll));
+            lastPos -= std::max(mSuggestedPresentationDelay, (int64_t)(500 * 1000ll));
             int64_t lastVideoKeyTimePos = mBufferController->GetKeyTimePositionBefore(BUFFER_TYPE_VIDEO, lastPos);
             if (lastVideoKeyTimePos != INT64_MIN) {
                 AF_LOGD("drop left lastPts %lld, lastVideoKeyPts %lld", lastPos, lastVideoKeyTimePos);
