@@ -69,6 +69,16 @@ AudioTrackRender::~AudioTrackRender()
     }
 }
 
+bool AudioTrackRender::device_require_format(const IAFFrame::audioInfo &info)
+{
+    if (info.format != AF_SAMPLE_FMT_S16 || info.sample_rate > 48000 || info.channels > 2) {
+        return false;
+    }
+    mRequireFormat = std::unique_ptr<IAFFrame::audioInfo>(new IAFFrame::audioInfo());
+    (*mRequireFormat) = info;
+    return true;
+}
+
 int AudioTrackRender::init_device()
 {
     adjustOutputInfo();
@@ -89,6 +99,10 @@ int AudioTrackRender::init_device()
 
 void AudioTrackRender::adjustOutputInfo()
 {
+    if (mRequireFormat) {
+        mOutputInfo = *mRequireFormat;
+        return;
+    }
     if (mInputInfo.format != AF_SAMPLE_FMT_S16) {
         mOutputInfo.format = AF_SAMPLE_FMT_S16;
         needFilter = true;

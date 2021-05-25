@@ -45,6 +45,9 @@ namespace Cicada {
         }
 
         mOutputInfo = mInputInfo = *info;
+
+        requireSetting();
+
         /*
          * the nb_samples may not correct, update the value in renderFrame
          */
@@ -85,6 +88,50 @@ namespace Cicada {
         mRenderThread = std::unique_ptr<afThread>(NEW_AF_THREAD(renderLoop));
         return 0;
     }
+    void filterAudioRender::requireSetting()
+    {
+#define GET_CHANGE(name) globalSettings::getSetting().getProperty("protected.audio.render.change_format." #name)
+
+        if (globalSettings::getSetting().getProperty("protected.audio.render.change_format") == "ON") {
+            IAFFrame::audioInfo audioInfo = mInputInfo;
+            string value = GET_CHANGE(fmt);
+            if (!value.empty()) {
+                if (value == "s16") {
+                    audioInfo.format = AF_SAMPLE_FMT_S16;
+                } else {
+                    AF_LOGW("not support changed format %s\n", value.c_str());
+                }
+            }
+
+            value = GET_CHANGE(channels);
+            if (!value.empty()) {
+                int intV = atoi(value.c_str());
+                if (intV > 0 && intV <= 8) {
+                    audioInfo.channels = intV;
+                } else {
+                    AF_LOGW("not support changed channels %s\n", value.c_str());
+                }
+            }
+
+            value = GET_CHANGE(sample_rate);
+            if (!value.empty()) {
+                int intV = atoi(value.c_str());
+                if (intV > 0 && intV <= 48000) {
+                    audioInfo.sample_rate = intV;
+                } else {
+                    AF_LOGW("not support changed sample_rate %s\n", value.c_str());
+                }
+            }
+
+            if (!device_require_format(audioInfo)) {
+                AF_LOGW("device_require_format fail\n");
+            } else {
+                if (audioInfo != mInputInfo) {
+                    needFilter = true;
+                }
+            }
+        }
+    }
 
     int filterAudioRender::renderFrame(std::unique_ptr<IAFFrame> &frame, int timeOut)
     {
@@ -106,7 +153,7 @@ namespace Cicada {
 
         if (mOutputInfo.nb_samples == 0) {
             float rate = (float) mInputInfo.sample_rate / (float) mOutputInfo.sample_rate;
-            mOutputInfo.nb_samples = frame->getInfo().audio.nb_samples / rate;
+            mOutputInfo.nb_samples = (int) ((float) frame->getInfo().audio.nb_samples / rate);
         }
 
         mFrameQue.push(move(frame));
@@ -242,7 +289,9 @@ namespace Cicada {
                 }
                 break;
             }
-            if (mOutputInfo.nb_samples > 0) {
+            if (mOutputInfo.nb_samples > 0 &&
+                abs(mOutputInfo.nb_samples - nb_samples) > 1// to avoid mOutputInfo.nb_samples not accurate after resample
+            ) {
                 mSpeedDeltaDuration += mOutputInfo.nb_samples - nb_samples;
             }
             mRenderFrame = getFrame();

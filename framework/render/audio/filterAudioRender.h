@@ -45,6 +45,8 @@ namespace Cicada {
     private:
         virtual int init_device() = 0;
 
+        virtual bool device_require_format(const IAFFrame::audioInfo &info) = 0;
+
         virtual int pause_device() = 0;
 
         virtual int start_device() = 0;
@@ -92,6 +94,8 @@ namespace Cicada {
         int applySpeed();
 
         int applyVolume();
+
+        void requireSetting();
 
     protected:
         IAFFrame::audioInfo mInputInfo{};

@@ -199,6 +199,16 @@ int AFAudioQueueRender::device_setSpeed(float speed)
     return 0;
 }
 
+bool AFAudioQueueRender::device_require_format(const IAFFrame::audioInfo &info)
+{
+    // TODO: drop this
+    if (info.format >= AF_SAMPLE_FMT_U8P) {
+        return false;
+    }
+    mOutputInfo = info;
+    return true;
+}
+
 int AFAudioQueueRender::init_device()
 {
     fillAudioFormat();

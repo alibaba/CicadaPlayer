@@ -22,6 +22,8 @@ public:
     ~AudioTrackRender();
 
 private:
+    bool device_require_format(const IAFFrame::audioInfo &info) override;
+
     int init_device() override;
 
     int pause_device() override;
@@ -115,6 +117,7 @@ private:
     int mMaxQueSize{2};
     float mVolume{1.0};
     bool mMute{false};
+    std::unique_ptr<IAFFrame::audioInfo> mRequireFormat{};
 };
 
 

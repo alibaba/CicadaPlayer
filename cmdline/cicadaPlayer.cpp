@@ -125,6 +125,14 @@ static void onSeekEnd(int64_t position, void *userData)
     //  AF_LOGD("seek end\n");
 }
 
+static void changeAudioFormat()
+{
+    setProperty("protected.audio.render.change_format", "ON");
+    setProperty("protected.audio.render.change_format.fmt", "s16");
+    setProperty("protected.audio.render.change_format.channels", "2");
+    setProperty("protected.audio.render.change_format.sample_rate", "44100");
+}
+
 int main(int argc, char *argv[])
 {
     string url;
@@ -137,7 +145,9 @@ int main(int argc, char *argv[])
 
     log_enable_color(1);
     log_set_level(AF_LOG_LEVEL_TRACE, 1);
-    //   setProperty("protected.audio.render.hw.tempo","OFF");
+    //    setProperty("protected.audio.render.hw.tempo","OFF");
+    //
+    //    changeAudioFormat();
 
     cicadaCont cicada{};
     unique_ptr<MediaPlayer> player = unique_ptr<MediaPlayer>(new MediaPlayer());

@@ -31,6 +31,8 @@ namespace Cicada {
         ~AFAudioQueueRender() override;
 
     private:
+        bool device_require_format(const IAFFrame::audioInfo &info) override;
+
         int init_device() override;
 
         int pause_device() override;
