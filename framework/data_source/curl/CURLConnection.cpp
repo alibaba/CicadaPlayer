@@ -786,5 +786,7 @@ void CURLConnection::disableCallBack()
         curl_easy_setopt(mHttp_handle, CURLOPT_HEADERDATA, nullptr);
         curl_easy_setopt(mHttp_handle, CURLOPT_SOCKOPTFUNCTION, nullptr);
         curl_easy_setopt(mHttp_handle, CURLOPT_SOCKOPTDATA, nullptr);
+        curl_easy_setopt(mHttp_handle, CURLOPT_DEBUGFUNCTION, nullptr);
+        curl_easy_setopt(mHttp_handle, CURLOPT_DEBUGDATA, nullptr);
     }
 }
