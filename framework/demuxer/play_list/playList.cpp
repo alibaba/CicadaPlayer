@@ -95,6 +95,7 @@ namespace Cicada {
     {
         std::list<Period *>::iterator i;
         AF_LOGD("mPeriodList size is %d", mPeriodList.size());
+        delete mUtcTimer;
 
         while (!mPeriodList.empty()) {
             i = mPeriodList.begin();

@@ -8,12 +8,11 @@
 #include "demuxer/dash/DashUrl.h"
 #include "demuxer/dash/IDashUrl.h"
 #include <list>
+#include <utils/UTCTimer.h>
 
 //using namespace std;
 namespace Cicada{
     class Period;
-    class UTCTimer;
-
     class playList : public Dash::IDashUrl {
     public:
         playList()
