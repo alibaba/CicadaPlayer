@@ -33,7 +33,7 @@ const static int SAFETY_BUFFERING_EDGE_OFFSET = 0;
 const static int SAFETY_EXPURGING_OFFSET = 2;
 const static int64_t BUFFERING_LOWEST_LIMIT = 1000000 * 2;
 
-std::atomic<time_t> DashSegmentTracker::mLastLoadTime{10 * 1000000};
+std::atomic<int64_t> DashSegmentTracker::mLastLoadTime{10ll * 1000000};
 
 
 DashSegmentTracker::DashSegmentTracker(AdaptationSet *adapt, Representation *rep, const IDataSource::SourceConfig &sourceConfig)
