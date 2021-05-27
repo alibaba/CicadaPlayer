@@ -32,7 +32,7 @@ double us_strtod(const char *str, char **end)
 int64_t Cicada::IsoTimeGetUs(const std::string &str)
 {
     bool timeDesignatorReached = false;
-    time_t res = 0;
+    int64_t res = 0;
     char *end_ptr;
 
     if (str.empty()) {
@@ -71,7 +71,7 @@ int64_t Cicada::IsoTimeGetUs(const std::string &str)
             default:
                 break;
         }
-        res += (time_t)(mul * number * 1000000);
+        res += (int64_t)(mul * number * 1000000);
         if (*psz_duration) {
             psz_duration++;
         }

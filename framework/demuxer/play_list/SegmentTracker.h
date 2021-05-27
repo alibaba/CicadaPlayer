@@ -100,8 +100,8 @@ namespace Cicada {
         uint64_t mCurSegPos = 0;
 
         std::string mLocation = "";
-        std::atomic<time_t> mTargetDuration{0};
-        std::atomic<time_t> mPartTargetDuration{0};
+        std::atomic<int64_t> mTargetDuration{0};
+        std::atomic<int64_t> mPartTargetDuration{0};
 
         int64_t mLastLoadTime = 0;
         bool playListOwnedByMe = false;
