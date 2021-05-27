@@ -88,7 +88,6 @@ set(SOURCE_FILES
         abr/AbrManager.h
         abr/AbrManager.cpp
         abr/AbrRefererData.h
-        abr/AbrRefererData.cpp
         abr/AbrBufferAlgoStrategy.h
         abr/AbrBufferAlgoStrategy.cpp
         abr/AbrAlgoStrategy.h
@@ -139,11 +138,6 @@ if(APPLE)
 #            externalPlayer/JNIPlayer.h
 #            )
 endif()
-if (TARGET_PLATFORM STREQUAL "Android")
-    set(SOURCE_FILES ${SOURCE_FILES}
-            TrafficStats.c
-            )
-endif ()
 
 #if (TARGET_PLATFORM STREQUAL "windows")
 #    set(SOURCE_FILES ${SOURCE_FILES}

@@ -15,7 +15,7 @@ typedef struct playerHandle_t {
 
 playerHandle *CicadaCreatePlayer(const char *opts)
 {
-    playerHandle *pHandle = new playerHandle();
+    auto *pHandle = new playerHandle();
     if (opts == nullptr) {
         opts = "";
     }
@@ -548,7 +548,7 @@ StreamInfo *CicadaGetCurrentStreamInfo(playerHandle *pHandle, StreamType type)
         return player->GetCurrentStreamInfo(type);
     }
 
-    return NULL;
+    return nullptr;
 }
 
 void CicadaGetVideoResolution(playerHandle *pHandle, int &width, int &height)

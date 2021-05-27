@@ -28,9 +28,9 @@ namespace Cicada {
         int64_t highLevelBufferDuration = 0;
         int64_t maxBufferDuration = 0;
         uint64_t lowMemSize = 0;
-        std::string url{""};
-        std::string refer{""};
-        std::string userAgent{""};
+        std::string url;
+        std::string refer;
+        std::string userAgent;
         int timeout_ms{15000};
         int RTMaxDelayTime{0};
         IpResolveType mIpType{IpResolveWhatEver};
@@ -46,7 +46,7 @@ namespace Cicada {
         MirrorMode mirrorMode = MirrorMode::MIRROR_MODE_NONE;
         int64_t mAutoSwitchTime{INT64_MIN};
         atomic<float> mVolume{1.0};
-        playerListener mPlayerListener;
+        playerListener mPlayerListener{};
         atomic<float> rate {1.0};
         std::string http_proxy{};
         std::vector<std::string> customHeaders;
@@ -60,9 +60,9 @@ namespace Cicada {
         bool bEnableVRC = false;
         int maxASeekDelta = 21 * 1000 * 1000;//us
 
-        int maxVideoRecoverSize;
+        int maxVideoRecoverSize{};
         bool mFastStart{true};
-        uint32_t pixelBufferOutputFormat;
+        uint32_t pixelBufferOutputFormat{};
         string drmMagicKey;
         string sessionId{};
         int netWorkRetryCount{0};

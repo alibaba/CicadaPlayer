@@ -12,7 +12,7 @@ namespace Cicada {
     class SMPMessageControllerListener : public PlayerMessageControllerListener {
     public:
         explicit SMPMessageControllerListener(SuperMediaPlayer &player);
-        ~SMPMessageControllerListener();
+        ~SMPMessageControllerListener() override;
 
     public:
         void ProcessSetViewMsg(void *view) final;

@@ -569,7 +569,7 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
     } else if (theKey == "networkRetryCount") {
         mSet->netWorkRetryCount = (int) atol(value);
     } else if (theKey == "maxBackwardBufferDuration") {
-        mBufferController->SetMaxBackwardDuration(BUFFER_TYPE_ALL, atol(value) * 1000);
+        mBufferController->SetMaxBackwardDuration(BUFFER_TYPE_ALL, atoll(value) * 1000);
     }
 
     return 0;
@@ -606,8 +606,6 @@ void SuperMediaPlayer::GetOption(const char *key, char *value)
         float renderFps = GetVideoRenderFps();
         snprintf(value, MAX_OPT_VALUE_LENGTH, "%f", renderFps);
     }
-
-    return;
 }
 
 void SuperMediaPlayer::NotifyPosition(int64_t position)
@@ -974,14 +972,13 @@ IVideoRender::Rotate SuperMediaPlayer::convertRotateMode(RotateMode mode)
 
 IVideoRender::Flip SuperMediaPlayer::convertMirrorMode(MirrorMode mode)
 {
-    if (mode == MirrorMode::MIRROR_MODE_HORIZONTAL) {
-        return IVideoRender::Flip::Flip_Horizontal;
-    } else if (mode == MirrorMode::MIRROR_MODE_VERTICAL) {
-        return IVideoRender::Flip::Flip_Vertical;
-    } else if (mode == MirrorMode::MIRROR_MODE_NONE) {
-        return IVideoRender::Flip::Flip_None;
-    } else {
-        return IVideoRender::Flip::Flip_None;
+    switch (mode) {
+        case MirrorMode::MIRROR_MODE_HORIZONTAL:
+            return IVideoRender::Flip::Flip_Horizontal;
+        case MirrorMode::MIRROR_MODE_VERTICAL:
+            return IVideoRender::Flip::Flip_Vertical;
+        default:
+            return IVideoRender::Flip::Flip_None;
     }
 }
 
@@ -1052,7 +1049,7 @@ int SuperMediaPlayer::updateLoopGap()
                     if (mVideoInterlaced == InterlacedType_YES) {
                         fps *= 2;
                     }
-                    return 1000 / int(fps * mSet->rate * 1.5);
+                    return 1000 / int((float) fps * mSet->rate * 1.5);
                 }
             }
             return 1000 / int(50 * mSet->rate);
@@ -2044,7 +2041,7 @@ int SuperMediaPlayer::FillVideoFrame()
             mSeekNeedCatch = false;
         }
 
-        Stream_meta *meta = (Stream_meta *) (mCurrentVideoMeta.get());
+        auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
 
         if (meta->displayWidth > 0 && meta->displayHeight > 0) {
             pFrame->getInfo().video.dar = 1.0 * meta->displayWidth / meta->displayHeight;
@@ -2172,7 +2169,7 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
         }
     }
 
-    if (mAudioFrameQue.size() > 0 && mAudioFrameQue.front() == nullptr) {
+    if (!mAudioFrameQue.empty() && mAudioFrameQue.front() == nullptr) {
         mAudioFrameQue.pop_front();
         ret = RENDER_FULL;
     } else {
@@ -2402,7 +2399,7 @@ void SuperMediaPlayer::RenderSubtitle(int64_t pts)
     auto iter = mSubtitleShowedQueue.begin();
 
     while (iter != mSubtitleShowedQueue.end()) {
-        if ((*iter).get()) {
+        if (*iter) {
             if (((*iter)->getInfo().pts + (*iter)->getInfo().duration) <= pts) {
                 mPNotifier->NotifySubtitleEvent(subTitle_event_hide, (*iter).release(), 0, nullptr);
                 iter = mSubtitleShowedQueue.erase(iter);
@@ -3224,7 +3221,7 @@ void SuperMediaPlayer::SwitchVideo(int64_t startTime)
 
 int64_t SuperMediaPlayer::getAudioPlayTimeStampCB(void *arg)
 {
-    SuperMediaPlayer *pHandle = static_cast<SuperMediaPlayer *>(arg);
+    auto *pHandle = static_cast<SuperMediaPlayer *>(arg);
     return pHandle->getAudioPlayTimeStamp();
 }
 
@@ -3313,7 +3310,7 @@ int SuperMediaPlayer::SetUpAudioPath()
 
         unique_ptr<streamMeta> pMeta{};
         mDemuxerService->GetStreamMeta(pMeta, mCurrentAudioIndex, false);
-        Stream_meta *meta = (Stream_meta *) (pMeta.get());
+        auto *meta = (Stream_meta *) (pMeta.get());
 
         int64_t startTimeMs = af_getsteady_ms();
 
@@ -3957,13 +3954,13 @@ void SuperMediaPlayer::ProcessUpdateView()
 #endif
 }
 
-bool SuperMediaPlayer::isWideVineVideo(const Stream_meta *meta) const
+bool SuperMediaPlayer::isWideVineVideo(const Stream_meta *meta)
 {
     bool isWideVineVideo = (meta->keyFormat != nullptr && strcmp(meta->keyFormat, "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed") == 0);
     return isWideVineVideo;
 }
 
-bool SuperMediaPlayer::isHDRVideo(const Stream_meta *meta) const
+bool SuperMediaPlayer::isHDRVideo(const Stream_meta *meta)
 {
     bool isHDRVideo = false;
 

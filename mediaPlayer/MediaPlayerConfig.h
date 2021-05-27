@@ -8,10 +8,10 @@
 #ifndef MediaPlayerConfig_h
 #define MediaPlayerConfig_h
 
-#include <stdio.h>
+#include <cstdio>
 #include <string>
-#include <vector>
 #include <utils/CicadaType.h>
+#include <vector>
 
 namespace Cicada {
 

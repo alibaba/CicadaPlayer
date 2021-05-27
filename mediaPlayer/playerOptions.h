@@ -12,7 +12,7 @@ namespace Cicada {
     public:
         playerOptions() = default;
 
-        ~playerOptions() = default;
+        ~playerOptions() override = default;
 
         int setOpt(const std::string &key, const std::string &value, int64_t flag);
 

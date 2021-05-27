@@ -67,7 +67,7 @@ namespace Cicada {
         std::list<mediaPacket> mQueue;
         std::list<mediaPacket>::iterator mCurrent;
         std::recursive_mutex mMutex;
-        int mPacketDuration = 0;
+        int64_t mPacketDuration = 0;
         int64_t mDuration = 0;
         int64_t mTotalDuration = 0;
         uint64_t mMAXBackwardDuration{0};

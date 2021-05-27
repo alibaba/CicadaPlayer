@@ -15,8 +15,8 @@
 class AbrRefererData
 {
 public:
-    AbrRefererData();
-    virtual ~AbrRefererData();
+    AbrRefererData() = default;
+    virtual ~AbrRefererData() = default;
 
 public:
 
@@ -29,9 +29,6 @@ public:
     virtual int GetRemainSegmentCount() = 0;
 
     virtual bool GetIsConnected() {return true;}
-
-    //measure network strength
-    virtual int64_t GetDownloadedBytes();
 
     virtual bool GetReBuffering() = 0;
 

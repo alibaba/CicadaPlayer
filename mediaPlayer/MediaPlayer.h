@@ -11,7 +11,7 @@
 #include "MediaPlayerConfig.h"
 #include "abr/AbrBufferRefererData.h"
 #include "native_cicada_player_def.h"
-#include <stdio.h>
+#include <cstdio>
 
 class AbrManager;
 
@@ -416,7 +416,7 @@ namespace Cicada {
 
         void refreshPlayerSessionId();
 
-        void dummyFunction(bool dummy);
+        static void dummyFunction(bool dummy);
 
     protected:
         void *mPlayerHandle = nullptr;

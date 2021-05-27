@@ -82,4 +82,4 @@ namespace Cicada {
     };
 }
 
-#endif /* AlivcPlayer_h */
+#endif /* ApsaraPlayerUtil_h */

@@ -113,13 +113,12 @@ int SMPAVDeviceManager::setUpDecoder(uint64_t decFlag, const Stream_meta *meta, 
 
 SMPAVDeviceManager::DecoderHandle *SMPAVDeviceManager::getDecoderHandle(const SMPAVDeviceManager::deviceType &type)
 {
-    DecoderHandle *decoderHandle = nullptr;
     if (type == DEVICE_TYPE_VIDEO) {
-        decoderHandle = &mVideoDecoder;
+        return &mVideoDecoder;
     } else if (type == DEVICE_TYPE_AUDIO) {
-        decoderHandle = &mAudioDecoder;
+        return &mAudioDecoder;
     }
-    return decoderHandle;
+    return nullptr;
 }
 
 void SMPAVDeviceManager::invalidDevices(uint64_t deviceTypes)

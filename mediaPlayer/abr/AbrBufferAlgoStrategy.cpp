@@ -11,9 +11,6 @@
 #include <utils/timer.h>
 #include <cassert>
 #include <utility>
-
-#define ENABLE_DOWNLOAD_BYTES 0
-
 #define LOWER_SWITCH_VALUE_MS (15 * 1000)
 #define UPPER_SWITCH_VALUE_MS (30 * 1000)
 #define MAX_BUFFER_STATICS_SIZE 10
@@ -237,23 +234,5 @@ void AbrBufferAlgoStrategy::ProcessAbrAlgo()
     if (mRefererData == nullptr || mCurrentBitrate == -1 || mBitRates.size() < 2) {
         return;
     }
-
-    int64_t curTime = af_getsteady_ms();
-#if ENABLE_DOWNLOAD_BYTES
-    if (mLastDownloadBytes == 0) {
-        mLastDownloadBytes = mRefererData->GetDownloadedBytes();
-        return;
-    }
-
-    int64_t downloadBytes = mRefererData->GetDownloadedBytes() - mLastDownloadBytes;
-    int64_t downloadSpeed = downloadBytes * 8;
-    mLastDownloadBytes = downloadBytes;
-    mDownloadSpeed.push_back(downloadSpeed);
-
-    if (mDownloadSpeed.size() > 30) {
-        mDownloadSpeed.pop_front();
-    }
-#else
-#endif
-    ComputeBufferTrend(curTime);
+    ComputeBufferTrend(af_getsteady_ms());
 }

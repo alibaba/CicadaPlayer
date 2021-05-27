@@ -2,14 +2,14 @@
 #define NATIVE_CICADA_PLAYER_DEF_H
 
 #include <base/media/IAFPacket.h>
+#include <cstdint>
+#include <cstdio>
 #include <deque>
 #include <memory>
-#include <stdint.h>
-#include <stdio.h>
 #include <string>
 #include <utils/CicadaType.h>
 
-#define SELECT_TRACK_VIDEO_AUTO -1
+#define SELECT_TRACK_VIDEO_AUTO (-1)
 
 const int MAX_OPT_VALUE_LENGTH = 256;
 

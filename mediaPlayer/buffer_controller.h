@@ -72,4 +72,4 @@ namespace Cicada {
     };
 
 }// namespace Cicada
-#endif// CICADA_BUFFER_CONTROL_H
+#endif// CICADA_BUFFER_CONTROLLER_H

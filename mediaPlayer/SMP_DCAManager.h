@@ -10,6 +10,7 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <utility>
 
 namespace Cicada {
     class SuperMediaPlayer;
@@ -20,9 +21,7 @@ namespace Cicada {
     };
     class SMP_DCAObserver : public IDCAObserver {
     public:
-        explicit SMP_DCAObserver(std::string className, std::string compName, void *obj)
-            : mClass(std::move(className)), mName(compName), mObj(obj)
-        {}
+        explicit SMP_DCAObserver(std::string className, std::string compName, void *obj);
         void setListener(mediaPlayerDCAObserverListener *listener);
 
         void hello();

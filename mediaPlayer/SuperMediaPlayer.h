@@ -20,7 +20,6 @@ using namespace std;
 #include "SMPMessageControllerListener.h"
 #include "SMP_DCAManager.h"
 #include "SuperMediaPlayerDataSourceListener.h"
-#include "hls_adaptive_manager.h"
 #include "player_notifier.h"
 #include "player_types.h"
 #include "render/video/IVideoRender.h"
@@ -352,9 +351,9 @@ namespace Cicada {
 
         void ProcessUpdateView();
 
-        bool isHDRVideo(const Stream_meta *meta) const;
+        static bool isHDRVideo(const Stream_meta *meta);
 
-        bool isWideVineVideo(const Stream_meta *meta) const;
+        static bool isWideVineVideo(const Stream_meta *meta);
 
         void closeVideo();
 

@@ -28,6 +28,9 @@ void SMP_DCAObserver::hello()
 {
     onEvent(0, "hello");
 }
+SMP_DCAObserver::SMP_DCAObserver(std::string className, std::string compName, void *obj)
+    : mClass(std::move(className)), mName(std::move(compName)), mObj(obj)
+{}
 void SMP_DCAManager::createObservers()
 {
     if (mDemuxerObserver == nullptr && mPlayer.mDemuxerService && mPlayer.mDemuxerService->getDemuxerHandle()) {

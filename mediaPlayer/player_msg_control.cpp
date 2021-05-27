@@ -6,8 +6,8 @@
 namespace Cicada {
 
 #define REPLACE_NONE 0
-#define REPLACE_ALL -1
-#define REPLACE_LAST  -2
+#define REPLACE_ALL (-1)
+#define REPLACE_LAST (-2)
 #define SEEK_REPEAT_TIME 500 //ms
 #define ADD_LOCK std::lock_guard<std::mutex> uMutex(mMutex)
 

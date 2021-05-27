@@ -82,10 +82,10 @@ namespace Cicada {
 
     void MediaPlayer::refreshPlayerSessionId() {
         char signatureStr[100] = {0};
-        uuid id;
+        uuid id{};
         uuid4_generate( &id );
         uuid_to_string( &id, signatureStr);
-        mPlayerSessionId = signatureStr;
+        mPlayerSessionId = string(signatureStr);
         if(mCollector != nullptr) {
             mCollector->ReportUpdatePlaySession(mPlayerSessionId);
         }
@@ -127,7 +127,7 @@ namespace Cicada {
         delete mAbrManager;
         delete mAbrAlgo;
         delete mAbrRefData;
-        playerHandle *handle = (playerHandle *) mPlayerHandle;
+        auto *handle = (playerHandle *) mPlayerHandle;
         delete mConfig;
         CicadaReleasePlayer(&handle);
 
@@ -213,7 +213,7 @@ namespace Cicada {
             free(value);
             mCacheManager->setCacheFailCallback([this](int code, string msg) -> void {
                 AF_LOGE("Cache fail : code = %d , msg = %s", code, msg.c_str());
-                this->eventCallback(MEDIA_PLAYER_EVENT_CACHE_ERROR, msg.c_str(), this);
+                Cicada::MediaPlayer::eventCallback(MEDIA_PLAYER_EVENT_CACHE_ERROR, msg.c_str(), this);
             });
             mCacheManager->setCacheSuccessCallback([this]() -> void {
                 mCacheSuccess = true;
@@ -223,7 +223,7 @@ namespace Cicada {
                     CicadaSetLoop(static_cast<playerHandle *>(mPlayerHandle), false);
                 }
 
-                this->eventCallback(MEDIA_PLAYER_EVENT_CACHE_SUCCESS, nullptr, this);
+                Cicada::MediaPlayer::eventCallback(MEDIA_PLAYER_EVENT_CACHE_SUCCESS, nullptr, this);
             });
             ICacheDataSource *cacheDataSource = new PlayerCacheDataSource(mPlayerHandle);
             mCacheManager->setDataSource(cacheDataSource);
@@ -490,8 +490,8 @@ namespace Cicada {
         CicadaRemoveAllCustomHttpHeader(handle);
 
         //add custom http header
-        for (int i = 0; i < playerConfig.customHeaders.size(); i++) {
-            CicadaAddCustomHttpHeader(handle, playerConfig.customHeaders[i].c_str());
+        for (auto &customHeader : playerConfig.customHeaders) {
+            CicadaAddCustomHttpHeader(handle, customHeader.c_str());
         }
 
         *mConfig = playerConfig;
@@ -920,7 +920,7 @@ namespace Cicada {
     void MediaPlayer::streamChangedSucCallback(int64_t type, const void *Info, void *userData)
     {
         GET_MEDIA_PLAYER
-        StreamInfo *streamInfo = (StreamInfo *) Info;
+        auto *streamInfo = (StreamInfo *) Info;
 
         //when stream changed, set abr current video bitrate
         if (type == ST_TYPE_VIDEO) {
@@ -1005,9 +1005,7 @@ namespace Cicada {
 
         //add video bitrate to abr manager
 
-        for (int i = 0; i < mediaInfo->mStreamInfoQueue.size(); i++) {
-            StreamInfo *si = mediaInfo->mStreamInfoQueue.at(i);
-
+        for (auto si : mediaInfo->mStreamInfoQueue) {
             if (si->type == ST_TYPE_VIDEO) {
                 player->mAbrAlgo->AddStreamInfo(si->streamIndex, si->videoBandwidth);
             }
@@ -1111,7 +1109,7 @@ namespace Cicada {
 
     void MediaPlayer::SetDataSourceChangedCallback(function<void(const string &)> urlChangedCallbak)
     {
-        mPlayUrlChangedCallback = urlChangedCallbak;
+        mPlayUrlChangedCallback = std::move(urlChangedCallbak);
     }
 
     void MediaPlayer::setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)> & drmCallback){
@@ -1121,7 +1119,7 @@ namespace Cicada {
 
     void MediaPlayer::onMediaFrameCallback(void *arg, const IAFPacket *frame, StreamType type)
     {
-        MediaPlayer *player = (MediaPlayer *) arg;
+        auto *player = (MediaPlayer *) arg;
 
         if (nullptr == player) {
             return;
