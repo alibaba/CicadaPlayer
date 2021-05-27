@@ -51,7 +51,7 @@ bool DashSegment::contains(size_t byte) const
     if (startByte == endByte) {
         return false;
     }
-    return (byte >= startByte && (!endByte || byte <= endByte));
+    return (byte >= startByte && (endByte <= 0 || byte <= endByte));
 }
 
 void DashSegment::addSubSegment(DashSegment *subsegment)

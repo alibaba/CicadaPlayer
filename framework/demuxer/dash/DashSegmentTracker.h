@@ -19,6 +19,7 @@ namespace Cicada {
 
     namespace Dash {
         class DashSegment;
+        typedef struct SidxBox_t SidxBox;
     }
 
     class DashSegmentTracker : public OptionOwner {
@@ -97,6 +98,7 @@ namespace Cicada {
         int64_t getMaxBuffering(const playList *p) const;
         int64_t getMinBuffering(const playList *p) const;
         bool isLowLatency(const playList *p) const;
+        bool parseIndex(const Dash::SidxBox &sidx, const std::string& uri, int64_t startByte, int64_t endByte);
 
     private:
         AdaptationSet *mAdapt = nullptr;

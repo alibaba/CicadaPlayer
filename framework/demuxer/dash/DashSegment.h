@@ -30,6 +30,7 @@ namespace Cicada {
         public:
             int64_t startTime = 0;
             int64_t duration = 0;
+            int64_t fixedStartTime = 0;
             bool discontinuity = false;
             uint64_t sequence = 0;
             int64_t startByte{INT64_MIN};

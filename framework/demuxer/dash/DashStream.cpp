@@ -757,7 +757,7 @@ int DashStream::read_internal(std::unique_ptr<IAFPacket> &packet)
 
         if (mCurSeg) {
             // mark the seg start time to first seg frame
-            AF_LOGD("stream (%d) mark startTime %llu\n", mPTracker->getStreamType(), mCurSeg->startTime);
+            AF_LOGD("stream (%d) mark startTime %llu\n", mPTracker->getStreamType(), mCurSeg->fixedStartTime);
             AF_LOGD("stream (%d)pFrame->pts is %lld pos is %lld flags is %d streamIndex is %d\n", mPTracker->getStreamType(),
                     packet->getInfo().pts, packet->getInfo().pos, packet->getInfo().flags, packet->getInfo().streamIndex);
 
@@ -769,7 +769,7 @@ int DashStream::read_internal(std::unique_ptr<IAFPacket> &packet)
             int nbStreams = GetNbStreams();
 
             for (int i = 0; i < nbStreams; i++) {
-                mStreamStartTimeMap[i].timePosition = mCurSeg->startTime;
+                mStreamStartTimeMap[i].timePosition = mCurSeg->fixedStartTime;
                 mStreamStartTimeMap[i].seamlessPoint = true;
             }
 

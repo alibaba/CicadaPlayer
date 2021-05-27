@@ -128,6 +128,8 @@ if (ENABLE_DASH_DEMUXER)
             dash/DashStream.h
             dash/DashSegmentTracker.cpp
             dash/DashSegmentTracker.h
+            dash/SidxParser.cpp
+            dash/SidxParser.h
             dash/UTCTiming.cpp
             dash/UTCTiming.h)
     source_group(dash FILES ${DASH_FILES})

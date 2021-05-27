@@ -555,8 +555,6 @@ void MPDParser::parseCommonSegmentBase(MPDPlayList *mpd, xml::Node *node, ISegme
                 SegmentBase *segBase = dynamic_cast<SegmentBase *>(base);
                 if (segBase) {
                     segBase->setByteRange(end + 1, INT64_MIN);
-                    DashSegment *subSeg = new DashSegment(parent, end + 1, INT64_MIN);
-                    segBase->addSubSegment(subSeg);
                 }
             }
         }

@@ -12,6 +12,7 @@
 #include "SegmentList.h"
 #include "SegmentTemplate.h"
 #include "SegmentTimeline.h"
+#include "SidxParser.h"
 #include "data_source/dataSourcePrototype.h"
 #include "demuxer/play_list/AdaptationSet.h"
 #include "demuxer/play_list/Helper.h"
@@ -70,26 +71,115 @@ DashSegmentTracker::~DashSegmentTracker()
     }
 }
 
+bool DashSegmentTracker::parseIndex(const Dash::SidxBox &sidx, const std::string &uri, int64_t startByte, int64_t endByte)
+{
+    Representation::SplitPoint point;
+    std::vector<Representation::SplitPoint> splitlist;
+    /* sidx refers to offsets from end of sidx pos in the file + first offset */
+    point.offset = sidx.first_offset + endByte + 1;
+    point.time = 0;
+    if (!sidx.timescale) return false;
+    for (uint16_t i = 0; i < sidx.reference_count; i++) {
+        splitlist.push_back(point);
+        point.offset += sidx.items[i].referenced_size;
+        point.duration = sidx.items[i].subsegment_duration;
+        point.time += point.duration;
+    }
+    {
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
+        if (mRep == nullptr) {
+            return false;
+        }
+        Dash::DashSegment *indexSeg = mRep->getIndexSegment();
+        std::string currUri = indexSeg->getUrlSegment().toString(0, mRep);
+        int64_t currStartByte = indexSeg->startByte;
+        if (currStartByte < 0) {
+            currStartByte = 0;
+        }
+        int64_t currEndByte = indexSeg->endByte;
+        if (uri == currUri && startByte == currStartByte && endByte == currEndByte) {
+            mRep->replaceAttribute(new Dash::TimescaleAttr(Dash::Timescale(sidx.timescale)));
+            mRep->SplitUsingIndex(splitlist);
+        }
+    }
+    return true;
+}
+
 Dash::DashSegment *DashSegmentTracker::getStartSegment()
 {
-    std::unique_lock<std::recursive_mutex> locker(mMutex);
-    if (mRep == nullptr) {
-        return nullptr;
+    std::string indexUri;
+    int64_t startByte = 0;
+    int64_t endByte = 0;
+    {
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
+        if (mRep == nullptr) {
+            return nullptr;
+        }
+        if (mRep->needsIndex()) {
+            Dash::DashSegment *indexSeg = mRep->getIndexSegment();
+            indexUri = indexSeg->getUrlSegment().toString(0, mRep);
+            startByte = indexSeg->startByte;
+            if (startByte < 0) {
+                startByte = 0;
+            }
+            endByte = indexSeg->endByte;
+        }
     }
-    uint64_t startNumber = getStartSegmentNumber(mRep);
-    if (mCurrentSegNumber < startNumber || mCurrentSegNumber == std::numeric_limits<uint64_t>::max()) {
-        mCurrentSegNumber = startNumber;
+
+    if (!indexUri.empty() && (endByte <= 0 || endByte >= startByte)) {
+        IDataSource *dataSource = dataSourcePrototype::create(indexUri, nullptr);
+        dataSource->Open(0);
+        int64_t size = 0;
+        if (endByte <= 0) {
+            size = dataSource->Seek(0, SEEK_SIZE);
+        } else {
+            size = endByte - startByte + 1;
+        }
+        if (startByte > 0) {
+            dataSource->Seek(startByte, SEEK_SET);
+        }
+        auto *buffer = static_cast<uint8_t *>(malloc(size));
+        int len = 0;
+        while (len < size) {
+            int ret = dataSource->Read(buffer + len, size - len);
+            if (ret > 0) {
+                len += ret;
+            } else {
+                break;
+            }
+        }
+        if (len > 0) {
+            Dash::SidxParser sidxParser;
+            sidxParser.ParseSidx(buffer, size);
+            parseIndex(sidxParser.GetSidxBox(), indexUri, startByte, endByte);
+        }
+        free(buffer);
+        delete dataSource;
     }
+
     Dash::DashSegment *segment = nullptr;
-    bool b_gap = false;
-    segment = mRep->getNextMediaSegment(mCurrentSegNumber, &mCurrentSegNumber, &b_gap);
-    if (segment == nullptr) {
-        return nullptr;
+    {
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
+        uint64_t startNumber = getStartSegmentNumber(mRep);
+        if (mCurrentSegNumber < startNumber || mCurrentSegNumber == std::numeric_limits<uint64_t>::max()) {
+            mCurrentSegNumber = startNumber;
+        }
+
+        bool b_gap = false;
+        segment = mRep->getNextMediaSegment(mCurrentSegNumber, &mCurrentSegNumber, &b_gap);
+        if (segment == nullptr) {
+            return nullptr;
+        }
+        if (b_gap) {
+            --mCurrentSegNumber;
+        }
+        if (segment->startTime == 0) {
+            segment->fixedStartTime = mRep->getMediaSegmentStartTime(mCurrentSegNumber);
+        } else {
+            const Dash::Timescale timescale = mRep->inheritTimescale();
+            segment->fixedStartTime = timescale.ToTime(segment->startTime);
+        }
     }
-    if (b_gap) {
-        --mCurrentSegNumber;
-    }
-    segment->startTime = mRep->getMediaSegmentStartTime(mCurrentSegNumber);
     return segment;
 }
 
@@ -116,7 +206,12 @@ Dash::DashSegment *DashSegmentTracker::getNextSegment()
     if (segment) {
         ++mCurrentSegNumber;
     }
-    segment->startTime = mRep->getMediaSegmentStartTime(mCurrentSegNumber);
+    if (segment->startTime == 0) {
+        segment->fixedStartTime = mRep->getMediaSegmentStartTime(mCurrentSegNumber);
+    } else {
+        const Dash::Timescale timescale = mRep->inheritTimescale();
+        segment->fixedStartTime = timescale.ToTime(segment->startTime);
+    }
     return segment;
 }
 
@@ -202,8 +297,6 @@ int DashSegmentTracker::loadPlayList()
 
     delete parser;
     return 0;
-
-    return ret;
 }
 
 int DashSegmentTracker::init()
