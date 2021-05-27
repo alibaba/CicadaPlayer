@@ -288,6 +288,17 @@ namespace Cicada {
             av_dict_set_int(&dict,"timePosition",pPacket->getInfo().timePosition,0);
             uint8_t *metadata = av_packet_pack_dictionary(dict, &size);
             av_dict_free(&dict);
+
+            if (pPacket->getInfo().extra_data_size > 0) {
+                int new_extradata_size;
+                const uint8_t *new_extradata = av_packet_get_side_data(pkt, AV_PKT_DATA_NEW_EXTRADATA, &new_extradata_size);
+                if (new_extradata == nullptr) {
+                    uint8_t *side = av_packet_new_side_data(pkt, AV_PKT_DATA_NEW_EXTRADATA, pPacket->getInfo().extra_data_size);
+                    if (side) {
+                        memcpy(side, pPacket->getInfo().extra_data, pPacket->getInfo().extra_data_size);
+                    }
+                }
+            }
             int addRet = av_packet_add_side_data(pkt, AV_PKT_DATA_STRINGS_METADATA, metadata, size);
             assert(metadata);
             assert(addRet >= 0);
