@@ -28,6 +28,8 @@ static inline uint32_t Get24bBE(const uint8_t *p)
     return ((p[0] << 16) + (p[1] << 8) + p[2]);
 }
 
+#ifndef __APPLE__
+
 static inline uint64_t ntohll(uint64_t x)
 {
     int a = 1;
@@ -43,7 +45,7 @@ static inline uint64_t ntohll(uint64_t x)
     }
 }
 
-
+#endif
 static inline uint8_t SidxGet1Byte(uint8_t *buffer, uint64_t &offset, uint64_t size)
 {
     if (offset >= size) {
