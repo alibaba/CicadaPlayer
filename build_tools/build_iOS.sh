@@ -124,22 +124,24 @@ function build_shared_framework(){
 
     cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
     sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
-#    rm -rf Xcode/
-#    mkdir -p Xcode/OS
-#    cd Xcode/OS
-#    cmake  -DCMAKE_TOOLCHAIN_FILE=${BUILD_TOOLS_DIR}/iOS/iOS.cmake \
-#    -DIOS_PLATFORM=OS ../../  \
-#    -G Xcode
-#    xcodebuild -destination generic/platform=iOS -configuration MinSizeRel -target ALL_BUILD
-#
-#    cd -
-#    mkdir -p Xcode/SIMULATOR64
-#    cd Xcode/SIMULATOR64
-#    cmake  -DCMAKE_TOOLCHAIN_FILE=${BUILD_TOOLS_DIR}/iOS/iOS.cmake \
-#    -DIOS_PLATFORM=SIMULATOR64 ../../  \
-#    -G Xcode
-#
-#    xcodebuild -destination "platform=iOS Simulator" -configuration MinSizeRel -target ALL_BUILD
+    if [[ "${IOS_BUILD_SHARED_FRAMEWORK}" == "TRUE" ]];then
+      rm -rf Xcode/
+      mkdir -p Xcode/OS
+      cd Xcode/OS || exit
+      cmake  -DCMAKE_TOOLCHAIN_FILE=${BUILD_TOOLS_DIR}/iOS/iOS.cmake \
+      -DIOS_PLATFORM=OS ../../  \
+      -G Xcode
+      xcodebuild -destination generic/platform=iOS -configuration RelWithDebInfo -target ALL_BUILD
+
+      cd - || exit
+      mkdir -p Xcode/SIMULATOR64
+      cd Xcode/SIMULATOR64 || exit
+      cmake  -DCMAKE_TOOLCHAIN_FILE=${BUILD_TOOLS_DIR}/iOS/iOS.cmake \
+      -DIOS_PLATFORM=SIMULATOR64 ../../  \
+      -G Xcode
+
+      xcodebuild -destination "platform=iOS Simulator" -configuration RelWithDebInfo -target ALL_BUILD
+    fi
 
     return;
 }
