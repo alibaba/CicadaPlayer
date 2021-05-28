@@ -679,7 +679,6 @@ namespace Cicada {
         GET_MEDIA_PLAYER
 #ifdef ENABLE_CACHE_MODULE
         if (player->mCacheManager != nullptr) {
-            CacheModule::CacheStatus cacheStatus = player->mCacheManager->getCacheStatus();
             bool isLoop = player->IsLoop();
 
             if (isLoop && player->mCacheSuccess) {

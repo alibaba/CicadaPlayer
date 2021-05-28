@@ -62,10 +62,6 @@ uint64_t SegmentTimeline::getElementNumberByScaledPlaybackTime(int64_t scaled) c
     const Element *prevel = nullptr;
     std::list<Element *>::const_iterator it;
 
-    if (!elements.size()) {
-        return 0;
-    }
-
     for (it = elements.begin(); it != elements.end(); ++it) {
         const Element *el = *it;
         if (scaled >= el->t) {
@@ -84,6 +80,10 @@ uint64_t SegmentTimeline::getElementNumberByScaledPlaybackTime(int64_t scaled) c
             }
         }
         prevel = el;
+    }
+
+    if (!prevel) {
+        return 0;
     }
 
     /* time is >> any of the list */

@@ -228,12 +228,12 @@ namespace Cicada {
             }
 
             if (err == AVERROR_EOF) {
-                if (mCtx->pb->error == AVERROR(EAGAIN)) {
+                if (mCtx->pb && mCtx->pb->error == AVERROR(EAGAIN)) {
                     av_packet_free(&pkt);
                     return mCtx->pb->error;
                 }
 
-                if (mCtx->pb->error < 0) {
+                if (mCtx->pb && mCtx->pb->error < 0) {
                     int ret = mCtx->pb->error;
                     mCtx->pb->error = 0;
                     av_packet_free(&pkt);

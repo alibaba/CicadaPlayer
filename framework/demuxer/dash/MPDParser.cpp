@@ -53,6 +53,7 @@ Cicada::playList *MPDParser::parse(const std::string &playlistur)
 
     mRoot = domParser.getRootNode();
     if (mRoot == nullptr) {
+        free(buffer);
         return nullptr;
     }
 

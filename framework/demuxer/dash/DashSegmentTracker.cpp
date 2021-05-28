@@ -699,7 +699,7 @@ uint64_t DashSegmentTracker::getLiveStartSegmentNumber(Representation *rep) cons
         }
 
         const Dash::Timescale timescale = rep->inheritTimescale();
-        if (!timeline->isValid()) {
+        if (!timeline || !timeline->isValid()) {
             return std::numeric_limits<uint64_t>::max();
         }
         const Dash::DashSegment *back = list.back();
