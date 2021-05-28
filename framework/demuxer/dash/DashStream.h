@@ -183,6 +183,9 @@ namespace Cicada {
         int OpenedStreamIndex = 0;
         bool mProtectedBuffer{false};
 
+        int64_t mStreamStartTime = 0;
+        int64_t mSuggestedPresentationDelay = 0;
+
     };
 }
 

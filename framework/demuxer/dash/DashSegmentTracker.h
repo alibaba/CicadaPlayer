@@ -85,6 +85,7 @@ namespace Cicada {
         int64_t getLiveDelay() const;
         int64_t getDurationToStartStream() const;
         int64_t getSegmentDuration() const;
+        int64_t getStreamStartTime() const;
 
     private:
         int loadPlayList();

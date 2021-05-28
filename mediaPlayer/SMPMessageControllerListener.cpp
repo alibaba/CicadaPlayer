@@ -190,6 +190,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
             mPlayer.mDuration = meta->duration;
         }
         mPlayer.mSuggestedPresentationDelay = meta->suggestedPresentationDelay;
+        AF_LOGD("mSuggestedPresentationDelay %lld\n", meta->suggestedPresentationDelay);
 
         auto *info = new StreamInfo();
         info->streamIndex = i;

@@ -212,6 +212,9 @@ int DashStream::open_internal()
     int ret;
     AF_LOGD("mPTracker type is %d\n", mPTracker->getStreamType());
     ret = mPTracker->init();
+    mSuggestedPresentationDelay = mPTracker->getLiveDelay();
+    mStreamStartTime = mPTracker->getStreamStartTime();
+    AF_LOGD("mSuggestedPresentationDelay=%lld, mStreamStartTime=%lld \n", mSuggestedPresentationDelay, mStreamStartTime);
 
     if (ret < 0) {
         AF_TRACE;
@@ -806,7 +809,17 @@ int DashStream::read_internal(std::unique_ptr<IAFPacket> &packet)
             mStreamStartTimeMap[streamIndex].lastFramePts = packet->getInfo().pts;
         }
 
-        //          AF_LOGE("pFrame->pts is %lld index is %d\n", (*pFrame)->pts, (*pFrame)->streamIndex);
+        int64_t timePos = packet->getInfo().timePosition;
+        if (timePos == INT64_MIN) {
+            timePos = packet->getInfo().pts;
+        }
+        if (timePos >= 0 && mStreamStartTime >= 0 && mSuggestedPresentationDelay > 0) {
+            if (timePos < af_get_utc_time() - mStreamStartTime - mSuggestedPresentationDelay) {
+                //AF_LOGD("setDiscard timePos = %lld", timePos);
+                packet->setDiscard(true);
+            }
+        }
+
     }
 
     return ret;

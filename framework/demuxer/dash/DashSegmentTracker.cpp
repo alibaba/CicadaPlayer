@@ -834,3 +834,11 @@ int64_t DashSegmentTracker::getSegmentDuration() const
     const int64_t segDuration = timescale.ToTime(scaledSegDuration);
     return segDuration;
 }
+
+int64_t DashSegmentTracker::getStreamStartTime() const
+{
+    if (mPPlayList == nullptr || mRep == nullptr) {
+        return -1;
+    }
+    return mPPlayList->availabilityStartTime + mRep->getPeriodStart();
+}
