@@ -983,7 +983,7 @@ namespace Cicada {
         //TODO: move read synMsgRst to class member
         int ret = mPTracker->reLoadPlayList();
 
-        if (ret == gen_framework_http_errno(403)) {
+        if (ret == gen_framework_http_errno(403) || ret == -EIO) {
             return ret;
         }
 

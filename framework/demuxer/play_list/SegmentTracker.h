@@ -126,6 +126,8 @@ namespace Cicada {
         std::atomic_bool mSeeked{false};
         
         bool mRealtime = false;
+
+        int64_t mReloadErrorStartTime{INT64_MIN};
     };
 }
 

@@ -208,7 +208,18 @@ namespace Cicada {
 
             if (ret < 0) {
                 AF_LOGE("open url error %s\n", framework_err2_string(ret));
+                if (ret == gen_framework_http_errno(404)) {
+                    if (mReloadErrorStartTime == INT64_MIN) {
+                        mReloadErrorStartTime = af_getsteady_ms();
+                    } else {
+                        if (af_getsteady_ms() - mReloadErrorStartTime > mSourceConfig.low_speed_time_ms) {
+                            return -EIO;
+                        }
+                    }
+                }
                 return ret;
+            } else {
+                mReloadErrorStartTime = INT64_MIN;
             }
 
             if (mLocation.empty()) {
