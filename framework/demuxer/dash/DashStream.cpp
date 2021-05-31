@@ -212,8 +212,13 @@ int DashStream::open_internal()
     int ret;
     AF_LOGD("mPTracker type is %d\n", mPTracker->getStreamType());
     ret = mPTracker->init();
-    mSuggestedPresentationDelay = mPTracker->getLiveDelay();
-    mStreamStartTime = mPTracker->getStreamStartTime();
+    if (mPTracker->isLive()) {
+        mSuggestedPresentationDelay = mPTracker->getLiveDelay();
+        mStreamStartTime = mPTracker->getStreamStartTime();
+    } else {
+        mSuggestedPresentationDelay = 0;
+        mStreamStartTime = -1;
+    }
     AF_LOGD("mSuggestedPresentationDelay=%lld, mStreamStartTime=%lld \n", mSuggestedPresentationDelay, mStreamStartTime);
 
     if (ret < 0) {
@@ -396,7 +401,7 @@ int DashStream::createDemuxer()
 
 int DashStream::tryOpenSegment(const string &uri, int64_t start, int64_t end)
 {
-    AF_LOGI("tryOpenSegment: %s\n", uri.c_str());
+    AF_LOGI("tryOpenSegment: %s, [%lld,%lld]\n", uri.c_str(), start, end);
     int retryTimes = 0;
     int ret;
 
