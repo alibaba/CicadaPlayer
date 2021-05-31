@@ -37,13 +37,16 @@ void MediaPacketQueue::AddPacket(mediaPacket frame)
         if (mPacketDuration == 0) {
             mPacketDuration = frame->getInfo().duration;
         }
-
-        mDuration += frame->getInfo().duration;
-        mTotalDuration += frame->getInfo().duration;
+        if (!frame->getDiscard()) {
+            mDuration += frame->getInfo().duration;
+            mTotalDuration += frame->getInfo().duration;
+        }
     } else if (mPacketDuration > 0) {
         frame->getInfo().duration = mPacketDuration;
-        mDuration += mPacketDuration;
-        mTotalDuration += mPacketDuration;
+        if (!frame->getDiscard()) {
+            mDuration += mPacketDuration;
+            mTotalDuration += mPacketDuration;
+        }
     }
 
     if (mMediaType == BUFFER_TYPE_AUDIO && !mQueue.empty() && frame->getInfo().pts != INT64_MIN &&
@@ -72,7 +75,9 @@ void MediaPacketQueue::SetOnePacketDuration(int64_t duration)
         for (auto item = mCurrent; item != mQueue.end(); ++item) {
             if ((*item)->getInfo().duration <= 0) {
                 (*item)->getInfo().duration = mPacketDuration;
-                missedDuration += mPacketDuration;
+                if (!(*item)->getDiscard()) {
+                    missedDuration += mPacketDuration;
+                }
             }
         }
         mDuration += missedDuration;
@@ -80,7 +85,9 @@ void MediaPacketQueue::SetOnePacketDuration(int64_t duration)
         for (auto item = mQueue.begin(); item != mCurrent; ++item) {
             if ((*item)->getInfo().duration <= 0) {
                 (*item)->getInfo().duration = mPacketDuration;
-                missedDuration += mPacketDuration;
+                if (!(*item)->getDiscard()) {
+                    missedDuration += mPacketDuration;
+                }
             }
         }
         mTotalDuration += missedDuration;
@@ -214,7 +221,7 @@ std::unique_ptr<IAFPacket> MediaPacketQueue::getPacket()
         packet = move(mQueue.front());
         mQueue.pop_front();
         mCurrent = mQueue.begin();
-        if (packet && packet->getInfo().duration > 0) {
+        if (packet && packet->getInfo().duration > 0 && !packet->getDiscard()) {
             mTotalDuration -= packet->getInfo().duration;
         }
     } else {
@@ -222,7 +229,7 @@ std::unique_ptr<IAFPacket> MediaPacketQueue::getPacket()
         mCurrent++;
     }
 
-    if (packet && packet->getInfo().duration > 0) {
+    if (packet && packet->getInfo().duration > 0 && !packet->getDiscard()) {
         mDuration -= packet->getInfo().duration;
     }
 
@@ -230,7 +237,7 @@ std::unique_ptr<IAFPacket> MediaPacketQueue::getPacket()
         while (mTotalDuration - mDuration > mMAXBackwardDuration) {
             assert(!mQueue.empty());
             bool begin = mCurrent == mQueue.begin();
-            if (mQueue.front()->getInfo().duration > 0) {
+            if (mQueue.front()->getInfo().duration > 0 && !mQueue.front()->getDiscard()) {
                 mTotalDuration -= mQueue.front()->getInfo().duration;
             }
             mQueue.pop_front();
@@ -256,11 +263,13 @@ void MediaPacketQueue::PopFrontPacket()
         return;
     }
 
-    if ((*mCurrent) && (*mCurrent)->getInfo().duration > 0) {
+    if ((*mCurrent) && (*mCurrent)->getInfo().duration > 0 && !(*mCurrent)->getDiscard()) {
         mDuration -= (*mCurrent)->getInfo().duration;
     }
     if (mMAXBackwardDuration == 0) {
-        mTotalDuration -= mQueue.front()->getInfo().duration;
+        if (!mQueue.front()->getDiscard()) {
+            mTotalDuration -= mQueue.front()->getInfo().duration;
+        }
         mQueue.pop_front();
         mCurrent = mQueue.begin();
     } else {
@@ -369,7 +378,7 @@ void MediaPacketQueue::ClearPacketAfterTimePosition(int64_t pts)
             found = true;
         }
 
-        if (packet->getInfo().duration > 0) {
+        if (packet->getInfo().duration > 0 && !packet->getDiscard()) {
             mDuration -= packet->getInfo().duration;
             mTotalDuration -= packet->getInfo().duration;
         }
