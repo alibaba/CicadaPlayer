@@ -196,15 +196,13 @@ Dash::DashSegment *DashSegmentTracker::getNextSegment()
     }
     Dash::DashSegment *segment = nullptr;
     bool b_gap = false;
+    ++mCurrentSegNumber;
     segment = mRep->getNextMediaSegment(mCurrentSegNumber, &mCurrentSegNumber, &b_gap);
     if (segment == nullptr) {
         return nullptr;
     }
     if (b_gap) {
         --mCurrentSegNumber;
-    }
-    if (segment) {
-        ++mCurrentSegNumber;
     }
     if (segment->startTime == 0) {
         segment->fixedStartTime = mRep->getMediaSegmentStartTime(mCurrentSegNumber);
