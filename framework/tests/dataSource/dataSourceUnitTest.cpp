@@ -73,8 +73,8 @@ TEST(dns, https)
     // https://dnschecker.org/
     string url = "https://player.alicdn.com/video/aliyunmedia.mp4";
     //  string ip = "120.77.195.15";
-    string ip = "47.246.17.253";
-    globalSettings::getSetting()->addResolve("player.alicdn.com:443", ip);
+    string ip = "117.27.140.249";
+    globalSettings::getSetting().addResolve("player.alicdn.com:443", ip);
     unique_ptr<IDataSource> source = unique_ptr<IDataSource>(dataSourcePrototype::create(url));
     int ret = source->Open(0);
     ASSERT_GE(ret, 0);
@@ -83,7 +83,7 @@ TEST(dns, https)
     string host = item.getString("ip");
     ASSERT_TRUE(host == ip);
 //   AF_LOGD("%s", info.c_str());
-    globalSettings::getSetting()->removeResolve("player.alicdn.com:443", ip);
+    globalSettings::getSetting().removeResolve("player.alicdn.com:443", ip);
 }
 
 TEST(dns, http)
@@ -92,8 +92,8 @@ TEST(dns, http)
     // https://dnschecker.org/
     string url = "http://player.alicdn.com/video/aliyunmedia.mp4";
     //  string ip = "120.77.195.15";
-    string ip = "47.246.17.253";
-    globalSettings::getSetting()->addResolve("player.alicdn.com:80", ip);
+    string ip = "117.27.140.249";
+    globalSettings::getSetting().addResolve("player.alicdn.com:80", ip);
     unique_ptr<IDataSource> source = unique_ptr<IDataSource>(dataSourcePrototype::create(url));
     int ret = source->Open(0);
     ASSERT_GE(ret, 0);
@@ -101,7 +101,7 @@ TEST(dns, http)
     CicadaJSONItem item(info);
     string host = item.getString("ip");
     ASSERT_TRUE(host == ip);
-    globalSettings::getSetting()->removeResolve("player.alicdn.com:80", ip);
+    globalSettings::getSetting().removeResolve("player.alicdn.com:80", ip);
 }
 
 TEST(http, 404)
@@ -213,10 +213,10 @@ TEST(https, ipList)
     }
 
     for (int i = 0; i < size; ++i) {
-        globalSettings::getSetting()->addResolve(ipListHots, IpList[i]);
+        globalSettings::getSetting().addResolve(ipListHots, IpList[i]);
 
         if (i > 0) {
-            globalSettings::getSetting()->removeResolve(ipListHots, IpList[i - 1]);
+            globalSettings::getSetting().removeResolve(ipListHots, IpList[i - 1]);
         }
 
         unique_ptr<IDataSource> source = unique_ptr<IDataSource>(dataSourcePrototype::create(ipListUrl));

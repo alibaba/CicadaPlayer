@@ -121,7 +121,7 @@ TEST(switch_stream, video)
     std::vector<player_command> commands;
     commandsCase testCase(commands, false);
     playerListener listener{nullptr};
-    listener.StreamInfoGet = onStreamInfoGet;
+    listener.MediaInfoGet = onStreamInfoGet;
     listener.StreamSwitchSuc = onStreamSwitchSuc;
     listener.Prepared = onPrepared_video;
     listener.userData = &testCase;
@@ -136,7 +136,7 @@ TEST(switch_stream, subtitle)
     std::vector<player_command> commands;
     commandsCase testCase(commands, false);
     playerListener listener{nullptr};
-    listener.StreamInfoGet = onStreamInfoGet;
+    listener.MediaInfoGet = onStreamInfoGet;
     listener.StreamSwitchSuc = onStreamSwitchSuc;
     listener.Prepared = onPrepared_subtitle;
     listener.userData = &testCase;
@@ -182,7 +182,7 @@ TEST(switch_stream, ExtSubtitle)
     std::vector<player_command> commands;
     commandsCase testCase(commands, false);
     playerListener listener{nullptr};
-    listener.StreamInfoGet = onStreamInfoGet;
+    listener.MediaInfoGet = onStreamInfoGet;
     listener.StreamSwitchSuc = onStreamSwitchSuc;
     listener.Prepared = onPrepared_subtitle;
     listener.SubtitleExtAdd = onSubtitleExtAdd;
