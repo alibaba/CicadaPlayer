@@ -11,6 +11,7 @@
 #include <utils/Android/JniEnv.h>
 #include <utils/Android/JniException.h>
 #include <utils/ffmpeg_utils.h>
+#include <utils/globalSettings.h>
 #include <utils/timer.h>
 
 
@@ -154,15 +155,16 @@ int AudioTrackRender::init_jni()
     }
 
     constructor_id = handle->GetMethodID(audio_track_impl, "<init>", "(IIIIII)V");
-    AndroidJniHandle<jobject> audio_track_tmp(handle->NewObject(audio_track_impl,
-            constructor_id,
-            3,             /*AudioManager.STREAM_MUSIC*/
-            mOutputInfo.sample_rate,   /*sampleRateInHz*/
-            channelType,   /*CHANNEL_CONFIGURATION_STEREO*/
-            2,             /*ENCODING_PCM_16BIT*/
-            buffer_size,   /*bufferSizeInBytes*/
-            1              /*AudioTrack.MODE_STREAM*/
-                                                               ));
+    const string &streamType = Cicada::globalSettings::getSetting()->getProperty("audio.streamType");
+    int audioStreamType = streamType.empty() ? 3 : atoi(streamType.c_str());
+    AndroidJniHandle<jobject> audio_track_tmp(handle->NewObject(audio_track_impl, constructor_id,
+                                                                audioStreamType,         /*AudioManager.stream type*/
+                                                                mOutputInfo.sample_rate, /*sampleRateInHz*/
+                                                                channelType,             /*CHANNEL_CONFIGURATION_STEREO*/
+                                                                2,                       /*ENCODING_PCM_16BIT*/
+                                                                buffer_size,             /*bufferSizeInBytes*/
+                                                                1                        /*AudioTrack.MODE_STREAM*/
+                                                                ));
 
     if (JniException::clearException(handle)) {
         AF_LOGE("audioTrack constructor exception. sample_rate %d, channel %d, bufferSize %d",
