@@ -77,6 +77,16 @@ bool AVFoundationVideoRender::deviceRenderFrame(IAFFrame *frame)
         }
     }
     if (frame) {
+
+        if (mRenderingCb) {
+            CicadaJSONItem params{};
+            rendered = mRenderingCb(mRenderingCbUserData, frame, params);
+        }
+
+        if (rendered) {
+            return false;
+        }
+
         mRender->renderFrame(frame);
         rendered = true;
     }
