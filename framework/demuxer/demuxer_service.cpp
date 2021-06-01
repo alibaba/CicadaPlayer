@@ -70,11 +70,13 @@ namespace Cicada {
         if (mDemuxerPtr == nullptr) {
             if (mPProbBuffer == nullptr) {
                 mPProbBuffer = new uint8_t[MAX_PROBE_SIZE];
+                memset(mPProbBuffer, 0, MAX_PROBE_SIZE);
                 mProbBufferSize = 0;
             }
 
             if (!mNoFile) {
-                while (mProbBufferSize < 256) {
+                int probSize = 256;
+                while (mProbBufferSize < probSize) {
                     int ret = 0;
 
                     if (mPDataSource) {
@@ -86,6 +88,11 @@ namespace Cicada {
                     }
 
                     if (ret > 0) {
+                        if (mProbBufferSize == 0) {
+                            if (strstr((char *) mPProbBuffer, "<MPD") || strstr((char *) mPProbBuffer, "<mpd")) {
+                                probSize = MAX_PROBE_SIZE;
+                            }
+                        }
                         mProbBufferSize += ret;
                     } else {
                         break;
