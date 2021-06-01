@@ -155,7 +155,7 @@ int AudioTrackRender::init_jni()
     }
 
     constructor_id = handle->GetMethodID(audio_track_impl, "<init>", "(IIIIII)V");
-    const string &streamType = Cicada::globalSettings::getSetting()->getProperty("audio.streamType");
+    const string &streamType = Cicada::globalSettings::getSetting().getProperty("audio.streamType");
     int audioStreamType = streamType.empty() ? 3 : atoi(streamType.c_str());
     AndroidJniHandle<jobject> audio_track_tmp(handle->NewObject(audio_track_impl, constructor_id,
                                                                 audioStreamType,         /*AudioManager.stream type*/
