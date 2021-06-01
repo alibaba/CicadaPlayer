@@ -58,7 +58,7 @@ namespace Cicada {
 
         void interrupt(int inter);
 
-        bool isInited();
+        bool isInited() const;
 
         void setCurSegNum(uint64_t num);
 
@@ -110,7 +110,7 @@ namespace Cicada {
         static std::atomic<int64_t> mLastLoadTime;
         std::atomic<int64_t> mMinUpdatePeriod{24ll * 3600 * 1000000};
 
-        bool mInited = false;
+        std::atomic_bool mInited{false};
 
         std::atomic_bool mNeedUpdate{false};
         std::atomic_bool mStopLoading{false};

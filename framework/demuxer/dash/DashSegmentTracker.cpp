@@ -107,56 +107,6 @@ bool DashSegmentTracker::parseIndex(const Dash::SidxBox &sidx, const std::string
 
 Dash::DashSegment *DashSegmentTracker::getStartSegment()
 {
-    std::string indexUri;
-    int64_t startByte = 0;
-    int64_t endByte = 0;
-    {
-        std::unique_lock<std::recursive_mutex> locker(mMutex);
-        if (mRep == nullptr) {
-            return nullptr;
-        }
-        if (mRep->needsIndex()) {
-            Dash::DashSegment *indexSeg = mRep->getIndexSegment();
-            indexUri = indexSeg->getUrlSegment().toString(0, mRep);
-            startByte = indexSeg->startByte;
-            if (startByte < 0) {
-                startByte = 0;
-            }
-            endByte = indexSeg->endByte;
-        }
-    }
-
-    if (!indexUri.empty() && (endByte <= 0 || endByte >= startByte)) {
-        IDataSource *dataSource = dataSourcePrototype::create(indexUri, nullptr);
-        dataSource->Open(0);
-        int64_t size = 0;
-        if (endByte <= 0) {
-            size = dataSource->Seek(0, SEEK_SIZE);
-        } else {
-            size = endByte - startByte + 1;
-        }
-        if (startByte > 0) {
-            dataSource->Seek(startByte, SEEK_SET);
-        }
-        auto *buffer = static_cast<uint8_t *>(malloc(size));
-        int len = 0;
-        while (len < size) {
-            int ret = dataSource->Read(buffer + len, size - len);
-            if (ret > 0) {
-                len += ret;
-            } else {
-                break;
-            }
-        }
-        if (len > 0) {
-            Dash::SidxParser sidxParser;
-            sidxParser.ParseSidx(buffer, size);
-            parseIndex(sidxParser.GetSidxBox(), indexUri, startByte, endByte);
-        }
-        free(buffer);
-        delete dataSource;
-    }
-
     Dash::DashSegment *segment = nullptr;
     {
         std::unique_lock<std::recursive_mutex> locker(mMutex);
@@ -305,6 +255,56 @@ int DashSegmentTracker::init()
         if (isLive()) {
             mThread->start();
         }
+
+        std::string indexUri;
+        int64_t startByte = 0;
+        int64_t endByte = 0;
+        {
+            std::unique_lock<std::recursive_mutex> locker(mMutex);
+            if (mRep == nullptr) {
+                return ret;
+            }
+            if (mRep->needsIndex()) {
+                Dash::DashSegment *indexSeg = mRep->getIndexSegment();
+                indexUri = indexSeg->getUrlSegment().toString(0, mRep);
+                startByte = indexSeg->startByte;
+                if (startByte < 0) {
+                    startByte = 0;
+                }
+                endByte = indexSeg->endByte;
+            }
+        }
+
+        if (!indexUri.empty() && (endByte <= 0 || endByte >= startByte)) {
+            IDataSource *dataSource = dataSourcePrototype::create(indexUri, nullptr);
+            dataSource->Open(0);
+            int64_t size = 0;
+            if (endByte <= 0) {
+                size = dataSource->Seek(0, SEEK_SIZE);
+            } else {
+                size = endByte - startByte + 1;
+            }
+            if (startByte > 0) {
+                dataSource->Seek(startByte, SEEK_SET);
+            }
+            auto *buffer = static_cast<uint8_t *>(malloc(size));
+            int len = 0;
+            while (len < size) {
+                int ret = dataSource->Read(buffer + len, size - len);
+                if (ret > 0) {
+                    len += ret;
+                } else {
+                    break;
+                }
+            }
+            if (len > 0) {
+                Dash::SidxParser sidxParser;
+                sidxParser.ParseSidx(buffer, size);
+                parseIndex(sidxParser.GetSidxBox(), indexUri, startByte, endByte);
+            }
+            free(buffer);
+            delete dataSource;
+        }
         mInited = true;
     }
 
@@ -428,7 +428,7 @@ void DashSegmentTracker::interrupt(int inter)
     }
 }
 
-bool DashSegmentTracker::isInited()
+bool DashSegmentTracker::isInited() const
 {
     return mInited;
 }
