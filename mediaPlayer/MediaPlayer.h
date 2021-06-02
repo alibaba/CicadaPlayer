@@ -355,7 +355,7 @@ namespace Cicada {
 
         string GetPlayerSessionId();
 
-    protected:
+    private:
         static void preparedCallback(void *userData);
 
         static void completionCallback(void *userData);
@@ -411,44 +411,37 @@ namespace Cicada {
         static void onMediaFrameCallback(void *arg, const IAFPacket *frame, StreamType type);
         void mediaFrameCallback(const IAFPacket *frame, StreamType type);
 
-    private:
         void configPlayer(const MediaPlayerConfig *config) const;
 
         void refreshPlayerSessionId();
 
         static void dummyFunction(bool dummy);
 
-    protected:
+    private:
         void *mPlayerHandle = nullptr;
         playerListener mListener{nullptr};
-        MediaPlayerConfig *mConfig;
-        AnalyticsQueryListener *mQueryListener;
+        MediaPlayerConfig *mConfig{};
+        AnalyticsQueryListener *mQueryListener{};
         IAnalyticsCollector *mCollector{nullptr};
         bool  bExternalCollector{false};
         IAnalyticsCollectorFactory &mCollectorFactory;
-        AbrManager *mAbrManager;
-        AbrAlgoStrategy *mAbrAlgo;
+        AbrManager *mAbrManager{};
+        AbrAlgoStrategy *mAbrAlgo{};
         AbrBufferRefererData *mAbrRefData{nullptr};
-
         std::mutex mMutexAbr;
-
-        bool mLoop = false;
-        bool waitingForStart = false;
-        bool waitingForLoop = false;
+        bool mLoop{false};
+        bool waitingForStart{false};
+        bool waitingForLoop{false};
         string mPlayUrl;
-        CacheManager *mCacheManager = nullptr;
-        CacheConfig mCacheConfig;
+        CacheManager *mCacheManager{};
+        CacheConfig mCacheConfig{};
         std::atomic<bool> mCacheSuccess{false};
         PlayerStatus mOldPlayStatus{PLAYER_IDLE};
-
-        playerMediaFrameCb mMediaFrameFunc = nullptr;
-        void *mMediaFrameArg = nullptr;
-
-        function<void(const string &)> mPlayUrlChangedCallback = nullptr;
-
+        playerMediaFrameCb mMediaFrameFunc{nullptr};
+        void *mMediaFrameArg{nullptr};
+        function<void(const string &)> mPlayUrlChangedCallback{nullptr};
         std::string mPlayerSessionId{};
-        bool mFirstPrepared = false;
-
+        bool mFirstPrepared{false};
     };
 }// namespace Cicada
 
