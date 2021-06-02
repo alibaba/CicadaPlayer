@@ -1450,11 +1450,15 @@ bool SuperMediaPlayer::DoCheckBufferPass()
 
             lastPos -= min(mSet->RTMaxDelayTime, 500 * 1000);
             int64_t lastVideoKeyTimePos = mBufferController->GetKeyTimePositionBefore(BUFFER_TYPE_VIDEO, lastPos);
-            if (lastVideoKeyTimePos != INT64_MIN) {
+            int videoPacketCount = mBufferController->GetPacketSize(BUFFER_TYPE_VIDEO);
+
+            if (videoPacketCount == 0 || lastVideoKeyTimePos != INT64_MIN) {
                 AF_LOGD("drop left lastPts %lld, lastVideoKeyPts %lld", lastPos, lastVideoKeyTimePos);
                 mMsgCtrlListener->ProcessSetSpeed(1.0);
-                int64_t dropVideoCount = mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_VIDEO, lastVideoKeyTimePos);
-                int64_t dropAudioCount = mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_AUDIO, lastVideoKeyTimePos);
+
+                int64_t clearPos = (lastVideoKeyTimePos != INT64_MIN) ? lastVideoKeyTimePos : lastPos;
+                int64_t dropVideoCount = mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_VIDEO, clearPos);
+                int64_t dropAudioCount = mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_AUDIO, clearPos);
 
                 if (dropVideoCount > 0) {
                     FlushVideoPath();
