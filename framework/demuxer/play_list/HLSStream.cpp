@@ -530,7 +530,7 @@ namespace Cicada {
 
     int HLSStream::tryOpenSegment(const string &uri, int64_t start, int64_t end)
     {
-        AF_LOGI("tryOpenSegment: %s\n", uri.c_str());
+        AF_LOGD("tryOpenSegment: %s\n", uri.c_str());
         int retryTimes = 0;
         int ret;
 

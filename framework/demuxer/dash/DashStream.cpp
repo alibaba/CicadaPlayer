@@ -401,7 +401,7 @@ int DashStream::createDemuxer()
 
 int DashStream::tryOpenSegment(const string &uri, int64_t start, int64_t end)
 {
-    AF_LOGI("tryOpenSegment: %s, [%lld,%lld]\n", uri.c_str(), start, end);
+    AF_LOGD("tryOpenSegment: %s, [%lld,%lld]\n", uri.c_str(), start, end);
     int retryTimes = 0;
     int ret;
 
