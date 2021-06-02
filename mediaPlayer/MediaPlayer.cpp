@@ -123,13 +123,13 @@ namespace Cicada {
 
     MediaPlayer::~MediaPlayer()
     {
+        auto *handle = (playerHandle *) mPlayerHandle;
+        CicadaReleasePlayer(&handle);
         delete mQueryListener;
         delete mAbrManager;
         delete mAbrAlgo;
         delete mAbrRefData;
-        auto *handle = (playerHandle *) mPlayerHandle;
         delete mConfig;
-        CicadaReleasePlayer(&handle);
 
         if (mCollector && !bExternalCollector) {
             mCollectorFactory.destroyAnalyticsCollector(mCollector);
