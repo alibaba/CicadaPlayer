@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 
 function clone_git() {
-
-if [[ -n "$3" ]];then
-    git clone $1 -b $2 $3
+  if [[ -n "$3" ]];then
+    git clone --single-branch -b $2 $1 $3
   else
-    git clone $1 -b $2
+    git clone --single-branch -b $2 $1
   fi
-
 }
 
 if [[ -z "${FFMPEG_GIT}" ]];then
