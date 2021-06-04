@@ -26,8 +26,6 @@ namespace Cicada {
 
         std::unique_ptr<IAFPacket> getPacket();
 
-        void PopFrontPacket();
-
         int GetSize();
 
         int64_t GetDuration();
@@ -64,6 +62,9 @@ namespace Cicada {
         int mMediaType = 0;
 
     private:
+        void PopFrontPacket();
+
+    private:
         std::list<mediaPacket> mQueue;
         std::list<mediaPacket>::iterator mCurrent;
         std::recursive_mutex mMutex;
@@ -71,6 +72,9 @@ namespace Cicada {
         int64_t mDuration = 0;
         int64_t mTotalDuration = 0;
         uint64_t mMAXBackwardDuration{0};
+
+        uint8_t *mDropedExtra_data{nullptr};
+        int mDropedExtra_data_size{0};
     };
 
 } // namespace Cicada

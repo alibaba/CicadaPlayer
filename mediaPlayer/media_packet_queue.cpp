@@ -15,6 +15,7 @@ MediaPacketQueue::MediaPacketQueue()
 MediaPacketQueue::~MediaPacketQueue()
 {
     ClearQueue();
+    delete mDropedExtra_data;
 }
 
 void MediaPacketQueue::ClearQueue()
@@ -54,6 +55,17 @@ void MediaPacketQueue::AddPacket(mediaPacket frame)
         AF_LOGE("pts revert\n");
         mQueue.back()->getInfo().dump();
         frame->getInfo().dump();
+    }
+
+    if (mDropedExtra_data && mDropedExtra_data_size > 0) {
+        if (frame->getInfo().extra_data_size > 0) {
+            delete mDropedExtra_data;
+        } else {
+            frame->getInfo().extra_data = mDropedExtra_data;
+            frame->getInfo().extra_data_size = mDropedExtra_data_size;
+        }
+        mDropedExtra_data = nullptr;
+        mDropedExtra_data_size = 0;
     }
 
     mQueue.push_back(move(frame));
@@ -266,6 +278,14 @@ void MediaPacketQueue::PopFrontPacket()
     if ((*mCurrent) && (*mCurrent)->getInfo().duration > 0 && !(*mCurrent)->getDiscard()) {
         mDuration -= (*mCurrent)->getInfo().duration;
     }
+    if ((*mCurrent)->getInfo().extra_data_size > 0) {
+        AF_LOGI("save the extra_data when PopFrontPacket\n");
+        delete mDropedExtra_data;
+        mDropedExtra_data = (*mCurrent)->getInfo().extra_data;
+        mDropedExtra_data_size = (*mCurrent)->getInfo().extra_data_size;
+        (*mCurrent)->getInfo().extra_data = nullptr;
+        (*mCurrent)->getInfo().extra_data_size = 0;
+    }
     if (mMAXBackwardDuration == 0) {
         if (!mQueue.front()->getDiscard()) {
             mTotalDuration -= mQueue.front()->getInfo().duration;
@@ -274,6 +294,17 @@ void MediaPacketQueue::PopFrontPacket()
         mCurrent = mQueue.begin();
     } else {
         mCurrent++;
+    }
+
+    if (mDropedExtra_data && mDropedExtra_data_size > 0 && mCurrent != mQueue.end()) {
+        if ((*mCurrent)->getInfo().extra_data_size > 0) {
+            delete mDropedExtra_data;
+        } else {
+            (*mCurrent)->getInfo().extra_data = mDropedExtra_data;
+            (*mCurrent)->getInfo().extra_data_size = mDropedExtra_data_size;
+        }
+        mDropedExtra_data = nullptr;
+        mDropedExtra_data_size = 0;
     }
     assert(mMAXBackwardDuration != 0 || (mTotalDuration == mDuration && mCurrent == mQueue.begin()));
 }
