@@ -1658,12 +1658,16 @@ void SuperMediaPlayer::LiveTimeSync(int64_t delayTime)
     int64_t bufferDelay = mSuggestedPresentationDelay;
     if ((delayTime > bufferDelay + maxGopTime * 0.5) && (delayTime > 150 * 1000)) {
         mMsgCtrlListener->ProcessSetSpeed(1.2);
-        mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncCatchUp;
-        AF_LOGD("LiveTimeSync, delayTime=%lld, set speed 1.2", delayTime);
+        if (mLiveTimeSyncType != LiveTimeSyncType::LiveTimeSyncCatchUp) {
+            mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncCatchUp;
+            AF_LOGD("LiveTimeSync, delayTime=%lld, set speed 1.2", delayTime);
+        }
     } else if (delayTime < bufferDelay - maxGopTime * 1.3) {
         mMsgCtrlListener->ProcessSetSpeed(0.9);
-        mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncSlowDown;
-        AF_LOGD("LiveTimeSync, delayTime=%lld, set speed 0.9", delayTime);
+        if (mLiveTimeSyncType != LiveTimeSyncType::LiveTimeSyncSlowDown) {
+            mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncSlowDown;
+            AF_LOGD("LiveTimeSync, delayTime=%lld, set speed 0.9", delayTime);
+        }
     }
     if (mLiveTimeSyncType == LiveTimeSyncType::LiveTimeSyncCatchUp) {
         if ((delayTime < bufferDelay - maxGopTime) || (delayTime < 100 * 1000)) {
