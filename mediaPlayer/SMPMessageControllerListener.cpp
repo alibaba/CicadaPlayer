@@ -529,16 +529,18 @@ void SMPMessageControllerListener::ProcessSwitchStreamMsg(int index)
             mPlayer.mEof = false;
         } else if (type == STREAM_TYPE_VIDEO) {
             fromIndex = mPlayer.mCurrentVideoIndex;
-            mPlayer.mWillChangedVideoStreamIndex = index;
         } else if (type == STREAM_TYPE_AUDIO) {
             fromIndex = mPlayer.mCurrentAudioIndex;
-            mPlayer.mWillChangedVideoStreamIndex = index;
         } else if (type == STREAM_TYPE_SUB) {
             fromIndex = mPlayer.mCurrentSubtitleIndex;
-            mPlayer.mWillChangedVideoStreamIndex = index;
         }
-        mPlayer.mVideoChangedFirstPts = INT64_MAX;
-        mPlayer.mDemuxerService->SwitchStreamAligned(fromIndex, toIndex);
+        if (fromIndex != toIndex) {
+            mPlayer.mVideoChangedFirstPts = INT64_MAX;
+            mPlayer.mWillChangedVideoStreamIndex = toIndex;
+            mPlayer.mDemuxerService->SwitchStreamAligned(fromIndex, toIndex);
+        } else {
+            AF_LOGW("ProcessSwitchStreamMsg, current index is same to toIndex");
+        }
         return;
     }
 
