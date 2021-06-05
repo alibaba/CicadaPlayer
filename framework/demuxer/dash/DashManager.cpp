@@ -499,11 +499,6 @@ int DashManager::SwitchStreamAligned(int from, int to)
 {
     AF_LOGD("SwitchStreamAligned %d -->%d\n", from, to);
 
-    if (from == to) {
-        AF_LOGD("SwitchStreamAligned, the stream index is the same");
-        return 0;
-    }
-
     for (auto &i : mStreamInfoList) {
         if (i->mPStream->getId() == from) {
             // TODO: use seg start Time to Align the to stream seg num
