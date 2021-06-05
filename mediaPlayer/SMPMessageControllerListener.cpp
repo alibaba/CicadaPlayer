@@ -516,7 +516,7 @@ void SMPMessageControllerListener::ProcessSwitchStreamMsg(int index)
 
     if (mPlayer.mDuration == 0) {
         int toIndex = index;
-        int fromIndex = 0;
+        int fromIndex = -1;
 
         if (type == STREAM_TYPE_MIXED) {
             if (mPlayer.mMainStreamId == -1 || mPlayer.mMainStreamId == toIndex) {
@@ -527,15 +527,19 @@ void SMPMessageControllerListener::ProcessSwitchStreamMsg(int index)
             toIndex = GEN_STREAM_INDEX(index);
             mPlayer.mAudioChangedFirstPts = INT64_MAX;
             mPlayer.mEof = false;
-        } else if (type == STREAM_TYPE_VIDEO) {
+        } else if (type == STREAM_TYPE_VIDEO && mPlayer.mCurrentVideoIndex >= 0 && mPlayer.mCurrentVideoIndex != index) {
             fromIndex = mPlayer.mCurrentVideoIndex;
             mPlayer.mWillChangedVideoStreamIndex = index;
-        } else if (type == STREAM_TYPE_AUDIO) {
+        } else if (type == STREAM_TYPE_AUDIO && mPlayer.mCurrentAudioIndex >= 0 && mPlayer.mCurrentAudioIndex != index) {
             fromIndex = mPlayer.mCurrentAudioIndex;
-            mPlayer.mWillChangedVideoStreamIndex = index;
-        } else if (type == STREAM_TYPE_SUB) {
+            mPlayer.mWillChangedAudioStreamIndex = index;
+        } else if (type == STREAM_TYPE_SUB && mPlayer.mCurrentSubtitleIndex >= 0 && mPlayer.mCurrentSubtitleIndex != index) {
             fromIndex = mPlayer.mCurrentSubtitleIndex;
-            mPlayer.mWillChangedVideoStreamIndex = index;
+            mPlayer.mWillChangedSubtitleStreamIndex = index;
+        }
+        if (fromIndex < 0) {
+            AF_LOGE("invalid switch stream %d\n", index);
+            return;
         }
         mPlayer.mVideoChangedFirstPts = INT64_MAX;
         mPlayer.mDemuxerService->SwitchStreamAligned(fromIndex, toIndex);
