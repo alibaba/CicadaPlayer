@@ -56,6 +56,9 @@ function build_ffmpeg(){
         ffmpeg_config_add_user "--enable-libfdk-aac"
         ffmpeg_config_add_extra_cflags "-I${FDK_AAC_INSTALL_DIR}/include"
         ffmpeg_config_add_extra_ldflags "-L${FDK_AAC_INSTALL_DIR}/lib"
+        if [[ "$1" == "Android" ]];then
+            ffmpeg_config_add_extra_ldflags "-lm"
+        fi
     fi
 
     if [[ -n "${X264_INSTALL_DIR}" ]]; then
