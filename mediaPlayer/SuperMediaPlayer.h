@@ -323,6 +323,10 @@ namespace Cicada {
 
         void checkEOS();
 
+        bool checkEOSAudio();
+
+        bool checkEOSVideo();
+
         void playCompleted();
 
         void notifySeekEndCallback();
@@ -554,6 +558,8 @@ namespace Cicada {
         int64_t mSuggestedPresentationDelay = 0;
         LiveTimeSyncType mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncNormal;
         bool mVideoCatchingUp{false};
+        bool mAudioEOS{false};
+        bool mVideoEOS{false};
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H

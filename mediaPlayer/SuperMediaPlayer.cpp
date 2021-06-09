@@ -1869,30 +1869,20 @@ void SuperMediaPlayer::doDeCode()
     }
 }
 
-void SuperMediaPlayer::checkEOS()
+bool SuperMediaPlayer::checkEOSAudio()
 {
-    if (!mEof || PLAYER_COMPLETION == mPlayStatus) {
-        return;
-    }
 
-    //in case of ONLY AUDIO stream.
-    if ((HAVE_VIDEO && mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO) && !videoDecoderEOS &&
-         (APP_BACKGROUND != mAppStatus)) ||
-        (HAVE_AUDIO && !audioDecoderEOS)) {
-        return;
+    if (!HAVE_AUDIO) {
+        return true;
     }
-
+    if (!audioDecoderEOS) {
+        return false;
+    }
     int packetSize = mBufferController->GetPacketSize(BUFFER_TYPE_AUDIO);
     int frameSize = static_cast<int>(mAudioFrameQue.size());
-
-    if ((APP_BACKGROUND != mAppStatus) && mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
-        frameSize += mVideoFrameQue.size();
-        packetSize += mBufferController->GetPacketSize(BUFFER_TYPE_VIDEO);
-    }
-
     if (frameSize > 0 || packetSize > 0) {
         AF_TRACE;
-        return;
+        return false;
     }
 
     uint64_t audioQueDuration = mAVDeviceManager->getAudioRenderQueDuration();
@@ -1908,10 +1898,47 @@ void SuperMediaPlayer::checkEOS()
         }
 
         if ((now - mCheckAudioQueEOSTime) * 1000 <= audioQueDuration) {
-            return;
+            return false;
         }
     }
+    return true;
+}
+bool SuperMediaPlayer::checkEOSVideo()
+{
+    if (!HAVE_VIDEO) {
+        return true;
+    }
+    if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO) && !videoDecoderEOS && (APP_BACKGROUND != mAppStatus)) {
+        return false;
+    }
+    int packetSize = 0;
+    int frameSize = 0;
+    if ((APP_BACKGROUND != mAppStatus) && mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
+        frameSize += mVideoFrameQue.size();
+        packetSize += mBufferController->GetPacketSize(BUFFER_TYPE_VIDEO);
+    }
 
+    if (frameSize > 0 || packetSize > 0) {
+        AF_TRACE;
+        return false;
+    }
+    return true;
+}
+
+void SuperMediaPlayer::checkEOS()
+{
+    if (!mEof || PLAYER_COMPLETION == mPlayStatus) {
+        return;
+    }
+    if (!mVideoEOS) {
+        mVideoEOS = checkEOSVideo();
+    }
+    if (!mAudioEOS) {
+        mAudioEOS = checkEOSAudio();
+    }
+    if (!(mVideoEOS && mAudioEOS)) {
+        return;
+    }
     NotifyPosition(mDuration);
     playCompleted();
 }
@@ -3003,6 +3030,7 @@ void SuperMediaPlayer::FlushAudioPath()
     mAudioTime.deltaTime = 0;
     mAudioTime.deltaTimeTmp = 0;
     mAudioPacket = nullptr;
+    mAudioEOS = false;
 }
 
 void SuperMediaPlayer::FlushVideoPath()
@@ -3025,6 +3053,7 @@ void SuperMediaPlayer::FlushVideoPath()
     mVideoPacket = nullptr;
     dropLateVideoFrames = false;
     mVideoCatchingUp = false;
+    mVideoEOS = false;
 }
 
 void SuperMediaPlayer::FlushSubtitleInfo()
