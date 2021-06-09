@@ -592,7 +592,7 @@ void SMPMessageControllerListener::ProcessRenderedMsg(StreamType type, IAFFrame:
 
     if (type == ST_TYPE_VIDEO) {
 
-        if (mPlayer.mCurrentAudioIndex < 0 && info.timePosition >= 0 && !mPlayer.isSeeking()) {
+        if ((mPlayer.mCurrentAudioIndex < 0 || mPlayer.mAudioEOS) && info.timePosition >= 0 && !mPlayer.isSeeking()) {
             mPlayer.mCurrentPos = info.timePosition;
         }
 
