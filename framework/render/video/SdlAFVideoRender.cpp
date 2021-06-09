@@ -236,6 +236,7 @@ int SdlAFVideoRender::onVSyncInner(int64_t tick)
 #endif
     bool rendered = false;
     if (mRenderingCb) {
+        std::unique_lock<std::mutex> lock(mRenderMutex);
         CicadaJSONItem params{};
         rendered = mRenderingCb(mRenderingCbUserData, frame.get(), params);
     }
