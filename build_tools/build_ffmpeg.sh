@@ -5,7 +5,12 @@
 source ffmpeg_cross_compile_config.sh
 source ffmpeg_commands.sh
 function build_ffmpeg(){
-    use_openssl="TRUE"
+    if [[ "${FFMPEG_USE_OPENSSL}" != "TRUE" ]];then
+        use_openssl="FALSE"
+    else
+        use_openssl="TRUE"
+    fi
+
     ffmpeg_cross_compile_config_reset
     if [[ "$1" == "Android" ]]
     then
