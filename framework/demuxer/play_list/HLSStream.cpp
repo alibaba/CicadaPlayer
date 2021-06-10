@@ -132,13 +132,15 @@ namespace Cicada {
 
     int HLSStream::readSegment(const uint8_t *buffer, int size)
     {
-        int ret;
+        int ret = 0;
 
         if (mSegDecrypter == nullptr) {
             if (mExtDataSource) {
                 ret = mExtDataSource->Read((void *) buffer, size);
-            } else {
+            } else if (mPdataSource) {
                 ret = mPdataSource->Read((void *) buffer, (size_t) size);
+            } else {
+                AF_LOGE("HLSStream::readSegment, no dataSource");
             }
         } else {
             ret = mSegDecrypter->Read(const_cast<uint8_t *>(buffer), size);
