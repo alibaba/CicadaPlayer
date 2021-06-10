@@ -290,11 +290,11 @@ function link_shared_lib_win32(){
 #    if [[ -d "${FDK_AAC_INSTALL_DIR}" ]];then
 #        ldflags="$ldflags -lfdk-aac -L${FDK_AAC_INSTALL_DIR}/lib/"
 #    fi
-#
-#    if [[ -d "${OPENSSL_INSTALL_DIR}" ]];then
-#        ldflags="$ldflags -lssl -lcrypto -L${OPENSSL_INSTALL_DIR}/lib/"
-#    fi
-#
+    if [[ "${FFMPEG_USE_OPENSSL}" = "TRUE" ]];then
+        if [[ -d "${OPENSSL_INSTALL_DIR}" ]];then
+            ldflags="$ldflags -lssl -lcrypto -L${OPENSSL_INSTALL_DIR}/lib/"
+        fi
+    fi
 #    if [[ -d "${DAV1D_INSTALL_DIR}" ]];then
 #        ldflags="$ldflags -ldav1d -L${DAV1D_INSTALL_DIR}/lib/"
 #    fi
