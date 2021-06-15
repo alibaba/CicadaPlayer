@@ -422,6 +422,13 @@ IAFFrame *pixelBufferConvertor::convert(IAFFrame *frame)
 }
 void pixelBufferConvertor::UpdateColorInfo(const VideoColorInfo &info, CVPixelBufferRef pixelBuffer)
 {
+#if TARGET_OS_IPHONE
+    // avSampleBufferDisplayLayer have some bug on iOS 9.x
+    if (__builtin_available(iOS 10.0, *)) {
+    } else {
+        return;
+    }
+#endif
     CFStringRef value;
     switch (info.color_primaries) {
         case AFCOL_PRI_BT709:
