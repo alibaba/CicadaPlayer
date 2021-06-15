@@ -398,6 +398,13 @@ IAFFrame *pixelBufferConvertor::convert(IAFFrame *frame)
     }
     auto *avFrame = (AVFrame *) (*avAFFrame);
 
+    VideoColorInfo colorInfo;
+    colorInfo.chroma_location = static_cast<AFChromaLocation>(avFrame->chroma_location);
+    colorInfo.color_primaries = static_cast<AFColorPrimaries>(avFrame->color_primaries);
+    colorInfo.color_range = static_cast<AFColorRange>(avFrame->color_range);
+    colorInfo.color_space = static_cast<AFColorSpace>(avFrame->colorspace);
+    colorInfo.color_trc = static_cast<AFColorTransferCharacteristic>(avFrame->color_trc);
+
     if (sws_ctx) {
         sws_scale(sws_ctx, avFrame->data, avFrame->linesize, 0, avFrame->height, mOutFrame->data, mOutFrame->linesize);
         avFrame = mOutFrame;
@@ -407,12 +414,6 @@ IAFFrame *pixelBufferConvertor::convert(IAFFrame *frame)
     if (pixelBuffer == nullptr) {
         return nullptr;
     }
-    VideoColorInfo colorInfo;
-    colorInfo.chroma_location = static_cast<AFChromaLocation>(avFrame->chroma_location);
-    colorInfo.color_primaries = static_cast<AFColorPrimaries>(avFrame->color_primaries);
-    colorInfo.color_range = static_cast<AFColorRange>(avFrame->color_range);
-    colorInfo.color_space = static_cast<AFColorSpace>(avFrame->colorspace);
-    colorInfo.color_trc = static_cast<AFColorTransferCharacteristic>(avFrame->color_trc);
 
     UpdateColorInfo(colorInfo, pixelBuffer);
     auto *pBFrame = new PBAFFrame(pixelBuffer, frame->getInfo().pts, frame->getInfo().duration);
