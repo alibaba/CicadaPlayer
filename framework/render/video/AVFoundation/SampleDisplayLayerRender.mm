@@ -195,6 +195,21 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     }
     return transform;
 }
+- (void)initLayer
+{
+    if (!self.displayLayer) {
+        self.displayLayer = [AVSampleBufferDisplayLayer layer];
+        self.displayLayer.videoGravity = AVLayerVideoGravityResize;
+    }
+    [parentLayer addSublayer:self.displayLayer];
+    if (_bGColour) {
+        parentLayer.backgroundColor = _bGColour;
+    }
+    parentLayer.masksToBounds = YES;
+    self.displayLayer.frame = parentLayer.bounds;
+    self.displayLayer.transform = [self CalculateTransform];
+    [parentLayer addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:nil];
+}
 
 - (CATransform3D)CalculateTransform
 {
@@ -246,20 +261,13 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 {
     if (layer != (__bridge void *) parentLayer) {
         parentLayer = (__bridge CALayer *) layer;
-        dispatch_async(dispatch_get_main_queue(), ^{
-          if (!self.displayLayer) {
-              self.displayLayer = [AVSampleBufferDisplayLayer layer];
-              self.displayLayer.videoGravity = AVLayerVideoGravityResize;
-          }
-          [parentLayer addSublayer:self.displayLayer];
-          if (_bGColour) {
-              parentLayer.backgroundColor = _bGColour;
-          }
-          parentLayer.masksToBounds = YES;
-          self.displayLayer.frame = parentLayer.bounds;
-          self.displayLayer.transform = [self CalculateTransform];
-          [parentLayer addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:nil];
-        });
+        if (strcmp(dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL), dispatch_queue_get_label(dispatch_get_main_queue())) == 0) {
+            [self initLayer];
+        } else {
+            dispatch_sync(dispatch_get_main_queue(), ^{
+              [self initLayer];
+            });
+        }
     }
 }
 
