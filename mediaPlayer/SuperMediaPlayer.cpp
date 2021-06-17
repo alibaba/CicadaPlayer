@@ -182,7 +182,6 @@ void SuperMediaPlayer::Start()
     }
 
     this->putMsg(MSG_START, dummyMsg);
-    mPausedByAudioInterrupted = false;
 }
 
 
@@ -190,7 +189,6 @@ void SuperMediaPlayer::Pause()
 {
     waitingForStart = false;
     this->putMsg(MSG_PAUSE, dummyMsg);
-    mPausedByAudioInterrupted = false;
 }
 
 
@@ -3744,7 +3742,6 @@ void SuperMediaPlayer::Reset()
     mVideoCatchingUp = false;
     mBRendingStart = false;
     mSubtitleEOS = false;
-    mPausedByAudioInterrupted = false;
     mSecretPlayBack = false;
     mDrmKeyValid = false;
     mPtsDiscontinueDelta = INT64_MIN;
