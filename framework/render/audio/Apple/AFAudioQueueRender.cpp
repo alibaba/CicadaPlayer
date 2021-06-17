@@ -277,7 +277,7 @@ void AFAudioQueueRender::flushAudioQueue()
     mReadOffset = 0;
     mPlayedBufferSize = 0;
     if (mPlaying) {
-        AudioQueueStart(_audioQueueRef, nullptr);
+        mStartStatus = AudioQueueStart(_audioQueueRef, nullptr);
     }
 }
 
@@ -306,6 +306,12 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
 {
     if (mNeedFlush || mInPut.write_available() <= 0) {
         return -EAGAIN;
+    }
+    if (mStartStatus != AVAudioSessionErrorCodeNone && mPlaying) {
+        AF_LOGW("try start AudioQueue in error status %d\n", mStartStatus);
+        if (_audioQueueRef) {
+            mStartStatus = AudioQueueStart(_audioQueueRef, nullptr);
+        }
     }
     if (mBufferCount == 0) {
         //FIXME: for low latency stream, queue another more buffer
