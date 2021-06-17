@@ -34,6 +34,9 @@ namespace Cicada{
             return mAdaptSetList;
         }
 
+        virtual int64_t getPeriodStart() const override;
+        virtual int64_t getPeriodDuration() const override;
+
     public:
         int64_t startTime{0};
         int64_t duration{0};
