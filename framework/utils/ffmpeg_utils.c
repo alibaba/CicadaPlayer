@@ -20,7 +20,6 @@
 #include <libavutil/avstring.h>
 #include <libavutil/intreadwrite.h>
 #include <libavutil/timestamp.h>
-#include <libavutil/common.h>
 #include <pthread.h>
 #include <utils/frame_work_log.h>
 
@@ -1208,6 +1207,16 @@ static void update_initial_durations(AVFormatContext *s, AVStream *st,
     if (!pktl)
         st->cur_dts = cur_dts;
 }
+static int is_intra_only(enum AVCodecID id)
+{
+    const AVCodecDescriptor *d = avcodec_descriptor_get(id);
+    if (!d)
+        return 0;
+    if ((d->type == AVMEDIA_TYPE_VIDEO || d->type == AVMEDIA_TYPE_AUDIO) &&
+        !(d->props & AV_CODEC_PROP_INTRA_ONLY))
+        return 0;
+    return 1;
+}
 // copy from ffmpeg v4.3.1
 void av_compute_pkt_fields(AVFormatContext *s, AVStream *st,
                                AVCodecParserContext *pc, AVPacket *pkt,
@@ -1390,7 +1399,7 @@ void av_compute_pkt_fields(AVFormatContext *s, AVStream *st,
                presentation_delayed, delay, av_ts2str(pkt->pts), av_ts2str(pkt->dts), av_ts2str(st->cur_dts), st->index, st->id);
 
     /* update flags */
-    if (st->codecpar->codec_type == AVMEDIA_TYPE_DATA || ff_is_intra_only(st->codecpar->codec_id))
+    if (st->codecpar->codec_type == AVMEDIA_TYPE_DATA || is_intra_only(st->codecpar->codec_id))
         pkt->flags |= AV_PKT_FLAG_KEY;
 #if FF_API_CONVERGENCE_DURATION
             FF_DISABLE_DEPRECATION_WARNINGS
