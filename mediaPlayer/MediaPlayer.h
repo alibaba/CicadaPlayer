@@ -374,6 +374,8 @@ namespace Cicada {
 
         static void currentPositionCallback(int64_t position, void *userData);
 
+        static void currentUtcTimeCallback(int64_t time, void *userData);
+
         static void bufferPositionCallback(int64_t position, void *userData);
 
         static void loopingStartCallback(void *userData);

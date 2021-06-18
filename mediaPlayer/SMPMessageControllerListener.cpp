@@ -579,9 +579,13 @@ void SMPMessageControllerListener::ProcessRenderedMsg(StreamType type, IAFFrame:
             return;
         }
         mPlayer.mDemuxerService->SetOption("A_FRAME_RENDERED", info.pts);
-
-        if (!mPlayer.isSeeking() && info.timePosition >= 0) {
-            mPlayer.mCurrentPos = info.timePosition;
+        if (!mPlayer.isSeeking()) {
+            if (info.timePosition >= 0) {
+                mPlayer.mCurrentPos = info.timePosition;
+            }
+            if (info.utcTime >= 0) {
+                mPlayer.mCurrentFrameUtcTime = info.utcTime;
+            }
         }
         if (mPlayer.mSet->bEnableVRC) {
             mPlayer.mPNotifier->NotifyAudioRendered(timeMs, info.pts);
@@ -592,8 +596,13 @@ void SMPMessageControllerListener::ProcessRenderedMsg(StreamType type, IAFFrame:
 
     if (type == ST_TYPE_VIDEO) {
 
-        if ((mPlayer.mCurrentAudioIndex < 0 || mPlayer.mAudioEOS) && info.timePosition >= 0 && !mPlayer.isSeeking()) {
-            mPlayer.mCurrentPos = info.timePosition;
+        if ((mPlayer.mCurrentAudioIndex < 0 || mPlayer.mAudioEOS) && !mPlayer.isSeeking()) {
+            if (info.timePosition >= 0) {
+                mPlayer.mCurrentPos = info.timePosition;
+            }
+            if (info.utcTime >= 0) {
+                mPlayer.mCurrentFrameUtcTime = info.utcTime;
+            }
         }
 
         //   mPlayer.mUtil->render(info.pts);

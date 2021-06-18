@@ -171,6 +171,8 @@ namespace Cicada {
             bool seamlessPoint = false;
             int64_t timePosition = INT64_MIN;
             int64_t time2ptsDelta = INT64_MIN;
+            int64_t utcTime = INT64_MIN;
+            int64_t utc2ptsDelta = INT64_MIN;
             int64_t frameDuration = INT64_MIN;
             int64_t lastFramePts = INT64_MIN;
         };

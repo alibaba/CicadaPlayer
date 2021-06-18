@@ -68,6 +68,8 @@ namespace Cicada{
         int mPartsNextIndex = 0;
         std::recursive_mutex mMutex;
         std::string mDownloadUri = "";
+
+        int64_t utcTime = INT64_MIN;
     };
 }
 

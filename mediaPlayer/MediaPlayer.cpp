@@ -46,6 +46,7 @@ namespace Cicada {
         listener.VideoRendered = videoRenderedCallback;
         listener.AudioRendered = audioRenderedCallback;
         listener.PositionUpdate = currentPositionCallback;
+        listener.UtcTimeUpdate = currentUtcTimeCallback;
         listener.BufferPositionUpdate = bufferPositionCallback;
         listener.LoadingStart = loadingStartCallback;
         listener.LoadingEnd = loadingEndCallback;
@@ -816,6 +817,15 @@ namespace Cicada {
 
         if (player->mListener.PositionUpdate) {
             player->mListener.PositionUpdate(position, player->mListener.userData);
+        }
+    }
+
+    void MediaPlayer::currentUtcTimeCallback(int64_t time, void *userData)
+    {
+        GET_MEDIA_PLAYER
+
+        if (player->mListener.UtcTimeUpdate) {
+            player->mListener.UtcTimeUpdate(time, player->mListener.userData);
         }
     }
 

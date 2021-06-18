@@ -626,6 +626,14 @@ int64_t SuperMediaPlayer::getCurrentPosition()
     return mCurrentPos;
 }
 
+void SuperMediaPlayer::NotifyUtcTime()
+{
+    if (mCurrentFrameUtcTime < 0) {
+        return;
+    }
+    mPNotifier->NotifyUtcTime(mCurrentFrameUtcTime / 1000);
+}
+
 void SuperMediaPlayer::SetScaleMode(ScaleMode mode)
 {
     if (mode == mSet->scaleMode) {
@@ -2494,6 +2502,7 @@ void SuperMediaPlayer::OnTimer(int64_t curTime)
         if ((mPlayStatus == PLAYER_PLAYING) && !isSeeking()) {
             //AF_LOGD("TIMEPOS OnTimer :%lld", getCurrentPosition());
             NotifyPosition(getCurrentPosition());
+            NotifyUtcTime();
         }
 
         PostBufferPositionMsg();
@@ -3746,6 +3755,7 @@ void SuperMediaPlayer::Reset()
     mDrmKeyValid = false;
     mPtsDiscontinueDelta = INT64_MIN;
     mCurrentPos = 0;
+    mCurrentFrameUtcTime = -1;
     mCATimeBase = 0;
     mWATimeBase = 0;
     mSuggestedPresentationDelay = 0;

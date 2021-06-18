@@ -38,6 +38,7 @@ public:
         int duration;
         int64_t pos;
         int64_t timePosition;
+        int64_t utcTime = INT64_MIN;
         bool seamlessPoint;
 
         uint8_t *extra_data;
@@ -204,6 +205,7 @@ public:
         int64_t duration;
         bool key;
         int64_t timePosition;
+        int64_t utcTime;
         union {
             videoInfo video;
             audioInfo audio;

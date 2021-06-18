@@ -248,14 +248,20 @@ namespace Cicada {
 
 #endif
         int64_t timePosition = INT64_MIN;
+        int64_t utcTime = INT64_MIN;
         if (mPDecoder->avFrame->metadata){
             AVDictionaryEntry *t = av_dict_get(mPDecoder->avFrame->metadata,"timePosition", nullptr,AV_DICT_IGNORE_SUFFIX);
             if (t){
                 timePosition = atoll(t->value);
             }
+            AVDictionaryEntry *utcEntry = av_dict_get(mPDecoder->avFrame->metadata, "utcTime", nullptr, AV_DICT_IGNORE_SUFFIX);
+            if (utcEntry) {
+                utcTime = atoll(utcEntry->value);
+            }
         }
         pFrame = unique_ptr<IAFFrame>(new AVAFFrame(mPDecoder->avFrame));
         pFrame->getInfo().timePosition = timePosition;
+        pFrame->getInfo().utcTime = utcTime;
         return ret;
     };
 
@@ -286,6 +292,7 @@ namespace Cicada {
             AVDictionary *dict = nullptr;
             int size = 0;
             av_dict_set_int(&dict,"timePosition",pPacket->getInfo().timePosition,0);
+            av_dict_set_int(&dict,"utcTime",pPacket->getInfo().utcTime,0);
             uint8_t *metadata = av_packet_pack_dictionary(dict, &size);
             av_dict_free(&dict);
 

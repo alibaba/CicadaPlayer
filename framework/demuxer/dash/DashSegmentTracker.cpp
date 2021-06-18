@@ -809,7 +809,7 @@ int64_t DashSegmentTracker::getLiveDelay() const
 
 int64_t DashSegmentTracker::getDurationToStartStream() const
 {
-    if (mPPlayList == nullptr || mRep == nullptr) {
+    if (mPPlayList == nullptr || mRep == nullptr || mPPlayList->availabilityStartTime < 0) {
         return -1;
     }
     int64_t minavailtime = mPPlayList->availabilityStartTime + mRep->getPeriodStart();
@@ -835,7 +835,7 @@ int64_t DashSegmentTracker::getSegmentDuration() const
 
 int64_t DashSegmentTracker::getStreamStartTime() const
 {
-    if (mPPlayList == nullptr || mRep == nullptr) {
+    if (mPPlayList == nullptr || mRep == nullptr || mPPlayList->availabilityStartTime < 0) {
         return -1;
     }
     return mPPlayList->availabilityStartTime + mRep->getPeriodStart();

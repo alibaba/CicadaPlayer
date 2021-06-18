@@ -1114,6 +1114,9 @@ namespace Cicada {
 
                 for (int i = 0; i < nbStreams; i++) {
                     mStreamStartTimeMap[i].timePosition = mCurSeg->startTime;
+                    if (mCurSeg->utcTime >= 0) {
+                        mStreamStartTimeMap[i].utcTime = mCurSeg->utcTime;
+                    }
                     mStreamStartTimeMap[i].seamlessPoint = true;
                 }
 
@@ -1126,6 +1129,9 @@ namespace Cicada {
             if (mStreamStartTimeMap[streamIndex].seamlessPoint) {
                 if (packet->getInfo().pts != INT64_MIN) {
                     mStreamStartTimeMap[streamIndex].time2ptsDelta = mStreamStartTimeMap[streamIndex].timePosition - packet->getInfo().pts;
+                    if ( mStreamStartTimeMap[streamIndex].utcTime >= 0) {
+                        mStreamStartTimeMap[streamIndex].utc2ptsDelta = mStreamStartTimeMap[streamIndex].utcTime - packet->getInfo().pts;
+                    }
                 }
 
                 mStreamStartTimeMap[streamIndex].seamlessPoint = false;
@@ -1145,6 +1151,11 @@ namespace Cicada {
                 packet->getInfo().timePosition = packet->getInfo().pts + mStreamStartTimeMap[streamIndex].time2ptsDelta;
             } else {
                 packet->getInfo().timePosition = INT64_MIN;
+            }
+            if (packet->getInfo().pts != INT64_MIN && mStreamStartTimeMap[streamIndex].utc2ptsDelta != INT64_MIN) {
+                packet->getInfo().utcTime = packet->getInfo().pts + mStreamStartTimeMap[streamIndex].utc2ptsDelta;
+            } else {
+                packet->getInfo().utcTime = INT64_MIN;
             }
 
             if (packet->getInfo().pts != INT64_MIN) {

@@ -41,6 +41,8 @@ namespace Cicada {
 
         void NotifyPosition(int64_t pos);
 
+        void NotifyUtcTime(int64_t time);
+
         void NotifyCurrentDownloadSpeed(float speed);
 
         void NotifyBufferPosition(int64_t pos);

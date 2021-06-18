@@ -26,16 +26,7 @@
 #define NTP_TIMESTAMP_DELTA 2208988800ull
 using namespace Cicada;
 using namespace std;
-class UTCTime {
-public:
-    explicit UTCTime(const string &);
-    explicit UTCTime(uint64_t);
-    uint64_t mtime() const;
-    uint64_t time() const;
 
-private:
-    uint64_t t;//us
-};
 typedef struct ntp_packet_t {
 
     uint8_t li_vn_mode;// Eight bits. li, vn, and mode.

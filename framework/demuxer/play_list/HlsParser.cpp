@@ -160,7 +160,7 @@ namespace Cicada {
         rep->b_live = true;
         mtime_t totalduration = 0;
         mtime_t nzStartTime = 0;
-        mtime_t absReferenceTime = 0;
+        mtime_t absReferenceTime = INT64_MIN;
         uint64_t sequenceNumber = 0;
         uint64_t discontinuityNum = 0;
         std::size_t prevbyterangeoffset = 0;
@@ -223,10 +223,10 @@ namespace Cicada {
                     pSegment->startTime = static_cast<uint64_t>(nzStartTime);
                     nzStartTime += nzDuration;
                     totalduration += nzDuration;
-                    //if (absReferenceTime > VLC_TS_INVALID) {
-                    //    segment->utcTime = absReferenceTime;
-                    //    absReferenceTime += nzDuration;
-                    //}
+                    if (absReferenceTime >= 0) {
+                        pSegment->utcTime = absReferenceTime;
+                        absReferenceTime += nzDuration;
+                    }
                     pSegment->init_section = curInitSegment;
                     segmentList->addSegment(pSegment);
 
@@ -264,11 +264,12 @@ namespace Cicada {
                     ctx_byterange = static_cast<const SingleValueTag *>(tag);
                     break;
 
-                case SingleValueTag::EXTXPROGRAMDATETIME:
-//                    rep->b_consistent = false;
-//                    absReferenceTime = VLC_TS_0 +
-//                                       UTCTime(static_cast<const SingleValueTag *>(tag)->getValue().value).mtime();
-                    break;
+                case SingleValueTag::EXTXPROGRAMDATETIME: {
+                    //rep->b_consistent = false;
+                    std::string timeValue = static_cast<const SingleValueTag *>(tag)->getValue().value;
+                    absReferenceTime = UTCTime(timeValue).time();
+                }
+                break;
 
                 case AttributesTag::EXTXKEY: {
 

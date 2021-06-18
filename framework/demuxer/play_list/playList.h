@@ -63,8 +63,8 @@ namespace Cicada{
         std::string type;
         int64_t minBufferTime{0};
         int64_t maxBufferTime{0};
-        int64_t availabilityStartTime{0};
-        int64_t availabilityEndTime{0};
+        int64_t availabilityStartTime{-1};
+        int64_t availabilityEndTime{-1};
         int64_t timeShiftBufferDepth{0};
         int64_t suggestedPresentationDelay{0};
 

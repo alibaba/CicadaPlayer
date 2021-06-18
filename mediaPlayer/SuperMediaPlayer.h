@@ -227,6 +227,8 @@ namespace Cicada {
     private:
         void NotifyPosition(int64_t position);
 
+        void NotifyUtcTime();
+
         void OnTimer(int64_t curTime);
 
         int updateLoopGap();
@@ -344,6 +346,7 @@ namespace Cicada {
         int setUpAudioRender(const IAFFrame::audioInfo &info);
 
         std::atomic<int64_t> mCurrentPos{};
+        std::atomic<int64_t> mCurrentFrameUtcTime{};
 
         void printTimePosition(int64_t time) const;
 

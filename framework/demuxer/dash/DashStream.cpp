@@ -778,6 +778,9 @@ int DashStream::read_internal(std::unique_ptr<IAFPacket> &packet)
 
             for (int i = 0; i < nbStreams; i++) {
                 mStreamStartTimeMap[i].timePosition = mCurSeg->fixedStartTime;
+                if (mStreamStartTime >= 0) {
+                    mStreamStartTimeMap[i].utcTime = mStreamStartTime + mCurSeg->fixedStartTime;
+                }
                 mStreamStartTimeMap[i].seamlessPoint = true;
             }
 
@@ -790,6 +793,9 @@ int DashStream::read_internal(std::unique_ptr<IAFPacket> &packet)
         if (mStreamStartTimeMap[streamIndex].seamlessPoint) {
             if (packet->getInfo().pts != INT64_MIN) {
                 mStreamStartTimeMap[streamIndex].time2ptsDelta = mStreamStartTimeMap[streamIndex].timePosition - packet->getInfo().pts;
+                if (mStreamStartTimeMap[streamIndex].utcTime >= 0) {
+                    mStreamStartTimeMap[streamIndex].utc2ptsDelta = mStreamStartTimeMap[streamIndex].utcTime - packet->getInfo().pts;
+                }
             }
 
             mStreamStartTimeMap[streamIndex].seamlessPoint = false;
@@ -808,6 +814,11 @@ int DashStream::read_internal(std::unique_ptr<IAFPacket> &packet)
             packet->getInfo().timePosition = packet->getInfo().pts + mStreamStartTimeMap[streamIndex].time2ptsDelta;
         } else {
             packet->getInfo().timePosition = INT64_MIN;
+        }
+        if (packet->getInfo().pts != INT64_MIN && mStreamStartTimeMap[streamIndex].utc2ptsDelta != INT64_MIN) {
+            packet->getInfo().utcTime = packet->getInfo().pts + mStreamStartTimeMap[streamIndex].utc2ptsDelta;
+        } else {
+            packet->getInfo().utcTime = INT64_MIN;
         }
 
         if (packet->getInfo().pts != INT64_MIN) {

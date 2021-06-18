@@ -214,6 +214,18 @@ namespace Cicada {
         pushEvent(event);
     }
 
+    void PlayerNotifier::NotifyUtcTime(int64_t time)
+    {
+        AF_LOGD("NotifyUtcTime() :%lld", time);
+
+        if (!mEnable || mListener.UtcTimeUpdate == nullptr) {
+            return;
+        }
+
+        auto *event = new player_event(time, mListener.UtcTimeUpdate);
+        pushEvent(event);
+    }
+
     void PlayerNotifier::NotifyBufferPosition(int64_t pos)
     {
         if (!mEnable || mListener.BufferPositionUpdate == nullptr) {
