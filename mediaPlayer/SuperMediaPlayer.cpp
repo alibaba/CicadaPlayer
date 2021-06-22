@@ -2336,6 +2336,7 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
 
     int64_t masterPlayedTime = mMasterClock.GetTime();
     int64_t videoLateUs = masterPlayedTime - videoPts;// if videoLateUs > 0, video is late
+    videoLateUs -= mVideoDelayTime;
 
     /*
          *  if stc is free, video rectify it
@@ -3911,6 +3912,11 @@ int SuperMediaPlayer::selectExtSubtitle(int index, bool bSelect)
 
 int SuperMediaPlayer::setStreamDelay(int index, int64_t time)
 {
+    // FIXME : delay all video here now
+    if ((HAVE_VIDEO && (index == mCurrentVideoIndex)) || index == -1) {
+        mVideoDelayTime = time * 1000;
+        return 0;
+    }
     if (!(index & EXT_STREAM_BASE) || !mSubPlayer) {
         AF_LOGE("setStreamDelay support ext subtitle only for now\n");
         return -ENOSYS;

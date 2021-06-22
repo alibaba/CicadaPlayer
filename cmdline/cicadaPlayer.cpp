@@ -185,6 +185,7 @@ int main(int argc, char *argv[])
     player->Prepare();
     player->SelectTrack(-1);
     player->SetOnRenderFrameCallback(CicadaOnRenderFrame, nullptr);
+    //    player->SetStreamDelayTime(-1, -200);
     bool quite = false;
 
     while (!quite && !cicada.error) {
