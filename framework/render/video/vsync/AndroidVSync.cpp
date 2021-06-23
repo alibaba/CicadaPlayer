@@ -106,6 +106,7 @@ void AndroidVSync::start()
         jobject newObject = handle->NewObject(gj_VsyncTimerClass, gj_VsyncTimer_init,
                                               ptr);
         mVsyncTimer = handle->NewGlobalRef(newObject);
+        handle->DeleteLocalRef(newObject);
     }
 
     handle->CallVoidMethod(mVsyncTimer, gj_VsyncTimer_start);

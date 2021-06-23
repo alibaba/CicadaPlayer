@@ -424,7 +424,9 @@ int AudioTrackRender::device_write_internal(IAFFrame *frame)
     int len = getPCMDataLen(audioInfo->channels, static_cast<AVSampleFormat>(audioInfo->format), audioInfo->nb_samples);
 
     if (jbuffer == nullptr) {
-        jbuffer = handle->NewGlobalRef(handle->NewByteArray(len));
+        jbyteArray obj = handle->NewByteArray(len);
+        jbuffer = handle->NewGlobalRef(obj);
+        handle->DeleteLocalRef(obj);
     }
 
     bool rendered = false;
