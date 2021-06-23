@@ -108,7 +108,7 @@ private:
     std::atomic<uint64_t> mAudioFlushPosition{0};
 
     std::atomic<uint64_t> mSendSimples{0};
-    int mSimpleSize{0};
+    int jBufferLen{0};
     jobject jbuffer{nullptr};
 
     Cicada::SpscQueue<IAFFrame *> mFrameQueue;
