@@ -89,8 +89,6 @@ int AudioTrackRender::init_device()
         return ret;
     }
 
-    mSimpleSize = mOutputInfo.nb_samples;
-
     mWriteThread = NEW_AF_THREAD(write_loop);
     if (mRunning) {
         mWriteThread->start();
@@ -412,19 +410,18 @@ int AudioTrackRender::device_write_internal(IAFFrame *frame)
     JniEnv  jniEnv;
     JNIEnv *handle = jniEnv.getEnv();
 
-    if (audioInfo->nb_samples != mSimpleSize) {
+    int len = getPCMDataLen(audioInfo->channels, static_cast<AVSampleFormat>(audioInfo->format), audioInfo->nb_samples);
+
+    if (len > jBufferLen) {
         if (jbuffer != nullptr) {
             handle->DeleteGlobalRef(jbuffer);
             jbuffer = nullptr;
         }
-
-        mSimpleSize = audioInfo->nb_samples;
+        jBufferLen = len;
     }
 
-    int len = getPCMDataLen(audioInfo->channels, static_cast<AVSampleFormat>(audioInfo->format), audioInfo->nb_samples);
-
     if (jbuffer == nullptr) {
-        jbyteArray obj = handle->NewByteArray(len);
+        jbyteArray obj = handle->NewByteArray(jBufferLen);
         jbuffer = handle->NewGlobalRef(obj);
         handle->DeleteLocalRef(obj);
     }
@@ -437,7 +434,7 @@ int AudioTrackRender::device_write_internal(IAFFrame *frame)
     if (audio_track && method_write) {
         handle->SetByteArrayRegion(static_cast<jbyteArray>(jbuffer), 0, len, (jbyte *) frame->getData()[0]);
         handle->CallIntMethod(audio_track, method_write, jbuffer, 0, len);
-        mSendSimples += mSimpleSize;
+        mSendSimples += audioInfo->nb_samples;
     }
     return 0;
 }
