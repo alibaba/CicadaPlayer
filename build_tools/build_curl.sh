@@ -77,6 +77,7 @@ function build_curl(){
                 --disable-tftp \
                 --disable-smb \
                 --disable-smbs \
+                --disable-mqtt \
                 --disable-dict \
                 --without-gnutls \
                 --without-libidn2 \
