@@ -380,8 +380,15 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
 
 
     if (mNeedReconnect) {
+        rangeStart = mPConnection->tell();
         Close();
-        mNeedReconnect = false;
+        int ret = Open(0);
+        if (ret < 0) {
+            AF_LOGE("reConnect error on seek %s\n", framework_err2_string(ret));
+        } else {
+            mNeedReconnect = false;
+        }
+        return ret;
     }
 
     for (auto item = mConnections->begin(); item != mConnections->end();) {
