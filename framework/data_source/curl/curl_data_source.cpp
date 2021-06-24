@@ -380,7 +380,7 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
 
 
     if (mNeedReconnect) {
-        rangeStart = mPConnection->tell();
+        rangeStart = offset;
         Close();
         int ret = Open(0);
         if (ret < 0) {
