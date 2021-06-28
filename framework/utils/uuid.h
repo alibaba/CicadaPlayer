@@ -122,6 +122,9 @@ extern "C" {
 #  pragma comment(lib, "Ole32.lib")
 #endif
 
+#if defined(__MINGW32__)
+#include <combaseapi.h>
+#endif
 #if defined( __APPLE__ )
 #include <CoreFoundation/CFUUID.h>
 #endif
@@ -382,9 +385,9 @@ void uuid4_generate( uuid* res )
 	if( read != 36 )
 		return;
 	uuid_from_string( uuid_str, res );
-#elif defined(_MSC_VER)
-	GUID g;
-	HRESULT hres = CoCreateGuid( &g );
+#elif defined(_MSC_VER) || defined(__MINGW32__)
+    GUID g;
+    HRESULT hres = CoCreateGuid( &g );
 	if( hres != S_OK )
 		return;
 	// ... endian swap to little endian to make uuid memcpy:able ...
