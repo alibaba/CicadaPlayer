@@ -76,7 +76,7 @@ target_link_libraries(cicadaPlayer PRIVATE
 if (NOT MSVC)
 	target_link_libraries(cicadaPlayer PRIVATE
         curl
-        xml2)
+        )
 endif()
 if (ENABLE_SDL AND NOT MSVC)
     target_link_libraries(cicadaPlayer PUBLIC
