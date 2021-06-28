@@ -25,9 +25,14 @@ FileCntl::~FileCntl()
 
 void FileCntl::openFile()
 {
-#ifdef WIN32
+
+#ifdef WIN32// Windows
+#ifdef _MSC_VER
     _set_fmode(_O_BINARY);
-#endif // WIN32
+#else //MinGW
+    _fmode = _O_BINARY;
+#endif// _MSC_VER
+#endif// WIN32
     mFd = open(mFilePath.c_str(), O_RDWR | O_CREAT, 0666);
 }
 

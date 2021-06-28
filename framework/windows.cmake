@@ -43,6 +43,7 @@ else ()
         ${SDL_DIR}/${ARCH}-w64-mingw32/lib
         )
   set(FFMPEG_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/../external/external/ffmpeg/)
+  set(FFMPEG_BUILD_DIR ${CMAKE_CURRENT_LIST_DIR}/../external/build/ffmpeg/win32/${ARCH})
   set(COMMON_INC_DIR ${COMMON_INC_DIR}
         ${WINDOWS_INSTALL_DIR}/curl/win32/${ARCH}/include
         ${WINDOWS_INSTALL_DIR}/librtmp/win32/${ARCH}/include
@@ -50,6 +51,7 @@ else ()
         ${WINDOWS_INSTALL_DIR}/ffmpeg/win32/${ARCH}/include
         ${PROJECT_SOURCE_DIR}
         ${FFMPEG_SOURCE_DIR}
+        ${FFMPEG_BUILD_DIR}
         ${CMAKE_CURRENT_LIST_DIR}/../external/boost
         ${SDL_DIR}/${ARCH}-w64-mingw32/include)
 endif ()
