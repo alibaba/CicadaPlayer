@@ -668,6 +668,12 @@ void SMPMessageControllerListener::ProcessVideoHoldMsg(bool hold)
 
 void SMPMessageControllerListener::ProcessSetSpeed(float speed)
 {
+    if (speed < 0.5f) {
+        speed = 0.5f;
+    } else if (speed > 2.0f) {
+        speed = 2.0f;
+    }
+
     if (!CicadaUtils::isEqual(mPlayer.mSet->rate, speed)) {
         mPlayer.mAVDeviceManager->setSpeed(speed);
         mPlayer.mSet->rate = speed;
