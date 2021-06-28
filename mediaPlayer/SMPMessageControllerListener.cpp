@@ -712,6 +712,8 @@ void SMPMessageControllerListener::ProcessSelectExtSubtitleMsg(int index, bool s
 
     if (select) {
         mPlayer.mSubPlayer->seek(mPlayer.getCurrentPosition());
+        std::string header = mPlayer.mSubPlayer->getHeader(index);
+        mPlayer.mPNotifier->NotifySubtitleHeader(index, header.c_str());
     }
 }
 

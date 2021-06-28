@@ -55,6 +55,8 @@ namespace Cicada {
 
         void NotifySubtitleEvent(subTitle_event id, IAFPacket *packet, int64_t index, const char *url);
 
+        void NotifySubtitleHeader(int64_t index, const char *header);
+
         void NotifyError(int code, const char *desc);
 
         void NotifyEvent(int code, const char *desc);

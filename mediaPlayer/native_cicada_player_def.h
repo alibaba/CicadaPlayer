@@ -121,6 +121,7 @@ typedef struct playerListener_t {
     playerType123Callback SubtitleHide;
     playerType123Callback SubtitleShow;
     playerType13Callback SubtitleExtAdd;
+    playerType13Callback SubtitleHeader;
     void *userData;
 } playerListener;
 

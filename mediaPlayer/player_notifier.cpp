@@ -329,6 +329,22 @@ namespace Cicada {
         pushEvent(event);
     }
 
+    void PlayerNotifier::NotifySubtitleHeader(int64_t index, const char *header)
+    {
+        if (!mEnable) {
+            return;
+        }
+
+        player_event *event = nullptr;
+        if (mListener.SubtitleHeader) {
+            event = new player_event(index, strdup(header), mListener.SubtitleHeader);
+        }
+        if (event == nullptr) {
+            return;
+        }
+        pushEvent(event);
+    }
+
     void PlayerNotifier::NotifyEvent(int code, const char *desc)
     {
         if (!mEnable || mListener.EventCallback == nullptr) {

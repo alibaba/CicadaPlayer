@@ -394,6 +394,8 @@ namespace Cicada {
 
         static void subtitleExtAddedCallback(int64_t index, const void *url, void *userData);
 
+        static void subtitleHeaderCallback(int64_t index, const void *header, void *userData);
+
         static void streamChangedSucCallback(int64_t type, const void *Info, void *userData);
 
         static void PlayerSeeking(int64_t seekInCache, void *userData);

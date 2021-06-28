@@ -66,6 +66,8 @@ set(SOURCE_FILES
         UTCTimer.h
         globalNetWorkManager.cpp
         globalNetWorkManager.h
+        AssUtils.cpp
+        AssUtils.h
         )
 
 list(APPEND SOURCE_FILES

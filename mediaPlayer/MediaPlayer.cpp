@@ -57,6 +57,7 @@ namespace Cicada {
         listener.SubtitleShow = subtitleShowCallback;
         listener.SubtitleHide = subtitleHideCallback;
         listener.SubtitleExtAdd = subtitleExtAddedCallback;
+        listener.SubtitleHeader = subtitleHeaderCallback;
         listener.MediaInfoGet = mediaInfoGetCallback;
         listener.StreamSwitchSuc = streamChangedSucCallback;
         listener.StatusChanged = PlayerStatusChanged;
@@ -923,6 +924,15 @@ namespace Cicada {
 
         if (player->mListener.SubtitleExtAdd) {
             player->mListener.SubtitleExtAdd(index, url, player->mListener.userData);
+        }
+    }
+
+    void MediaPlayer::subtitleHeaderCallback(int64_t index, const void *header, void *userData)
+    {
+        GET_MEDIA_PLAYER
+
+        if (player->mListener.SubtitleHeader) {
+            player->mListener.SubtitleHeader(index, header, player->mListener.userData);
         }
     }
 
