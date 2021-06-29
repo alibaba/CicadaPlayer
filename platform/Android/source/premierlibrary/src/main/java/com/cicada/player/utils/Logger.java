@@ -8,8 +8,7 @@ public class Logger {
     private static String TAG = "Logger";
 
     static {
-        System.loadLibrary("alivcffmpeg");
-        System.loadLibrary("CicadaPlayer");
+        NativeLoader.loadPlayer();
     }
 
     /**

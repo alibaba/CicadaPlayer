@@ -5,15 +5,16 @@ import android.view.Surface;
 
 import com.cicada.player.CicadaExternalPlayer;
 import com.cicada.player.CicadaPlayer;
+import com.cicada.player.utils.NativeLoader;
 import com.cicada.player.utils.NativeUsed;
 
 @NativeUsed
 public class NativeExternalPlayer {
 
     static {
-        System.loadLibrary("alivcffmpeg");
-        System.loadLibrary("CicadaPlayer");
+        NativeLoader.loadPlayer();
     }
+
 
     private CicadaExternalPlayer mExternPlayer = null;
 

@@ -1,11 +1,13 @@
 package com.cicada.player.utils.ass;
 
+import com.cicada.player.utils.NativeLoader;
+
 public class AssUtils {
 
     static {
-        System.loadLibrary("alivcffmpeg");
-        System.loadLibrary("CicadaPlayer");
+        NativeLoader.loadPlayer();
     }
+
 
     public static AssHeader parseAssHeader(String header) {
         return (AssHeader) nParseAssHeader(header);

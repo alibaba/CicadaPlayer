@@ -1,12 +1,14 @@
 package com.cicada.player;
 
 
+import com.cicada.player.utils.NativeLoader;
+
 public class CicadaPlayerGlobalSettings {
 
     static {
-        System.loadLibrary("alivcffmpeg");
-        System.loadLibrary("CicadaPlayer");
+        NativeLoader.loadPlayer();
     }
+
 
     /**
      * 设置域名对应的解析ip
