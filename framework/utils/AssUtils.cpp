@@ -4,8 +4,11 @@
 
 #include "AssUtils.h"
 #include "frame_work_log.h"
-#include "string.h"
 #include <algorithm>
+#include <climits>
+#include <cstdlib>
+#include <cstring>
+
 
 using namespace Cicada;
 
@@ -24,11 +27,15 @@ void rskip_spaces(char **str, char *limit)
     while ((p > limit) && ((p[-1] == ' ') || (p[-1] == '\t'))) --p;
     *str = p;
 }
+#ifdef _MSC_VER
+#define strcasecmp  stricmp
+#define strncasecmp  strnicmp
+#endif
 
 static char parse_bool(char *str)
 {
     skip_spaces(&str);
-    return !strnicmp(str, "yes", 3) || std::strtol(str, nullptr, 10) > 0;
+    return !strncasecmp(str, "yes", 3) || std::strtol(str, nullptr, 10) > 0;
 }
 
 static int process_info_line(AssHeader &header, ParserState &state, char *str)
@@ -108,7 +115,7 @@ static int mystrtou32_modulo(char **p, unsigned base, uint32_t *res)
     else if (**p == '-')
         sign = -1, ++*p;
 
-    if (base == 16 && !strnicmp(*p, "0x", 2)) *p += 2;
+    if (base == 16 && !strncasecmp(*p, "0x", 2)) *p += 2;
 
     if (read_digits(p, base, res)) {
         *res *= sign;
@@ -133,7 +140,7 @@ uint32_t parse_color_header(char *str)
     uint32_t color = 0;
     unsigned base;
 
-    if (!strnicmp(str, "&h", 2) || !strnicmp(str, "0x", 2)) {
+    if (!strncasecmp(str, "&h", 2) || !strncasecmp(str, "0x", 2)) {
         str += 2;
         base = 16;
     } else
@@ -149,7 +156,7 @@ uint32_t parse_color_header(char *str)
 
 
 #define ALIAS(alias,name) \
-        if (stricmp(tname, #alias) == 0) {tname = #name;}
+        if (strcasecmp(tname, #alias) == 0) {tname = #name;}
 
 /* One section started with PARSE_START and PARSE_END parses a single token
  * (contained in the variable named token) for the header indicated by the
@@ -165,15 +172,15 @@ uint32_t parse_color_header(char *str)
 #define PARSE_END   }
 
 #define ANYVAL(name,func) \
-    } else if (stricmp(tname, #name) == 0) { \
+    } else if (strcasecmp(tname, #name) == 0) { \
         target.name = func(token);
 
 #define STRVAL(name) \
-    } else if (stricmp(tname, #name) == 0) { \
+    } else if (strcasecmp(tname, #name) == 0) { \
         target.name = token; \
 
 #define STARREDSTRVAL(name) \
-    } else if (stricmp(tname, #name) == 0) { \
+    } else if (strcasecmp(tname, #name) == 0) { \
         while (*token == '*') ++token; \
         target.name = token; \
 
@@ -313,17 +320,17 @@ static int process_events_line(AssHeader &header, ParserState &state, char *str)
 static int process_line(AssHeader& header, ParserState& state, char *str)
 {
     skip_spaces(&str);
-    if (!strnicmp(str, "[Script Info]", 13)) {
+    if (!strncasecmp(str, "[Script Info]", 13)) {
         state = PST_INFO;
-    } else if (!strnicmp(str, "[V4 Styles]", 11)) {
+    } else if (!strncasecmp(str, "[V4 Styles]", 11)) {
         state = PST_STYLES;
         header.Type = SubtitleTypeSsa;
-    } else if (!strnicmp(str, "[V4+ Styles]", 12)) {
+    } else if (!strncasecmp(str, "[V4+ Styles]", 12)) {
         state = PST_STYLES;
         header.Type = SubtitleTypeAss;
-    } else if (!strnicmp(str, "[Events]", 8)) {
+    } else if (!strncasecmp(str, "[Events]", 8)) {
         state = PST_EVENTS;
-    } else if (!strnicmp(str, "[Fonts]", 7)) {
+    } else if (!strncasecmp(str, "[Fonts]", 7)) {
         state = PST_FONTS;
     } else {
         switch (state) {
@@ -362,14 +369,14 @@ static int process_event_tail(const AssHeader &header, AssDialogue& event, char 
     token = next_token(&p);
     while (1) {
         NEXT(q, tname);
-        if (stricmp(tname, "Text") == 0) {
+        if (strcasecmp(tname, "Text") == 0) {
             event.Text = p;
             if (!event.Text.empty() && event.Text[event.Text.length() - 1] == '\r') {
                 event.Text.erase(event.Text.length() - 1);
             }
             free(format);
             return !event.Text.empty() ? 0 : -1;// "Text" is always the last
-        } else if (stricmp(tname, "Start") == 0 || stricmp(tname, "End") == 0) {
+        } else if (strcasecmp(tname, "Start") == 0 || strcasecmp(tname, "End") == 0) {
             continue;
         }
         NEXT(p, token);
