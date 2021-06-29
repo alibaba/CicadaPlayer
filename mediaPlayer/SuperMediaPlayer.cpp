@@ -3966,7 +3966,9 @@ void SuperMediaPlayer::ProcessUpdateView()
         //TODO set widevine level  by user
         videoTag |= VideoTag::VIDEO_TAG_WIDEVINE_L1;
     }
-    mUpdateViewCB(videoTag, mUpdateViewCBUserData);
+    if (mUpdateViewCB != nullptr) {
+        mUpdateViewCB(videoTag, mUpdateViewCBUserData);
+    }
 #endif
 }
 
