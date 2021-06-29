@@ -1034,6 +1034,18 @@ public class NativePlayerBase {
         });
     }
 
+    protected void onSubtitleHeader(final int trackIndex, final String header) {
+        Logger.v(TAG, "onSubtitleHeader  = " + trackIndex + " , header = " + header);
+        mCurrentThreadHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mOnSubtitleDisplayListener != null) {
+                    mOnSubtitleDisplayListener.onSubtitleHeader(trackIndex, header);
+                }
+            }
+        });
+    }
+
 
     protected void onCaptureScreen(final int width, final int height, final byte[] buffer) {
         Logger.v(TAG, "onCaptureScreen . width = " + width + " , height = " + height);

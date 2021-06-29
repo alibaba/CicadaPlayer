@@ -313,11 +313,25 @@ import java.lang.ref.WeakReference;
         }
 
         @Override
+        public void onSubtitleHeader(int trackIndex, String header) {
+            CicadaPlayerImpl cicadaPlayerImpl = cicadaPlayerImplWR.get();
+            if (cicadaPlayerImpl != null) {
+                cicadaPlayerImpl.onSubtitleHeader(trackIndex, header);
+            }
+        }
+
+        @Override
         public void onSubtitleExtAdded(int id, String url) {
             CicadaPlayerImpl cicadaPlayerImpl = cicadaPlayerImplWR.get();
             if (cicadaPlayerImpl != null) {
                 cicadaPlayerImpl.onSubtitleExtAdded(id,url);
             }
+        }
+    }
+
+    private void onSubtitleHeader(int trackIndex, String header) {
+        if (mOutOnSubtitleDisplayListener != null) {
+            mOutOnSubtitleDisplayListener.onSubtitleHeader(trackIndex, header);
         }
     }
 

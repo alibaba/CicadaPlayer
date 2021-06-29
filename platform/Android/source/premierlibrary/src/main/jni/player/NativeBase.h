@@ -203,6 +203,8 @@ public:
     static void
     jni_onHideSubtitle(int64_t id, int64_t size, const void *content, void *userData);
 
+    static void jni_onSubTitleHeader(int64_t id, const void *header, void *userData);
+
     static void
     jni_onCaptureScreen(int64_t width, int64_t height, const void *buffer,/*void *extra,*/
                         void *userData);

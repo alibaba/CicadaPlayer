@@ -1129,7 +1129,7 @@ public class CicadaVodPlayerView extends FrameLayout {
                 }
 
                 byte[] requestData = HttpClientHelper.post(defaultUrl, data);
-                Log.d(TAG , "requestKey data = " + requestData);
+                Log.d(TAG, "requestKey data = " + requestData);
                 return requestData;
             }
         });
@@ -1336,6 +1336,11 @@ public class CicadaVodPlayerView extends FrameLayout {
             @Override
             public void onSubtitleHide(int trackIndex, long id) {
                 subtitleView.dismiss(id + "");
+            }
+
+            @Override
+            public void onSubtitleHeader(int trackIndex, String header) {
+
             }
         });
 

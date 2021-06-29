@@ -282,6 +282,11 @@ public class CicadaPlayerActivity extends BaseActivity implements View.OnClickLi
             public void onSubtitleHide(int i, long l) {
 
             }
+
+            @Override
+            public void onSubtitleHeader(int trackIndex, String header) {
+
+            }
         });
 
         //track变换回调
