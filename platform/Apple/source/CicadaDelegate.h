@@ -169,6 +169,22 @@
  */
 - (void)onSubtitleExtAdded:(CicadaPlayer*)player trackIndex:(int)trackIndex URL:(NSString *)URL;
 
+
+/**
+ @brief 字幕头信息回调，ass字幕，如果实现了此回调，则播放器不会渲染字幕，由调用者完成渲染，否则播放器自动完成字幕的渲染
+ @param player 播放器player指针
+ @param index 字幕显示的索引号
+ @param header 头内容
+ */
+/****
+ @brief subtitle header info callback,
+        for ass, player will not render the subtitle when this is implemented by user
+ @param player Player pointer.
+ @param trackIndex Subtitle index.
+ @param URL subtitle url
+ */
+- (void)onSubtitleHeader:(CicadaPlayer *)player trackIndex:(int)trackIndex Header:(NSString *)header;
+
 /**
  @brief 字幕显示回调
  @param player 播放器player指针

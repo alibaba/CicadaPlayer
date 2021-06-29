@@ -168,6 +168,7 @@ void CicadaOCHelper::getListener(playerListener &listener)
     listener.CaptureScreen = onCaptureScreen;
     listener.SubtitleShow = onShowSubtitle;
     listener.SubtitleHide = onHideSubtitle;
+    listener.SubtitleHeader = onSubtitleHeader;
     listener.VideoRendered = onVideoRendered;
     listener.AudioRendered = onAudioRendered;
     listener.EventCallback = onEvent;
@@ -387,6 +388,24 @@ void CicadaOCHelper::onSubtitleExtAdd(int64_t index, const void *url, void *user
         dispatch_async(dispatch_get_main_queue(), ^{
             [player.delegate onSubtitleExtAdded:player trackIndex:(int)index URL:str];
         });
+    }
+}
+
+void CicadaOCHelper::onSubtitleHeader(int64_t index, const void *header, void *userData)
+{
+    __weak CicadaPlayer *player = getOCPlayer(userData);
+    NSString *str = [NSString stringWithUTF8String:(const char *) header];
+
+    if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleHeader:trackIndex:Header:)]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          [player.delegate onSubtitleHeader:player trackIndex:(int) index Header:str];
+        });
+    } else {
+        // TODO:
+        /*
+         * 1. detect whether a ass header
+         * 2. create a subtitle layer and add to mView
+         */
     }
 }
 

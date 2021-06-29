@@ -70,6 +70,7 @@ protected:
     static void onHideSubtitle(int64_t index, int64_t size, const void *content,void *userData);
 
     static void onSubtitleExtAdd(int64_t index, const void *url, void *userData);
+    static void onSubtitleHeader(int64_t index, const void *header, void *userData);
 
     static void
     onCaptureScreen(int64_t width, int64_t height, const void *buffer,/*void *extra,*/
