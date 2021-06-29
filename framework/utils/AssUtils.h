@@ -72,6 +72,7 @@ namespace Cicada {
     class CICADA_CPLUS_EXTERN AssUtils {
     public:
         static AssHeader parseAssHeader(const std::string &header);
+
         static AssDialogue parseAssDialogue(const AssHeader &header, const std::string &data);
     };
 }// namespace Cicada
