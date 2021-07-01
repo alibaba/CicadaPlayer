@@ -28,7 +28,7 @@ namespace Cicada {
 
     private:
         globalNetWorkManager() = default;
-        ~globalNetWorkManager() = default;
+        ~globalNetWorkManager();
 
     private:
         std::mutex mMutex;

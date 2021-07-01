@@ -163,16 +163,17 @@ CurlDataSource::CurlDataSource(const string &url) : IDataSource(url)
 
 CurlDataSource::~CurlDataSource()
 {
-    AF_LOGI("!~CurlDataSource");
-
+    AF_LOGI("~CurlDataSource");
     if (mBDummy) {
         clean_curl();
         return;
     }
-    globalNetWorkManager::getGlobalNetWorkManager()->removeListener(this);
-
+    if (globalNetWorkManager::getGlobalNetWorkManager()) {
+        globalNetWorkManager::getGlobalNetWorkManager()->removeListener(this);
+    }
     Interrupt(true);
     Close();
+    AF_LOGI("~!CurlDataSource");
 }
 
 int CurlDataSource::Open(int flags)

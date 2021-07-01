@@ -7,10 +7,14 @@
 
 using namespace Cicada;
 using namespace std;
+static int alive = 1;
 globalNetWorkManager *globalNetWorkManager::getGlobalNetWorkManager()
 {
     static globalNetWorkManager sInstance{};
-    return &sInstance;
+    if (alive) {
+        return &sInstance;
+    }
+    return nullptr;
 }
 void globalNetWorkManager::addListener(globalNetWorkManager::globalNetWorkManagerListener *listener)
 {
@@ -34,4 +38,9 @@ void globalNetWorkManager::reConnect()
     for (auto item : mListeners) {
         item->OnReconnect();
     }
+}
+
+globalNetWorkManager::~globalNetWorkManager()
+{
+    alive = 0;
 }
