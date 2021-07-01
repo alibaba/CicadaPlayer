@@ -6,14 +6,15 @@
 #include "curl_data_source.h"
 #include <pthread.h>
 
-#include <utils/frame_work_log.h>
-#include <utils/errors/framework_error.h>
-#include <thread>
-#include <utils/timer.h>
-#include "utils/CicadaJSON.h"
-#include "utils/AsyncJob.h"
-#include "data_source/DataSourceUtils.h"
 #include "CURLShareInstance.h"
+#include "data_source/DataSourceUtils.h"
+#include "utils/AsyncJob.h"
+#include "utils/CicadaJSON.h"
+#include <thread>
+#include <utils/errors/framework_error.h>
+#include <utils/frame_work_log.h>
+#include <utils/property.h>
+#include <utils/timer.h>
 
 #ifdef WIN32
     #include <winsock2.h>
@@ -185,6 +186,10 @@ int CurlDataSource::Open(int flags)
     if (headerList) {
         curl_slist_free_all(headerList);
         headerList = nullptr;
+    }
+
+    if (getProperty("ro.network.http.globeHeader")) {
+        headerList = curl_slist_append(headerList, getProperty("ro.network.http.globeHeader"));
     }
 
     std::vector<std::string> &customHeaders = mConfig.customHeaders;
