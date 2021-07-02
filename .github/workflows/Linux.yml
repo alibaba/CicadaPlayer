@@ -17,9 +17,9 @@ jobs:
       - uses: actions/checkout@v2
       - name: build_external
         run: |
-        . setup.env
-        cd external/
-        ./build_external.sh Linux
+          . setup.env
+          cd external/
+          ./build_external.sh Linux
 
       - name: build cmdline
         run: |
