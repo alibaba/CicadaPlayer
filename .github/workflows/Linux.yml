@@ -18,8 +18,8 @@ jobs:
       - name: build_external
         run: |
         . setup.env
-        cd external
-        . build_external.sh Linux
+        cd external/
+        ./build_external.sh Linux
 
       - name: build cmdline
         run: |
