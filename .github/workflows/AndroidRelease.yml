@@ -2,9 +2,11 @@ name: Android Release
 
 on:
   push:
-    branches: [ release/* ]
+    branches: [ develop ]
+    #branches: [ release/* ]
   pull_request:
-    branches: [ release/* ]
+    branches: [ develop ]
+    #branches: [ release/* ]
 
 jobs:
   build:
