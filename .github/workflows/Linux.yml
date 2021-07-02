@@ -1,0 +1,30 @@
+name: Linux CI
+
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+      branches: [ develop ]
+
+
+jobs:
+
+  build:
+
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: build_external
+        run: |
+        . setup.env
+        cd external/
+        ./build_external.sh Linux
+
+      - name: build cmdline
+        run: |
+          cd cmdline/
+          mkdir build
+          cd build
+          cmake ../
+          make cicadaPlayer
