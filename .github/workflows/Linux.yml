@@ -27,7 +27,6 @@ jobs:
           tar zxf cmake-3.16.2-Linux-x86_64.tar.gz
           export PATH=`pwd`/cmake-3.16.2-Linux-x86_64/bin:$PATH
 #          cmake
-#          echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
           sudo apt-get install clang llvm
           echo  1 |sudo update-alternatives --config cc #select clang
 
