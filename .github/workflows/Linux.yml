@@ -15,16 +15,50 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-      - name: build_external
-        run: |
-          . setup.env
-          cd external/
-          ./build_external.sh Linux
+#      - name: build_external
+#        run: |
+#          . setup.env
+#          cd external/
+#          ./build_external.sh Linux
 
-      - name: build cmdline
+      - name: before install
         run: |
-          cd cmdline/
+          sudo apt-get update
+          sudo apt-get install -y yasm
+          sudo apt-get install -y libsdl2-dev
+          sudo apt-get install -y clang-format
+          wget "https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.16.2-Linux-x86_64.tar.gz"
+          tar zxf cmake-3.16.2-Linux-x86_64.tar.gz
+          export PATH=`pwd`/cmake-3.16.2-Linux-x86_64/bin:$PATH
+          echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
+      - name: build script
+        run: |
           mkdir build
           cd build
-          cmake ../
-          make cicadaPlayer
+          cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
+          cmake --build . --config Debug -j8
+
+      - name: script
+        run: |
+          mkdir build
+          cd build
+          cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
+          cmake --build . --config Debug -j8
+
+      - name: after_success
+        run: |
+          cd mediaPlayer/tests/
+          ctest -j8 --output-on-failure
+          bash <(curl -s https://codecov.io/bash) -x "llvm-cov gcov" || echo "Codecov did not collect coverage reports"
+          cd ../../framework/tests/
+          ctest -j8 --output-on-failure
+          bash <(curl -s https://codecov.io/bash) -x "llvm-cov gcov" || echo "Codecov did not collect coverage reports"
+
+#      - name: build cmdline
+#        run: |
+#          cd cmdline/
+#          mkdir build
+#          cd build
+#          cmake ../
+#          make cicadaPlayer
