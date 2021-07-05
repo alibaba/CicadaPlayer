@@ -40,11 +40,13 @@ jobs:
 
       - name: build cmdline
         run: |
-          cd cmdline/
+#          cd cmdline/
           mkdir build
           cd build
-          cmake ../
-          make cicadaPlayer
+#          cmake ../
+#          make cicadaPlayer
+          cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
+          cmake --build . --config Debug -j8
 
 #      - name: before_script_judge
 #        if: ${{"$CHECK_FORMAT" == "ON" && "$TRAVIS_PULL_REQUEST" != "false"}}
