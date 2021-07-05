@@ -35,15 +35,16 @@ jobs:
           git config --global user.name "Your Name"
           . setup.env
           cd external/
-          ./build_external.sh
-          cd ../
+          ./build_external.sh Linux
+          cd ..
 
       - name: build cmdline
         run: |
+          cd cmdline/
           mkdir build
           cd build
-          cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
-          cmake --build . --config Debug -j8
+          cmake ../
+          make cicadaPlayer
 
 #      - name: before_script_judge
 #        if: ${{"$CHECK_FORMAT" == "ON" && "$TRAVIS_PULL_REQUEST" != "false"}}
