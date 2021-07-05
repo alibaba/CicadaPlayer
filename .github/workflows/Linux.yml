@@ -15,11 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-#      - name: build_external
-#        run: |
-#          . setup.env
-#          cd external/
-#          ./build_external.sh Linux
+      #      - name: build_external
+      #        run: |
+      #          . setup.env
+      #          cd external/
+      #          ./build_external.sh Linux
 
       - name: before install
         run: |
@@ -32,15 +32,50 @@ jobs:
           export PATH=`pwd`/cmake-3.16.2-Linux-x86_64/bin:$PATH
           echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
-      - name: build script
+      - name: before_script_judge
+        if: ${{"$CHECK_FORMAT" == "ON" && "$TRAVIS_PULL_REQUEST" != "false"}}
+        run:
+          curl -L http://llvm.org/svn/llvm-project/cfe/trunk/tools/clang-format/clang-format-diff.py -o clang-format-diff.py;
+
+      - name: before_script
         run: |
-          mkdir build
-          cd build
-          cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
-          cmake --build . --config Debug -j8
+          . setup.env
+          cd external/
+          ./build_external.sh Linux
+          cd ../
+
+      - name: script_judge
+        if: {{"$CHECK_FORMAT" == "ON"}}
+        run:
+          if: {{"$TRAVIS_PULL_REQUEST" != "false"}}
+          run:
+            echo "Checking clang-format between TRAVIS_BRANCH=$TRAVIS_BRANCH and TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH"
+            if: -n $(git diff -U0 --no-color HEAD^ | python ./clang-format-diff.py -p1 -i)
+            run: |
+              echo "Run clang-format before submitting a pull request."
+              echo ""
+              git diff -U0 --no-color HEAD^ | python ./clang-format-diff.py -p1 -i
+              exit -1
 
       - name: script
         run: |
+#          if [[ "$CHECK_FORMAT" == "ON" ]]; then
+#                    if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then
+#                      # Run the clang format check only for pull request builds because the
+#                      # master branch is needed to do the git diff.
+#                      echo "Checking clang-format between TRAVIS_BRANCH=$TRAVIS_BRANCH and TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH"
+#                      if [[ -n $(git diff -U0 --no-color HEAD^ | python ./clang-format-diff.py -p1 -i) ]]; then
+#                        echo "Run clang-format before submitting a pull request."
+#                        echo ""
+#                        git diff -U0 --no-color HEAD^ | python ./clang-format-diff.py -p1 -i
+#                        exit -1
+#                      else
+#                        echo -e "\033[1;32m\xE2\x9C\x93 passed:\033[0m $1";
+#                      fi
+#                    else
+#                      echo "Skipping clang-format check since this is not a pull request."
+#                    fi
+#                  fi
           mkdir build
           cd build
           cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
