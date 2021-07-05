@@ -44,18 +44,18 @@ jobs:
           ./build_external.sh Linux
           cd ../
 
-      - name: script_judge
-        if: ${{"$CHECK_FORMAT" == "ON"}}
-        run:
-          if: ${{"$TRAVIS_PULL_REQUEST" != "false"}}
-          run:
-            echo "Checking clang-format between TRAVIS_BRANCH=$TRAVIS_BRANCH and TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH"
-            if: ${{-n $(git diff -U0 --no-color HEAD^ | python ./clang-format-diff.py -p1 -i)}}
-            run: |
-              echo "Run clang-format before submitting a pull request."
-              echo ""
-              git diff -U0 --no-color HEAD^ | python ./clang-format-diff.py -p1 -i
-              exit -1
+#      - name: script_judge
+#        if: ${{"$CHECK_FORMAT" == "ON"}}
+#        run:
+#          if: ${{"$TRAVIS_PULL_REQUEST" != "false"}}
+#          run:
+#            echo "Checking clang-format between TRAVIS_BRANCH=$TRAVIS_BRANCH and TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH"
+#            if: ${{-n $(git diff -U0 --no-color HEAD^ | python ./clang-format-diff.py -p1 -i)}}
+#            run: |
+#              echo "Run clang-format before submitting a pull request."
+#              echo ""
+#              git diff -U0 --no-color HEAD^ | python ./clang-format-diff.py -p1 -i
+#              exit -1
 
       - name: script
         run: |
