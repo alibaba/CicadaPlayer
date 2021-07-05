@@ -36,6 +36,7 @@ jobs:
           . setup.env
           cd external/
           ./build_external.sh
+          cd ../
 
       - name: build cmdline
         run: |
