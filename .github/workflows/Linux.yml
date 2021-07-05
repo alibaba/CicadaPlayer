@@ -38,7 +38,7 @@ jobs:
           ./build_external.sh Linux
           cd ..
 
-      - name: build cmdline
+      - name: build_cmdline
         run: |
           cd cmdline/
           mkdir build
