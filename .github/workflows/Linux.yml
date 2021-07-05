@@ -40,11 +40,8 @@ jobs:
 
       - name: build cmdline
         run: |
-#          cd cmdline/
           mkdir build
           cd build
-#          cmake ../
-#          make cicadaPlayer
           cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
           cmake --build . --config Debug -j8
 
