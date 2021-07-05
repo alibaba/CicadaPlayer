@@ -39,6 +39,7 @@ jobs:
 
       - name: before_script
         run: |
+          curl -L http://llvm.org/svn/llvm-project/cfe/trunk/tools/clang-format/clang-format-diff.py -o clang-format-diff.py;
           . setup.env
           cd external/
           ./build_external.sh Linux
