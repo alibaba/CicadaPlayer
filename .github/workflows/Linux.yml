@@ -27,7 +27,7 @@ jobs:
           tar zxf cmake-3.16.2-Linux-x86_64.tar.gz
           export PATH=`pwd`/cmake-3.16.2-Linux-x86_64/bin:$PATH
           sudo apt-get install clang llvm
-          echo  1 |sudo update-alternatives --config cc
+          echo  1 | sudo update-alternatives --config cc
 
       - name: build_external
         run: |
@@ -39,11 +39,10 @@ jobs:
 
       - name: build cmdline
         run: |
-          cd cmdline/
           mkdir build
           cd build
-          cmake ../
-          make cicadaPlayer
+          cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
+          cmake --build . --config Debug -j8
 
 #      - name: before_script_judge
 #        if: ${{"$CHECK_FORMAT" == "ON" && "$TRAVIS_PULL_REQUEST" != "false"}}
