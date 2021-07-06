@@ -19,6 +19,7 @@ set(COMMON_INC_DIR ${COMMON_INC_DIR}
         ${INSTALL_DIR}/../build/ffmpeg/Linux/x86_64/
         ${INSTALL_DIR}/../boost/
         ${INSTALL_DIR}/../external/external/ffmpeg/
+        /usr/include/SDL2/
         ${PROJECT_SOURCE_DIR})
 
 
