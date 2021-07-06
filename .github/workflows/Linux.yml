@@ -45,7 +45,6 @@ jobs:
           cd build
           cmake ../
           make cicadaPlayer
-          
 
 #      - name: before_script_judge
 #        if: ${{"$CHECK_FORMAT" == "ON" && "$TRAVIS_PULL_REQUEST" != "false"}}
