@@ -55,6 +55,8 @@ target_link_libraries(cicadaPlayer PRIVATE
         data_source
         render
         videodec)
+target_link_libraries(cicadaPlayer PRIVATE
+        ${CMAKE_DL_LIBS})
 if (ENABLE_CACHE_MODULE)
     target_link_libraries(cicadaPlayer PRIVATE
             cacheModule)
