@@ -104,7 +104,7 @@ void FfmpegMuxer::check_codec_tag(const AVStream *stream)
                                                    stream->codecpar->codec_id);
 #ifndef _WIN32
             AF_LOGW("Tag %s incompatible with output codec id '%d' (%s)\n",
-                     stream->codecpar->codec_id);
+                    av_fourcc2str(stream->codecpar->codec_tag), stream->codecpar->codec_id, av_fourcc2str(otag));
 #endif
             stream->codecpar->codec_tag = otag;
         }
