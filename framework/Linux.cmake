@@ -27,34 +27,9 @@ set(COMMON_INC_DIR ${COMMON_INC_DIR}
 
 set(FFMPEG_SOURCE_DIR ${INSTALL_DIR}/../external/ffmpeg/)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=return-type")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=return-type")
-
-#find_library(VIDEO_TOOL_BOX VideoToolbox)
-#find_library(AUDIO_TOOL_BOX AudioToolbox)
-#find_library(COREMEDIA CoreMedia)
-#find_library(COREVIDEO CoreVideo)
-#find_library(COREFOUNDATION CoreFoundation)
-#find_library(VIDEODECODERACCELERATION VideoDecodeAcceleration)
-#find_library(COREFOUNDATION CoreFoundation)
-#find_library(SECURITY Security)
-#find_library(OPENGL OpenGL)
-#find_library(APPKIT AppKit)
-#
-#set(FRAMEWORK_LIBS
-#        ${VIDEO_TOOL_BOX}
-#        ${AUDIO_TOOL_BOX}
-#        ${COREMEDIA}
-#        ${COREVIDEO}
-#        ${VIDEODECODERACCELERATION}
-#        ${COREFOUNDATION}
-#        ${SECURITY}
-#        ${COREFOUNDATION}
-#        ${OPENGL}
-#        ${APPKIT}
-#        iconv
-#        z)
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=return-type -fPIC")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=return-type -fPIC")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic")
 
 if (USEASAN)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope")
