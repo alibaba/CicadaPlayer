@@ -130,6 +130,10 @@ endif ()
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_link_libraries(cicadaPlayer PUBLIC X11 dl)
     target_compile_options(cicadaPlayer PRIVATE -fPIE)
+    add_compile_options(-fPIC)
+
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIE")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIE")
 endif()
 
 if(MSVC AND NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
