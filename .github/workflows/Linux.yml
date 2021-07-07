@@ -43,7 +43,7 @@ jobs:
           cd cmdline/
           mkdir build
           cd build
-          cmake -DcompileOption_C="-ldl" ../
+          cmake -Duse_openssl:BOOL=ON -DOPENSSL_ROOT_DIR:PATH=/home/runner/work/CicadaPlayer/CicadaPlayer/cmdline/../external/install/openssl/Linux/x86_64/lib/ -DcompileOption_C="-ldl" ../
           make cicadaPlayer
 
 #      - name: before_script_judge
