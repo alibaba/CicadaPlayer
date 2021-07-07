@@ -130,7 +130,7 @@ endif ()
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_link_libraries(cicadaPlayer PUBLIC X11 dl -fPIE)
     target_compile_options(cicadaPlayer PRIVATE -fPIE)
-    add_compile_options(-fPIC)
+    add_compile_options(-fPIE)
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIE")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIE")
