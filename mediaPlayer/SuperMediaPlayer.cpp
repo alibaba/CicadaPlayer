@@ -1077,7 +1077,7 @@ int SuperMediaPlayer::mainService()
         int64_t use = (af_gettime_relative() - curTime) / 1000;
         int64_t needWait = loopGap - use;
         // AF_LOGD("use :%lld, needWait:%lld", use, needWait);
-
+        // FIXME : refactor it after made sure the goal of this logic
         if (needWait <= 0) {
             if (loopGap < 5) {
                 needWait = 2;
@@ -1085,7 +1085,7 @@ int SuperMediaPlayer::mainService()
                 return 0;
             }
         }
-        if (mVideoCatchingUp) {
+        if (mVideoCatchingUp || mSeekFlag) {
             return 0;
         }
 
