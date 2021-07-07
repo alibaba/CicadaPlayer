@@ -1085,7 +1085,7 @@ int SuperMediaPlayer::mainService()
                 return 0;
             }
         }
-        if (mVideoCatchingUp || mSeekFlag) {
+        if ((mVideoCatchingUp || mSeekFlag) && getPlayerBufferDuration(false, false) > 0) {
             return 0;
         }
 
