@@ -80,7 +80,7 @@ public class SourceChooseActivity extends BaseActivity implements View.OnClickLi
      * 拷贝文件
      */
     private void copyAssets() {
-        Common commenUtils = Common.getInstance(getApplicationContext()).copyAssetsToSD("encrypt", "aliyunPlayer");
+        Common commenUtils = Common.getInstance(getApplicationContext()).copyAssetsToSD("subtitle", "aliyunPlayer");
         CustomFileOperateCallback mCustomFileOperateCallback = new CustomFileOperateCallback(this);
         commenUtils.setFileOperateCallback(mCustomFileOperateCallback);
     }

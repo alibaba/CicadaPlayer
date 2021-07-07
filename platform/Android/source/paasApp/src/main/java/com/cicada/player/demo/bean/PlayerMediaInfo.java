@@ -23,6 +23,7 @@ public class PlayerMediaInfo implements Serializable{
             public static class SubtitleInfo implements Serializable{
                 private String cn;
                 private String en;
+                private String ass;
 
                 public String getCn() {
                     return cn;
@@ -38,6 +39,14 @@ public class PlayerMediaInfo implements Serializable{
 
                 public void setEn(String en) {
                     this.en = en;
+                }
+
+                public String getAss() {
+                    return ass;
+                }
+
+                public void setAss(String ass) {
+                    this.ass = ass;
                 }
             }
 

@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -43,6 +44,7 @@ import com.cicada.player.nativeclass.PlayerConfig;
 import com.cicada.player.nativeclass.TrackInfo;
 import com.cicada.player.demo.util.VcPlayerLog;
 
+import java.io.File;
 import java.util.LinkedHashMap;
 
 /**
@@ -268,6 +270,8 @@ public class CicadaPlayerActivity extends BaseActivity implements View.OnClickLi
                     name = "cn";
                 }else if(url.equals(mSubtitleInfos.getEn())){
                     name = "en";
+                }else if(url.equals(mSubtitleInfos.getAss())){
+                    name = "ass";
                 }
 
                 mSubtitleMap.put(trackIndex,name);
@@ -817,6 +821,11 @@ public class CicadaPlayerActivity extends BaseActivity implements View.OnClickLi
             if(!TextUtils.isEmpty(en)){
                 mCicadaVodPlayerView.addSubtitleExt(en);
             }
+        }else{
+            mSubtitleInfos = new PlayerMediaInfo.TypeInfo.SubtitleInfo();
+            String assFilePath = Environment.getExternalStorageDirectory() + File.separator + "test.ass";
+            mSubtitleInfos.setAss(assFilePath);
+            mCicadaVodPlayerView.addSubtitleExt(assFilePath);
         }
     }
 }

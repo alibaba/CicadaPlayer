@@ -35,6 +35,7 @@ import com.cicada.player.demo.util.OrientationWatchDog;
 import com.cicada.player.demo.util.ScreenUtils;
 import com.cicada.player.demo.util.SharedPreferenceUtils;
 import com.cicada.player.demo.util.VcPlayerLog;
+import com.cicada.player.demo.view.ass.AssSubtitleView;
 import com.cicada.player.demo.view.control.ControlView;
 import com.cicada.player.demo.view.gesture.GestureView;
 import com.cicada.player.demo.view.guide.GuideView;
@@ -47,6 +48,7 @@ import com.cicada.player.nativeclass.MediaInfo;
 import com.cicada.player.nativeclass.PlayerConfig;
 import com.cicada.player.nativeclass.TrackInfo;
 import com.cicada.player.utils.Logger;
+import com.cicada.player.utils.ass.AssHeader;
 import com.cicada.player.utils.media.DrmCallback;
 
 import org.json.JSONException;
@@ -55,6 +57,8 @@ import org.json.JSONObject;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.cicada.player.demo.view.subtitle.LocationStyle.Location_CenterH;
 import static com.cicada.player.demo.view.subtitle.LocationStyle.Location_Top;
@@ -188,6 +192,11 @@ public class CicadaVodPlayerView extends FrameLayout {
     private int mPreviewTrackIndex;
 
     /**
+     * 外挂字幕类型
+     */
+    private Map<Integer,AssHeader.SubtitleType> mSubtitleTypeMap = new HashMap<>();
+
+    /**
      * 对外的各种事件监听
      */
     private CicadaPlayer.OnInfoListener mOutInfoListener = null;
@@ -204,6 +213,7 @@ public class CicadaVodPlayerView extends FrameLayout {
      * seek模式,默认为非精准模式
      */
     private CicadaPlayer.SeekMode mSeekMode = CicadaPlayer.SeekMode.Inaccurate;
+    private AssSubtitleView assSubtitleView;
 
 
     public CicadaVodPlayerView(Context context) {
@@ -717,7 +727,12 @@ public class CicadaVodPlayerView extends FrameLayout {
         builder.setLocation(Location_Top | Location_CenterH);
         subtitleView.setDefaultValue(builder);
         subtitleView.setId(R.id.cicada_player_subtitle);
+
         addSubView(subtitleView);
+
+        assSubtitleView = new AssSubtitleView(getContext());
+        assSubtitleView.setId(R.id.cicada_player_ass_subtitle);
+        addSubView(assSubtitleView);
     }
 
     /**
@@ -1317,30 +1332,38 @@ public class CicadaVodPlayerView extends FrameLayout {
 
             @Override
             public void onSubtitleExtAdded(int trackIndex, String url) {
-
+                mSubtitleTypeMap.put(trackIndex, AssHeader.SubtitleType.SubtitleTypeSsa);
                 VcPlayerLog.e(TAG, "onSubtitleExtAdded : " + " --- trackIndex = " + trackIndex + " --- url = " + url);
                 if (mOutSubtitleDisplayListener != null) {
                     mOutSubtitleDisplayListener.onSubtitleExtAdded(trackIndex, url);
                 }
-
             }
 
             @Override
             public void onSubtitleShow(int trackIndex, long id, String data) {
-                SubtitleView.Subtitle subtitle = new SubtitleView.Subtitle();
-                subtitle.id = id + "";
-                subtitle.content = data;
-                subtitleView.show(subtitle);
+                if(mSubtitleTypeMap.get(trackIndex) == AssHeader.SubtitleType.SubtitleTypeAss){
+                    assSubtitleView.show(id,data);
+                }else{
+                    SubtitleView.Subtitle subtitle = new SubtitleView.Subtitle();
+                    subtitle.id = id + "";
+                    subtitle.content = data;
+                    subtitleView.show(subtitle);
+                }
             }
 
             @Override
             public void onSubtitleHide(int trackIndex, long id) {
-                subtitleView.dismiss(id + "");
+                if(mSubtitleTypeMap.get(trackIndex) == AssHeader.SubtitleType.SubtitleTypeAss){
+                    assSubtitleView.dismiss(id);
+                }else{
+                    subtitleView.dismiss(id + "");
+                }
             }
 
             @Override
             public void onSubtitleHeader(int trackIndex, String header) {
-
+                mSubtitleTypeMap.put(trackIndex, AssHeader.SubtitleType.SubtitleTypeAss);
+                assSubtitleView.setAssHeader(header);
             }
         });
 
