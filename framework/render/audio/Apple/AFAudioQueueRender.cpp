@@ -260,14 +260,35 @@ int AFAudioQueueRender::start_device()
 {
     if (!mPlaying) {
         mPlaying = true;
-        if (_audioQueueRef) {
-            mStartStatus = AudioQueueStart(_audioQueueRef, nullptr);
-            if (mStartStatus != AVAudioSessionErrorCodeNone) {
-                AF_LOGE("AudioQueue: AudioQueueStart failed (%d)\n", (int) mStartStatus);
-            }
-        }
+        startDeviceWorkAround();
     }
     return 0;
+}
+/*
+ * AudioQueueStart will use more than 2s when play rate > 1 on MacOS or iOS use airpods,
+ * so disable timePitch before AudioQueueStart and reset the timePitch after start to work
+ * around this problem
+ */
+void AFAudioQueueRender::startDeviceWorkAround()
+{
+    if (!_audioQueueRef) {
+        return;
+    }
+    if (mQueueSpeed > 1.0f) {
+        UInt32 timePitchBypass = 1;
+        AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchBypass, &timePitchBypass, sizeof(timePitchBypass));
+        AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_PlayRate, 1.0f);
+    }
+    mStartStatus = AudioQueueStart(_audioQueueRef, nullptr);
+    if (mStartStatus != AVAudioSessionErrorCodeNone) {
+        AF_LOGE("AudioQueue: AudioQueueStart failed (%d)\n", (int) mStartStatus);
+    }
+
+    if (mQueueSpeed > 1.0f) {
+        UInt32 timePitchBypass = 0;
+        AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchBypass, &timePitchBypass, sizeof(timePitchBypass));
+        AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_PlayRate, mQueueSpeed);
+    }
 }
 
 void AFAudioQueueRender::flush_device()
@@ -299,7 +320,7 @@ void AFAudioQueueRender::flushAudioQueue()
     mReadOffset = 0;
     mPlayedBufferSize = 0;
     if (mPlaying) {
-        mStartStatus = AudioQueueStart(_audioQueueRef, nullptr);
+        startDeviceWorkAround();
     }
 }
 
@@ -332,7 +353,7 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
     if (mStartStatus != AVAudioSessionErrorCodeNone && mPlaying) {
         AF_LOGW("try start AudioQueue in error status %d\n", mStartStatus);
         if (_audioQueueRef) {
-            mStartStatus = AudioQueueStart(_audioQueueRef, nullptr);
+            startDeviceWorkAround();
         }
     }
     if (mBufferCount == 0) {

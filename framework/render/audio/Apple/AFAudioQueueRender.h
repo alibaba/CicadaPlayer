@@ -86,6 +86,8 @@ namespace Cicada {
 
         void flushAudioQueue();
 
+        void startDeviceWorkAround();
+
 #if TARGET_OS_IPHONE
         void onInterrupted(Cicada::AF_AUDIO_SESSION_STATUS status) override;
 
