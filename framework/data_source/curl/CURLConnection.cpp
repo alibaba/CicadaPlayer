@@ -21,6 +21,7 @@ using namespace Cicada;
 #define RINGBUFFER_BACK_SIZE 1024*512
 
 #define MIN_SO_RCVBUF_SIZE 1024*64
+#define READ_BUFFER_SIZE 1024 * 64
 
 #define SOCKET_ERROR (-1)
 
@@ -384,7 +385,7 @@ int Cicada::CURLConnection::esayHandle_set_common_opt()
     curl_easy_setopt(mHttp_handle, CURLOPT_DEBUGDATA, this);
     curl_easy_setopt(mHttp_handle, CURLOPT_HEADERFUNCTION, write_response);
     curl_easy_setopt(mHttp_handle, CURLOPT_HEADERDATA, this);
-    curl_easy_setopt(mHttp_handle, CURLOPT_BUFFERSIZE, CURL_MAX_READ_SIZE);
+    curl_easy_setopt(mHttp_handle, CURLOPT_BUFFERSIZE, READ_BUFFER_SIZE);
     return 0;
 }
 
