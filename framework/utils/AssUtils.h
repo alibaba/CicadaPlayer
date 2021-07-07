@@ -42,6 +42,8 @@ namespace Cicada {
         int MarginR = 0;
         int MarginV = 0;
         int Encoding = 1;
+        double posX = 0.0;
+        double posY = 0.0;
     } AssStyle;
 
     enum SubtitleType { SubtitleTypeUnknown, SubtitleTypeAss, SubtitleTypeSsa };
@@ -74,6 +76,10 @@ namespace Cicada {
         static AssHeader parseAssHeader(const std::string &header);
 
         static AssDialogue parseAssDialogue(const AssHeader &header, const std::string &data);
+
+        static uint32_t parseColorHeader(const char *str);
+
+        static int Numpad2Align(int val);
     };
 }// namespace Cicada
 

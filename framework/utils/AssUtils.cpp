@@ -129,13 +129,13 @@ static int mystrtou32_modulo(char **p, unsigned base, uint32_t *res)
 static inline uint32_t ass_bswap32(uint32_t x)
 {
 #ifdef _MSC_VER
-    return _byteswap_ulong(x);
+    return x;
 #else
     return (x & 0x000000FF) << 24 | (x & 0x0000FF00) << 8 | (x & 0x00FF0000) >> 8 | (x & 0xFF000000) >> 24;
 #endif
 }
 
-uint32_t parse_color_header(char *str)
+static uint32_t parse_color_header(const char *str)
 {
     uint32_t color = 0;
     unsigned base;
@@ -146,8 +146,13 @@ uint32_t parse_color_header(char *str)
     } else
         base = 10;
 
-    mystrtou32_modulo(&str, base, &color);
+    mystrtou32_modulo((char**)&str, base, &color);
     return ass_bswap32(color);
+}
+
+uint32_t AssUtils::parseColorHeader(const char* str)
+{
+    return parse_color_header(str);
 }
 
 #define NEXT(str,token) \
@@ -205,6 +210,11 @@ static int numpad2align(int val)
     else
         res |= VALIGN_TOP;
     return res;
+}
+
+int AssUtils::Numpad2Align(int val)
+{
+    return numpad2align(val);
 }
 
 static int process_style(AssHeader &header, ParserState &state, char *str)
