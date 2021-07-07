@@ -128,7 +128,7 @@ else ()
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    target_link_libraries(cicadaPlayer PUBLIC X11)
+    target_link_libraries(cicadaPlayer PUBLIC X11 dl)
 endif()
 
 if(MSVC AND NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
