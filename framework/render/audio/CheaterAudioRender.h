@@ -35,6 +35,11 @@ namespace Cicada {
 
         }
 
+        void device_mute(bool bMute) override
+        {
+
+        }
+
         int64_t device_get_position() override;
 
         int device_write(unique_ptr<IAFFrame> &frame) override;
