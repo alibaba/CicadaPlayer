@@ -8,10 +8,11 @@
 #ifndef AbrAlgoStrategy_h
 #define AbrAlgoStrategy_h
 
-#include <cstdint>
+#include <stdio.h>
 #include <map>
 #include <vector>
 #include <functional>
+#include <cstdint>
 
 using namespace std;
 

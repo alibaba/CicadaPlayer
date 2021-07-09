@@ -49,7 +49,7 @@ jobs:
 
       - name: unit test
         run: |
-          cd build/mediaPlayer/tests/
+          cd mediaPlayer/tests/
           ctest -j8 --output-on-failure
           cd ../../framework/tests/
           ctest -j8 --output-on-failure
