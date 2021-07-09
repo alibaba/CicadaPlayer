@@ -2,29 +2,20 @@ package com.cicada.player.demo.view.ass;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.text.Html;
 import android.util.AttributeSet;
-import android.view.ViewGroup;
-import android.view.ViewParent;
+import android.view.View;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
-import com.cicada.player.demo.view.subtitle.TextViewPool;
-import com.cicada.player.utils.ass.AssDialogue;
-import com.cicada.player.utils.ass.AssHeader;
+import com.cicada.player.demo.R;
 import com.cicada.player.utils.ass.AssResolver;
-import com.cicada.player.utils.ass.AssUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class AssSubtitleView extends RelativeLayout {
 
-    private TextViewPool mTextViewPool;
-    private AssHeader assHeader;
-
-    private Map<Long, TextView> mAssSubtitleView = new HashMap<>();
-    private Map<String,Typeface> mFontTypeface = new HashMap<>();
+    private Map<Long, View> mAssSubtitleView = new HashMap<>();
+    private AssResolver mAssResolver;
 
     public AssSubtitleView(Context context) {
         super(context);
@@ -42,40 +33,41 @@ public class AssSubtitleView extends RelativeLayout {
     }
 
     private void init(Context context){
-        mTextViewPool = new TextViewPool(context);
+        mAssResolver = new AssResolver(context);
     }
 
     public void setFontTypeFace(Map<String,Typeface> typefaceMap){
-        this.mFontTypeface = typefaceMap;
-        AssResolver.setFontTypeMap(mFontTypeface);
+        mAssResolver.setFontTypeMap(typefaceMap);
     }
 
     //resolve header
     public void setAssHeader(String header){
-        assHeader = AssUtils.parseAssHeader(header);
+        mAssResolver.setAssHeaders(header);
     }
 
     //show and resolve content
     public void show(long id,String content){
-        AssDialogue assDialogue = AssUtils.parseAssDialogue(assHeader, content);
-        TextView textView = mTextViewPool.obtain();
-        ViewParent viewParent = textView.getParent();
-        if (viewParent != null) {
-            ((ViewGroup) viewParent).removeView(textView);
+        View view = mAssResolver.setAssDialog(content);
+        if(view != null){
+            addView(view);
+            mAssSubtitleView.put(id,view);
         }
-
-        AssResolver.initTextViewStyle(textView,assHeader,assDialogue);
-        String text = AssResolver.parseSubtitleText(assDialogue);
-        textView.setText(Html.fromHtml(text));
-
-        addView(textView);
-        mAssSubtitleView.put(id,textView);
         invalidate();
     }
 
 
     public void dismiss(long id){
-        TextView textView = mAssSubtitleView.remove(id);
-        mTextViewPool.recycle(textView);
+        View remove = mAssSubtitleView.remove(id);
+        if(remove != null){
+            removeView(remove);
+            mAssResolver.dismiss(remove);
+        }
+
+    }
+
+    public void destroy(){
+        if(mAssResolver != null){
+            mAssResolver.destroy();
+        }
     }
 }

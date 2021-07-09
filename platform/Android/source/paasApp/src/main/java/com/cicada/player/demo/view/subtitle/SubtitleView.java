@@ -14,6 +14,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.cicada.player.demo.R;
+import com.cicada.player.utils.ass.TextViewPool;
 
 import java.util.HashMap;
 import java.util.Map;

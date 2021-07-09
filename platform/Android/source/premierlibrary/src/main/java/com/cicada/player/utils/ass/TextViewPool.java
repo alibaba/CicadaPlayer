@@ -1,4 +1,4 @@
-package com.cicada.player.demo.view.subtitle;
+package com.cicada.player.utils.ass;
 
 import android.content.Context;
 import android.view.ViewGroup;
@@ -23,7 +23,7 @@ public class TextViewPool {
     public TextView obtain() {
         TextView textView = null;
         if (idelTextViewList.isEmpty()) {
-            textView = new TextView(mContext);
+            textView = new AssTextView(mContext);
         } else {
             textView = idelTextViewList.get(0);
         }
