@@ -8,7 +8,7 @@
 #ifndef AbrAlgoStrategy_h
 #define AbrAlgoStrategy_h
 
-#include <stdio.h>
+#include <cstdint>
 #include <map>
 #include <vector>
 #include <functional>
