@@ -46,6 +46,11 @@ namespace Cicada {
             return 0;
         }
 
+        void device_mute(bool bMute) override
+        {
+
+        }
+
     private:
         af_clock mClock{};
         int64_t mPCMDuration{0};
