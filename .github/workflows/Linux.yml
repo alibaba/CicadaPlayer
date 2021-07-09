@@ -3,9 +3,9 @@ name: Linux CI
 
 on:
   push:
-    branches: [ release/* ]
+    branches: [ develop ]
   pull_request:
-    branches: [ release/* ]
+    branches: [ develop ]
 
 
 jobs:
