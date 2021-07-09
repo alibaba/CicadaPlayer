@@ -247,6 +247,13 @@ namespace Cicada {
         CFDictionarySetValue(dict, key, number);
         CFRelease(number);
     }
+    static void dict_set_f32(CFMutableDictionaryRef dict, CFStringRef key, float value)
+    {
+        CFNumberRef number;
+        number = CFNumberCreate(nullptr, kCFNumberFloat32Type, &value);
+        CFDictionarySetValue(dict, key, number);
+        CFRelease(number);
+    }
 
     int AFVTBDecoder::createVideoFormatDesc(const uint8_t *pData, int size, int width, int height, CFDictionaryRef &decoder_spec,
                                             CMFormatDescriptionRef &cm_fmt_desc)
@@ -275,8 +282,8 @@ namespace Cicada {
             VSpacing = (float) meta->displayHeight / height;
             HSpacing = (float) meta->displayWidth / width;
         }
-        dict_set_i32(par, CFSTR("HorizontalSpacing"), HSpacing);
-        dict_set_i32(par, CFSTR("VerticalSpacing"), VSpacing);
+        dict_set_f32(par, CFSTR("HorizontalSpacing"), HSpacing);
+        dict_set_f32(par, CFSTR("VerticalSpacing"), VSpacing);
 
 
         /* SampleDescriptionExtensionAtoms dict */
@@ -667,6 +674,10 @@ namespace Cicada {
         if (infoFlags & kVTDecodeInfo_FrameDropped) {
             AF_LOGI("kVTDecodeInfo_FrameDropped");
         }
+        if (status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr) {
+            // the packet will be send to decoder again on those error, so do nothing here
+            return;
+        }
 
         // TODO: why status is 1 when recovering
 
@@ -705,7 +716,7 @@ namespace Cicada {
         if (value) {
             CVBufferSetAttachment(imageBuffer, kCVImageBufferColorPrimariesKey, value, kCVAttachmentMode_ShouldPropagate);
         }
-
+        value = nullptr;
         switch (meta->color_trc) {
             case AFCOL_TRC_BT709:
             case AFCOL_TRC_SMPTE170M:
@@ -732,6 +743,16 @@ namespace Cicada {
 #endif
                 {
                     value = kCVImageBufferTransferFunction_SMPTE_ST_428_1;
+                }
+                break;
+            case AFCOL_TRC_ARIB_STD_B67:
+#if TARGET_OS_IPHONE
+                if (__builtin_available(iOS 11.0, *))
+#else
+                if (__builtin_available(macOS 10.13, *))
+#endif
+                {
+                    value = kCVImageBufferTransferFunction_ITU_R_2100_HLG;
                 }
                 break;
             default:
@@ -901,7 +922,9 @@ namespace Cicada {
     {
         std::lock_guard<std::mutex> lock(mActiveStatusMutex);
         AF_LOGD("ios bg decoder appDidBecomeActive");
-        mThrowPacket = true;
+        if (mResignActive) {
+            mThrowPacket = true;
+        }
         mActive = true;
     }
 

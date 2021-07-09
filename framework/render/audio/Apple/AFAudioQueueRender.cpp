@@ -83,9 +83,15 @@ UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer, bool 
             mReadOffset += len;
             copySize += len;
             if (frameClear) {
-                if (mListener) {
+                if (mListener && !mNeedFlush) {
                     mListener->onUpdateTimePosition(mInPut.front()->getInfo().timePosition);
                 }
+                
+                bool rendered = false;
+                if(mRenderingCb) {
+                    rendered = mRenderingCb(mRenderingCbUserData , mInPut.front());
+                }
+                
                 delete mInPut.front();
                 mInPut.pop();
                 mReadOffset = 0;
@@ -216,6 +222,40 @@ int AFAudioQueueRender::init_device()
     AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchBypass, &propValue, sizeof(propValue));
     propValue = kAudioQueueTimePitchAlgorithm_TimeDomain;
     AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchAlgorithm, &propValue, sizeof(propValue));
+    AudioChannelLayout layout;
+    memset(&layout, 0, sizeof(AudioChannelLayout));
+    switch (mAudioFormat.mChannelsPerFrame) {
+        case 1:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_Mono;
+            break;
+        case 2:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_Stereo;
+            break;
+        case 3:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_DVD_4;
+            break;
+        case 4:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_Quadraphonic;
+            break;
+        case 5:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_MPEG_5_0_A;
+            break;
+        case 6:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_MPEG_5_1_A;
+            break;
+        case 7:
+            /* FIXME: Need to move channel[4] (BC) to channel[6] */
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_MPEG_6_1_A;
+            break;
+        case 8:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_MPEG_7_1_A;
+            break;
+        default:
+            layout.mChannelLayoutTag = kAudioChannelLayoutTag_Stereo;
+            break;
+    }
+
+    AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_ChannelLayout, &layout, sizeof(AudioChannelLayout));
     return 0;
 }
 
@@ -234,7 +274,7 @@ int AFAudioQueueRender::start_device()
 {
     if (!mPlaying) {
         mPlaying = true;
-        if (_audioQueueRef) {
+        if (_audioQueueRef && mBufferCount > 0 && mBufferAllocatedCount >= mBufferCount) {
             mStartStatus = AudioQueueStart(_audioQueueRef, nullptr);
             if (mStartStatus != AVAudioSessionErrorCodeNone) {
                 AF_LOGE("AudioQueue: AudioQueueStart failed (%d)\n", (int) mStartStatus);
@@ -281,11 +321,14 @@ void AFAudioQueueRender::flush_device()
 
 void AFAudioQueueRender::device_setVolume(float gain)
 {
-    float aq_volume = gain;
-    if (fabsf(aq_volume - 1.0f) <= 0.000001) {
+    mVolume = gain;
+    if (mMute) {
+        return;
+    }
+    if (fabsf(gain - 1.0f) <= 0.000001) {
         AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_Volume, 1.f);
     } else {
-        AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_Volume, aq_volume);
+        AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_Volume, gain);
     }
 }
 
@@ -296,7 +339,7 @@ int64_t AFAudioQueueRender::device_get_position()
 
 int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
 {
-    if (mNeedFlush || mInPut.write_available() <= 0) {
+    if (mNeedFlush) {
         return -EAGAIN;
     }
 
@@ -309,18 +352,45 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
             mBufferCount = 3;
         }
     }
-    mInPut.push(frame.release());
+    if (mInPut.write_available() > 0) {
+        mInPut.push(frame.release());
+    }
     if (mBufferAllocatedCount < mBufferCount && mInPut.size() >= mBufferCount) {
         assert(mAudioDataByteSize > 0);
         assert(mBufferCount <= MAX_QUEUE_SIZE);
+
+        /*
+         * AudioQueueAllocateBuffer could waste a long time more than a buffer duration,
+         * to avoid consuming mInPut in two thead, alloc and fill the buffer first, and then enqueue
+         * them at once
+         */
         while (mBufferAllocatedCount < mBufferCount) {
-            AudioQueueBuffer *buffer = NULL;
-            AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &buffer);
+            AudioQueueBuffer *buffer = nullptr;
+            OSStatus err = AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &buffer);
+            if (err != noErr) {
+                AF_LOGE("AudioQueueAllocateBuffer error %d \n", err);
+                if (frame) {
+                    return -EAGAIN;
+                }
+                return 0;
+            }
             _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
             buffer->mAudioDataByteSize = copyAudioData(buffer, false);
-            AudioQueueEnqueueBuffer(_audioQueueRef, buffer, 0, nullptr);
             mBufferAllocatedCount++;
         }
+
+        for (int i = 0; i < mBufferAllocatedCount; i++) {
+            AudioQueueEnqueueBuffer(_audioQueueRef, _audioQueueBufferRefArray[i], 0, nullptr);
+        }
+        if (mPlaying) {
+            mStartStatus = AudioQueueStart(_audioQueueRef, nullptr);
+            if (mStartStatus != AVAudioSessionErrorCodeNone) {
+                AF_LOGE("AudioQueue: AudioQueueStart failed (%d)\n", (int) mStartStatus);
+            }
+        }
+    }
+    if (frame) {
+        return -EAGAIN;
     }
     return 0;
 }
@@ -331,6 +401,16 @@ uint64_t AFAudioQueueRender::device_get_que_duration()
         return 0;
     }
     return mInPut.size() * mInPut.front()->getInfo().duration;
+}
+
+void AFAudioQueueRender::device_mute(bool bMute)
+{
+    mMute = bMute;
+    if (bMute) {
+        AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_Volume, 0);
+    } else {
+        device_setVolume(mVolume);
+    }
 }
 
 #if TARGET_OS_IPHONE

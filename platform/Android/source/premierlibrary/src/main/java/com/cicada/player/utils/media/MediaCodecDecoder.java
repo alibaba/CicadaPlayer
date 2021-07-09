@@ -241,8 +241,17 @@ public class MediaCodecDecoder {
         }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            mInputBuffers = mMediaCodec.getInputBuffers();
-            mOutputBuffers = mMediaCodec.getOutputBuffers();
+            try {
+                mInputBuffers = mMediaCodec.getInputBuffers();
+            } catch (Exception e) {
+                Logger.e(TAG, "getInputBuffers  fail : " + e.getMessage());
+            }
+
+            try {
+                mOutputBuffers = mMediaCodec.getOutputBuffers();
+            } catch (Exception e) {
+                Logger.e(TAG, "getOutputBuffers  fail : " + e.getMessage());
+            }
         }
 
         mBufferInfo = new MediaCodec.BufferInfo();
@@ -357,11 +366,16 @@ public class MediaCodecDecoder {
         }
 
         ByteBuffer inputBuffer = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            inputBuffer = mMediaCodec.getInputBuffer(index);
-        } else {
-            inputBuffer = mInputBuffers[index];
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                inputBuffer = mMediaCodec.getInputBuffer(index);
+            } else {
+                inputBuffer = mInputBuffers[index];
+            }
+        }catch (Exception e){
+            Logger.e(TAG, "getInputBuffer fail " + e.getMessage());
         }
+
         if (inputBuffer == null) {
             return ERROR;
         }
@@ -481,11 +495,16 @@ public class MediaCodecDecoder {
     public Object getOutBuffer(int index) {
         if (index >= 0) {
             ByteBuffer outputBuffer = null;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                outputBuffer = mMediaCodec.getOutputBuffer(index);
-            } else {
-                outputBuffer = mOutputBuffers[index];
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    outputBuffer = mMediaCodec.getOutputBuffer(index);
+                } else {
+                    outputBuffer = mOutputBuffers[index];
+                }
+            }catch (Exception e){
+                Logger.e(TAG, "getOutBuffer fail " + e.getMessage());
             }
+
             return outputBuffer;
         }
         return null;

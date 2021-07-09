@@ -1,11 +1,12 @@
 #ifndef CICADA_PLAYER_H_
 #define CICADA_PLAYER_H_
 
-#include <vector>
-#include <utils/AFMediaType.h>
-#include <cacheModule/cache/CacheConfig.h>
 #include "native_cicada_player_def.h"
+#include <cacheModule/cache/CacheConfig.h>
 #include <drm/DrmHandler.h>
+#include <render/video/IVideoRender.h>
+#include <utils/AFMediaType.h>
+#include <vector>
 
 //typedef struct Stream_meta_t Stream_meta;
 
@@ -30,6 +31,8 @@ int CicadaSetListener(playerHandle *pHandle, const playerListener &Listener);
 void CicadaSetOnRenderCallBack(playerHandle *pHandle, onRenderFrame cb, void *userData);
 
 void CicadaSetAudioRenderingCallBack(playerHandle *pHandle, onRenderFrame cb, void *userData);
+
+void CicadaSetVideoRenderingCallBack(playerHandle *pHandle, videoRenderingFrameCB cb, void *userData);
 
 /*
  * set external component callback

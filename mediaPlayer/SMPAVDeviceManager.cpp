@@ -297,6 +297,12 @@ void SMPAVDeviceManager::setAudioRenderingCb(renderingFrameCB cb, void *userData
         mAudioRender->setRenderingCb(cb, userData);
     }
 }
+void SMPAVDeviceManager::setVideoRenderingCb(videoRenderingFrameCB cb, void *userData)
+{
+    if (mVideoRender) {
+        mVideoRender->setVideoRenderingCb(cb, userData);
+    }
+}
 uint64_t SMPAVDeviceManager::getVideoDecoderFlags()
 {
     if (mVideoDecoder.decoder) {

@@ -5,6 +5,7 @@
 source ffmpeg_cross_compile_config.sh
 source ffmpeg_commands.sh
 function build_ffmpeg(){
+    use_openssl="TRUE"
     ffmpeg_cross_compile_config_reset
     if [[ "$1" == "Android" ]]
     then
@@ -14,6 +15,8 @@ function build_ffmpeg(){
         ffmpeg_cross_compile_set_iOS $2
         if [[ "${SSL_USE_NATIVE}" != "TRUE" ]];then
             ffmpeg_config_add_user "--disable-securetransport"
+        else
+              use_openssl="FALSE"
         fi
     elif [[ "$1" == "win32" ]];then
         ffmpeg_cross_compile_set_win32 $2
@@ -22,6 +25,8 @@ function build_ffmpeg(){
         local native_build=yes
         if [[ "${SSL_USE_NATIVE}" != "TRUE" ]];then
             ffmpeg_config_add_user "--disable-securetransport"
+        else
+              use_openssl="FALSE"
         fi
         ffmpeg_config_add_extra_cflags "-fno-stack-check"
 
@@ -60,7 +65,7 @@ function build_ffmpeg(){
         ffmpeg_config_add_extra_ldflags "-L${X264_INSTALL_DIR}/lib"
     fi
 
-    if [[ -n "${OPENSSL_INSTALL_DIR}" ]];then
+    if [[ -n "${OPENSSL_INSTALL_DIR}" ]] && [[ "$use_openssl" == "TRUE" ]];then
         ffmpeg_config_add_user "--enable-openssl"
         ffmpeg_config_add_extra_cflags "-I${OPENSSL_INSTALL_DIR}/include"
         ffmpeg_config_add_extra_ldflags "-L${OPENSSL_INSTALL_DIR}/lib"

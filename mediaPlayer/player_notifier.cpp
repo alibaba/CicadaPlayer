@@ -8,6 +8,10 @@
 #include <type_traits>
 
 #include <utils/frame_work_log.h>
+#ifdef __APPLE__
+#include "../framework/codec/utils_ios.h"
+#include <TargetConditionals.h>
+#endif
 
 using namespace std;
 
@@ -24,6 +28,17 @@ namespace Cicada {
     static void releaseIPacket(void *data)
     {
         delete (IAFPacket *) data;
+    }
+
+    static void releaseAppleImage(void *data)
+    {
+#ifdef __APPLE__
+#if TARGET_OS_IPHONE
+        if (data) {
+            CFBridging_Release(data);
+        }
+#endif
+#endif
     }
 
     class player_event
@@ -169,12 +184,18 @@ namespace Cicada {
         mpThread->start();
     }
 
+    // TODO: change releaseAppleImage to a parameter of NotifyCaptureScreen
     void PlayerNotifier::NotifyCaptureScreen(uint8_t *buffer, int width, int height)
     {
         if (!mEnable || mListener.CaptureScreen == nullptr) {
             return;
         }
 
+        if (width == -1 && height == -1) {
+            auto *event = new player_event(width, height, buffer, mListener.CaptureScreen, false, releaseAppleImage);
+            pushEvent(event);
+            return;
+        }
         auto *dupBuffer = static_cast<uint8_t *>(malloc(width * height * 4));
         memcpy(dupBuffer, buffer, width * height * 4);
         auto *event = new player_event(width, height, dupBuffer, mListener.CaptureScreen, false);

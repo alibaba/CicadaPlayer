@@ -223,6 +223,12 @@ namespace Cicada {
 
         err = avfilter_link(current, 0, mAbuffersink_ctx, 0);
         err = avfilter_graph_config(m_pFilterGraph, nullptr);
+
+        std::string value = std::to_string(mRate);
+        avfilter_graph_send_command(m_pFilterGraph, "atempo", "tempo", value.c_str(), nullptr, 0, 0);
+        value = std::to_string(mVolume);
+        avfilter_graph_send_command(m_pFilterGraph, "volume", "volume", value.c_str(), nullptr, 0, 0);
+
         mFirstPts = INT64_MIN;
         mDeltaPts = 0;
         mLastInputPts = INT64_MIN;

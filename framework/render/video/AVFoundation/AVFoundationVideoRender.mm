@@ -59,10 +59,12 @@ int AVFoundationVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
 }
 int AVFoundationVideoRender::setRotate(IVideoRender::Rotate rotate)
 {
+    mRender->setRotate(rotate);
     return 0;
 }
 int AVFoundationVideoRender::setFlip(IVideoRender::Flip flip)
 {
+    mRender->setFlip(flip);
     return 0;
 }
 int AVFoundationVideoRender::setScale(IVideoRender::Scale scale)
@@ -80,4 +82,18 @@ int AVFoundationVideoRender::setDisPlay(void *view)
 float AVFoundationVideoRender::getRenderFPS()
 {
     return mFPS;
+}
+
+void AVFoundationVideoRender::setBackgroundColor(uint32_t color)
+{
+    mRender->setBackgroundColor(color);
+}
+void AVFoundationVideoRender::captureScreen(std::function<void(uint8_t *, int, int)> func)
+{
+    mRender->captureScreen(func);
+}
+
+void AVFoundationVideoRender::setVideoRenderingCb(videoRenderingFrameCB cb, void *userData)
+{
+    mRender->SetVideoRenderingCallBack(cb, userData);
 }

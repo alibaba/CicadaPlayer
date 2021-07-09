@@ -50,10 +50,14 @@ function build_shared_framework(){
     export CPU_FLAGS=
     export LDFLAGS=
 
-    local support_libs="fdk-aac x264 curl openssl librtmp cares dav1d"
+    local support_libs="fdk-aac x264 curl librtmp cares dav1d"
 
     if [[ "${XML_USE_NATIVE}" == "FALSE" ]];then
         support_libs="${support_libs} libxml2"
+    fi
+
+    if [[ "${SSL_USE_NATIVE}" != "TRUE" ]];then
+        support_libs="${support_libs} openssl"
     fi
 
     SRC_LIBRARIES_DIR="$CWD/install/ffmpeg/Darwin/x86_64/lib"

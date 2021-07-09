@@ -173,10 +173,18 @@ public class DrmSessionManager {
             requestHandlerThread.quit();
 
             if (mediaDrm != null) {
-                if (sessionId != null) {
-                    mediaDrm.closeSession(sessionId);
+                try {
+                    if (sessionId != null) {
+                        mediaDrm.closeSession(sessionId);
+                    }
+                } catch (Exception e) {
+                    Logger.e(TAG, " closeSession fail : " + e.getMessage());
                 }
-                mediaDrm.release();
+                try {
+                    mediaDrm.release();
+                } catch (Exception e) {
+                    Logger.e(TAG, " release fail : " + e.getMessage());
+                }
                 mediaDrm = null;
             }
 

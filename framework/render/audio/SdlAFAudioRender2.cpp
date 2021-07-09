@@ -26,9 +26,6 @@ namespace Cicada {
         if (mPcmBuffer) {
             free(mPcmBuffer);
         }
-        if (mMixedBuffer) {
-            free(mMixedBuffer);
-        }
     }
 
     int SdlAFAudioRender2::init_device()
@@ -103,18 +100,7 @@ namespace Cicada {
     }
 
     void SdlAFAudioRender2::device_setVolume(float gain)
-    {
-        mOutputVolume = std::min(int(SDL_MIX_MAXVOLUME * gain), SDL_MIX_MAXVOLUME);
-        if (mOutputVolume == 0 && mDevID != 0) {
-            // mute all queued audio buffer
-            uint32_t queuedAudioSize = SDL_GetQueuedAudioSize(mDevID);
-            uint8_t *muteAudioBuffer = (uint8_t *) malloc(queuedAudioSize);
-            memset(muteAudioBuffer, 0, queuedAudioSize);
-            SDL_ClearQueuedAudio(mDevID);
-            SDL_QueueAudio(mDevID, muteAudioBuffer, queuedAudioSize);
-            free(muteAudioBuffer);
-        }
-    }
+    {}
 
     int64_t SdlAFAudioRender2::device_get_position()
     {
@@ -123,7 +109,7 @@ namespace Cicada {
 
     int SdlAFAudioRender2::device_write(unique_ptr<IAFFrame> &frame)
     {
-        if (device_get_que_duration() > 500 * 1000) {
+        if (device_get_que_duration() > 50 * 1000) {
             return -EAGAIN;
         }
         int pcmDataLength = getPCMDataLen(frame->getInfo().audio.channels, (enum AVSampleFormat) frame->getInfo().audio.format,
@@ -136,22 +122,13 @@ namespace Cicada {
         if (mRenderingCb) {
             rendered = mRenderingCb(mRenderingCbUserData, frame.get());
         }
-        if (!rendered) {
+        if (!mMute && !rendered) {
             copyPCMData(getAVFrame(frame.get()), mPcmBuffer);
         } else {
             memset(mPcmBuffer, 0, pcmDataLength);
         }
-        if (mOutputVolume < 128 && !rendered) {
-            if (mMixedBufferSize < mPcmBufferSize) {
-                mMixedBufferSize = mPcmBufferSize;
-                mMixedBuffer = static_cast<uint8_t *>(realloc(mMixedBuffer, mMixedBufferSize));
-            }
-            memset(mMixedBuffer, 0, pcmDataLength);
-            SDL_MixAudioFormat(mMixedBuffer, mPcmBuffer, mSpec.format, pcmDataLength, mOutputVolume);
-            SDL_QueueAudio(mDevID, mMixedBuffer, pcmDataLength);
-        } else {
-            SDL_QueueAudio(mDevID, mPcmBuffer, pcmDataLength);
-        }
+        SDL_QueueAudio(mDevID, mPcmBuffer, pcmDataLength);
+
         assert(frame->getInfo().duration > 0);
         if (mListener) {
             mListener->onUpdateTimePosition(frame->getInfo().timePosition);
@@ -160,6 +137,18 @@ namespace Cicada {
         //AF_LOGD("queued duration is %llu\n", getQueDuration());
         frame = nullptr;
         return 0;
+    }
+
+    void SdlAFAudioRender2::device_mute(bool bMute)
+    {
+        mMute = bMute;
+        // mute all queued audio buffer
+        uint32_t queuedAudioSize = SDL_GetQueuedAudioSize(mDevID);
+        uint8_t *muteAudioBuffer = (uint8_t *) malloc(queuedAudioSize);
+        memset(muteAudioBuffer, 0, queuedAudioSize);
+        SDL_ClearQueuedAudio(mDevID);
+        SDL_QueueAudio(mDevID, muteAudioBuffer, queuedAudioSize);
+        free(muteAudioBuffer);
     }
 
     uint64_t SdlAFAudioRender2::device_get_que_duration()

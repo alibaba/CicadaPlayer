@@ -8,6 +8,9 @@
 
 #include <base/media/IAFPacket.h>
 #include <functional>
+#include <utils/CicadaJSON.h>
+
+typedef bool (*videoRenderingFrameCB)(void *userData, IAFFrame *frame, const CicadaJSONItem &params);
 
 class IVideoRender {
 
@@ -206,12 +209,20 @@ public:
         mInvalid = invalid;
     }
 
+    virtual void setVideoRenderingCb(videoRenderingFrameCB cb, void *userData)
+    {
+        mRenderingCb = cb;
+        mRenderingCbUserData = userData;
+    }
 
 protected:
     IVideoRenderFilter *mFilter{};
     bool mInvalid{false};
     std::function<void(int64_t, bool)> mRenderResultCallback = nullptr;
     IVideoRenderListener *mListener{nullptr};
+
+    videoRenderingFrameCB mRenderingCb{nullptr};
+    void *mRenderingCbUserData{nullptr};
 };
 
 

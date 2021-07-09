@@ -229,6 +229,9 @@ int ActiveDecoder::thread_send_packet(unique_ptr<IAFPacket> &packet)
     if (bHolding) {
         if (packet->getInfo().flags & AF_PKT_FLAG_KEY) {
             while (!mHoldingQueue.empty()) {
+                if (mHoldingQueue.front()->getInfo().extra_data_size > 0 && packet->getInfo().extra_data_size <= 0) {
+                    packet->setExtraData(mHoldingQueue.front()->getInfo().extra_data, mHoldingQueue.front()->getInfo().extra_data_size);
+                }
                 mHoldingQueue.pop();
             }
 

@@ -57,14 +57,16 @@ namespace Cicada {
             mFilterFlags |= A_FILTER_FLAG_TEMPO;
         }
 
-        if (!(device_ability & A_FILTER_FLAG_VOLUME)) {
+        if (!(device_ability & A_FILTER_FLAG_VOLUME) || 1) {// device not support volume >1
             mFilterFlags |= A_FILTER_FLAG_VOLUME;
         }
 
         if (ret < 0) {
             AF_LOGE("subInit failed , ret = %d ", ret);
+            mSuccessInitDevice = false;
             return ret;
         }
+        mSuccessInitDevice = true;
         if (mOutputInfo.nb_samples > 0) {
             float rate = (float) mInputInfo.sample_rate / mOutputInfo.sample_rate;
             float nb_samples = mOutputInfo.nb_samples /= rate;
@@ -88,6 +90,10 @@ namespace Cicada {
         unique_lock<mutex> lock(mFrameQueMutex);
 
         //AF_LOGD("mFrameQue.size() is %d\n", mFrameQue.size());
+
+        if (!mSuccessInitDevice) {
+            return OPEN_AUDIO_DEVICE_FAILED;
+        }
 
         if (mFrameQue.size() >= mMaxQueSize) {
             return -EAGAIN;
@@ -132,38 +138,19 @@ namespace Cicada {
     void filterAudioRender::mute(bool bMute)
     {
         mMute = bMute;
-        if (bMute) {
-            device_setVolume(0);
-        } else {
-            device_setVolume(mVolume * mVolume * mVolume);
-        }
+        device_mute(bMute);
     }
 
     int filterAudioRender::setVolume(float volume)
     {
-        std::lock_guard<std::mutex> lock(mStatusMutex);
-        if (mVolume != volume) {
-            mVolume = volume;
-            mVolumeChanged = true;
-
-            if (!(mFilterFlags & A_FILTER_FLAG_VOLUME)) {
-                device_setVolume(mVolume * mVolume * mVolume);
-            }
-        }
-
+        mVolume = volume;
         return 0;
     }
 
     int filterAudioRender::setSpeed(float speed)
     {
         assert(mFilterFlags & A_FILTER_FLAG_TEMPO);
-
-        std::lock_guard<std::mutex> lock(mStatusMutex);
-        if (mSpeed != speed) {
-            mSpeed = speed;
-            mSpeedChanged = true;
-        }
-
+        mSpeed = speed;
         return 0;
     }
 
@@ -217,6 +204,9 @@ namespace Cicada {
         mSpeedDeltaDuration = 0;
         mRenderFrame = nullptr;
 
+        //nb_samples could changed when reuse
+        mOutputInfo.nb_samples = 0;
+
         if (running) {
             startThread();
         }
@@ -236,21 +226,6 @@ namespace Cicada {
         while (mRenderFrame != nullptr) {
             if (!mRunning) {
                 return 0;
-            }
-
-            {
-                std::lock_guard<std::mutex> lock(mStatusMutex);
-                if (mSpeedChanged) {
-                    applySpeed();
-                    mSpeedChanged = false;
-                }
-            }
-            {
-                std::lock_guard<std::mutex> lock(mStatusMutex);
-                if (mVolumeChanged) {
-                    applyVolume();
-                    mVolumeChanged = false;
-                }
             }
 
             loopChecker();
@@ -280,6 +255,18 @@ namespace Cicada {
 
     unique_ptr<IAFFrame> filterAudioRender::getFrame()
     {
+        float speed = mSpeed.load();
+        if (speed != mFilterSpeed) {
+            applySpeed();
+            mFilterSpeed = speed;
+        }
+
+        float volume = mVolume.load();
+        if (volume != mFilterVolume) {
+            applyVolume();
+            mFilterVolume = volume;
+        }
+
         unique_ptr<IAFFrame> filter_frame{};
 
         if (mFilter != nullptr) {
@@ -331,11 +318,10 @@ namespace Cicada {
 
     int filterAudioRender::applyVolume()
     {
-        float volume = mVolume;
+        float gain = mVolume * mVolume * mVolume;
 
-        if (volume > 1) {
-            float gain = volume * volume * volume;
-
+        if (gain > 1) {
+            //use filter to enlarge, set device volume to 1
             if (mFilter == nullptr) {
                 mFilter = std::unique_ptr<IAudioFilter>(filterFactory::createAudioFilter(mInputInfo, mOutputInfo, mUseActiveFilter));
                 mFilter->setOption("volume", AfString::to_string(gain), "volume");
@@ -347,18 +333,19 @@ namespace Cicada {
             } else {
                 mFilter->setOption("volume", AfString::to_string(gain), "volume");
             }
-
-//set device volume to 1
-            volume = 1;
-        } else {
-            if (mFilter) {
-                mFilter->setOption("volume", AfString::to_string(1.0), "volume");
+            if (device_get_ability() & A_FILTER_FLAG_VOLUME) {
+                device_setVolume(1.0);
             }
-        }
-
-        if(!mMute) {
-            float gain = volume * volume * volume;
-            device_setVolume(gain);
+        } else {
+            if (device_get_ability() & A_FILTER_FLAG_VOLUME) {
+                if (mFilter) {
+                    mFilter->setOption("volume", AfString::to_string(1.0), "volume");
+                }
+                device_setVolume(gain);
+            } else {
+                assert(mFilter);
+                mFilter->setOption("volume", AfString::to_string(gain), "volume");
+            }
         }
         return 0;
     }

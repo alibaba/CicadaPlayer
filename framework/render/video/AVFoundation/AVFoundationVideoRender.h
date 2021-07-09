@@ -29,7 +29,13 @@ public:
 
     int setDisPlay(void *view) override;
 
+    void setBackgroundColor(uint32_t color) override;
+
     float getRenderFPS() override;
+
+    void captureScreen(std::function<void(uint8_t *, int, int)> func) override;
+
+    void setVideoRenderingCb(videoRenderingFrameCB cb, void *userData) override;
 
 private:
     std::unique_ptr<DisplayLayerImpl> mRender;

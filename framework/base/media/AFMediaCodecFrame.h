@@ -42,6 +42,8 @@ public:
         return nullptr;
     }
 
+    void releaseIndex();
+
     ~AFMediaCodecFrame() override;
 
 private:
@@ -50,6 +52,7 @@ private:
     bool mDiscard{false};
     release mRelease;
 
+    bool mReleased{false};
 };
 
 

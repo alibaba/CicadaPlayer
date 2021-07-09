@@ -6,6 +6,7 @@
 
 #include "SuperMediaPlayer.h"
 #include "media_player_error_def.h"
+#include <cassert>
 #include <climits>
 #include <data_source/dataSourcePrototype.h>
 #include <utils/CicadaUtils.h>
@@ -99,7 +100,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
 
     {
         std::lock_guard<std::mutex> locker(mPlayer.mCreateMutex);
-        mPlayer.mDemuxerService = new demuxer_service(mPlayer.mDataSource);
+        mPlayer.mDemuxerService = static_cast<unique_ptr<demuxer_service>>(new demuxer_service(mPlayer.mDataSource));
         mPlayer.mDemuxerService->setOptions(&mPlayer.mSet->mOptions);
     }
 
@@ -294,9 +295,12 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         }
     }
 
+    // TODO: why ?
+    /*
     if (!HAVE_VIDEO) {
         mPlayer.mSeekNeedCatch = false;
     }
+*/
 
     AF_LOGD("initOpen end");
     mPlayer.mDemuxerService->start();
@@ -410,10 +414,12 @@ void SMPMessageControllerListener::ProcessSeekToMsg(int64_t seekPos, bool bAccur
 
     mPlayer.mPNotifier->NotifySeeking(mPlayer.mSeekInCache);
 
+    // TODO: why add this?
+    /*
     if (mPlayer.mSeekNeedCatch && !HAVE_VIDEO) {
         mPlayer.mSeekNeedCatch = false;
     }
-
+*/
     if (!mPlayer.mSeekInCache) {
         mPlayer.mBufferController->ClearPacket(BUFFER_TYPE_ALL);
         int64_t ret = mPlayer.mDemuxerService->Seek(seekPos, 0, -1);
@@ -549,6 +555,7 @@ void SMPMessageControllerListener::ProcessVideoRenderedMsg(int64_t pts, int64_t 
         mPlayer.mVideoChangedFirstPts = INT64_MIN;
     }
 
+    assert(mPlayer.mDemuxerService);
     mPlayer.mDemuxerService->SetOption("FRAME_RENDERED", pts);
 
     if (mPlayer.mSet->bEnableVRC) {

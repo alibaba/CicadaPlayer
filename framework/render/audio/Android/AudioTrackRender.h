@@ -32,6 +32,8 @@ private:
 
     void device_setVolume(float gain) override;
 
+    void device_mute(bool bMute) override;
+
     int64_t device_get_position() override;
 
     int device_write(unique_ptr<IAFFrame> &frame) override;
@@ -40,7 +42,7 @@ private:
 
     uint64_t device_get_ability() override
     {
-        return 0;
+        return A_FILTER_FLAG_VOLUME;
     }
 
     void device_preClose() override
@@ -117,6 +119,8 @@ private:
     afThread *mWriteThread{nullptr};
     std::atomic_bool mRunning{false};
     int mMaxQueSize{2};
+    float mVolume{1.0};
+    bool mMute{false};
 };
 
 

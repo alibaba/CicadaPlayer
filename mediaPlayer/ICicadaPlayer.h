@@ -5,10 +5,11 @@
 #ifndef CICADA_PLAYER_ICICADAPLAYER_H
 #define CICADA_PLAYER_ICICADAPLAYER_H
 
-#include <utils/AFMediaType.h>
 #include "native_cicada_player_def.h"
 #include <cacheModule/cache/CacheConfig.h>
 #include <drm/DrmHandler.h>
+#include <render/video/IVideoRender.h>
+#include <utils/AFMediaType.h>
 
 namespace Cicada{
     class IDemuxerFactory;
@@ -34,6 +35,8 @@ namespace Cicada {
         virtual void SetOnRenderCallBack(onRenderFrame cb, void *userData) = 0;
 
         virtual void SetAudioRenderingCallBack(onRenderFrame cb, void *userData) = 0;
+
+        virtual void SetVideoRenderingCallBack(videoRenderingFrameCB cb, void *userData) = 0;
 
         /*
          *设置显示窗口

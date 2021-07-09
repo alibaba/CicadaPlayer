@@ -11,6 +11,7 @@
 #include <utils/Android/JniEnv.h>
 #include <utils/Android/JniException.h>
 #include <utils/ffmpeg_utils.h>
+#include <utils/globalSettings.h>
 #include <utils/timer.h>
 
 
@@ -81,6 +82,9 @@ int AudioTrackRender::init_device()
     mSimpleSize = mOutputInfo.nb_samples;
 
     mWriteThread = NEW_AF_THREAD(write_loop);
+    if (mRunning) {
+        mWriteThread->start();
+    }
     return 0;
 }
 
@@ -137,15 +141,16 @@ int AudioTrackRender::init_jni()
     }
 
     constructor_id = handle->GetMethodID(audio_track_impl, "<init>", "(IIIIII)V");
-    AndroidJniHandle<jobject> audio_track_tmp(handle->NewObject(audio_track_impl,
-            constructor_id,
-            3,             /*AudioManager.STREAM_MUSIC*/
-            mOutputInfo.sample_rate,   /*sampleRateInHz*/
-            channelType,   /*CHANNEL_CONFIGURATION_STEREO*/
-            2,             /*ENCODING_PCM_16BIT*/
-            buffer_size,   /*bufferSizeInBytes*/
-            1              /*AudioTrack.MODE_STREAM*/
-                                                               ));
+    const string &streamType = Cicada::globalSettings::getSetting()->getProperty("audio.streamType");
+    int audioStreamType = streamType.empty() ? 3 : atoi(streamType.c_str());
+    AndroidJniHandle<jobject> audio_track_tmp(handle->NewObject(audio_track_impl, constructor_id,
+                                                                audioStreamType,         /*AudioManager.stream type*/
+                                                                mOutputInfo.sample_rate, /*sampleRateInHz*/
+                                                                channelType,             /*CHANNEL_CONFIGURATION_STEREO*/
+                                                                2,                       /*ENCODING_PCM_16BIT*/
+                                                                buffer_size,             /*bufferSizeInBytes*/
+                                                                1                        /*AudioTrack.MODE_STREAM*/
+                                                                ));
 
     if (JniException::clearException(handle)) {
         AF_LOGE("audioTrack constructor exception. sample_rate %d, channel %d, bufferSize %d",
@@ -170,7 +175,9 @@ int AudioTrackRender::init_jni()
 int AudioTrackRender::pause_device()
 {
     mRunning = false;
-    mWriteThread->pause();
+    if (mWriteThread) {
+        mWriteThread->pause();
+    }
     if (audio_track && method_pause) {
         JniEnv  jniEnv;
         JNIEnv *handle = jniEnv.getEnv();
@@ -201,7 +208,9 @@ int AudioTrackRender::start_device()
         }
     }
     mRunning = true;
-    mWriteThread->start();
+    if (mWriteThread) {
+        mWriteThread->start();
+    }
 
     return 0;
 }
@@ -259,10 +268,27 @@ void AudioTrackRender::flush_device()
 
 void AudioTrackRender::device_setVolume(float gain)
 {
+    mVolume = gain;
+    if (mMute) {
+        return;
+    }
     if (audio_track && method_setVolume) {
         JniEnv  jniEnv;
         JNIEnv *handle = jniEnv.getEnv();
         handle->CallIntMethod(audio_track, method_setVolume, gain, gain);
+    }
+}
+void AudioTrackRender::device_mute(bool bMute)
+{
+    mMute = bMute;
+    if (bMute) {
+        if (audio_track && method_setVolume) {
+            JniEnv jniEnv;
+            JNIEnv *handle = jniEnv.getEnv();
+            handle->CallIntMethod(audio_track, method_setVolume, 0.0f, 0.0f);
+        }
+    } else {
+        device_setVolume(mVolume);
     }
 }
 
@@ -381,6 +407,11 @@ int AudioTrackRender::device_write_internal(IAFFrame *frame)
 
     if (jbuffer == nullptr) {
         jbuffer = handle->NewGlobalRef(handle->NewByteArray(len));
+    }
+
+    bool rendered = false;
+    if (mRenderingCb != nullptr) {
+        rendered = mRenderingCb(mRenderingCbUserData, frame);
     }
 
     if (audio_track && method_write) {

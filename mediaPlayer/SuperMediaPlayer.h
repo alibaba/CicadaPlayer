@@ -87,6 +87,8 @@ namespace Cicada {
 
         void SetAudioRenderingCallBack(onRenderFrame cb, void *userData) override;
 
+        void SetVideoRenderingCallBack(videoRenderingFrameCB cb, void *userData) override;
+
         // TODO: use setParameters and setOpt to set
         void SetRefer(const char *refer) override;
 
@@ -312,6 +314,8 @@ namespace Cicada {
 
         void updateVideoMeta();
 
+        void setUpVideoRender(uint64_t renderFlags);
+
         class ApsaraAudioRenderCallback : public IAudioRenderListener {
         public:
             explicit ApsaraAudioRenderCallback(SuperMediaPlayer &player) : mPlayer(player)
@@ -385,7 +389,7 @@ namespace Cicada {
     private:
         IDataSource *mDataSource{nullptr};
         std::atomic_bool mCanceled{false};
-        demuxer_service *mDemuxerService{nullptr};
+        std::unique_ptr<demuxer_service> mDemuxerService{nullptr};
         std::unique_ptr<DrmManager> mDrmManager{};
         std::queue<unique_ptr<IAFFrame>> mVideoFrameQue{};
         std::deque<unique_ptr<IAFFrame>> mAudioFrameQue{};
@@ -532,9 +536,14 @@ namespace Cicada {
 
         onRenderFrame mAudioRenderingCb{nullptr};
         void *mAudioRenderingCbUserData{nullptr};
+
+        videoRenderingFrameCB mVideoRenderingCb{nullptr};
+        void *mVideoRenderingCbUserData{nullptr};
+
         bool mIsDummy{false};
         bool mPausedByAudioInterrupted{false};
         bool mNeedVideoRender{true};
+        bool mVideoCatchingUp{false};
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H

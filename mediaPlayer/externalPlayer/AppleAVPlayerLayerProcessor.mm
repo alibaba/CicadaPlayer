@@ -127,6 +127,9 @@
     if ([keyPath isEqualToString:@"bounds"]) {
         CGRect bounds = [change[NSKeyValueChangeNewKey] CGRectValue];
         self.playerLayer.frame = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
+        self.playerLayer.bounds = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
+        [self setVideoSize:_videoSize];
+        [self applayTransform];
     }
 }
 

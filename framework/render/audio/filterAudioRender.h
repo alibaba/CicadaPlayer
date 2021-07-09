@@ -57,6 +57,8 @@ namespace Cicada {
 
         virtual int device_write(unique_ptr<IAFFrame> &frame) = 0;
 
+        virtual void device_mute(bool bMute) = 0;
+
         virtual uint64_t device_get_que_duration()
         {
             return 0;
@@ -93,13 +95,12 @@ namespace Cicada {
         atomic<bool> mRunning{false};
 
     private:
-        std::mutex mStatusMutex{};
         volatile std::atomic<float> mSpeed{1};
-        std::atomic_bool mSpeedChanged{false};
+        std::atomic<float> mFilterSpeed{1};
         std::atomic<int64_t> mSpeedDeltaDuration{0};
         volatile std::atomic<float> mVolume{1};
+        std::atomic<float> mFilterVolume{1};
         volatile std::atomic_bool mMute{false};
-        std::atomic_bool mVolumeChanged{false};
         std::unique_ptr<Cicada::IAudioFilter> mFilter{};
         std::mutex mFrameQueMutex;
         std::condition_variable mFrameQueCondition;
@@ -108,6 +109,7 @@ namespace Cicada {
         bool mUseActiveFilter{false};
         std::atomic_int mMaxQueSize{2};
         uint64_t mFilterFlags{};
+        bool mSuccessInitDevice = false;
 
     protected:
         std::unique_ptr<afThread> mRenderThread = nullptr;

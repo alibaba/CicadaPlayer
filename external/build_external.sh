@@ -18,7 +18,7 @@ function patch_ffmpeg() {
 
     cd ${FFMPEG_SOURCE_DIR}
     git_am_patch ../../contribute/ffmpeg/0001-chore-win32-fix-not-find-openssl-1.1.1.patch
-    git_am_patch ../../contribute/ffmpeg/0002-chore-avformat-change-MAX_PES_PAYLOAD-to-5M.patch
+#    git_am_patch ../../contribute/ffmpeg/0002-chore-avformat-change-MAX_PES_PAYLOAD-to-5M.patch
     git_am_patch ../../contribute/ffmpeg/0003-chore-libavformat-exoport-some-functions.patch
     git_am_patch ../../contribute/ffmpeg/0004-chore-fix-Linux-build.patch
     git_am_patch ../../contribute/ffmpeg/0005-chore-disable-libdav1d-check.patch
@@ -26,6 +26,7 @@ function patch_ffmpeg() {
     git_am_patch ../../contribute/ffmpeg/0007-build-libavformat-compile-avc.c-and-hevc.c-default.patch
     git_am_patch ../../contribute/ffmpeg/0008-avformat-flvdec-add-aliyun-extend-auio-codec-id.patch
     git_am_patch ../../contribute/ffmpeg/0009-chore-configure-xml2-use-check-lib.patch
+    git_am_patch ../../contribute/ffmpeg/0010-build-export-some-func-for-windows.patch
 }
 
 function git_apply_patch() {

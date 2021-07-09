@@ -6,6 +6,7 @@
 #define FRAMEWORK_SDLAFVIDEORENDER_H
 
 #include <SDL2/SDL.h>
+#include <condition_variable>
 #include <mutex>
 #include <render/video/AFActiveVideoRender.h>
 

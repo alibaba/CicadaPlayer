@@ -24,6 +24,7 @@ namespace Cicada {
         void device_setVolume(float gain) override;
         int64_t device_get_position() override;
         int device_write(unique_ptr<IAFFrame> &frame) override;
+        void device_mute(bool bMute) override;
         uint64_t device_get_que_duration() override;
         int loopChecker() override;
         void device_preClose() override;
@@ -35,9 +36,7 @@ namespace Cicada {
         uint64_t mPlayedDuration = 0;
         uint8_t *mPcmBuffer = nullptr;
         int mPcmBufferSize = 0;
-        uint8_t *mMixedBuffer = nullptr;
-        int mMixedBufferSize = 0;
-        std::atomic_int mOutputVolume{0};
+        std::atomic<bool> mMute{false};
         SDL_AudioSpec mSpec{0};
     };
 }// namespace Cicada
