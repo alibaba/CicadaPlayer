@@ -4,6 +4,7 @@
 
 #import "CicadaPlayer.h"
 #include "native_cicada_player_def.h"
+#include <utils/AssUtils.h>
 
 class CicadaOCHelper {
 public:
@@ -78,9 +79,17 @@ protected:
 
     static CicadaStatus mapStatus(int64_t status);
 
+
 private:
     __weak CicadaPlayer * mPlayer = nullptr;
     __weak id<CicadaDelegate> mInnerDelegate = nil;
+
+    Cicada::AssHeader assHeader;
+    NSMutableDictionary *layerDic;
+
+    NSArray *matchStringWithRegx(NSString *string, NSString *regexStr);
+
+    void buildAssStyle(UILabel *assLabel, Cicada::AssDialogue ret, void *userData);
 };
 
 

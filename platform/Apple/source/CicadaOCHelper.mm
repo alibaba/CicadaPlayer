@@ -3,6 +3,8 @@
 #include <EventCodeMap.h>
 #include <ErrorCodeMap.h>
 
+using namespace Cicada;
+
 CicadaImage * CicadaOCHelper::convertBitmapRGBA8ToUIImage(unsigned char *buffer, int width, int height) {
     size_t bufferLength = width * height * 4;
     CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, buffer, bufferLength, NULL);
@@ -325,6 +327,11 @@ void CicadaOCHelper::onCurrentDownLoadSpeed(int64_t speed, void *userData)
     }
 }
 
+#define ASS_UIColorFromRGB(rgbValue)                                                                                                       \
+    [UIColor colorWithRed:((float) ((rgbValue & 0xFF0000) >> 16)) / 255.0                                                                  \
+                    green:((float) ((rgbValue & 0xFF00) >> 8)) / 255.0                                                                     \
+                     blue:((float) (rgbValue & 0xFF)) / 255.0                                                                              \
+                    alpha:1.0];
 
 void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *data, void *userData) {
     __weak CicadaPlayer * player = getOCPlayer(userData);
@@ -336,10 +343,36 @@ void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *dat
     NSData* stringData = [[NSData alloc] initWithBytes:packet->getData() length:(unsigned int)packet->getSize()];
     NSString* str = [[NSString alloc] initWithData:stringData encoding:NSUTF8StringEncoding];
 
-    if(player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleShow:trackIndex:subtitleID:subtitle:)]){
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [player.delegate onSubtitleShow:player trackIndex:(int)subtitleIndex subtitleID:pts subtitle:str];
-        });
+    CicadaOCHelper *helper = (CicadaOCHelper *) userData;
+    if (helper->assHeader.Type == SubtitleTypeAss) {
+        if ([str length] > 0) {
+            AssDialogue ret = AssUtils::parseAssDialogue(helper->assHeader, [str UTF8String]);
+
+            dispatch_async(dispatch_get_main_queue(), ^{
+              UILabel *assLabel = nil;
+              NSString *layerKey = [NSString stringWithFormat:@"%i", ret.Layer];
+              if ([helper->layerDic objectForKey:layerKey]) {
+                  assLabel = [helper->layerDic objectForKey:layerKey];
+              } else {
+                  assLabel = [UILabel new];
+                  assLabel.frame = player.playerView.bounds;
+                  [player.playerView insertSubview:assLabel atIndex:ret.Layer + 1];
+
+                  [helper->layerDic setValue:assLabel forKey:layerKey];
+              }
+
+              assLabel.hidden = NO;
+
+              helper->buildAssStyle(assLabel, ret, userData);
+            });
+            //        NSLog(@"=====%s",ret.Text.c_str());
+        }
+    } else {
+        if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleShow:trackIndex:subtitleID:subtitle:)]) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+              [player.delegate onSubtitleShow:player trackIndex:(int) subtitleIndex subtitleID:pts subtitle:str];
+            });
+        }
     }
 }
 
@@ -372,10 +405,26 @@ void CicadaOCHelper::onHideSubtitle(int64_t index, int64_t size, const void *dat
     int subtitleIndex = packet->getInfo().streamIndex;
     int64_t pts = packet->getInfo().pts;
 
-    if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleHide:trackIndex:subtitleID:)]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [player.delegate onSubtitleHide:player trackIndex:(int)subtitleIndex subtitleID:pts];
-        });
+    CicadaOCHelper *helper = (CicadaOCHelper *) userData;
+    if (helper->assHeader.Type == SubtitleTypeAss) {
+        NSData *stringData = [[NSData alloc] initWithBytes:packet->getData() length:(unsigned int) packet->getSize()];
+        NSString *str = [[NSString alloc] initWithData:stringData encoding:NSUTF8StringEncoding];
+        if ([str length] > 0) {
+            AssDialogue ret = AssUtils::parseAssDialogue(helper->assHeader, [str UTF8String]);
+            NSString *layerKey = [NSString stringWithFormat:@"%i", ret.Layer];
+            UIView *assLab = [helper->layerDic objectForKey:layerKey];
+            if (assLab) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                  assLab.hidden = YES;
+                });
+            }
+        }
+    } else {
+        if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleHide:trackIndex:subtitleID:)]) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+              [player.delegate onSubtitleHide:player trackIndex:(int) subtitleIndex subtitleID:pts];
+            });
+        }
     }
 }
 
@@ -406,7 +455,112 @@ void CicadaOCHelper::onSubtitleHeader(int64_t index, const void *header, void *u
          * 1. detect whether a ass header
          * 2. create a subtitle layer and add to mView
          */
+        CicadaOCHelper *helper = (CicadaOCHelper *) userData;
+        helper->assHeader = AssUtils::parseAssHeader([str UTF8String]);
+        if (helper->assHeader.Type == SubtitleTypeAss) {
+            helper->layerDic = @{}.mutableCopy;
+        }
     }
+}
+
+NSArray *CicadaOCHelper::matchStringWithRegx(NSString *string, NSString *regexStr)
+{
+
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:regexStr
+                                                                           options:NSRegularExpressionCaseInsensitive
+                                                                             error:nil];
+
+    NSArray *matches = [regex matchesInString:string options:0 range:NSMakeRange(0, [string length])];
+
+    //match: 所有匹配到的字符,根据() 包含级
+
+    NSMutableArray *array = [NSMutableArray array];
+
+    for (NSTextCheckingResult *match in matches) {
+
+        for (int i = 0; i < [match numberOfRanges]; i++) {
+            //以正则中的(),划分成不同的匹配部分
+            NSString *component = [string substringWithRange:[match rangeAtIndex:i]];
+
+            [array addObject:component];
+        }
+    }
+
+    return array;
+}
+
+void CicadaOCHelper::buildAssStyle(UILabel *assLabel, AssDialogue ret, void *userData)
+{
+    __weak CicadaPlayer *player = getOCPlayer(userData);
+    CicadaOCHelper *helper = (CicadaOCHelper *) userData;
+
+    //TODO 判断是否是默认
+    std::map<std::string, AssStyle> styles = helper->assHeader.styles;
+    std::map<std::string, AssStyle>::iterator iter = styles.begin();
+    AssStyle assStyle = iter->second;
+
+    NSString *fontName = [NSString stringWithCString:assStyle.FontName.c_str() encoding:NSUTF8StringEncoding];
+    assLabel.font = [UIFont fontWithName:fontName size:assStyle.FontSize];
+    assLabel.textColor = ASS_UIColorFromRGB(assStyle.PrimaryColour);
+
+
+    NSString *subtitle = [NSString stringWithCString:ret.Text.c_str() encoding:NSUTF8StringEncoding];
+
+    //TODO 先屏蔽行内代码
+    NSArray *lineCodes = helper->matchStringWithRegx(subtitle, @"\\{[^\\{]+\\}");
+
+    for (NSString *subStr in lineCodes) {
+        subtitle = [subtitle stringByReplacingOccurrencesOfString:subStr withString:@""];
+    }
+
+    assLabel.text = subtitle;
+
+    CGSize textSize = [assLabel.text sizeWithAttributes:@{NSFontAttributeName: assLabel.font}];
+
+    CGFloat x = 0;
+    CGFloat y = 0;
+    CGFloat w = CGRectGetWidth(player.playerView.frame);
+    CGFloat h = CGRectGetHeight(player.playerView.frame);
+    switch (assStyle.Alignment % 4) {
+        //左对齐
+        case 1:
+            x = 0;
+            x += assStyle.MarginL;
+            break;
+        //居中
+        case 2:
+            x = (w - textSize.width) / 2;
+            break;
+        //右对齐
+        case 3:
+            x = w - textSize.width;
+            x -= assStyle.MarginR;
+            break;
+
+        default:
+            break;
+    }
+    switch (assStyle.Alignment / 4) {
+        //底部
+        case 0:
+            y = h - textSize.height;
+            y -= assStyle.MarginV;
+            break;
+        //顶部
+        case 1:
+            y = 0;
+            x += assStyle.MarginV;
+            break;
+        //居中
+        case 2:
+            y = (h - textSize.height) / 2;
+            break;
+
+        default:
+            break;
+    }
+
+    assLabel.frame = CGRectMake(x, y, textSize.width, textSize.height);
 }
 
 void
