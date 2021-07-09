@@ -3,9 +3,9 @@ name: Linux CI
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ release/* ]
   pull_request:
-    branches: [ develop ]
+    branches: [ release/* ]
 
 
 jobs:
@@ -28,6 +28,7 @@ jobs:
           export PATH=`pwd`/cmake-3.16.2-Linux-x86_64/bin:$PATH
           sudo apt-get install clang llvm
           echo  1 | sudo update-alternatives --config cc
+          echo  1 | sudo update-alternatives --config c++
 
       - name: build_external
         run: |
@@ -45,3 +46,10 @@ jobs:
           cd build
           cmake ../
           make cicadaPlayer
+
+      - name: unit test
+        run: |
+          cd build/mediaPlayer/tests/
+          ctest -j8 --output-on-failure
+          cd ../../framework/tests/
+          ctest -j8 --output-on-failure
