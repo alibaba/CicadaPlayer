@@ -1,0 +1,62 @@
+name: Linux CI
+
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: before install
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yasm
+          sudo apt-get install -y libsdl2-dev
+          sudo apt-get install -y clang-format
+          sudo apt-get install git make gcc autoconf libtool yasm cmake g++ libsdl2-dev
+          wget "https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.16.2-Linux-x86_64.tar.gz"
+          tar zxf cmake-3.16.2-Linux-x86_64.tar.gz
+          export PATH=`pwd`/cmake-3.16.2-Linux-x86_64/bin:$PATH
+          sudo apt-get install clang llvm
+          echo  1 | sudo update-alternatives --config c++
+          echo  1 | sudo update-alternatives --config cc
+
+      - name: build external
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+          . setup.env
+          cd external/
+          ./build_external.sh Linux
+          cd ..
+
+      - name: build cmdline
+        run: |
+          cd cmdline/
+          mkdir build
+          cd build
+          cmake ../
+          make cicadaPlayer
+
+      - name: build tests
+        run: |
+          mkdir build
+          cd build
+          cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
+          cmake --build . --config Debug -j8
+
+      - name: unit test
+        run: |
+          cd build/mediaPlayer/tests/
+          ctest -j8 --output-on-failure
+          cd ../../framework/tests/
+          ctest -j8 --output-on-failure
