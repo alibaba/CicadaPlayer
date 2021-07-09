@@ -62,6 +62,15 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
             CicadaUrlSource *source = [[CicadaUrlSource alloc] urlWithString:model.url];
             CicadaPlayerViewController *vc = [[CicadaPlayerViewController alloc]init];
             vc.subtitleDictionary = model.subtitle;
+            //TODO 测试代码
+            if([model.name isEqualToString:@"aas"]){
+                NSString *path = [[NSBundle mainBundle]pathForResource:@"test.ass"ofType:nil];
+                NSURL *url=[NSURL  fileURLWithPath:path];
+                NSMutableDictionary *dic = vc.subtitleDictionary.mutableCopy;
+                [dic setValue:url.absoluteString forKey:@"aas"];
+                vc.subtitleDictionary = dic;
+            }
+            //TODO end
             vc.urlSource = source;
             [self.navigationController pushViewController:vc animated:YES];
         }

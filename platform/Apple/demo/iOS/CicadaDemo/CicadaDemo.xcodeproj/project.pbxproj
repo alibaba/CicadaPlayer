@@ -48,6 +48,7 @@
 		A3E0D1B1446E5EFC1FFA955A /* libPods-CicadaDemo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2D29A7BB5E10D77DE2F09D7 /* libPods-CicadaDemo.a */; };
 		CB46507D24D1E5310065DB1A /* AssetLoaderDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = CB46507C24D1E5310065DB1A /* AssetLoaderDelegate.m */; };
 		CB46508024D2757B0065DB1A /* FairplayInputViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CB46507F24D2757B0065DB1A /* FairplayInputViewController.m */; };
+		F3933E2C26944BB40085AA05 /* test.ass in Resources */ = {isa = PBXBuildFile; fileRef = F3933E2B26944BB40085AA05 /* test.ass */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -146,7 +147,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 1F7561AD2369505B001A5B1E /* CicadaPlayerSDK.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 24FCE1C7CE6048BD9B27E816;
+			remoteGlobalIDString = B0BC281158AC4AD6BC4D963D;
 			remoteInfo = install;
 		};
 		F3C2D0982620355200CAB6BB /* PBXContainerItemProxy */ = {
@@ -256,6 +257,7 @@
 		CB46507E24D2757B0065DB1A /* FairplayInputViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FairplayInputViewController.h; sourceTree = "<group>"; };
 		CB46507F24D2757B0065DB1A /* FairplayInputViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FairplayInputViewController.m; sourceTree = "<group>"; };
 		D2D29A7BB5E10D77DE2F09D7 /* libPods-CicadaDemo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CicadaDemo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F3933E2B26944BB40085AA05 /* test.ass */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.ass; sourceTree = "<group>"; };
 		FC8E51BEE6DE88901BAC16FE /* Pods-CicadaDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CicadaDemo.release.xcconfig"; path = "Pods/Target Support Files/Pods-CicadaDemo/Pods-CicadaDemo.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -303,6 +305,7 @@
 		186F76E621D71FE4005DC20E /* AppSupportFiles */ = {
 			isa = PBXGroup;
 			children = (
+				F3933E2B26944BB40085AA05 /* test.ass */,
 				1F052F2523696ACA00A6E842 /* CicadaConfig.json */,
 				186F76E721D71FE4005DC20E /* AppDelegate.h */,
 				186F76E921D71FE4005DC20E /* AppDelegate.m */,
@@ -435,7 +438,7 @@
 		1F7561AE2369505B001A5B1E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1F7561C22369505B001A5B1E /* CicadaPlayerSDK.framework/CicadaPlayerSDK */,
+				1F7561C22369505B001A5B1E /* CicadaPlayerSDK.framework */,
 				1F7561C42369505B001A5B1E /* alivcffmpeg.framework/alivcffmpeg */,
 				1F7561CA2369505B001A5B1E /* libcacheModule.a */,
 				CB5A797324C941650005ABD3 /* libcommunication.a */,
@@ -543,7 +546,7 @@
 				TargetAttributes = {
 					18FCB28D21D6126A00289843 = {
 						CreatedOnToolsVersion = 9.2;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 					9E2ABC52239FBDE800753787 = {
 						CreatedOnToolsVersion = 11.1;
@@ -579,10 +582,9 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		1F7561C22369505B001A5B1E /* CicadaPlayerSDK.framework/CicadaPlayerSDK */ = {
+		1F7561C22369505B001A5B1E /* CicadaPlayerSDK.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
-			name = CicadaPlayerSDK.framework/CicadaPlayerSDK;
 			path = CicadaPlayerSDK.framework;
 			remoteRef = 1F7561C12369505B001A5B1E /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
@@ -692,6 +694,7 @@
 				186F76ED21D71FE4005DC20E /* LaunchScreen.storyboard in Resources */,
 				1F052F2623696ACA00A6E842 /* CicadaConfig.json in Resources */,
 				186F76F521D720DB005DC20E /* Main.storyboard in Resources */,
+				F3933E2C26944BB40085AA05 /* test.ass in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -923,8 +926,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = A2YNUJF7T7;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -942,7 +945,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.aliyun.CicadaDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = AliLive_iOS_development;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -955,7 +958,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = A2YNUJF7T7;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -974,7 +977,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.aliyun.CicadaDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = AliLive_iOS_development;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
