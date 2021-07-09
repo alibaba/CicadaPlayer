@@ -3,9 +3,9 @@ name: Linux CI
 
 on:
   push:
-    branches: [ release/* ]
+    branches: [ develop ]
   pull_request:
-    branches: [ release/* ]
+    branches: [ develop ]
 
 
 jobs:
@@ -45,45 +45,3 @@ jobs:
           cd build
           cmake ../
           make cicadaPlayer
-
-#      - name: before_script_judge
-#        if: ${{"$CHECK_FORMAT" == "ON" && "$TRAVIS_PULL_REQUEST" != "false"}}
-#        run:
-#          curl -L http://llvm.org/svn/llvm-project/cfe/trunk/tools/clang-format/clang-format-diff.py -o clang-format-diff.py;
-
-#      - name: before_script
-#        run: |
-#          curl -L http://llvm.org/svn/llvm-project/cfe/trunk/tools/clang-format/clang-format-diff.py -o clang-format-diff.py;
-#          . setup.env
-#          cd external/
-#          ./build_external.sh Linux
-#          cd ../
-
-#      - name: script_judge
-#        if: ${{"$CHECK_FORMAT" == "ON"}}
-#        run:
-#          if: ${{"$TRAVIS_PULL_REQUEST" != "false"}}
-#          run:
-#            echo "Checking clang-format between TRAVIS_BRANCH=$TRAVIS_BRANCH and TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH"
-#            if: ${{-n $(git diff -U0 --no-color HEAD^ | python ./clang-format-diff.py -p1 -i)}}
-#            run: |
-#              echo "Run clang-format before submitting a pull request."
-#              echo ""
-#              git diff -U0 --no-color HEAD^ | python ./clang-format-diff.py -p1 -i
-#              exit -1
-
-#      - name: script
-#        run: |
-#          mkdir build
-#          cd build
-#          cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
-#          cmake --build . --config Debug -j8
-#
-#      - name: after_success
-#        run: |
-#          cd mediaPlayer/tests/
-#          ctest -j8 --output-on-failure
-#          bash <(curl -s https://codecov.io/bash) -x "llvm-cov gcov" || echo "Codecov did not collect coverage reports"
-#          cd ../../framework/tests/
-#          ctest -j8 --output-on-failure
-#          bash <(curl -s https://codecov.io/bash) -x "llvm-cov gcov" || echo "Codecov did not collect coverage reports"
