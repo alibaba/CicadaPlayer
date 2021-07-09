@@ -73,7 +73,7 @@ TEST(dns, https)
     // https://dnschecker.org/
     string url = "https://player.alicdn.com/video/aliyunmedia.mp4";
     //  string ip = "120.77.195.15";
-    string ip = "47.246.17.253";
+    string ip = "58.215.157.252";
     globalSettings::getSetting()->addResolve("player.alicdn.com:443", ip);
     unique_ptr<IDataSource> source = unique_ptr<IDataSource>(dataSourcePrototype::create(url));
     int ret = source->Open(0);
@@ -92,7 +92,7 @@ TEST(dns, http)
     // https://dnschecker.org/
     string url = "http://player.alicdn.com/video/aliyunmedia.mp4";
     //  string ip = "120.77.195.15";
-    string ip = "47.246.17.253";
+    string ip = "58.215.157.252";
     globalSettings::getSetting()->addResolve("player.alicdn.com:80", ip);
     unique_ptr<IDataSource> source = unique_ptr<IDataSource>(dataSourcePrototype::create(url));
     int ret = source->Open(0);
