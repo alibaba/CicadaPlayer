@@ -35,7 +35,7 @@ import com.cicada.player.demo.util.OrientationWatchDog;
 import com.cicada.player.demo.util.ScreenUtils;
 import com.cicada.player.demo.util.SharedPreferenceUtils;
 import com.cicada.player.demo.util.VcPlayerLog;
-import com.cicada.player.demo.view.ass.AssSubtitleView;
+import com.cicada.player.utils.ass.AssSubtitleView;
 import com.cicada.player.demo.view.control.ControlView;
 import com.cicada.player.demo.view.gesture.GestureView;
 import com.cicada.player.demo.view.guide.GuideView;

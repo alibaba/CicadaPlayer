@@ -1,12 +1,10 @@
-package com.cicada.player.demo.view.ass;
+package com.cicada.player.utils.ass;
 
 import android.content.Context;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import com.cicada.player.utils.ass.AssResolver;
 
 import java.util.HashMap;
 import java.util.Map;
