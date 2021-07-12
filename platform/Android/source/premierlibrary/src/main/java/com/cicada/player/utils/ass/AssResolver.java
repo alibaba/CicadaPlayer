@@ -1,13 +1,13 @@
 package com.cicada.player.utils.ass;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.text.Html;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -40,18 +40,19 @@ public class AssResolver {
         mAssHeader = AssUtils.parseAssHeader(header);
     }
 
-    public void dismiss(View remove) {
-        if(remove instanceof AssTextView){
-            mTextViewPool.recycle((TextView) remove);
+    public void dismiss(TextView remove) {
+        if(mTextViewPool != null){
+            mTextViewPool.recycle(remove);
         }
+
     }
 
-    public View setAssDialog(String content) {
+    public TextView setAssDialog(String content) {
         AssDialogue assDialogue = AssUtils.parseAssDialogue(mAssHeader, content);
 
         String mText = assDialogue.mText;
         Matcher match = pattern.matcher(mText);
-        AssTextView assTextView = (AssTextView) mTextViewPool.obtain();
+        TextView assTextView = mTextViewPool.obtain();
         initTextViewStyle(assTextView, mAssHeader, assDialogue);
         if(match.find()){
             String text = parseSubtitleText(assDialogue);
@@ -63,7 +64,7 @@ public class AssResolver {
         return assTextView;
     }
 
-    public void initTextViewStyle(AssTextView assTextView, AssHeader assHeader, AssDialogue assDialogue) {
+    public void initTextViewStyle(TextView assTextView, AssHeader assHeader, AssDialogue assDialogue) {
         Map<String, AssStyle> mStyles = assHeader.mStyles;
         if (mStyles != null) {
             AssStyle assStyle = mStyles.get(assDialogue.mStyle.replace("*", ""));
@@ -72,7 +73,7 @@ public class AssResolver {
     }
 
     //set TextView Style
-    private void setStyle(AssTextView textView, AssStyle assStyle) {
+    private void setStyle(TextView textView, AssStyle assStyle) {
         if (assStyle != null) {
             textView.setGravity(Gravity.CENTER);
             int style = Typeface.NORMAL;
@@ -83,10 +84,8 @@ public class AssResolver {
             }
             double mFontSize = assStyle.mFontSize;
             textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.round(mFontSize));
-            int mPrimaryColour = assStyle.mPrimaryColour;
+            int mPrimaryColour = rgbaToArgb(assStyle.mPrimaryColour);
             int mSecondaryColour = assStyle.mSecondaryColour;
-            String s = Integer.toHexString(mPrimaryColour);
-            String s1 = Integer.toHexString(mSecondaryColour);
             textView.setTextColor(mPrimaryColour);
             //-1 close，0 open
             int mBold = assStyle.mBold;
@@ -176,6 +175,13 @@ public class AssResolver {
         }
     }
 
+    private int rgbaToArgb(int mPrimaryColour) {
+        //vb alpha convertTo Android alpha
+        int alpha = (0xff - (mPrimaryColour & 0xff)) << 24;
+        String argbStr = String.format("#%04x", (alpha | (mPrimaryColour >>> 8)));
+        return Color.parseColor(argbStr);
+    }
+
     private String parseSubtitleText(AssDialogue assDialogue) {
         String result;
         Matcher compleMatcher = pattern.matcher(assDialogue.mText);
@@ -183,7 +189,6 @@ public class AssResolver {
         if (compleMatcher.find()) {
             //DrawingCommands
             if(assDialogue.mText.contains("{\\p0}")){
-                //TODO
                 return "";
             }else{
                 StringBuilder subtitleTextStringBuilder = new StringBuilder();
@@ -220,10 +225,8 @@ public class AssResolver {
         } else {
             result = assDialogue.mText;
         }
-
         return result.replaceAll(TEXT_PATTERN, "").replace("\\n", "<br />").replace("\\N", "<br />");
     }
-
 
     /**
      * Subtitle Style convertTo HTML Style Text
