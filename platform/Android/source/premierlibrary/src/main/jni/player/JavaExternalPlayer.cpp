@@ -560,6 +560,11 @@ void JavaExternalPlayer::SetView(void *view) {
     jCallRvPo("SetView", surface);
 }
 
+void JavaExternalPlayer::ClearScreen()
+{
+    //TODO
+}
+
 void JavaExternalPlayer::SetDataSource(const char *url) {
     jCallRvPs("SetDataSource", string(url));
 }

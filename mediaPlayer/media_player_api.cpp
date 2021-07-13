@@ -121,6 +121,14 @@ void CicadaSetView(playerHandle *pHandle, void *view)
     }
 }
 
+void CicadaClearScreen(playerHandle *pHandle)
+{
+    GET_PLAYER;
+
+    if (player) {
+        return player->ClearScreen();
+    }
+}
 
 void CicadaSetDataSourceWithUrl(playerHandle *pHandle, const char *url)
 {

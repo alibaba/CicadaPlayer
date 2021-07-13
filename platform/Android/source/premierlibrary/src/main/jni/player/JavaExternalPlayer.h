@@ -106,6 +106,8 @@ public:
 
     void SetView(void *view) override;
 
+    void ClearScreen() override;
+
     void SetDataSource(const char *url) override;
 
 

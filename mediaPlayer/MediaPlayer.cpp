@@ -191,6 +191,12 @@ namespace Cicada {
         CicadaSetView(handle, view);
     }
 
+    void MediaPlayer::ClearScreen()
+    {
+        GET_PLAYER_HANDLE;
+        CicadaClearScreen(handle);
+    }
+
     void MediaPlayer::SetDataSource(const char *url)
     {
         GET_PLAYER_HANDLE

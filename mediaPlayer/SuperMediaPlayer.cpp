@@ -104,6 +104,13 @@ void SuperMediaPlayer::SetView(void *view)
     mMsgCtrlListener->ProcessSetViewMsg(view);
 }
 
+void SuperMediaPlayer::ClearScreen()
+{
+    if (mAVDeviceManager->getVideoRender()) {
+        mAVDeviceManager->getVideoRender()->clearScreen();
+    }
+}
+
 int64_t SuperMediaPlayer::GetMasterClockPts()
 {
     return mMasterClock.GetTime();

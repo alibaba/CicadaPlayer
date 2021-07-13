@@ -67,6 +67,8 @@ DecoderType CicadaGetDecoderType(playerHandle *player);
  */
 void CicadaSetView(playerHandle *player, void *view);
 
+void CicadaClearScreen(playerHandle *player);
+
 /*
  *set play url source
  */

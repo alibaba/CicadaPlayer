@@ -45,6 +45,8 @@ namespace Cicada {
          */
         virtual void SetView(void *view) = 0;
 
+        virtual void ClearScreen() = 0;
+
         /*
          *设置播放url
          */
@@ -266,6 +268,7 @@ namespace Cicada {
         virtual int invokeComponent(std::string content) = 0;
 
         virtual float getCurrentDownloadSpeed() = 0;
+
 
     protected:
         playerMediaFrameCb mMediaFrameCb = nullptr;

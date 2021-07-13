@@ -84,6 +84,11 @@ void AppleAVPlayer::SetView(void *view)
     }
 }
 
+void AppleAVPlayer::ClearScreen()
+{
+    //TODO
+}
+
 void AppleAVPlayer::SetDataSource(const char *url)
 {
     //    this->sourceUrl = (char *)url;
