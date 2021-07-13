@@ -72,6 +72,7 @@ int GLRender::clearScreen()
 {
     AF_LOGD("-----> clearScreen");
     mClearScreenOn = true;
+    bFlushAsync = true;
     return 0;
 }
 
