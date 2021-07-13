@@ -88,8 +88,9 @@ private:
     NSMutableDictionary *layerDic;
 
     NSArray *matchStringWithRegx(NSString *string, NSString *regexStr);
-
+#if TARGET_OS_IPHONE
     void buildAssStyle(UILabel *assLabel, Cicada::AssDialogue ret, void *userData);
+#endif
 };
 
 

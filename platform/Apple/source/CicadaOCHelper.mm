@@ -345,6 +345,7 @@ void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *dat
 
     CicadaOCHelper *helper = (CicadaOCHelper *) userData;
     if (helper->assHeader.Type == SubtitleTypeAss) {
+#if TARGET_OS_IPHONE
         if ([str length] > 0) {
             AssDialogue ret = AssUtils::parseAssDialogue(helper->assHeader, [str UTF8String]);
 
@@ -367,6 +368,7 @@ void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *dat
             });
             //        NSLog(@"=====%s",ret.Text.c_str());
         }
+#endif
     } else {
         if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleShow:trackIndex:subtitleID:subtitle:)]) {
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -407,6 +409,7 @@ void CicadaOCHelper::onHideSubtitle(int64_t index, int64_t size, const void *dat
 
     CicadaOCHelper *helper = (CicadaOCHelper *) userData;
     if (helper->assHeader.Type == SubtitleTypeAss) {
+#if TARGET_OS_IPHONE
         NSData *stringData = [[NSData alloc] initWithBytes:packet->getData() length:(unsigned int) packet->getSize()];
         NSString *str = [[NSString alloc] initWithData:stringData encoding:NSUTF8StringEncoding];
         if ([str length] > 0) {
@@ -419,6 +422,7 @@ void CicadaOCHelper::onHideSubtitle(int64_t index, int64_t size, const void *dat
                 });
             }
         }
+#endif
     } else {
         if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleHide:trackIndex:subtitleID:)]) {
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -488,7 +492,7 @@ NSArray *CicadaOCHelper::matchStringWithRegx(NSString *string, NSString *regexSt
 
     return array;
 }
-
+#if TARGET_OS_IPHONE
 void CicadaOCHelper::buildAssStyle(UILabel *assLabel, AssDialogue ret, void *userData)
 {
     __weak CicadaPlayer *player = getOCPlayer(userData);
@@ -562,6 +566,7 @@ void CicadaOCHelper::buildAssStyle(UILabel *assLabel, AssDialogue ret, void *use
 
     assLabel.frame = CGRectMake(x, y, textSize.width, textSize.height);
 }
+#endif
 
 void
 CicadaOCHelper::onSwitchStreamSuccess(int64_t type, const void *item, void *userData) {
