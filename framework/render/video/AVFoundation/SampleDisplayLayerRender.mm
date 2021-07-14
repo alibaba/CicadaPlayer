@@ -10,6 +10,8 @@
 #include <utility>
 #if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
+#elif TARGET_OS_OSX
+#import <AppKit/AppKit.h>
 #endif
 
 @implementation SampleDisplayLayerRender {
@@ -136,11 +138,8 @@ void DisplayLayerImpl::setBackgroundColor(uint32_t color)
 
 void DisplayLayerImpl::captureScreen(std::function<void(uint8_t *, int, int)> func)
 {
-#if TARGET_OS_IPHONE
     void *img = [(__bridge id) renderHandle captureScreen];
     func((uint8_t *) img, -1, -1);
-//    CFRelease(img);
-#endif
 }
 void DisplayLayerImpl::reDraw()
 {
@@ -393,6 +392,33 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return image ?: img;
+}
+#elif TARGET_OS_OSX
+- (NSImage *)imageFromPixelBuffer:(CVPixelBufferRef)pixelBufferRef
+{
+    CVImageBufferRef imageBuffer = pixelBufferRef;
+
+    //    CVPixelBufferLockBaseAddress(imageBuffer, 0);
+    //    void *baseAddress = CVPixelBufferGetBaseAddress(imageBuffer);
+    size_t width = CVPixelBufferGetWidth(imageBuffer);
+    size_t height = CVPixelBufferGetHeight(imageBuffer);
+    CIImage *coreImage = [CIImage imageWithCVPixelBuffer:pixelBufferRef];
+    CIContext *temporaryContext = [CIContext contextWithOptions:nil];
+
+    CGImageRef videoImage = [temporaryContext createCGImage:coreImage fromRect:CGRectMake(0, 0, width, height)];
+    NSImage *image = [[NSImage alloc] initWithCGImage:videoImage size:CGSizeMake(width, height)];
+    //    CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
+    // TODO: imageTransform
+    return image;
+}
+
+- (void *)captureScreen
+{
+    if (renderingBuffer && self.displayLayer) {
+        NSImage *image = [self imageFromPixelBuffer:renderingBuffer];
+        return (void *) CFBridgingRetain(image);
+    }
+    return nullptr;
 }
 
 #endif
