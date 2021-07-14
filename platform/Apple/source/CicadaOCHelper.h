@@ -88,9 +88,13 @@ private:
     NSMutableDictionary *layerDic;
 
     NSArray *matchStringWithRegx(NSString *string, NSString *regexStr);
-#if TARGET_OS_IPHONE
-    void buildAssStyle(UILabel *assLabel, Cicada::AssDialogue ret, void *userData);
-#endif
+
+
+    void buildAssStyle(CATextLayer *textLayer, Cicada::AssDialogue ret, void *userData);
+
+    NSAttributedString *buildAssStyleStr(NSString *style, NSString *text, Cicada::AssStyle assStyle, void *userData);
+
+    CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat width);
 };
 
 

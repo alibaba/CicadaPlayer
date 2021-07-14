@@ -327,10 +327,16 @@ void CicadaOCHelper::onCurrentDownLoadSpeed(int64_t speed, void *userData)
     }
 }
 
-#define ASS_UIColorFromRGB(rgbValue)                                                                                                       \
-    [UIColor colorWithRed:((float) ((rgbValue & 0xFF0000) >> 16)) / 255.0                                                                  \
-                    green:((float) ((rgbValue & 0xFF00) >> 8)) / 255.0                                                                     \
-                     blue:((float) (rgbValue & 0xFF)) / 255.0                                                                              \
+#define ASSColorFromVB(rgbValue)                                                                                                           \
+    [UIColor colorWithRed:((float) ((rgbValue & 0xFF000000) >> 24)) / 255.0                                                                \
+                    green:((float) ((rgbValue & 0xFF0000) >> 16)) / 255.0                                                                  \
+                     blue:((float) ((rgbValue & 0xFF00) >> 8)) / 255.0                                                                     \
+                    alpha:(1.0 - ((float) (rgbValue & 0xFF)) / 255.0)];
+
+#define ASSColorFromBGR(bgrValue)                                                                                                          \
+    [UIColor colorWithRed:((float) (bgrValue & 0xFF)) / 255.0                                                                              \
+                    green:((float) ((bgrValue & 0xFF00) >> 8)) / 255.0                                                                     \
+                     blue:((float) ((bgrValue & 0xFF0000) >> 16)) / 255.0                                                                  \
                     alpha:1.0];
 
 void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *data, void *userData) {
@@ -350,21 +356,23 @@ void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *dat
             AssDialogue ret = AssUtils::parseAssDialogue(helper->assHeader, [str UTF8String]);
 
             dispatch_async(dispatch_get_main_queue(), ^{
-              UILabel *assLabel = nil;
+              CATextLayer *textLayer = nil;
               NSString *layerKey = [NSString stringWithFormat:@"%i", ret.Layer];
               if ([helper->layerDic objectForKey:layerKey]) {
-                  assLabel = [helper->layerDic objectForKey:layerKey];
+                  textLayer = [helper->layerDic objectForKey:layerKey];
               } else {
-                  assLabel = [UILabel new];
-                  assLabel.frame = player.playerView.bounds;
-                  [player.playerView insertSubview:assLabel atIndex:ret.Layer + 1];
+                  textLayer = [CATextLayer layer];
+                  //                  textLayer.frame = player.playerView.bounds;
+                  textLayer.contentsScale = [UIScreen mainScreen].scale;
+                  textLayer.wrapped = YES;
+                  [player.playerView.layer insertSublayer:textLayer atIndex:ret.Layer + 1];
 
-                  [helper->layerDic setValue:assLabel forKey:layerKey];
+                  [helper->layerDic setValue:textLayer forKey:layerKey];
               }
 
-              assLabel.hidden = NO;
+              textLayer.hidden = NO;
 
-              helper->buildAssStyle(assLabel, ret, userData);
+              helper->buildAssStyle(textLayer, ret, userData);
             });
             //        NSLog(@"=====%s",ret.Text.c_str());
         }
@@ -476,14 +484,11 @@ NSArray *CicadaOCHelper::matchStringWithRegx(NSString *string, NSString *regexSt
 
     NSArray *matches = [regex matchesInString:string options:0 range:NSMakeRange(0, [string length])];
 
-    //match: 所有匹配到的字符,根据() 包含级
-
     NSMutableArray *array = [NSMutableArray array];
 
     for (NSTextCheckingResult *match in matches) {
 
         for (int i = 0; i < [match numberOfRanges]; i++) {
-            //以正则中的(),划分成不同的匹配部分
             NSString *component = [string substringWithRange:[match rangeAtIndex:i]];
 
             [array addObject:component];
@@ -492,70 +497,110 @@ NSArray *CicadaOCHelper::matchStringWithRegx(NSString *string, NSString *regexSt
 
     return array;
 }
-#if TARGET_OS_IPHONE
-void CicadaOCHelper::buildAssStyle(UILabel *assLabel, AssDialogue ret, void *userData)
+
+void CicadaOCHelper::buildAssStyle(CATextLayer *textLayer, AssDialogue ret, void *userData)
 {
     __weak CicadaPlayer *player = getOCPlayer(userData);
     CicadaOCHelper *helper = (CicadaOCHelper *) userData;
 
-    //TODO 判断是否是默认
+    //TODO detect whether it is the default style
     std::map<std::string, AssStyle> styles = helper->assHeader.styles;
     std::map<std::string, AssStyle>::iterator iter = styles.begin();
     AssStyle assStyle = iter->second;
 
     NSString *fontName = [NSString stringWithCString:assStyle.FontName.c_str() encoding:NSUTF8StringEncoding];
-    assLabel.font = [UIFont fontWithName:fontName size:assStyle.FontSize];
-    assLabel.textColor = ASS_UIColorFromRGB(assStyle.PrimaryColour);
-
-
     NSString *subtitle = [NSString stringWithCString:ret.Text.c_str() encoding:NSUTF8StringEncoding];
 
-    //TODO 先屏蔽行内代码
+    subtitle = [subtitle stringByReplacingOccurrencesOfString:@"\\N" withString:@"\n"];
+
+    //    NSLog(@"====%@",subtitle);
+
     NSArray *lineCodes = helper->matchStringWithRegx(subtitle, @"\\{[^\\{]+\\}");
 
-    for (NSString *subStr in lineCodes) {
-        subtitle = [subtitle stringByReplacingOccurrencesOfString:subStr withString:@""];
+    //TODO not for `p0` for the time being
+    NSMutableAttributedString *attributedStr = [[NSMutableAttributedString alloc] init];
+    if (lineCodes.count > 0) {
+        if ([subtitle hasSuffix:@"p0}"]) {
+            subtitle = @"";
+        } else {
+            NSString *preStyle = @"";
+            for (int i = 0; i < lineCodes.count; i++) {
+                NSString *code = [lineCodes objectAtIndex:i];
+                NSRange range = [subtitle rangeOfString:code];
+                NSUInteger end = 0;
+                if (lineCodes.count > i + 1) {
+                    NSString *nextCode = [lineCodes objectAtIndex:i + 1];
+                    NSRange nextRange = [subtitle rangeOfString:nextCode];
+                    end = nextRange.location;
+                } else {
+                    end = [subtitle length];
+                }
+                NSUInteger begin = range.location + range.length;
+                NSString *text = [subtitle substringWithRange:NSMakeRange(begin, end - begin)];
+                if (text.length > 0) {
+                    if (preStyle.length > 0) {
+                        code = [preStyle stringByAppendingString:code];
+                        preStyle = @"";
+                    }
+                    [attributedStr appendAttributedString:helper->buildAssStyleStr(code, text, assStyle, userData)];
+                } else {
+                    preStyle = [preStyle stringByAppendingString:code];
+                }
+
+                if (subtitle.length > end) {
+                    subtitle = [subtitle substringFromIndex:end];
+                }
+            }
+        }
+    } else {
+        [attributedStr appendAttributedString:helper->buildAssStyleStr(nil, subtitle, assStyle, userData)];
     }
-
-    assLabel.text = subtitle;
-
-    CGSize textSize = [assLabel.text sizeWithAttributes:@{NSFontAttributeName: assLabel.font}];
 
     CGFloat x = 0;
     CGFloat y = 0;
     CGFloat w = CGRectGetWidth(player.playerView.frame);
     CGFloat h = CGRectGetHeight(player.playerView.frame);
+
+    CGSize textSize = CGSizeZero;
+    if (attributedStr.length > 0) {
+        textLayer.string = attributedStr;
+        textSize = helper->getSubTitleHeight(attributedStr, w);
+    }
+
     switch (assStyle.Alignment % 4) {
-        //左对齐
+        //align left
         case 1:
             x = 0;
             x += assStyle.MarginL;
+            textLayer.alignmentMode = kCAAlignmentLeft;
             break;
-        //居中
+        //Center
         case 2:
-            x = (w - textSize.width) / 2;
+            //            x = (w - textSize.width) / 2;
+            textLayer.alignmentMode = kCAAlignmentCenter;
             break;
-        //右对齐
+        //align right
         case 3:
             x = w - textSize.width;
             x -= assStyle.MarginR;
+            textLayer.alignmentMode = kCAAlignmentRight;
             break;
 
         default:
             break;
     }
     switch (assStyle.Alignment / 4) {
-        //底部
+        //bottom
         case 0:
             y = h - textSize.height;
             y -= assStyle.MarginV;
             break;
-        //顶部
+        //top
         case 1:
             y = 0;
             x += assStyle.MarginV;
             break;
-        //居中
+        //Center
         case 2:
             y = (h - textSize.height) / 2;
             break;
@@ -564,7 +609,85 @@ void CicadaOCHelper::buildAssStyle(UILabel *assLabel, AssDialogue ret, void *use
             break;
     }
 
-    assLabel.frame = CGRectMake(x, y, textSize.width, textSize.height);
+    textLayer.frame = CGRectMake(x, y, textSize.width, textSize.height);
+}
+
+NSAttributedString *CicadaOCHelper::buildAssStyleStr(NSString *style, NSString *text, AssStyle defaultstyle, void *userData)
+{
+    CicadaOCHelper *helper = (CicadaOCHelper *) userData;
+
+    NSMutableDictionary<NSAttributedStringKey, id> *attrs = @{}.mutableCopy;
+
+    NSString *fontName = [NSString stringWithCString:defaultstyle.FontName.c_str() encoding:NSUTF8StringEncoding];
+    int fontSize = defaultstyle.FontSize;
+
+    UIColor *color = ASSColorFromVB(defaultstyle.PrimaryColour);
+    ;
+    [attrs setValue:color forKey:NSForegroundColorAttributeName];
+
+    if (style) {
+        NSArray *styleArr = [style componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"{}"]];
+        for (NSString *subStr in styleArr) {
+            NSArray *subStyleArr = [subStr componentsSeparatedByString:@"\\"];
+            for (NSString *item in subStyleArr) {
+                NSString *itemStr = [item stringByReplacingOccurrencesOfString:@" " withString:@""];
+                if ([itemStr hasPrefix:@"fn"]) {
+                    fontName = [itemStr substringFromIndex:@"fn".length];
+                } else if ([itemStr hasPrefix:@"fs"]) {
+                    fontSize = [itemStr substringFromIndex:@"fs".length].intValue;
+                } else if (helper->matchStringWithRegx(itemStr, @"^b[0-9]+$").count > 0) {
+                    itemStr = [itemStr stringByReplacingOccurrencesOfString:@"b" withString:@""];
+                    [attrs setValue:[NSNumber numberWithInt:itemStr.intValue] forKey:NSExpansionAttributeName];
+                } else if (helper->matchStringWithRegx(itemStr, @"^i[0-9]+$").count > 0) {
+                    itemStr = [itemStr stringByReplacingOccurrencesOfString:@"i" withString:@""];
+                    [attrs setValue:[NSNumber numberWithInt:itemStr.intValue] forKey:NSObliquenessAttributeName];
+                } else if (helper->matchStringWithRegx(itemStr, @"^u[0-9]+$").count > 0) {
+                    itemStr = [itemStr stringByReplacingOccurrencesOfString:@"u" withString:@""];
+                    [attrs setValue:[NSNumber numberWithInt:itemStr.intValue] forKey:NSUnderlineStyleAttributeName];
+                } else if (helper->matchStringWithRegx(itemStr, @"^s[0-9]+$").count > 0) {
+                    itemStr = [itemStr stringByReplacingOccurrencesOfString:@"s" withString:@""];
+                    [attrs setValue:[NSNumber numberWithInt:itemStr.intValue] forKey:NSStrikethroughStyleAttributeName];
+                } else if ([itemStr hasPrefix:@"c&H"] || [itemStr hasPrefix:@"1c&H"]) {
+                    NSRange range = [itemStr rangeOfString:@"c&H"];
+                    itemStr = [itemStr substringFromIndex:range.location + range.length];
+                    itemStr = [itemStr stringByReplacingOccurrencesOfString:@"&" withString:@""];
+                    unsigned colorInt = 0;
+                    [[NSScanner scannerWithString:itemStr] scanHexInt:&colorInt];
+                    UIColor *color = ASSColorFromBGR(colorInt);
+                    [attrs setValue:color forKey:NSForegroundColorAttributeName];
+                }
+            }
+        }
+    }
+
+    UIFont *font = [UIFont fontWithName:fontName size:fontSize];
+
+    [attrs setValue:font ?: [UIFont systemFontOfSize:fontSize] forKey:NSFontAttributeName];
+
+    return [[NSAttributedString alloc] initWithString:text attributes:attrs];
+}
+
+CGSize CicadaOCHelper::getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat viewWidth)
+{
+    CGSize textSize = CGSizeZero;
+    if (attrStr.length == 0) {
+        return textSize;
+    }
+
+    //    CGSize size  = [attrStr boundingRectWithSize:CGSizeMake(viewWidth, MAXFLOAT) options: NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading  context:nil].size;
+    NSMutableParagraphStyle *paragraphStyle = [NSMutableParagraphStyle new];
+    //    [paragraphStyle setLineSpacing:lineSpace];
+    paragraphStyle.lineBreakMode = NSLineBreakByCharWrapping;
+    NSRange range = NSMakeRange(0, attrStr.length);
+    [attrStr addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:range];
+
+    NSDictionary *dic = [attrStr attributesAtIndex:0 effectiveRange:&range];
+    textSize = [attrStr.string boundingRectWithSize:CGSizeMake(viewWidth, MAXFLOAT)
+                                            options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
+                                         attributes:dic
+                                            context:nil]
+                       .size;
+    return CGSizeMake(viewWidth, textSize.height);
 }
 #endif
 
