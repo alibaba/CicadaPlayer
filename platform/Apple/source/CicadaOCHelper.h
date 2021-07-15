@@ -95,6 +95,8 @@ private:
     NSAttributedString *buildAssStyleStr(NSString *style, NSString *text, Cicada::AssStyle assStyle, void *userData);
 
     CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat width);
+    
+    static NSObject* getSubTitleColor(bool isBGR,NSInteger value);
 };
 
 

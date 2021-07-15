@@ -327,18 +327,6 @@ void CicadaOCHelper::onCurrentDownLoadSpeed(int64_t speed, void *userData)
     }
 }
 
-#define ASSColorFromVB(rgbValue)                                                                                                           \
-    [UIColor colorWithRed:((float) ((rgbValue & 0xFF000000) >> 24)) / 255.0                                                                \
-                    green:((float) ((rgbValue & 0xFF0000) >> 16)) / 255.0                                                                  \
-                     blue:((float) ((rgbValue & 0xFF00) >> 8)) / 255.0                                                                     \
-                    alpha:(1.0 - ((float) (rgbValue & 0xFF)) / 255.0)];
-
-#define ASSColorFromBGR(bgrValue)                                                                                                          \
-    [UIColor colorWithRed:((float) (bgrValue & 0xFF)) / 255.0                                                                              \
-                    green:((float) ((bgrValue & 0xFF00) >> 8)) / 255.0                                                                     \
-                     blue:((float) ((bgrValue & 0xFF0000) >> 16)) / 255.0                                                                  \
-                    alpha:1.0];
-
 void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *data, void *userData) {
     __weak CicadaPlayer * player = getOCPlayer(userData);
 
@@ -351,7 +339,6 @@ void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *dat
 
     CicadaOCHelper *helper = (CicadaOCHelper *) userData;
     if (helper->assHeader.Type == SubtitleTypeAss) {
-#if TARGET_OS_IPHONE
         if ([str length] > 0) {
             AssDialogue ret = AssUtils::parseAssDialogue(helper->assHeader, [str UTF8String]);
 
@@ -363,7 +350,9 @@ void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *dat
               } else {
                   textLayer = [CATextLayer layer];
                   //                  textLayer.frame = player.playerView.bounds;
+                #if TARGET_OS_IPHONE
                   textLayer.contentsScale = [UIScreen mainScreen].scale;
+                #endif
                   textLayer.wrapped = YES;
                   [player.playerView.layer insertSublayer:textLayer atIndex:ret.Layer + 1];
 
@@ -376,7 +365,6 @@ void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *dat
             });
             //        NSLog(@"=====%s",ret.Text.c_str());
         }
-#endif
     } else {
         if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleShow:trackIndex:subtitleID:subtitle:)]) {
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -417,20 +405,18 @@ void CicadaOCHelper::onHideSubtitle(int64_t index, int64_t size, const void *dat
 
     CicadaOCHelper *helper = (CicadaOCHelper *) userData;
     if (helper->assHeader.Type == SubtitleTypeAss) {
-#if TARGET_OS_IPHONE
         NSData *stringData = [[NSData alloc] initWithBytes:packet->getData() length:(unsigned int) packet->getSize()];
         NSString *str = [[NSString alloc] initWithData:stringData encoding:NSUTF8StringEncoding];
         if ([str length] > 0) {
             AssDialogue ret = AssUtils::parseAssDialogue(helper->assHeader, [str UTF8String]);
             NSString *layerKey = [NSString stringWithFormat:@"%i", ret.Layer];
-            UIView *assLab = [helper->layerDic objectForKey:layerKey];
+            CALayer *assLab = [helper->layerDic objectForKey:layerKey];
             if (assLab) {
                 dispatch_async(dispatch_get_main_queue(), ^{
                   assLab.hidden = YES;
                 });
             }
         }
-#endif
     } else {
         if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleHide:trackIndex:subtitleID:)]) {
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -592,13 +578,23 @@ void CicadaOCHelper::buildAssStyle(CATextLayer *textLayer, AssDialogue ret, void
     switch (assStyle.Alignment / 4) {
         //bottom
         case 0:
+        #if TARGET_OS_IPHONE
             y = h - textSize.height;
             y -= assStyle.MarginV;
+        #else
+            y = 0;
+            x += assStyle.MarginV;
+        #endif
             break;
         //top
         case 1:
+        #if TARGET_OS_IPHONE
             y = 0;
             x += assStyle.MarginV;
+        #else
+            y = h - textSize.height;
+            y -= assStyle.MarginV;
+        #endif
             break;
         //Center
         case 2:
@@ -620,9 +616,8 @@ NSAttributedString *CicadaOCHelper::buildAssStyleStr(NSString *style, NSString *
 
     NSString *fontName = [NSString stringWithCString:defaultstyle.FontName.c_str() encoding:NSUTF8StringEncoding];
     int fontSize = defaultstyle.FontSize;
-
-    UIColor *color = ASSColorFromVB(defaultstyle.PrimaryColour);
-    ;
+    
+    NSObject *color = CicadaOCHelper::getSubTitleColor(false, defaultstyle.PrimaryColour);
     [attrs setValue:color forKey:NSForegroundColorAttributeName];
 
     if (style) {
@@ -653,18 +648,31 @@ NSAttributedString *CicadaOCHelper::buildAssStyleStr(NSString *style, NSString *
                     itemStr = [itemStr stringByReplacingOccurrencesOfString:@"&" withString:@""];
                     unsigned colorInt = 0;
                     [[NSScanner scannerWithString:itemStr] scanHexInt:&colorInt];
-                    UIColor *color = ASSColorFromBGR(colorInt);
+                    NSObject *color = CicadaOCHelper::getSubTitleColor(true, colorInt);
                     [attrs setValue:color forKey:NSForegroundColorAttributeName];
                 }
             }
         }
     }
-
-    UIFont *font = [UIFont fontWithName:fontName size:fontSize];
-
-    [attrs setValue:font ?: [UIFont systemFontOfSize:fontSize] forKey:NSFontAttributeName];
-
+    
+    CicadaFont *font = [CicadaFont fontWithName:fontName size:fontSize];
+    [attrs setValue:font ?: [CicadaFont systemFontOfSize:fontSize] forKey:NSFontAttributeName];
+    
     return [[NSAttributedString alloc] initWithString:text attributes:attrs];
+}
+
+NSObject* CicadaOCHelper::getSubTitleColor(bool isBGR,NSInteger value){
+    if (isBGR) {
+        return [CicadaColor colorWithRed:((float) (value & 0xFF)) / 255.0
+                        green:((float) ((value & 0xFF00) >> 8)) / 255.0
+                         blue:((float) ((value & 0xFF0000) >> 16)) / 255.0
+                        alpha:1.0];
+    }else{
+        return [CicadaColor colorWithRed:((float) ((value & 0xFF000000) >> 24)) / 255.0
+                        green:((float) ((value & 0xFF0000) >> 16)) / 255.0
+                         blue:((float) ((value & 0xFF00) >> 8)) / 255.0
+                        alpha:(1.0 - ((float) (value & 0xFF)) / 255.0)];
+    }
 }
 
 CGSize CicadaOCHelper::getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat viewWidth)
@@ -689,7 +697,6 @@ CGSize CicadaOCHelper::getSubTitleHeight(NSMutableAttributedString *attrStr, CGF
                        .size;
     return CGSizeMake(viewWidth, textSize.height);
 }
-#endif
 
 void
 CicadaOCHelper::onSwitchStreamSuccess(int64_t type, const void *item, void *userData) {

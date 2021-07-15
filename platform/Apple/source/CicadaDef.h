@@ -15,10 +15,14 @@
 #import <AppKit/AppKit.h>
 #define CicadaView NSView
 #define CicadaImage NSImage
+#define CicadaColor NSColor
+#define CicadaFont  NSFont
 #elif TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
 #define CicadaView UIView
 #define CicadaImage UIImage
+#define CicadaColor UIColor
+#define CicadaFont  UIFont
 #endif // TARGET_OS_OSX
 
 #import "CicadaErrorCode.h"
