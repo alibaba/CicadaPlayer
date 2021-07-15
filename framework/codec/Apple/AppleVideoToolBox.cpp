@@ -29,9 +29,6 @@ namespace Cicada {
 #if TARGET_OS_SIMULATOR
         mVTOutFmt = AF_PIX_FMT_YUV420P;
 #endif
-#elif TARGET_OS_OSX
-        mVTOutFmt = AF_PIX_FMT_YUV420P;
-        outPutFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
 #endif
         mName = "VideoToolBox";
         mFlags = DECFLAG_PASSTHROUGH_INFO | DECFLAG_HW;
