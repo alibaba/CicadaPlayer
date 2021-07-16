@@ -100,6 +100,7 @@ private:
     static NSObject* getSubTitleColor(bool isBGR,NSInteger value);
 
     std::unique_ptr<Cicada::AppleCATextLayerRender> mSubtitleRender{};
+    int64_t mCurrentSubtitleRendingIndex{INT64_MIN};
 };
 
 

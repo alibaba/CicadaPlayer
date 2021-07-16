@@ -338,7 +338,7 @@ void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *dat
     NSString* str = [[NSString alloc] initWithData:stringData encoding:NSUTF8StringEncoding];
 
     CicadaOCHelper *helper = (CicadaOCHelper *) userData;
-    if (helper->mSubtitleRender) {
+    if (helper->mSubtitleRender && helper->mCurrentSubtitleRendingIndex == index) {
         const char *content = (const char *) packet->getData();
         helper->mSubtitleRender->show(content);
     } else {
@@ -381,7 +381,7 @@ void CicadaOCHelper::onHideSubtitle(int64_t index, int64_t size, const void *dat
 
     CicadaOCHelper *helper = (CicadaOCHelper *) userData;
 
-    if (helper->mSubtitleRender) {
+    if (helper->mSubtitleRender && helper->mCurrentSubtitleRendingIndex == index) {
         const char *content = (const char *) packet->getData();
         helper->mSubtitleRender->hide(content);
     } else {
@@ -426,6 +426,7 @@ void CicadaOCHelper::onSubtitleHeader(int64_t index, const void *header, void *u
             }
             // TODO: use player mView
             helper->mSubtitleRender->setView(player.playerView);
+            helper->mCurrentSubtitleRendingIndex = index;
         }
     }
 }
