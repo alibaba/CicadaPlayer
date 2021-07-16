@@ -20,6 +20,8 @@
 #import "utils/CicadaDynamicLoader.h"
 #import "utils/af_string.h"
 #import "utils/frame_work_log.h"
+#import <memory>
+#import <render/subtitle/AppleCATextLayerRender.h>
 #import <utils/globalNetWorkManager.h>
 
 using namespace std;
@@ -64,6 +66,7 @@ typedef int64_t(^CicadaReferClockFun) ();
     CicadaConfig* mConfig;
     CicadaMediaInfo* mMediaInfo;
     CicadaOCHelper* mHelper;
+    std::unique_ptr<AppleCATextLayerRender> mSubtitleRender;
 }
 
 #if ENABLE_CONAN
@@ -138,7 +141,8 @@ static int logOutput = 1;
         self.mCurrentStatus = CicadaStatusIdle;
         mView = nil;
         self.playerView = nil;
-        
+        mSubtitleRender = nil;
+
         mConfig = [[CicadaConfig alloc] init];
         mMediaInfo = [[CicadaMediaInfo alloc] init];
 

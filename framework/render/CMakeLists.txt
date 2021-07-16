@@ -70,6 +70,8 @@ if (APPLE)
             video/AVFoundation/SampleDisplayLayerRender.mm
             video/AVFoundation/SampleDisplayLayerRender.h
             video/AVFoundation/DisplayLayerImpl-interface.h
+            subtitle/AppleCATextLayerRender.mm
+            subtitle/AppleCATextLayerRender.h
             )
 endif ()
 

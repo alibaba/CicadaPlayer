@@ -4,6 +4,7 @@
 
 #import "CicadaPlayer.h"
 #include "native_cicada_player_def.h"
+#import <render/subtitle/AppleCATextLayerRender.h>
 #include <utils/AssUtils.h>
 
 class CicadaOCHelper {
@@ -97,6 +98,8 @@ private:
     CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat width);
     
     static NSObject* getSubTitleColor(bool isBGR,NSInteger value);
+
+    std::unique_ptr<Cicada::AppleCATextLayerRender> mSubtitleRender{};
 };
 
 
