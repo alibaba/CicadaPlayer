@@ -58,6 +58,8 @@ void ContentDataSource::Close() {
     }
 
     pEnv->CallVoidMethod(mJContentDataSource, jContentDataSource_close);
+    pEnv->DeleteGlobalRef(mJContentDataSource);
+
     JniException::clearException(pEnv);
 }
 

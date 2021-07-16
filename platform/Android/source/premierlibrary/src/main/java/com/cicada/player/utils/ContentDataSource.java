@@ -27,6 +27,8 @@ public class ContentDataSource {
     private long mOffset = 0;
     private static Context sContext = null;
 
+    private static final String TAG = ContentDataSource.class.getSimpleName();
+
     public ContentDataSource() {
 
     }
@@ -65,6 +67,7 @@ public class ContentDataSource {
         }
 
         try {
+            mOffset = 0;
             mStreamSize = mStream.available();
         } catch (IOException e) {
             return -EIO;
@@ -123,14 +126,26 @@ public class ContentDataSource {
             }
 
             try {
-                long skipBytes = mStream.skip(targetOffset);
+                long skipBytes = skip(targetOffset);
                 mOffset += skipBytes;
                 return mOffset;
             } catch (IOException e) {
                 return -EIO;
             }
-
         }
 
+    }
+
+    private long skip(long n) throws IOException {
+        try {
+            long skipBytes = mStream.skip(n);
+            return skipBytes;
+        } catch (IOException e) {
+            long skipBytes = (int) (mOffset + n);
+            close();
+            open(0);
+            long ret = mStream.skip(skipBytes);
+            return ret;
+        }
     }
 }
