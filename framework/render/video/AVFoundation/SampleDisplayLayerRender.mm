@@ -435,7 +435,11 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *, id> *)change context:(void *)context
 {
     if ([keyPath isEqualToString:@"bounds"]) {
+#if TARGET_OS_IPHONE
         CGRect bounds = [change[NSKeyValueChangeNewKey] CGRectValue];
+#elif TARGET_OS_OSX
+        NSRect bounds = [change[@"new"] rectValue];
+#endif
         self.displayLayer.frame = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
         self.displayLayer.bounds = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
         [self getVideoSize];
