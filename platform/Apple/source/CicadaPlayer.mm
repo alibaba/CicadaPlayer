@@ -24,6 +24,8 @@
 #import <render/subtitle/AppleCATextLayerRender.h>
 #import <utils/globalNetWorkManager.h>
 
+#define AliPlayerViewTag 881688
+
 using namespace std;
 using namespace Cicada;
 
@@ -335,6 +337,7 @@ static int logOutput = 1;
         if (mView == nil) {
             mView = [[NSView alloc] initWithFrame:showView.bounds];
             mView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+            mview.tag = AliPlayerViewTag;
             [showView addSubview:mView];
             [mView setWantsLayer:YES];
             //            mView.wantsBestResolutionOpenGLSurface = YES;
@@ -362,7 +365,7 @@ static int logOutput = 1;
         if(mView == nil) {
             mView = [[UIView alloc] initWithFrame:showView.bounds];
             mView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-
+            mView.tag = AliPlayerViewTag;
             [showView addSubview:mView];
             [showView bringSubviewToFront:mView];
             if(self.player){

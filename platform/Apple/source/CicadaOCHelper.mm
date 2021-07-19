@@ -3,6 +3,8 @@
 #include <EventCodeMap.h>
 #include <ErrorCodeMap.h>
 
+#define AliPlayerViewTag 881688
+
 using namespace Cicada;
 
 CicadaImage * CicadaOCHelper::convertBitmapRGBA8ToUIImage(unsigned char *buffer, int width, int height) {
@@ -425,9 +427,15 @@ void CicadaOCHelper::onSubtitleHeader(int64_t index, const void *header, void *u
                     NSLog(@"ass header parser error");
                     helper->mSubtitleRender = nullptr;
                 }
-                // TODO: use player mView
-                helper->mSubtitleRender->setView(player.playerView);
-                helper->mCurrentSubtitleRendingIndex = index;
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    CicadaView* view = [player.playerView viewWithTag:AliPlayerViewTag];
+                    if(view){
+                        helper->mSubtitleRender->setView(view);
+                        helper->mCurrentSubtitleRendingIndex = index;
+                    }else{
+                        NSLog(@"ass header parser error,there is no view ");
+                    }
+                });
             }
         }
     }
