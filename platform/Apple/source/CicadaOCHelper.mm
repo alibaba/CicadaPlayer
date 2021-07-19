@@ -338,7 +338,7 @@ void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *dat
     NSString* str = [[NSString alloc] initWithData:stringData encoding:NSUTF8StringEncoding];
 
     CicadaOCHelper *helper = (CicadaOCHelper *) userData;
-    if (helper->mSubtitleRender && helper->mCurrentSubtitleRendingIndex == index) {
+    if (helper->mSubtitleRender && helper->mCurrentSubtitleRendingIndex == subtitleIndex) {
         const char *content = (const char *) packet->getData();
         helper->mSubtitleRender->show(content);
     } else {
@@ -381,7 +381,7 @@ void CicadaOCHelper::onHideSubtitle(int64_t index, int64_t size, const void *dat
 
     CicadaOCHelper *helper = (CicadaOCHelper *) userData;
 
-    if (helper->mSubtitleRender && helper->mCurrentSubtitleRendingIndex == index) {
+    if (helper->mSubtitleRender && helper->mCurrentSubtitleRendingIndex == subtitleIndex) {
         const char *content = (const char *) packet->getData();
         helper->mSubtitleRender->hide(content);
     } else {
@@ -416,17 +416,19 @@ void CicadaOCHelper::onSubtitleHeader(int64_t index, const void *header, void *u
         });
     } else {
         CicadaOCHelper *helper = (CicadaOCHelper *) userData;
-        helper->assHeader = AssUtils::parseAssHeader([str UTF8String]);
-        if (helper->assHeader.Type == SubtitleTypeAss) {
-            helper->mSubtitleRender = unique_ptr<AppleCATextLayerRender>(new AppleCATextLayerRender());
-            int ret = helper->mSubtitleRender->intHeader((const char *) header);
-            if (ret < 0) {
-                NSLog(@"ass header parser error");
-                helper->mSubtitleRender = nullptr;
+        if (str.length>0) {
+            helper->assHeader = AssUtils::parseAssHeader([str UTF8String]);
+            if (helper->assHeader.Type == SubtitleTypeAss) {
+                helper->mSubtitleRender = unique_ptr<AppleCATextLayerRender>(new AppleCATextLayerRender());
+                int ret = helper->mSubtitleRender->intHeader((const char *) header);
+                if (ret < 0) {
+                    NSLog(@"ass header parser error");
+                    helper->mSubtitleRender = nullptr;
+                }
+                // TODO: use player mView
+                helper->mSubtitleRender->setView(player.playerView);
+                helper->mCurrentSubtitleRendingIndex = index;
             }
-            // TODO: use player mView
-            helper->mSubtitleRender->setView(player.playerView);
-            helper->mCurrentSubtitleRendingIndex = index;
         }
     }
 }
