@@ -265,16 +265,17 @@ int AFAudioQueueRender::start_device()
     return 0;
 }
 /*
- * AudioQueueStart will use more than 2s when play rate > 1 on MacOS or iOS use airpods,
- * so disable timePitch before AudioQueueStart and reset the timePitch after start to work
- * around this problem
+ * 1. AudioQueueStart will use more than 2s when play rate > 1 on MacOS or iOS use airpods.
+ * 2. AudioQueueStart will lost lots of data to play after flush when rate < 1 on macOS.
+ * So disable timePitch before AudioQueueStart and reset the timePitch after start to work
+ * around those problems.
  */
 void AFAudioQueueRender::startDeviceWorkAround()
 {
     if (!_audioQueueRef) {
         return;
     }
-    if (mQueueSpeed > 1.0f) {
+    if (fabsf(mQueueSpeed - 1.0f) > 0.000001) {
         UInt32 timePitchBypass = 1;
         AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchBypass, &timePitchBypass, sizeof(timePitchBypass));
         AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_PlayRate, 1.0f);
@@ -284,7 +285,7 @@ void AFAudioQueueRender::startDeviceWorkAround()
         AF_LOGE("AudioQueue: AudioQueueStart failed (%d)\n", (int) mStartStatus);
     }
 
-    if (mQueueSpeed > 1.0f) {
+    if (fabsf(mQueueSpeed - 1.0f) > 0.000001) {
         UInt32 timePitchBypass = 0;
         AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchBypass, &timePitchBypass, sizeof(timePitchBypass));
         AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_PlayRate, mQueueSpeed);
