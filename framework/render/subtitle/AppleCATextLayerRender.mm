@@ -212,7 +212,7 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
 
     subtitle = [subtitle stringByReplacingOccurrencesOfString:@"\\N" withString:@"\n"];
 
-    //    NSLog(@"====%@",subtitle);
+    //        NSLog(@"====%@",subtitle);
 
     NSArray *lineCodes = [self matchString:subtitle withRegx:@"\\{[^\\{]+\\}"];
 
@@ -233,6 +233,11 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
                     end = nextRange.location;
                 } else {
                     end = [subtitle length];
+                }
+
+                if (i == 0 && range.location > 0) {
+                    NSString *text = [subtitle substringWithRange:NSMakeRange(0, range.location)];
+                    [attributedStr appendAttributedString:[self buildAssStyleStr:nil text:text defaultstyle:assStyle]];
                 }
                 NSUInteger begin = range.location + range.length;
                 NSString *text = [subtitle substringWithRange:NSMakeRange(begin, end - begin)];
