@@ -209,15 +209,15 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
 
     NSString *fontName = [NSString stringWithCString:assStyle.FontName.c_str() encoding:NSUTF8StringEncoding];
     NSString *subtitle = [NSString stringWithCString:ret.Text.c_str() encoding:NSUTF8StringEncoding];
-
     subtitle = [subtitle stringByReplacingOccurrencesOfString:@"\\N" withString:@"\n"];
 
-    //        NSLog(@"====%@",subtitle);
+//            NSLog(@"====%@",subtitle);
 
     NSArray *lineCodes = [self matchString:subtitle withRegx:@"\\{[^\\{]+\\}"];
 
     //TODO not for `p0` for the time being
     NSMutableAttributedString *attributedStr = [[NSMutableAttributedString alloc] init];
+    NSMutableString *allLineCodeStr = @"".mutableCopy;
     if (lineCodes.count > 0) {
         if ([subtitle hasSuffix:@"p0}"]) {
             subtitle = @"";
@@ -225,6 +225,7 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
             NSString *preStyle = @"";
             for (int i = 0; i < lineCodes.count; i++) {
                 NSString *code = [lineCodes objectAtIndex:i];
+                [allLineCodeStr appendString:code];
                 NSRange range = [subtitle rangeOfString:code];
                 NSUInteger end = 0;
                 if (lineCodes.count > i + 1) {
@@ -270,12 +271,38 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
         textLayer.string = attributedStr;
         textSize = getSubTitleHeight(attributedStr, w);
     }
-
-    switch (assStyle.Alignment % 4) {
+    
+    int alignment = assStyle.Alignment;
+    int marginL = assStyle.MarginL;
+    int marginR = assStyle.MarginR;
+    int marginV = assStyle.MarginV;
+    
+    if (allLineCodeStr.length>0) {
+        NSArray *anArr = [self matchString:allLineCodeStr withRegx:@"an[0-9]+"];
+        if (anArr.count>0) {
+            NSString *anStr = anArr.firstObject;
+            anStr = [anStr stringByReplacingOccurrencesOfString:@"an" withString:@""];
+            alignment = anStr.intValue;
+        }
+        NSArray *posArr = [self matchString:allLineCodeStr withRegx:@"pos\\(-?\\d+,-?\\d+\\)"];
+        if (posArr.count) {
+            NSString *posStr = posArr.firstObject;
+            NSArray *posArr = [self matchString:posStr withRegx:@"pos\\((-?\\d+),(-?\\d+)\\)"];
+            if (posArr.count==3) {
+                marginV = ((NSString*)posArr[2]).intValue;
+            }
+            if (alignment%4==3) {
+                marginR = ((NSString*)posArr[1]).intValue;
+            }else{
+                marginL = ((NSString*)posArr[1]).intValue;
+            }
+        }
+    }
+    switch (alignment % 4) {
         //align left
         case 1:
             x = 0;
-            x += assStyle.MarginL;
+            x += marginL;
             textLayer.alignmentMode = kCAAlignmentLeft;
             break;
             //Center
@@ -286,32 +313,32 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
             //align right
         case 3:
             x = w - textSize.width;
-            x -= assStyle.MarginR;
+            x -= marginR;
             textLayer.alignmentMode = kCAAlignmentRight;
             break;
 
         default:
             break;
     }
-    switch (assStyle.Alignment / 4) {
+    switch (alignment / 4) {
         //bottom
         case 0:
 #if TARGET_OS_IPHONE
             y = h - textSize.height;
-            y -= assStyle.MarginV;
+            y -= marginV;
 #else
             y = 0;
-            x += assStyle.MarginV;
+            x += marginV;
 #endif
             break;
             //top
         case 1:
 #if TARGET_OS_IPHONE
             y = 0;
-            x += assStyle.MarginV;
+            x += marginV;
 #else
             y = h - textSize.height;
-            y -= assStyle.MarginV;
+            y -= marginV;
 #endif
             break;
             //Center
