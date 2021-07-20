@@ -683,7 +683,7 @@ namespace Cicada {
 
         int64_t duration = presentationDuration.value * (1000000.0 / presentationDuration.timescale);
         int64_t pts = presentationTimeStamp.value * (1000000.0 / presentationTimeStamp.timescale);
-        pbafFrame = unique_ptr<PBAFFrame>(new PBAFFrame(imageBuffer, pts, duration));
+        pbafFrame = unique_ptr<PBAFFrame>(new PBAFFrame(imageBuffer, pts, duration, ((Stream_meta *) (*(decoder->mPInMeta)))->color_info));
         return decoder->onDecoded(packet, move(pbafFrame), status);
     }
 

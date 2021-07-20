@@ -13,7 +13,7 @@ class AVAFFrame;
 
 class PBAFFrame : public IAFFrame {
 public:
-    PBAFFrame(CVPixelBufferRef pixelBuffer, int64_t pts, int64_t duration);
+    PBAFFrame(CVPixelBufferRef pixelBuffer, int64_t pts, int64_t duration, const VideoColorInfo &info);
 
     ~PBAFFrame() override
     {

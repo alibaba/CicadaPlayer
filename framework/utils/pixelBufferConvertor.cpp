@@ -416,7 +416,7 @@ IAFFrame *pixelBufferConvertor::convert(IAFFrame *frame)
     }
 
     UpdateColorInfo(colorInfo, pixelBuffer);
-    auto *pBFrame = new PBAFFrame(pixelBuffer, frame->getInfo().pts, frame->getInfo().duration);
+    auto *pBFrame = new PBAFFrame(pixelBuffer, frame->getInfo().pts, frame->getInfo().duration, colorInfo);
     pBFrame->getInfo().video = frame->getInfo().video;
     pBFrame->getInfo().video.format = AF_PIX_FMT_APPLE_PIXEL_BUFFER;
     CFRelease(pixelBuffer);

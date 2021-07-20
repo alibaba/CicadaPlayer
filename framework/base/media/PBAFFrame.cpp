@@ -9,7 +9,8 @@ extern "C" {
 #include <libavutil/imgutils.h>
 }
 
-PBAFFrame::PBAFFrame(CVPixelBufferRef pixelBuffer, int64_t pts, int64_t duration) : mPBuffer(CVPixelBufferRetain(pixelBuffer))
+PBAFFrame::PBAFFrame(CVPixelBufferRef pixelBuffer, int64_t pts, int64_t duration, const VideoColorInfo &info)
+    : mPBuffer(CVPixelBufferRetain(pixelBuffer))
 {
 
     mInfo.pts = pts;
@@ -17,6 +18,8 @@ PBAFFrame::PBAFFrame(CVPixelBufferRef pixelBuffer, int64_t pts, int64_t duration
     mInfo.video.format = AF_PIX_FMT_APPLE_PIXEL_BUFFER;
     mInfo.video.width = (int) CVPixelBufferGetWidth(mPBuffer);
     mInfo.video.height = (int) CVPixelBufferGetHeight(mPBuffer);
+
+    mInfo.video.colorInfo = info;
 
     OSType pixel_format = CVPixelBufferGetPixelFormatType(pixelBuffer);
     if (pixel_format == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
@@ -128,6 +131,12 @@ PBAFFrame::operator AVAFFrame *()
     }
     pFrame->pts = mInfo.pts;
     pFrame->pkt_duration = mInfo.duration;
+    pFrame->chroma_location = static_cast<AVChromaLocation>(mInfo.video.colorInfo.chroma_location);
+    pFrame->color_primaries = static_cast<AVColorPrimaries>(mInfo.video.colorInfo.color_primaries);
+    pFrame->color_range = static_cast<AVColorRange>(mInfo.video.colorInfo.color_range);
+    pFrame->colorspace = static_cast<AVColorSpace>(mInfo.video.colorInfo.color_space);
+    pFrame->color_trc = static_cast<AVColorTransferCharacteristic>(mInfo.video.colorInfo.color_trc);
+
     AVAFFrame *pAvFrame = new AVAFFrame(pFrame, FrameTypeVideo);
     pAvFrame->getInfo().timePosition = mInfo.timePosition;
     av_frame_free(&pFrame);

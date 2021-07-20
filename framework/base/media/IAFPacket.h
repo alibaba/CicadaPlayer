@@ -16,6 +16,7 @@
 extern "C" {
 //#include <libavutil/rational.h>
 };
+#include <utils/AFMediaType.h>
 #include <utils/CicadaType.h>
 
 struct AVRational;
@@ -166,6 +167,8 @@ public:
 
         int colorRange;
         int colorSpace;
+
+        VideoColorInfo colorInfo;
 
         bool operator==(const videoInfo &info) const
         {
