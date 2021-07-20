@@ -7,12 +7,94 @@ using namespace Cicada;
 using namespace std;
 AppleCATextLayerRender::AppleCATextLayerRender()
 {
-    layerDic = @{}.mutableCopy;
 }
 AppleCATextLayerRender::~AppleCATextLayerRender()
-{}
+{
+    if (renderHandle) {
+        CFRelease(renderHandle);
+    }
+}
 
-NSArray *AppleCATextLayerRender::matchStringWithRegx(NSString *string, NSString *regexStr)
+int AppleCATextLayerRender::intHeader(const char *header)
+{
+    mHeader = AssUtils::parseAssHeader(header);
+    if (mHeader.Type != SubtitleTypeUnknown) {
+        AppleCATextLayerRenderImpl *object = [[AppleCATextLayerRenderImpl alloc] init];
+        object.mHeader = mHeader;
+        renderHandle = (__bridge_retained void *) object;
+        return 0;
+    }
+    return -EINVAL;
+}
+int AppleCATextLayerRender::show(const string &data)
+{
+    AssDialogue ret = AssUtils::parseAssDialogue(mHeader, data);
+
+    [(__bridge id) renderHandle showDialogue:ret];
+    return 0;
+}
+
+int AppleCATextLayerRender::hide(const string &data)
+{
+    AssDialogue ret = AssUtils::parseAssDialogue(mHeader, data);
+    [(__bridge id) renderHandle hideDialogue:ret];
+    return 0;
+}
+#if TARGET_OS_OSX
+void AppleCATextLayerRender::setView(NSView *view)
+#elif TARGET_OS_IPHONE
+void AppleCATextLayerRender::setView(UIView *view)
+#endif
+{
+    [(__bridge id) renderHandle setup:view];
+}
+
+@implementation DialogueObj
+
+@end
+
+@implementation AppleCATextLayerRenderImpl
+
+- (void)showDialogue:(Cicada::AssDialogue)ret
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+      CATextLayer *textLayer = nil;
+      NSString *layerKey = [NSString stringWithFormat:@"%i", ret.Layer];
+      if ([layerDic objectForKey:layerKey]) {
+          textLayer = [layerDic objectForKey:layerKey];
+      } else {
+          textLayer = [CATextLayer layer];
+            //                  textLayer.frame = player.playerView.bounds;
+#if TARGET_OS_IPHONE
+          textLayer.contentsScale = [UIScreen mainScreen].scale;
+#endif
+          textLayer.wrapped = YES;
+          [self.mView.layer insertSublayer:textLayer atIndex:ret.Layer + 1];
+
+          [layerDic setValue:textLayer forKey:layerKey];
+      }
+
+      textLayer.hidden = NO;
+      DialogueObj *obj = [DialogueObj new];
+      obj.dialogue = ret;
+      [dialogueDic setObject:obj forKey:layerKey];
+      [self buildAssStyle:textLayer withAssDialogue:ret];
+    });
+}
+
+- (void)hideDialogue:(Cicada::AssDialogue)ret
+{
+    NSString *layerKey = [NSString stringWithFormat:@"%i", ret.Layer];
+    CALayer *assLab = [layerDic objectForKey:layerKey];
+    [dialogueDic removeObjectForKey:layerKey];
+    if (assLab) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          assLab.hidden = YES;
+        });
+    }
+}
+
+- (NSArray *)matchString:(NSString *)string withRegx:(NSString *)regexStr
 {
 
     NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:regexStr
@@ -44,7 +126,7 @@ NSObject *getSubTitleColor(bool isBGR, NSInteger value)
     }
 }
 
-NSAttributedString *AppleCATextLayerRender::buildAssStyleStr(NSString *style, NSString *text, AssStyle defaultstyle)
+- (NSAttributedString *)buildAssStyleStr:(NSString *)style text:(NSString *)text defaultstyle:(Cicada::AssStyle)defaultstyle
 {
     NSMutableDictionary<NSAttributedStringKey, id> *attrs = @{}.mutableCopy;
 
@@ -64,16 +146,16 @@ NSAttributedString *AppleCATextLayerRender::buildAssStyleStr(NSString *style, NS
                     fontName = [itemStr substringFromIndex:@"fn".length];
                 } else if ([itemStr hasPrefix:@"fs"]) {
                     fontSize = [itemStr substringFromIndex:@"fs".length].intValue;
-                } else if (matchStringWithRegx(itemStr, @"^b[0-9]+$").count > 0) {
+                } else if ([self matchString:itemStr withRegx:@"^b[0-9]+$"].count > 0) {
                     itemStr = [itemStr stringByReplacingOccurrencesOfString:@"b" withString:@""];
                     [attrs setValue:[NSNumber numberWithInt:itemStr.intValue] forKey:NSExpansionAttributeName];
-                } else if (matchStringWithRegx(itemStr, @"^i[0-9]+$").count > 0) {
+                } else if ([self matchString:itemStr withRegx:@"^i[0-9]+$"].count > 0) {
                     itemStr = [itemStr stringByReplacingOccurrencesOfString:@"i" withString:@""];
                     [attrs setValue:[NSNumber numberWithInt:itemStr.intValue] forKey:NSObliquenessAttributeName];
-                } else if (matchStringWithRegx(itemStr, @"^u[0-9]+$").count > 0) {
+                } else if ([self matchString:itemStr withRegx:@"^u[0-9]+$"].count > 0) {
                     itemStr = [itemStr stringByReplacingOccurrencesOfString:@"u" withString:@""];
                     [attrs setValue:[NSNumber numberWithInt:itemStr.intValue] forKey:NSUnderlineStyleAttributeName];
-                } else if (matchStringWithRegx(itemStr, @"^s[0-9]+$").count > 0) {
+                } else if ([self matchString:itemStr withRegx:@"^s[0-9]+$"].count > 0) {
                     itemStr = [itemStr stringByReplacingOccurrencesOfString:@"s" withString:@""];
                     [attrs setValue:[NSNumber numberWithInt:itemStr.intValue] forKey:NSStrikethroughStyleAttributeName];
                 } else if ([itemStr hasPrefix:@"c&H"] || [itemStr hasPrefix:@"1c&H"]) {
@@ -118,10 +200,10 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
     return CGSizeMake(viewWidth, textSize.height);
 }
 
-void AppleCATextLayerRender::buildAssStyle(CATextLayer *textLayer, const AssDialogue &ret)
+- (void)buildAssStyle:(CATextLayer *)textLayer withAssDialogue:(const AssDialogue)ret
 {
     //TODO detect whether it is the default style
-    std::map<std::string, AssStyle> styles = mHeader.styles;
+    std::map<std::string, AssStyle> styles = self.mHeader.styles;
     auto iter = styles.begin();
     AssStyle assStyle = iter->second;
 
@@ -132,7 +214,7 @@ void AppleCATextLayerRender::buildAssStyle(CATextLayer *textLayer, const AssDial
 
     //    NSLog(@"====%@",subtitle);
 
-    NSArray *lineCodes = matchStringWithRegx(subtitle, @"\\{[^\\{]+\\}");
+    NSArray *lineCodes = [self matchString:subtitle withRegx:@"\\{[^\\{]+\\}"];
 
     //TODO not for `p0` for the time being
     NSMutableAttributedString *attributedStr = [[NSMutableAttributedString alloc] init];
@@ -159,7 +241,7 @@ void AppleCATextLayerRender::buildAssStyle(CATextLayer *textLayer, const AssDial
                         code = [preStyle stringByAppendingString:code];
                         preStyle = @"";
                     }
-                    [attributedStr appendAttributedString:buildAssStyleStr(code, text, assStyle)];
+                    [attributedStr appendAttributedString:[self buildAssStyleStr:code text:text defaultstyle:assStyle]];
                 } else {
                     preStyle = [preStyle stringByAppendingString:code];
                 }
@@ -170,13 +252,13 @@ void AppleCATextLayerRender::buildAssStyle(CATextLayer *textLayer, const AssDial
             }
         }
     } else {
-        [attributedStr appendAttributedString:buildAssStyleStr(nil, subtitle, assStyle)];
+        [attributedStr appendAttributedString:[self buildAssStyleStr:nil text:subtitle defaultstyle:assStyle]];
     }
 
     CGFloat x = 0;
     CGFloat y = 0;
-    CGFloat w = CGRectGetWidth(mView.frame);
-    CGFloat h = CGRectGetHeight(mView.frame);
+    CGFloat w = CGRectGetWidth(self.mView.frame);
+    CGFloat h = CGRectGetHeight(self.mView.frame);
 
     CGSize textSize = CGSizeZero;
     if (attributedStr.length > 0) {
@@ -238,60 +320,48 @@ void AppleCATextLayerRender::buildAssStyle(CATextLayer *textLayer, const AssDial
 
     textLayer.frame = CGRectMake(x, y, textSize.width, textSize.height);
 }
-int AppleCATextLayerRender::intHeader(const char *header)
-{
-    mHeader = AssUtils::parseAssHeader(header);
-    if (mHeader.Type != SubtitleTypeUnknown) {
-        return 0;
-    }
-    return -EINVAL;
-}
-int AppleCATextLayerRender::show(const string &data)
-{
-    AssDialogue ret = AssUtils::parseAssDialogue(mHeader, data);
 
-    dispatch_async(dispatch_get_main_queue(), ^{
-      CATextLayer *textLayer = nil;
-      NSString *layerKey = [NSString stringWithFormat:@"%i", ret.Layer];
-      if ([layerDic objectForKey:layerKey]) {
-          textLayer = [layerDic objectForKey:layerKey];
-      } else {
-          textLayer = [CATextLayer layer];
-            //                  textLayer.frame = player.playerView.bounds;
+- (void)setup:(CicadaView *)view
+{
+    _mView = view;
+    layerDic = @{}.mutableCopy;
+    dialogueDic = @{}.mutableCopy;
+
+    [_mView.layer addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:nil];
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *, id> *)change context:(void *)context
+{
+    if ([keyPath isEqualToString:@"bounds"]) {
 #if TARGET_OS_IPHONE
-          textLayer.contentsScale = [UIScreen mainScreen].scale;
+        CGRect bounds = [change[NSKeyValueChangeNewKey] CGRectValue];
+#elif TARGET_OS_OSX
+        NSRect bounds = [change[@"new"] rectValue];
 #endif
-          textLayer.wrapped = YES;
-          [mView.layer insertSublayer:textLayer atIndex:ret.Layer + 1];
-
-          [layerDic setValue:textLayer forKey:layerKey];
-      }
-
-      textLayer.hidden = NO;
-
-      buildAssStyle(textLayer, ret);
-    });
-
-    return 0;
+        for (NSString *key in layerDic.allKeys) {
+            CATextLayer *layer = [layerDic objectForKey:key];
+            if (!layer.hidden) {
+                DialogueObj *obj = dialogueDic[key];
+                [self buildAssStyle:layer withAssDialogue:obj.dialogue];
+            }
+        }
+    }
 }
 
-int AppleCATextLayerRender::hide(const string &data)
+- (void)dealloc
 {
-    AssDialogue ret = AssUtils::parseAssDialogue(mHeader, data);
-    NSString *layerKey = [NSString stringWithFormat:@"%i", ret.Layer];
-    CALayer *assLab = [layerDic objectForKey:layerKey];
-    if (assLab) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          assLab.hidden = YES;
+    if (strcmp(dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL), dispatch_queue_get_label(dispatch_get_main_queue())) == 0) {
+        if (self.mView.layer) {
+            [_mView.layer removeObserver:self forKeyPath:@"bounds" context:nil];
+        }
+    } else {
+        // FIXME: use async
+        dispatch_sync(dispatch_get_main_queue(), ^{
+          if (_mView.layer) {
+              [_mView.layer removeObserver:self forKeyPath:@"bounds" context:nil];
+          }
         });
     }
-    return 0;
 }
-#if TARGET_OS_OSX
-void AppleCATextLayerRender::setView(NSView *view)
-#elif TARGET_OS_IPHONE
-void AppleCATextLayerRender::setView(UIView *view)
-#endif
-{
-    mView = view;
-}
+
+@end

@@ -86,18 +86,6 @@ private:
     __weak id<CicadaDelegate> mInnerDelegate = nil;
 
     Cicada::AssHeader assHeader;
-    NSMutableDictionary *layerDic;
-
-    NSArray *matchStringWithRegx(NSString *string, NSString *regexStr);
-
-
-    void buildAssStyle(CATextLayer *textLayer, Cicada::AssDialogue ret, void *userData);
-
-    NSAttributedString *buildAssStyleStr(NSString *style, NSString *text, Cicada::AssStyle assStyle, void *userData);
-
-    CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat width);
-    
-    static NSObject* getSubTitleColor(bool isBGR,NSInteger value);
 
     std::unique_ptr<Cicada::AppleCATextLayerRender> mSubtitleRender{};
     int64_t mCurrentSubtitleRendingIndex{INT64_MIN};

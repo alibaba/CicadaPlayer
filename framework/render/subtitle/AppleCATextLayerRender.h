@@ -42,20 +42,32 @@ namespace Cicada {
         int intHeader(const char *header);
 
     private:
-        void buildAssStyle(CATextLayer *textLayer, const AssDialogue &ret);
-        NSArray *matchStringWithRegx(NSString *string, NSString *regexStr);
-        NSAttributedString *buildAssStyleStr(NSString *style, NSString *text, AssStyle defaultstyle);
-
-    private:
-        NSMutableDictionary *layerDic;
+        void *renderHandle{nullptr};
         AssHeader mHeader;
-#if TARGET_OS_OSX
-        NSView *mView;
-#elif TARGET_OS_IPHONE
-        UIView *mView;
-#endif
     };
 }// namespace Cicada
 
+@interface AppleCATextLayerRenderImpl : NSObject {
+    NSMutableDictionary *layerDic;
+    NSMutableDictionary *dialogueDic;
+}
+
+@property(nonatomic, assign) Cicada::AssHeader mHeader;
+@property(nonatomic, strong) CicadaView *mView;
+
+- (void)setup:(CicadaView *)view;
+
+- (void)showDialogue:(Cicada::AssDialogue)ret;
+- (void)hideDialogue:(Cicada::AssDialogue)ret;
+
+- (void)buildAssStyle:(CATextLayer *)textLayer withAssDialogue:(Cicada::AssDialogue)ret;
+- (NSArray *)matchString:(NSString *)string withRegx:(NSString *)regexStr;
+- (NSAttributedString *)buildAssStyleStr:(NSString *)style text:(NSString *)text defaultstyle:(Cicada::AssStyle)defaultstyle;
+
+@end
+
+@interface DialogueObj : NSObject
+@property(nonatomic, assign) Cicada::AssDialogue dialogue;
+@end
 
 #endif//CICADAMEDIA_APPLECATEXTLAYERRENDER_H
