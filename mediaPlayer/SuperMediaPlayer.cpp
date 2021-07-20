@@ -2701,6 +2701,9 @@ void SuperMediaPlayer::ProcessOpenStreamInit(int streamIndex)
                 } else if (meta->type == STREAM_TYPE_SUB && mCurrentSubtitleIndex < 0) {
                     AF_LOGD("get a subtitle stream\n");
                     mCurrentSubtitleIndex = GEN_STREAM_ID(mMainStreamId, j);
+                    if (meta->extradata && meta->extradata_size > 0) {
+                        mPNotifier->NotifySubtitleHeader(mCurrentSubtitleIndex, (const char *) meta->extradata);
+                    }
                 }
             }
         }

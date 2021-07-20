@@ -270,6 +270,9 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
                 AF_LOGD("get a subtitle stream\n");
                 openStreamRet = mPlayer.mDemuxerService->OpenStream(i);
                 mPlayer.mCurrentSubtitleIndex = i;
+                if (meta->extradata && meta->extradata_size > 0) {
+                    mPlayer.mPNotifier->NotifySubtitleHeader(mPlayer.mCurrentSubtitleIndex, (const char *) meta->extradata);
+                }
             }
         } else if (meta->type == STREAM_TYPE_MIXED) {
             info->type = ST_TYPE_VIDEO;
@@ -713,7 +716,9 @@ void SMPMessageControllerListener::ProcessSelectExtSubtitleMsg(int index, bool s
     if (select) {
         mPlayer.mSubPlayer->seek(mPlayer.getCurrentPosition());
         std::string header = mPlayer.mSubPlayer->getHeader(index);
-        mPlayer.mPNotifier->NotifySubtitleHeader(index, header.c_str());
+        if (!header.empty()) {
+            mPlayer.mPNotifier->NotifySubtitleHeader(index, header.c_str());
+        }
     }
 }
 
@@ -815,6 +820,14 @@ void SMPMessageControllerListener::switchSubTitle(int index)
     mPlayer.mSubtitleChangedFirstPts = INT64_MAX;
     mPlayer.mDemuxerService->CloseStream(mPlayer.mCurrentSubtitleIndex);
     mPlayer.mCurrentSubtitleIndex = index;
+    unique_ptr<streamMeta> Meta = nullptr;
+    mPlayer.mDemuxerService->GetStreamMeta(Meta, index, true);
+    if (Meta) {
+        Stream_meta *meta = ((Stream_meta *) (*Meta));
+        if (meta->extradata && meta->extradata_size > 0) {
+            mPlayer.mPNotifier->NotifySubtitleHeader(mPlayer.mCurrentSubtitleIndex, (const char *) meta->extradata);
+        }
+    }
     mPlayer.mBufferController->ClearPacket(BUFFER_TYPE_SUBTITLE);
     mPlayer.mEof = false;
     mPlayer.mSubtitleEOS = false;
