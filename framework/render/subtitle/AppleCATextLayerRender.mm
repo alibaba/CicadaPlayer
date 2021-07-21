@@ -328,14 +328,14 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
             y -= marginV;
 #else
             y = 0;
-            x += marginV;
+            y += marginV;
 #endif
             break;
             //top
         case 1:
 #if TARGET_OS_IPHONE
             y = 0;
-            x += marginV;
+            y += marginV;
 #else
             y = h - textSize.height;
             y -= marginV;
