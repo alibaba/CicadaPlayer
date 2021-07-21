@@ -15,6 +15,10 @@ public:
     void setDelegate(__weak id<CicadaDelegate> innerDelegate) {
         mInnerDelegate = innerDelegate;
     }
+    
+    void setView(CicadaView * innerView) {
+        mView = innerView;
+    }
 
     static CicadaTrackInfo* getCicadaTrackInfo(const StreamInfo *info);
     static CicadaImage * convertBitmapRGBA8ToUIImage(unsigned char *buffer, int width, int height);
@@ -84,6 +88,7 @@ protected:
 private:
     __weak CicadaPlayer * mPlayer = nullptr;
     __weak id<CicadaDelegate> mInnerDelegate = nil;
+    __weak CicadaView *mView = nullptr;
 
     Cicada::AssHeader assHeader;
 

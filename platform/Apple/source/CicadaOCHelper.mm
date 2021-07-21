@@ -3,8 +3,6 @@
 #include <EventCodeMap.h>
 #include <ErrorCodeMap.h>
 
-#define AliPlayerViewTag 881688
-
 using namespace Cicada;
 
 CicadaImage * CicadaOCHelper::convertBitmapRGBA8ToUIImage(unsigned char *buffer, int width, int height) {
@@ -428,7 +426,7 @@ void CicadaOCHelper::onSubtitleHeader(int64_t index, const void *header, void *u
                     helper->mSubtitleRender = nullptr;
                 }
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    CicadaView* view = [player.playerView viewWithTag:AliPlayerViewTag];
+                    CicadaView* view = helper->mView;
                     if(view){
                         helper->mSubtitleRender->setView(view);
                         helper->mCurrentSubtitleRendingIndex = index;
