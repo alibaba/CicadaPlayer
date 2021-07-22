@@ -62,7 +62,7 @@ namespace Cicada {
 
 - (void)buildAssStyle:(CATextLayer *)textLayer withAssDialogue:(Cicada::AssDialogue)ret;
 - (NSArray *)matchString:(NSString *)string withRegx:(NSString *)regexStr;
-- (NSAttributedString *)buildAssStyleStr:(NSString *)style text:(NSString *)text defaultstyle:(Cicada::AssStyle)defaultstyle;
+- (NSAttributedString *)buildAssStyleStr:(NSString *)style text:(NSString *)text defaultstyle:(Cicada::AssStyle)defaultstyle factor:(float)factor;
 
 @end
 

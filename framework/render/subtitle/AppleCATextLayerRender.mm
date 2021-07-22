@@ -68,6 +68,7 @@ void AppleCATextLayerRender::setView(UIView *view)
 #if TARGET_OS_IPHONE
           textLayer.contentsScale = [UIScreen mainScreen].scale;
 #endif
+          
           textLayer.wrapped = YES;
           [self.mView.layer insertSublayer:textLayer atIndex:ret.Layer + 1];
 
@@ -126,7 +127,7 @@ NSObject *getSubTitleColor(bool isBGR, NSInteger value)
     }
 }
 
-- (NSAttributedString *)buildAssStyleStr:(NSString *)style text:(NSString *)text defaultstyle:(Cicada::AssStyle)defaultstyle
+- (NSAttributedString *)buildAssStyleStr:(NSString *)style text:(NSString *)text defaultstyle:(Cicada::AssStyle)defaultstyle factor:(float)factor
 {
     NSMutableDictionary<NSAttributedStringKey, id> *attrs = @{}.mutableCopy;
 
@@ -170,7 +171,8 @@ NSObject *getSubTitleColor(bool isBGR, NSInteger value)
             }
         }
     }
-
+    
+    fontSize *= factor;
     CicadaFont *font = [CicadaFont fontWithName:fontName size:fontSize];
     [attrs setValue:font ?: [CicadaFont systemFontOfSize:fontSize] forKey:NSFontAttributeName];
 
@@ -195,13 +197,25 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
     textSize = [attrStr.string boundingRectWithSize:CGSizeMake(viewWidth, MAXFLOAT)
                                             options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
                                          attributes:dic
-                                            context:nil]
-                       .size;
-    return CGSizeMake(viewWidth, textSize.height);
+                                            context:nil].size;
+    
+    CGSize textSize2 = [attrStr.string boundingRectWithSize:CGSizeMake(MAXFLOAT,textSize.height)
+                                            options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
+                                         attributes:dic
+                                            context:nil].size;
+    return CGSizeMake(textSize2.width, textSize.height);
 }
 
 - (void)buildAssStyle:(CATextLayer *)textLayer withAssDialogue:(const AssDialogue)ret
 {
+    CGFloat x = 0;
+    CGFloat y = 0;
+    CGFloat w = CGRectGetWidth(self.mView.frame);
+    CGFloat h = CGRectGetHeight(self.mView.frame);
+    
+    float factorX = w*1.0f/self.mHeader.PlayResX;
+    float factorY = h*1.0f/self.mHeader.PlayResY;
+    
     //TODO detect whether it is the default style
     std::map<std::string, AssStyle> styles = self.mHeader.styles;
     auto iter = styles.begin();
@@ -238,7 +252,7 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
 
                 if (i == 0 && range.location > 0) {
                     NSString *text = [subtitle substringWithRange:NSMakeRange(0, range.location)];
-                    [attributedStr appendAttributedString:[self buildAssStyleStr:nil text:text defaultstyle:assStyle]];
+                    [attributedStr appendAttributedString:[self buildAssStyleStr:nil text:text defaultstyle:assStyle factor:factorY]];
                 }
                 NSUInteger begin = range.location + range.length;
                 NSString *text = [subtitle substringWithRange:NSMakeRange(begin, end - begin)];
@@ -247,7 +261,7 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
                         code = [preStyle stringByAppendingString:code];
                         preStyle = @"";
                     }
-                    [attributedStr appendAttributedString:[self buildAssStyleStr:code text:text defaultstyle:assStyle]];
+                    [attributedStr appendAttributedString:[self buildAssStyleStr:code text:text defaultstyle:assStyle factor:factorY]];
                 } else {
                     preStyle = [preStyle stringByAppendingString:code];
                 }
@@ -258,13 +272,8 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
             }
         }
     } else {
-        [attributedStr appendAttributedString:[self buildAssStyleStr:nil text:subtitle defaultstyle:assStyle]];
+        [attributedStr appendAttributedString:[self buildAssStyleStr:nil text:subtitle defaultstyle:assStyle factor:factorY]];
     }
-
-    CGFloat x = 0;
-    CGFloat y = 0;
-    CGFloat w = CGRectGetWidth(self.mView.frame);
-    CGFloat h = CGRectGetHeight(self.mView.frame);
 
     CGSize textSize = CGSizeZero;
     if (attributedStr.length > 0) {
@@ -273,9 +282,9 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
     }
     
     int alignment = assStyle.Alignment;
-    int marginL = assStyle.MarginL;
-    int marginR = assStyle.MarginR;
-    int marginV = assStyle.MarginV;
+    int marginL = assStyle.MarginL*factorX;
+    int marginR = assStyle.MarginR*factorX;
+    int marginV = assStyle.MarginV*factorY;
     
     if (allLineCodeStr.length>0) {
         NSArray *anArr = [self matchString:allLineCodeStr withRegx:@"an[0-9]+"];
@@ -289,16 +298,26 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
             NSString *posStr = posArr.firstObject;
             NSArray *posArr = [self matchString:posStr withRegx:@"pos\\((-?\\d+),(-?\\d+)\\)"];
             if (posArr.count==3) {
-                marginV = ((NSString*)posArr[2]).intValue;
-            }
-            if (alignment%4==3) {
-                marginR = ((NSString*)posArr[1]).intValue;
-            }else{
-                marginL = ((NSString*)posArr[1]).intValue;
+                if (anArr.count<=0) {
+                    alignment = 7;
+                }
+                marginV = ((NSString*)posArr[2]).intValue*factorY - textSize.height/2;
+                
+                if (alignment%3==0) {
+                    marginR = ((NSString*)posArr[1]).intValue*factorX - textSize.width/2;
+                }else{
+                    marginL = ((NSString*)posArr[1]).intValue*factorX - textSize.width/2;
+                }
             }
         }
     }
-    switch (alignment % 4) {
+    switch (alignment % 3) {
+        //align right
+        case 0:
+            x = w - textSize.width;
+            x -= marginR;
+            textLayer.alignmentMode = kCAAlignmentRight;
+            break;
         //align left
         case 1:
             x = 0;
@@ -307,14 +326,8 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
             break;
             //Center
         case 2:
-            //            x = (w - textSize.width) / 2;
+            x = (w - textSize.width) / 2;
             textLayer.alignmentMode = kCAAlignmentCenter;
-            break;
-            //align right
-        case 3:
-            x = w - textSize.width;
-            x -= marginR;
-            textLayer.alignmentMode = kCAAlignmentRight;
             break;
 
         default:
@@ -350,7 +363,15 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
             break;
     }
 
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
     textLayer.frame = CGRectMake(x, y, textSize.width, textSize.height);
+    [CATransaction commit];
+//#if TARGET_OS_IPHONE
+//    textLayer.backgroundColor = [UIColor redColor].CGColor;
+//#elif TARGET_OS_OSX
+//    textLayer.backgroundColor = [NSColor redColor].CGColor;
+//#endif
 }
 
 - (void)setup:(CicadaView *)view
