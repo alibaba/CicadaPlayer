@@ -632,6 +632,7 @@ namespace Cicada {
             return;
         }
         frame->getInfo().timePosition = packet->getInfo().timePosition;
+        frame->getInfo().utcTime = packet->getInfo().utcTime;
 
         if (mVideoCodecType != kCMVideoCodecType_HEVC && keyFrame && mPocErrorCount < MAX_POC_ERROR) {
             flushReorderQueue();
@@ -639,6 +640,7 @@ namespace Cicada {
             if (mVTOutFmt == AF_PIX_FMT_YUV420P) {
                 auto *avframe = (AVAFFrame *) (*frame);
                 avframe->getInfo().timePosition = packet->getInfo().timePosition;
+                avframe->getInfo().utcTime = packet->getInfo().utcTime;
                 std::unique_lock<std::mutex> uMutex(mReorderMutex);
                 mReorderedQueue.push(unique_ptr<IAFFrame>(avframe));
             } else {
