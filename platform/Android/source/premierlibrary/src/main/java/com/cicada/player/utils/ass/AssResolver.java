@@ -10,7 +10,6 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +44,14 @@ public class AssResolver {
             mTextViewPool.recycle(remove);
         }
 
+    }
+
+    private int videoDisplayWidth = -1;
+    private int videoDisplayHeight = -1;
+
+    public void setVideoDisplaySize(int width, int height) {
+        videoDisplayWidth = width;
+        videoDisplayHeight = height;
     }
 
     public AssTextView setAssDialog(String content) {
@@ -290,5 +297,21 @@ public class AssResolver {
             return abgrColorString.substring(6, 8) + abgrColorString.substring(4, 6) + abgrColorString.substring(2, 4);
         }
         return abgrColorString.substring(4, 6) + abgrColorString.substring(2, 4) + abgrColorString.substring(0, 2);
+    }
+
+    private double scaleYSize(double size) {
+        if (videoDisplayHeight > 0 && mAssHeader.mPlayResY > 0) {
+            return size * videoDisplayHeight / mAssHeader.mPlayResY;
+        } else {
+            return size;
+        }
+    }
+
+    private double scaleXSize(double size) {
+        if (videoDisplayWidth > 0 && mAssHeader.mPlayResX > 0) {
+            return size * videoDisplayWidth / mAssHeader.mPlayResX;
+        } else {
+            return size;
+        }
     }
 }

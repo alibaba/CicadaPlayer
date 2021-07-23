@@ -32,7 +32,40 @@ public class AssSubtitleView extends RelativeLayout {
         mAssResolver = new AssResolver(context);
     }
 
-    public void setFontTypeFace(Map<String,Typeface> typefaceMap){
+    private int videoWidth = 0;
+    private int videoHeight = 0;
+
+    /**
+     * 设置实际渲染时的视频宽高。
+     *
+     * @param width
+     * @param height
+     */
+    public synchronized void setVideoRenderSize(int width, int height) {
+        if (videoWidth != width || videoHeight != height) {
+            videoWidth = width;
+            videoHeight = height;
+
+            LayoutParams params = (LayoutParams) getLayoutParams();
+            if (params != null) {
+                params.width = videoWidth;
+                params.height = videoHeight;
+                setLayoutParams(params);
+            }
+
+            mAssResolver.setVideoDisplaySize(videoWidth, videoHeight);
+            //update views have been added
+            Map<Long, AssTextView> currentMap = new HashMap<>();
+            currentMap.putAll(mAssSubtitleView);
+            for (long id : currentMap.keySet()) {
+                String content = currentMap.get(id).getContent();
+                dismiss(id);
+                show(id, content);
+            }
+        }
+    }
+
+    public void setFontTypeFace(Map<String, Typeface> typefaceMap) {
         mAssResolver.setFontTypeMap(typefaceMap);
     }
 
