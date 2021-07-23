@@ -42,6 +42,7 @@ namespace Cicada {
         int MarginR = 0;
         int MarginV = 0;
         int Encoding = 1;
+        bool usePos = false;
         double posX = 0.0;
         double posY = 0.0;
     } AssStyle;
