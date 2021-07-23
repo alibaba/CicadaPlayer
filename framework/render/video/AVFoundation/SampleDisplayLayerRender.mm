@@ -409,8 +409,45 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     NSImage *image = [[NSImage alloc] initWithCGImage:videoImage size:CGSizeMake(width, height)];
     //    CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
     // TODO: imageTransform
+    NSBitmapImageRep* rep = [[NSBitmapImageRep alloc]
+                                initWithBitmapDataPlanes:NULL
+                                              pixelsWide:width
+                                              pixelsHigh:height
+                                           bitsPerSample:8
+                                         samplesPerPixel:4
+                                                hasAlpha:YES
+                                                isPlanar:NO
+                                          colorSpaceName:NSCalibratedRGBColorSpace
+                                             bytesPerRow:0
+                                            bitsPerPixel:0];
+
+    [image addRepresentation:rep];
+
+    [image lockFocus];
+
+    if (!_bGColour) {
+        _bGColour = [NSColor blackColor].CGColor;
+    }
+    
+    CGContextRef ctx = [[NSGraphicsContext currentContext] CGContext];
+    CGContextClearRect(ctx, NSMakeRect(0, 0, width, height));
+    CGContextSetFillColorWithColor(ctx,_bGColour);
+    CGContextFillRect(ctx, NSMakeRect(0, 0, width, height));
+    
+    CGContextTranslateCTM(ctx, width / 2.0, height / 2.0);
+    CGContextConcatCTM(ctx, CATransform3DGetAffineTransform(self.displayLayer.transform));
+//    CGContextScaleCTM(ctx, 1, -1);
+    CGPoint origin = CGPointMake(-(image.size.width / 2.0), -(image.size.height / 2.0));
+    CGRect rect = CGRectZero;
+    rect.origin = origin;
+    rect.size = image.size;
+    CGContextDrawImage(ctx, rect, videoImage);
+
+    [image unlockFocus];
+    
     return image;
 }
+
 
 - (void *)captureScreen
 {
