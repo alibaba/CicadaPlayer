@@ -40,19 +40,19 @@ public class AssResolver {
         mAssHeader = AssUtils.parseAssHeader(header);
     }
 
-    public void dismiss(TextView remove) {
+    public void dismiss(AssTextView remove) {
         if(mTextViewPool != null){
             mTextViewPool.recycle(remove);
         }
 
     }
 
-    public TextView setAssDialog(String content) {
+    public AssTextView setAssDialog(String content) {
         AssDialogue assDialogue = AssUtils.parseAssDialogue(mAssHeader, content);
 
         String mText = assDialogue.mText;
         Matcher match = pattern.matcher(mText);
-        TextView assTextView = mTextViewPool.obtain();
+        AssTextView assTextView = mTextViewPool.obtain();
         initTextViewStyle(assTextView, mAssHeader, assDialogue);
         if(match.find()){
             String text = parseSubtitleText(assDialogue);
@@ -64,7 +64,7 @@ public class AssResolver {
         return assTextView;
     }
 
-    public void initTextViewStyle(TextView assTextView, AssHeader assHeader, AssDialogue assDialogue) {
+    public void initTextViewStyle(AssTextView assTextView, AssHeader assHeader, AssDialogue assDialogue) {
         Map<String, AssStyle> mStyles = assHeader.mStyles;
         if (mStyles != null) {
             AssStyle assStyle = mStyles.get(assDialogue.mStyle.replace("*", ""));
@@ -73,7 +73,7 @@ public class AssResolver {
     }
 
     //set TextView Style
-    private void setStyle(TextView textView, AssStyle assStyle) {
+    private void setStyle(AssTextView textView, AssStyle assStyle) {
         if (assStyle != null) {
             textView.setGravity(Gravity.CENTER);
             int style = Typeface.NORMAL;

@@ -13,15 +13,15 @@ import java.util.List;
 public class TextViewPool {
 
     private Context mContext;
-    private List<TextView> idelTextViewList = new ArrayList<TextView>();
-    private List<TextView> busyTextViewList = new ArrayList<TextView>();
+    private List<AssTextView> idelTextViewList = new ArrayList<AssTextView>();
+    private List<AssTextView> busyTextViewList = new ArrayList<AssTextView>();
 
     public TextViewPool(Context context) {
         mContext = context;
     }
 
-    public TextView obtain() {
-        TextView textView = null;
+    public AssTextView obtain() {
+        AssTextView textView = null;
         if (idelTextViewList.isEmpty()) {
             textView = new AssTextView(mContext);
         } else {
@@ -33,7 +33,7 @@ public class TextViewPool {
         return textView;
     }
 
-    public void recycle(TextView textView) {
+    public void recycle(AssTextView textView) {
         if (textView == null) {
             return;
         }
