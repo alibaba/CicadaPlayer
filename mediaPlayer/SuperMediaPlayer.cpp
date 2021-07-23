@@ -1855,9 +1855,13 @@ void SuperMediaPlayer::doDeCode()
                 }
 
                 if (mVideoPacket && (!HAVE_AUDIO || audioDecoderEOS)) {
-                    if (!(mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)->getFlags() & DECFLAG_PASSTHROUGH_INFO) &&
-                        mVideoPacket->getInfo().timePosition >= 0) {
-                        mCurrentPos = mVideoPacket->getInfo().timePosition;
+                    if (!(mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)->getFlags() & DECFLAG_PASSTHROUGH_INFO)) {
+                        if (mVideoPacket->getInfo().timePosition >= 0) {
+                            mCurrentPos = mVideoPacket->getInfo().timePosition;
+                        }
+                        if (mVideoPacket->getInfo().utcTime >= 0) {
+                            mCurrentFrameUtcTime = mVideoPacket->getInfo().timePosition;
+                        }
                         //printTimePosition(mCurrentPos);
                     }
                 }
@@ -1886,10 +1890,16 @@ void SuperMediaPlayer::doDeCode()
 
             if (mAudioPacket) {
                 int64_t timePosition = mAudioPacket->getInfo().timePosition;
+                int64_t utcTime = mAudioPacket->getInfo().utcTime;
                 int ret = DecodeAudio(mAudioPacket);
-                if (mAudioPacket == nullptr && timePosition >= 0 &&
+                if (mAudioPacket == nullptr &&
                     !(mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)->getFlags() & DECFLAG_PASSTHROUGH_INFO)) {
-                    mCurrentPos = timePosition;
+                    if (timePosition >= 0) {
+                        mCurrentPos = timePosition;
+                    }
+                    if (utcTime >= 0) {
+                        mCurrentFrameUtcTime = utcTime;
+                    }
                     //printTimePosition(mCurrentPos);
                 }
                 if (ret == -EAGAIN) {
