@@ -26,6 +26,7 @@ public class TextViewPool {
             textView = new AssTextView(mContext);
         } else {
             textView = idelTextViewList.get(0);
+            idelTextViewList.remove(textView);
         }
         busyTextViewList.add(textView);
 
