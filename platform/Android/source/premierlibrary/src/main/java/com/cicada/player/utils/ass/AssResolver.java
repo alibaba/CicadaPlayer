@@ -4,27 +4,39 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
-import android.text.Html;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.TextUtils;
-import android.util.TypedValue;
+import android.text.style.AbsoluteSizeSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StrikethroughSpan;
+import android.text.style.StyleSpan;
+import android.text.style.TypefaceSpan;
+import android.text.style.UnderlineSpan;
 import android.view.Gravity;
-import android.view.ViewGroup;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AssResolver {
+
+    private static final String TAG = AssResolver.class.getSimpleName();
+
     public static final String TEXT_PATTERN = "\\{[^\\{]+\\}";
     public static final Pattern pattern = Pattern.compile(TEXT_PATTERN);
 
     private Map<String, Typeface> mFontTypeface = new HashMap<>();
     private AssHeader mAssHeader;
     private TextViewPool mTextViewPool;
+    private Context mContext;
 
     public AssResolver(Context context) {
+        mContext = context;
         mTextViewPool = new TextViewPool(context);
     }
 
@@ -40,7 +52,7 @@ public class AssResolver {
     }
 
     public void dismiss(AssTextView remove) {
-        if(mTextViewPool != null){
+        if (mTextViewPool != null) {
             mTextViewPool.recycle(remove);
         }
 
@@ -54,89 +66,114 @@ public class AssResolver {
         videoDisplayHeight = height;
     }
 
-    public AssTextView setAssDialog(String content) {
-        AssDialogue assDialogue = AssUtils.parseAssDialogue(mAssHeader, content);
 
-        String mText = assDialogue.mText;
-        Matcher match = pattern.matcher(mText);
-        AssTextView assTextView = mTextViewPool.obtain();
-        initTextViewStyle(assTextView, mAssHeader, assDialogue);
-        if(match.find()){
-            String text = parseSubtitleText(assDialogue);
-            assTextView.setText(Html.fromHtml(text));
-        }else{
-            assTextView.setText(mText);
+    private class ContentAttribute {
+        public String text;
+        public String overrideStyle;
+        public String fontName;
+        public double fontSize;
+        public int mPrimaryColour;
+        public int mSecondaryColour;
+        public boolean mBold;
+        public boolean mItalic;
+        public boolean mUnderline;
+        public boolean mStrikeOut;
+        public int mOutlineColour;
+        public double mOutlineWidth;
+        public int mBorderStyle;
+        public int mBackColour;//used for outline or shadow
+        public double mShadow;
 
+        @Override
+        public String toString() {
+            return "ContentAttribute{" +
+                    "text='" + text + '\'' +
+                    ", overrideStyle='" + overrideStyle + '\'' +
+                    ", fontName='" + fontName + '\'' +
+                    ", fontSize=" + fontSize +
+                    ", mPrimaryColour=" + mPrimaryColour +
+                    ", mSecondaryColour=" + mSecondaryColour +
+                    ", mBold=" + mBold +
+                    ", mItalic=" + mItalic +
+                    ", mUnderline=" + mUnderline +
+                    ", mStrikeOut=" + mStrikeOut +
+                    ", mOutlineColour=" + mOutlineColour +
+                    ", mOutlineWidth=" + mOutlineWidth +
+                    ", mBorderStyle=" + mBorderStyle +
+                    ", mBackColour=" + mBackColour +
+                    ", mShadow=" + mShadow +
+                    '}';
         }
+    }
+
+    private class LocationAttribute {
+        public int posX;
+        public int posY;
+        public int mAlignment;
+        public int marginL;
+        public int marginR;
+        public int marginV;
+
+        public double mScaleX;
+        public double mScaleY;
+        public double mAngle;
+    }
+
+    private class OverrideStyle {
+        public String fontName;
+        public double fontSize;
+        public int mPrimaryColour;
+        public boolean mBold;
+        public boolean mItalic;
+        public boolean mUnderline;
+        public boolean mStrikeOut;
+
+        public int posX;
+        public int posY;
+    }
+
+
+    public AssTextView setAssDialog(String content) {
+
+        AssTextView assTextView = mTextViewPool.obtain();
+        assTextView.setContent(content);
+        AssDialogue assDialogue = AssUtils.parseAssDialogue(mAssHeader, content);
+        AssStyle assStyle = mAssHeader.mStyles.get(assDialogue.mStyle.replace("*", ""));
+
+        if (assDialogue.mText.contains("{\\p0}")) {
+            //TODO DrawingCommands not support
+            return assTextView;
+        }
+
+        //1.split content by {}...
+        LinkedList<ContentAttribute> contentAttributeLinkedList = splitContent(assDialogue);
+        //2.fill LocationAttribute and ContentAttribute
+        LocationAttribute locationAttribute = getLocationAttribute(assDialogue, assStyle);
+        fillContentAttribute(assStyle, contentAttributeLinkedList, locationAttribute);
+        //3.generate SpannableString.
+        SpannableStringBuilder displayStr = getFinalStr(contentAttributeLinkedList);
+        //4.fill view Location info.
+        RelativeLayout.LayoutParams params = getLayoutParams(locationAttribute);
+        assTextView.setText(displayStr);
+        assTextView.setScaleX((float) locationAttribute.mScaleX);
+        assTextView.setScaleY((float) locationAttribute.mScaleY);
+        assTextView.setRotation((float) locationAttribute.mAngle);
+        float measuredWidth = getFinalStrWidth(contentAttributeLinkedList);
+        params.width = (int) measuredWidth;
+        params.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+        assTextView.setLayoutParams(params);
+        assTextView.setGravity(Gravity.CENTER);
         return assTextView;
     }
 
-    public void initTextViewStyle(AssTextView assTextView, AssHeader assHeader, AssDialogue assDialogue) {
-        Map<String, AssStyle> mStyles = assHeader.mStyles;
-        if (mStyles != null) {
-            AssStyle assStyle = mStyles.get(assDialogue.mStyle.replace("*", ""));
-            setStyle(assTextView, assStyle);
-        }
-    }
+    private RelativeLayout.LayoutParams getLayoutParams(LocationAttribute locationAttribute) {
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
 
-    //set TextView Style
-    private void setStyle(AssTextView textView, AssStyle assStyle) {
-        if (assStyle != null) {
-            textView.setGravity(Gravity.CENTER);
-            int style = Typeface.NORMAL;
-            String mFontName = assStyle.mFontName;
-            Typeface typeface = mFontTypeface.get(mFontName);
-            if (typeface != null) {
-                textView.setTypeface(typeface);
-            }
-            double mFontSize = assStyle.mFontSize;
-            textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, Math.round(mFontSize));
-            int mPrimaryColour = rgbaToArgb(assStyle.mPrimaryColour);
-            int mSecondaryColour = assStyle.mSecondaryColour;
-            textView.setTextColor(mPrimaryColour);
-            //-1 close，0 open
-            int mBold = assStyle.mBold;
-            if (mBold == -1) {
-                style = Typeface.BOLD;
-            }
-            //-1 close，0 open
-            int mItalic = assStyle.mItalic;
-            if (mItalic == -1) {
-                style = Typeface.ITALIC;
-            }
-            if (mBold == -1 && mItalic == -1) {
-                style = Typeface.BOLD_ITALIC;
-            }
-            textView.setTypeface(null, style);
-            //-1 close，0 open
-            int mUnderline = assStyle.mUnderline;
-            if (mUnderline == -1) {
-                textView.setPaintFlags(textView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-            }
-            //-1 close，0 open
-            int mStrikeOut = assStyle.mStrikeOut;
-            if (mStrikeOut == -1) {
-                textView.setPaintFlags(textView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-            }
-
-            int mOutlineColour = assStyle.mOutlineColour;
-            double mOutline = assStyle.mOutline;
-
-            int mBorderStyle = assStyle.mBorderStyle;
-            int mBackColour = assStyle.mBackColour;
-            double mShadow = assStyle.mShadow;
-            if (mBorderStyle == 1) {
-                textView.setShadowLayer(0, (float) mShadow, (float) mShadow, mBackColour);
-            }
-
-            double mScaleX = assStyle.mScaleX;
-            textView.setScaleX((float) (mScaleX));
-            double mScaleY = assStyle.mScaleY;
-            textView.setScaleY((float) (mScaleY));
-            double mAngle = assStyle.mAngle;
-            textView.setRotation((float) mAngle);
-            int mAlignment = assStyle.mAlignment;
-            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (locationAttribute.posX > 0 || locationAttribute.posY > 0) {
+            layoutParams.leftMargin = (int) scaleXSize(locationAttribute.posX);
+            layoutParams.topMargin = (int) scaleYSize(locationAttribute.posY);
+        } else {
+            int mAlignment = locationAttribute.mAlignment;
             switch (mAlignment) {
                 case 1:
                     layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
@@ -173,126 +210,264 @@ public class AssResolver {
                     layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
                     layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
                     break;
+                default:
+                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                    layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                    break;
             }
-            layoutParams.leftMargin = assStyle.mMarginL;
-            layoutParams.rightMargin = assStyle.mMarginR;
-            layoutParams.topMargin = assStyle.mMarginV;
-            int mEncoding = assStyle.mEncoding;
-            textView.setLayoutParams(layoutParams);
+            layoutParams.leftMargin = locationAttribute.marginL;
+            layoutParams.rightMargin = locationAttribute.marginR;
+            layoutParams.topMargin = locationAttribute.marginV;
+        }
+
+
+        return layoutParams;
+    }
+
+    private float getFinalStrWidth(LinkedList<ContentAttribute> contentAttributeLinkedList) {
+        float newlineLen = 0;
+        float maxLineLen = 0;
+        TextView measureTextView = new TextView(mContext);
+        for (ContentAttribute contentAttribute : contentAttributeLinkedList) {
+            measureTextView.setTextSize((float) contentAttribute.fontSize);
+            Paint paint = measureTextView.getPaint();
+            float tmplen = paint.measureText(contentAttribute.text);
+            newlineLen += tmplen;
+            if (contentAttribute.text.endsWith("\n")) {
+                if (maxLineLen < newlineLen) {
+                    maxLineLen = newlineLen;
+                    newlineLen = 0;
+                }
+            }
+        }
+        if (maxLineLen < newlineLen) {
+            maxLineLen = newlineLen;
+        }
+
+        return maxLineLen;
+    }
+
+    private SpannableStringBuilder getFinalStr(LinkedList<ContentAttribute> contentAttributeLinkedList) {
+        SpannableStringBuilder spanBuilder = new SpannableStringBuilder();
+        int start = 0;
+        int end = 0;
+        for (ContentAttribute contentAttribute : contentAttributeLinkedList) {
+            end += contentAttribute.text.length();
+            spanBuilder.append(contentAttribute.text);
+
+            if (contentAttribute.mOutlineWidth > 0) {
+                BorderedSpan.BorderStyle borderStyle = new BorderedSpan.BorderStyle();
+                borderStyle.fontName = contentAttribute.fontName;
+                borderStyle.fontSize = contentAttribute.fontSize;
+                borderStyle.mPrimaryColour = contentAttribute.mPrimaryColour;
+                borderStyle.mSecondaryColour = contentAttribute.mSecondaryColour;
+                borderStyle.mBold = contentAttribute.mBold;
+                borderStyle.mItalic = contentAttribute.mItalic;
+                borderStyle.mUnderline = contentAttribute.mUnderline;
+                borderStyle.mStrikeOut = contentAttribute.mStrikeOut;
+                borderStyle.mOutlineColour = contentAttribute.mOutlineColour;
+                borderStyle.mOutlineWidth = contentAttribute.mOutlineWidth;
+                if (contentAttribute.mBorderStyle == 1) {
+                    borderStyle.mShadowWidth = contentAttribute.mShadow;
+                    borderStyle.mShadowColor = contentAttribute.mBackColour;
+                }
+                spanBuilder.setSpan(new BorderedSpan(borderStyle), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+
+            spanBuilder.setSpan(new TypefaceSpan(contentAttribute.fontName), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spanBuilder.setSpan(new AbsoluteSizeSpan((int) contentAttribute.fontSize), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spanBuilder.setSpan(new ForegroundColorSpan(contentAttribute.mPrimaryColour), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            if (contentAttribute.mBold && contentAttribute.mItalic) {
+                spanBuilder.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else if (contentAttribute.mBold) {
+                spanBuilder.setSpan(new StyleSpan(Typeface.BOLD), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else if (contentAttribute.mItalic) {
+                spanBuilder.setSpan(new StyleSpan(Typeface.ITALIC), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+
+            if (contentAttribute.mUnderline) {
+                spanBuilder.setSpan(new UnderlineSpan(), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+
+            if (contentAttribute.mStrikeOut) {
+                spanBuilder.setSpan(new StrikethroughSpan(), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+
+
+            start += contentAttribute.text.length();
+        }
+        return spanBuilder;
+    }
+
+    private void fillContentAttribute(AssStyle assStyle, LinkedList<ContentAttribute> contentAttributeLinkedList, LocationAttribute locationAttribute) {
+        int size = contentAttributeLinkedList.size();
+        for (int i = 0; i < size; i++) {
+            ContentAttribute contentAttribute = contentAttributeLinkedList.get(i);
+            String text = contentAttribute.text;
+            // only need replace \N
+            contentAttribute.text = text.replace("\\N", "\n").replace("\\n", "\n");
+            contentAttribute.fontName = assStyle.mFontName;
+            contentAttribute.fontSize = scaleYSize(assStyle.mFontSize);
+            contentAttribute.mBold = (assStyle.mBold == -1);
+            contentAttribute.mItalic = (assStyle.mItalic == -1);
+            contentAttribute.mStrikeOut = (assStyle.mStrikeOut == -1);
+            contentAttribute.mUnderline = (assStyle.mUnderline == -1);
+            contentAttribute.mBorderStyle = assStyle.mBorderStyle;
+            contentAttribute.mBackColour = assStyle.mBackColour;
+            contentAttribute.mOutlineColour = rgbaToArgb(assStyle.mOutlineColour);
+            contentAttribute.mOutlineWidth = scaleYSize(assStyle.mOutline);
+            contentAttribute.mPrimaryColour = rgbaToArgb(assStyle.mPrimaryColour);
+            contentAttribute.mSecondaryColour = assStyle.mSecondaryColour;
+            contentAttribute.mShadow = scaleYSize(assStyle.mShadow);
+
+            if (!TextUtils.isEmpty(contentAttribute.overrideStyle)) {
+
+                Map<String, Object> overrideStyle = parseOverrideStyle(contentAttribute.overrideStyle);
+                if (overrideStyle != null) {
+                    if (overrideStyle.containsKey("primaryColour")) {
+                        contentAttribute.mPrimaryColour = (int) overrideStyle.get("primaryColour");
+                    }
+                    if (overrideStyle.containsKey("strikeOut")) {
+                        contentAttribute.mStrikeOut = (boolean) overrideStyle.get("strikeOut");
+                    }
+                    if (overrideStyle.containsKey("underline")) {
+                        contentAttribute.mUnderline = (boolean) overrideStyle.get("underline");
+                    }
+                    if (overrideStyle.containsKey("italic")) {
+                        contentAttribute.mItalic = (boolean) overrideStyle.get("italic");
+                    }
+                    if (overrideStyle.containsKey("bold")) {
+                        contentAttribute.mBold = (boolean) overrideStyle.get("bold");
+                    }
+                    if (overrideStyle.containsKey("fontSize")) {
+                        contentAttribute.fontSize = scaleYSize((double) overrideStyle.get("fontSize"));
+                    }
+                    if (overrideStyle.containsKey("fontName")) {
+                        contentAttribute.fontName = (String) overrideStyle.get("fontName");
+                    }
+                    if (overrideStyle.containsKey("posX")) {
+                        locationAttribute.posX = (int) overrideStyle.get("posX");
+                    }
+                    if (overrideStyle.containsKey("posY")) {
+                        locationAttribute.posY = (int) overrideStyle.get("posY");
+                    }
+                }
+            } else {
+            }
         }
     }
 
-    private int rgbaToArgb(int mPrimaryColour) {
-        //vb alpha convertTo Android alpha
-        int alpha = (0xff - (mPrimaryColour & 0xff)) << 24;
-        String argbStr = String.format("#%04x", (alpha | (mPrimaryColour >>> 8)));
-        return Color.parseColor(argbStr);
+    private LocationAttribute getLocationAttribute(AssDialogue assDialogue, AssStyle assStyle) {
+        LocationAttribute locationAttribute = new LocationAttribute();
+        locationAttribute.mAlignment = assStyle.mAlignment;
+        locationAttribute.marginL = assStyle.mMarginL;
+        locationAttribute.marginR = assStyle.mMarginR;
+        locationAttribute.marginV = assStyle.mMarginV;
+
+        if (assDialogue.mMarginL != 0) {
+            locationAttribute.marginL = assDialogue.mMarginL;
+        }
+        if (assDialogue.mMarginR != 0) {
+            locationAttribute.marginR = assDialogue.mMarginR;
+        }
+        if (assDialogue.mMarginV != 0) {
+            locationAttribute.marginV = assDialogue.mMarginV;
+        }
+
+        locationAttribute.mAngle = assStyle.mAngle;
+        locationAttribute.mScaleX = assStyle.mScaleX;
+        locationAttribute.mScaleY = assStyle.mScaleY;
+
+        return locationAttribute;
     }
 
-    private String parseSubtitleText(AssDialogue assDialogue) {
-        String result;
-        Matcher compleMatcher = pattern.matcher(assDialogue.mText);
-        //contains Style Cover Code
-        if (compleMatcher.find()) {
-            //DrawingCommands
-            if(assDialogue.mText.contains("{\\p0}")){
-                return "";
-            }else{
-                StringBuilder subtitleTextStringBuilder = new StringBuilder();
-                String[] splitArrays = assDialogue.mText.split(TEXT_PATTERN, -1);
-                int index = 0;
-                Matcher findMatch = pattern.matcher(assDialogue.mText);
-                while (findMatch.find()) {
+    private LinkedList<ContentAttribute> splitContent(AssDialogue assDialogue) {
+        LinkedList<ContentAttribute> contentAttributeLinkedList = new LinkedList<>();
+        Matcher findMatch = pattern.matcher(assDialogue.mText);
+        if (findMatch.find()) {
+            String[] splitContent = assDialogue.mText.split(TEXT_PATTERN, -1);
+            for (int i = 0; i < splitContent.length; i++) {
+                ContentAttribute contentAttribute = null;
+                if (!TextUtils.isEmpty(splitContent[i])) {
+                    contentAttribute = new ContentAttribute();
+                    contentAttribute.text = splitContent[i];
+                }
+
+                if (i != 0) {
                     String styleStr = findMatch.group();
-
-                    //append Subtitle Text
-                    if (index == 0 && !TextUtils.isEmpty(splitArrays[0])) {
-                        subtitleTextStringBuilder.append(splitArrays[0]);
-                    }
-
-                    //parse style to HTML Text
-                    if (index < splitArrays.length) {
-                        subtitleTextStringBuilder.append(convertToHtmlText(styleStr, splitArrays[index + 1]));
-                    }
-
-                    index++;
-                }
-
-                if (index == 0 && splitArrays.length > 0 && !TextUtils.isEmpty(splitArrays[0])) {
-                    subtitleTextStringBuilder.append(splitArrays[0]);
-                }
-
-                for (index++; index < splitArrays.length; index++) {
-                    if (!TextUtils.isEmpty(splitArrays[index])) {
-                        subtitleTextStringBuilder.append(splitArrays[index]);
+                    if (contentAttribute != null) {
+                        contentAttribute.overrideStyle = styleStr;
                     }
                 }
-                result = subtitleTextStringBuilder.toString();
+
+                if (contentAttribute != null) {
+                    contentAttributeLinkedList.add(contentAttribute);
+                }
             }
+
         } else {
-            result = assDialogue.mText;
+            ContentAttribute contentAttribute = new ContentAttribute();
+            contentAttribute.text = assDialogue.mText;
+            contentAttributeLinkedList.add(contentAttribute);
         }
-        return result.replaceAll(TEXT_PATTERN, "").replace("\\n", "<br />").replace("\\N", "<br />");
+        return contentAttributeLinkedList;
     }
 
-    /**
-     * Subtitle Style convertTo HTML Style Text
-     */
-    private String convertToHtmlText(String styleStr, String splitSubtitle) {
-        StringBuilder result = new StringBuilder();
+    private Map<String, Object> parseOverrideStyle(String styleStr) {
         int start = styleStr.indexOf("{");
         int end = styleStr.lastIndexOf("}");
         //substring() delete "{" and "}"，replaceAll() change "\" to "$"
         styleStr = styleStr.substring(start + 1, end).replaceAll("\\\\", "\\$");
-        if (styleStr.contains("$")) {
-            result.append("<font");
-            String[] styles = styleStr.split("\\$");
-            for (int i = 0; i < styles.length; i++) {
-                String style = styles[i];
-                if (style.startsWith("fn")) {
-                    String face = style.substring("fn".length()).trim();
-                    result.append(" face=\"").append(face).append("\"");
 
+        if (styleStr.contains("$")) {
+            Map<String, Object> overrideStyle = new HashMap<>();
+            String[] styles = styleStr.split("\\$");
+            for (String style : styles) {
+                if (style.startsWith("fn")) {
+                    overrideStyle.put("fontName", style.substring("fn".length()).trim());
                 } else if (style.startsWith("fs")) {
                     String size = style.substring("fs".length()).trim();
-                    result.append(" size=\"").append(size).append("\"");
-
-                } else if (style.startsWith("b1") || style.startsWith("i1") || style.startsWith("u1") || style.startsWith("s1")) {
-                    if (style.startsWith("b1")) {
-                        splitSubtitle = "<b>" + splitSubtitle + "</b>";
-                    } else if (style.startsWith("i1")) {
-                        splitSubtitle = "<i>" + splitSubtitle + "</i>";
-                    } else if (style.startsWith("u1")) {
-                        splitSubtitle = "<u>" + splitSubtitle + "</u>";
-                    } else if (style.startsWith("s1")) {
-                        splitSubtitle = "<s>" + splitSubtitle + "</s>";
-                    }
-
+                    overrideStyle.put("fontSize", Double.valueOf(size));
+                } else if (style.startsWith("b")) {
+                    overrideStyle.put("bold", style.startsWith("b1"));
+                } else if (style.startsWith("i")) {
+                    overrideStyle.put("italic", style.startsWith("i1"));
+                } else if (style.startsWith("u")) {
+                    overrideStyle.put("underline", style.startsWith("u1"));
+                } else if (style.startsWith("s")) {
+                    overrideStyle.put("strikeOut", style.startsWith("s1"));
                 } else if (style.startsWith("c&H") || style.startsWith("1c&H")) {
                     int endIndex = style.lastIndexOf("&");
                     style = style.substring(0, endIndex).trim();
-                    String color = "";
+                    String color = "#";
                     if (style.startsWith("c&H")) {
-                        color = convertRgbColor(style.substring("c&H".length()).trim());
+                        color += convertRgbColor(style.substring("c&H".length()).trim());
                     } else {
-                        color = convertRgbColor(style.substring("1c&H".length()).trim());
+                        color += convertRgbColor(style.substring("1c&H".length()).trim());
                     }
-                    result.append(" color=\"#").append(color).append("\"");
+                    overrideStyle.put("primaryColour", Color.parseColor(color));
 
+                } else if (style.startsWith("pos")) {
+                    //position
+                    String[] posSplit = style.substring("pos(".length(), style.length() - 1).split(",");
+                    overrideStyle.put("posX", Integer.valueOf(posSplit[0]));
+                    overrideStyle.put("posY", Integer.valueOf(posSplit[1]));
                 }
             }
-            result.append(">");
+            return overrideStyle;
         }
-        if (result.length() > 0) {
-            result.append(splitSubtitle);
-            result.append("</font>");
-        } else {
-            result.append(splitSubtitle);
-        }
-        return result.toString();
+        return null;
     }
 
-    public String convertRgbColor(String abgrColorString) {
+    private int rgbaToArgb(int color) {
+        //vb alpha convertTo Android alpha
+        int alpha = (0xff - (color & 0xff)) << 24;
+        String argbStr = String.format("#%04x", (alpha | (color >>> 8)));
+        return Color.parseColor(argbStr);
+    }
+
+    private String convertRgbColor(String abgrColorString) {
         if (abgrColorString.length() == 8) {
             return abgrColorString.substring(6, 8) + abgrColorString.substring(4, 6) + abgrColorString.substring(2, 4);
         }
