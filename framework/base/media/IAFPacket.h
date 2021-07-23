@@ -208,7 +208,7 @@ public:
         int64_t duration;
         bool key;
         int64_t timePosition;
-        int64_t utcTime = INT64_MIN;
+        int64_t utcTime;
         union {
             videoInfo video;
             audioInfo audio;

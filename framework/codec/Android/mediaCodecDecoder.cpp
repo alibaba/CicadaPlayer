@@ -497,6 +497,7 @@ namespace Cicada {
 
             // TODO: get the timePosition form input packet
             pFrame->getInfo().timePosition = INT64_MIN;
+            pFrame->getInfo().utcTime = INT64_MIN;
             return 0;
         } else {
             AF_LOGE("unknown error %d\n", index);
