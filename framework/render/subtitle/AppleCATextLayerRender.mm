@@ -40,13 +40,9 @@ int AppleCATextLayerRender::hide(const string &data)
     [(__bridge id) renderHandle hideDialogue:ret];
     return 0;
 }
-#if TARGET_OS_OSX
-void AppleCATextLayerRender::setView(NSView *view)
-#elif TARGET_OS_IPHONE
-void AppleCATextLayerRender::setView(UIView *view)
-#endif
+void AppleCATextLayerRender::setView(void *view)
 {
-    [(__bridge id) renderHandle setup:view];
+    [(__bridge id) renderHandle setup:(__bridge CALayer *) view];
 }
 
 @implementation DialogueObj
@@ -70,7 +66,7 @@ void AppleCATextLayerRender::setView(UIView *view)
 #endif
           
           textLayer.wrapped = YES;
-          [self.mView.layer insertSublayer:textLayer atIndex:ret.Layer + 1];
+          [self.mLayer insertSublayer:textLayer atIndex:ret.Layer + 1];
 
           [layerDic setValue:textLayer forKey:layerKey];
       }
@@ -210,9 +206,9 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
 {
     CGFloat x = 0;
     CGFloat y = 0;
-    CGFloat w = CGRectGetWidth(self.mView.frame);
-    CGFloat h = CGRectGetHeight(self.mView.frame);
-    
+    CGFloat w = CGRectGetWidth(self.mLayer.frame);
+    CGFloat h = CGRectGetHeight(self.mLayer.frame);
+
     float factorX = w*1.0f/self.mHeader.PlayResX;
     float factorY = h*1.0f/self.mHeader.PlayResY;
     
@@ -374,13 +370,14 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
 //#endif
 }
 
-- (void)setup:(CicadaView *)view
+- (void)setup:(CALayer *)view
 {
-    _mView = view;
+    _mLayer = view;
     layerDic = @{}.mutableCopy;
     dialogueDic = @{}.mutableCopy;
-
-    [_mView.layer addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:nil];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [_mLayer addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:nil];
+    });
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *, id> *)change context:(void *)context
@@ -404,14 +401,14 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
 - (void)dealloc
 {
     if (strcmp(dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL), dispatch_queue_get_label(dispatch_get_main_queue())) == 0) {
-        if (self.mView.layer) {
-            [_mView.layer removeObserver:self forKeyPath:@"bounds" context:nil];
+        if (self.mLayer) {
+            [_mLayer removeObserver:self forKeyPath:@"bounds" context:nil];
         }
     } else {
         // FIXME: use async
         dispatch_sync(dispatch_get_main_queue(), ^{
-          if (_mView.layer) {
-              [_mView.layer removeObserver:self forKeyPath:@"bounds" context:nil];
+          if (_mLayer) {
+              [_mLayer removeObserver:self forKeyPath:@"bounds" context:nil];
           }
         });
     }

@@ -29,11 +29,7 @@ namespace Cicada {
         AppleCATextLayerRender();
         ~AppleCATextLayerRender();
 
-#if TARGET_OS_OSX
-        void setView(NSView *view);
-#elif TARGET_OS_IPHONE
-        void setView(UIView *view);
-#endif
+        void setView(void *view);
 
         int show(const std::string &data);
 
@@ -53,9 +49,9 @@ namespace Cicada {
 }
 
 @property(nonatomic, assign) Cicada::AssHeader mHeader;
-@property(nonatomic, strong) CicadaView *mView;
+@property(nonatomic, strong) CALayer *mLayer;
 
-- (void)setup:(CicadaView *)view;
+- (void)setup:(CALayer *)view;
 
 - (void)showDialogue:(Cicada::AssDialogue)ret;
 - (void)hideDialogue:(Cicada::AssDialogue)ret;

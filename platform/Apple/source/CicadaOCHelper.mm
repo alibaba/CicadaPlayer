@@ -428,7 +428,7 @@ void CicadaOCHelper::onSubtitleHeader(int64_t index, const void *header, void *u
                 dispatch_async(dispatch_get_main_queue(), ^{
                     CicadaView* view = helper->mView;
                     if(view){
-                        helper->mSubtitleRender->setView(view);
+                        helper->mSubtitleRender->setView((__bridge void *) view.layer);
                         helper->mCurrentSubtitleRendingIndex = index;
                     }else{
                         NSLog(@"ass header parser error,there is no view ");
