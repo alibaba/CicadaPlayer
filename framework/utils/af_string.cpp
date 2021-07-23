@@ -5,7 +5,6 @@
 #include "af_string.h"
 
 #include <iterator>
-#include <regex>
 
 #ifndef __APPLE__
 char *strnstr(const char *s, const char *find, size_t slen)
@@ -34,14 +33,24 @@ char *strnstr(const char *s, const char *find, size_t slen)
     return ((char *)s);
 }
 #endif
+using namespace std;
+static void split(vector<string> &tokens, const string &str, const string &delimiters = " ")
+{
+    string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+    string::size_type pos = str.find_first_of(delimiters, lastPos);
+
+    while (string::npos != pos || string::npos != lastPos) {
+        tokens.push_back(str.substr(lastPos, pos - lastPos));
+        lastPos = str.find_first_not_of(delimiters, pos);
+        pos = str.find_first_of(delimiters, lastPos);
+    }
+}
 
 std::vector<std::string> AfString::s_split(const std::string &in, const std::string &delim)
 {
-    std::regex re{delim};
-    return std::vector<std::string> {
-        std::sregex_token_iterator(in.begin(), in.end(), re, -1),
-        std::sregex_token_iterator()
-    };
+    vector<string> tokens;
+    split(tokens, in, delim);
+    return tokens;
 }
 
 
