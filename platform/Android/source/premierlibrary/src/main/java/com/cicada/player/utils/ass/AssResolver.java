@@ -2,7 +2,6 @@ package com.cicada.player.utils.ass;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -14,6 +13,7 @@ import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
 import android.text.style.UnderlineSpan;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -153,25 +153,95 @@ public class AssResolver {
         //3.generate SpannableString.
         SpannableStringBuilder displayStr = getFinalStr(contentAttributeLinkedList);
         //4.fill view Location info.
-        RelativeLayout.LayoutParams params = getLayoutParams(locationAttribute);
-        assTextView.setText(displayStr);
+        assTextView.setText(displayStr, TextView.BufferType.SPANNABLE);
         assTextView.setScaleX((float) locationAttribute.mScaleX);
         assTextView.setScaleY((float) locationAttribute.mScaleY);
         assTextView.setRotation((float) locationAttribute.mAngle);
-        float measuredWidth = getFinalStrWidth(contentAttributeLinkedList);
+        assTextView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        float measuredWidth = assTextView.getMeasuredWidth();
+        float measuredHeight = assTextView.getMeasuredHeight();
+
+        RelativeLayout.LayoutParams params = getLayoutParams(locationAttribute, measuredWidth, measuredHeight);
         params.width = (int) measuredWidth;
-        params.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+        params.height = (int) measuredHeight;
         assTextView.setLayoutParams(params);
         assTextView.setGravity(Gravity.CENTER);
         return assTextView;
     }
 
-    private RelativeLayout.LayoutParams getLayoutParams(LocationAttribute locationAttribute) {
+    private RelativeLayout.LayoutParams getLayoutParams(LocationAttribute locationAttribute, float viewWidth, float viewHeight) {
         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
 
         if (locationAttribute.posX > 0 || locationAttribute.posY > 0) {
-            layoutParams.leftMargin = (int) scaleXSize(locationAttribute.posX);
-            layoutParams.topMargin = (int) scaleYSize(locationAttribute.posY);
+            int mAlignment = locationAttribute.mAlignment;
+            double originX = scaleXSize(locationAttribute.posX);
+            double originY = scaleYSize(locationAttribute.posY);
+            switch (mAlignment) {
+                case 1:
+//                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+//                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                    layoutParams.leftMargin = (int) originX;
+                    layoutParams.topMargin = (int) (originY - viewHeight);
+                    break;
+                case 2:
+//                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+//                    layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                    layoutParams.leftMargin = (int) (originX - viewWidth / 2);
+                    layoutParams.topMargin = (int) (originY - viewHeight);
+                    break;
+                case 3:
+//                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+//                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                    layoutParams.leftMargin = (int) (originX - viewWidth);
+                    layoutParams.topMargin = (int) (originY - viewHeight);
+                    break;
+                case 4:
+//                    layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
+//                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                    layoutParams.leftMargin = (int) originX;
+                    layoutParams.topMargin = (int) (originY - viewHeight / 2);
+                    break;
+                case 5:
+//                    layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+                    layoutParams.leftMargin = (int) (originX - viewWidth / 2);
+                    layoutParams.topMargin = (int) (originY - viewHeight / 2);
+                    break;
+                case 6:
+//                    layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
+//                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                    layoutParams.leftMargin = (int) (originX - viewWidth);
+                    layoutParams.topMargin = (int) (originY - viewHeight / 2);
+                    break;
+                case 7:
+//                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+//                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                    layoutParams.leftMargin = (int) scaleXSize(originX);
+                    layoutParams.topMargin = (int) scaleYSize(originY);
+                    break;
+                case 8:
+//                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+//                    layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                    layoutParams.leftMargin = (int) (originX - viewWidth / 2);
+                    layoutParams.topMargin = (int) scaleYSize(originY);
+                    break;
+                case 9:
+//                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+//                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                    layoutParams.leftMargin = (int) (originX - viewWidth);
+                    layoutParams.topMargin = (int) scaleYSize(originY);
+                    break;
+                default:
+//                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+//                    layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+
+                    layoutParams.leftMargin = (int) (originX - viewWidth / 2);
+                    layoutParams.topMargin = (int) (originY - viewHeight);
+                    break;
+            }
+
+//            layoutParams.leftMargin = (int) scaleXSize(locationAttribute.posX);
+//            layoutParams.topMargin = (int) scaleYSize(locationAttribute.posY);
         } else {
             int mAlignment = locationAttribute.mAlignment;
             switch (mAlignment) {
@@ -222,29 +292,6 @@ public class AssResolver {
 
 
         return layoutParams;
-    }
-
-    private float getFinalStrWidth(LinkedList<ContentAttribute> contentAttributeLinkedList) {
-        float newlineLen = 0;
-        float maxLineLen = 0;
-        TextView measureTextView = new TextView(mContext);
-        for (ContentAttribute contentAttribute : contentAttributeLinkedList) {
-            measureTextView.setTextSize((float) contentAttribute.fontSize);
-            Paint paint = measureTextView.getPaint();
-            float tmplen = paint.measureText(contentAttribute.text);
-            newlineLen += tmplen;
-            if (contentAttribute.text.endsWith("\n")) {
-                if (maxLineLen < newlineLen) {
-                    maxLineLen = newlineLen;
-                    newlineLen = 0;
-                }
-            }
-        }
-        if (maxLineLen < newlineLen) {
-            maxLineLen = newlineLen;
-        }
-
-        return maxLineLen;
     }
 
     private SpannableStringBuilder getFinalStr(LinkedList<ContentAttribute> contentAttributeLinkedList) {
