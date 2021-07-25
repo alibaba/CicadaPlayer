@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -16,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.cicada.player.CicadaPlayer;
@@ -77,7 +79,7 @@ import static com.cicada.player.demo.view.subtitle.LocationStyle.Location_Top;
  * view 的初始化是在{@link #initVideoView}方法中实现的。
  * 然后是对各个view添加监听方法，处理对应的操作，从而实现与播放器的共同操作
  */
-public class CicadaVodPlayerView extends FrameLayout {
+public class CicadaVodPlayerView extends RelativeLayout {
 
     private static final String TAG = CicadaVodPlayerView.class.getSimpleName();
 
@@ -732,7 +734,8 @@ public class CicadaVodPlayerView extends FrameLayout {
 
         assSubtitleView = new AssSubtitleView(getContext());
         assSubtitleView.setId(R.id.cicada_player_ass_subtitle);
-        addSubView(assSubtitleView);
+//        assSubtitleView.setBackgroundColor(Color.parseColor("#3cffff00"));
+        addSubViewByCenter(assSubtitleView);
     }
 
     /**
@@ -1085,12 +1088,13 @@ public class CicadaVodPlayerView extends FrameLayout {
 
                     //防止黑屏
                     mCicadaVodPlayer.redraw();
+                    updateVideoRenderSize();
                 }
             }
 
             @Override
             public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-
+                updateVideoRenderSize();
             }
 
             @Override
@@ -1366,7 +1370,15 @@ public class CicadaVodPlayerView extends FrameLayout {
                 assSubtitleView.setAssHeader(header);
             }
         });
-
+        mCicadaVodPlayer.setOnVideoSizeChangedListener(new CicadaPlayer.OnVideoSizeChangedListener() {
+            @Override
+            public void onVideoSizeChanged(int width, int height) {
+                updateVideoRenderSize();
+                if(mOnVideoSizeChangedListener != null) {
+                    mOnVideoSizeChangedListener.onVideoSizeChanged(width, height);
+                }
+            }
+        });
         //track变化
         mCicadaVodPlayer.setOnTrackChangedListener(new CicadaPlayer.OnTrackChangedListener() {
             @Override
@@ -1430,7 +1442,65 @@ public class CicadaVodPlayerView extends FrameLayout {
             }
         });
 
-        mCicadaVodPlayer.setScaleMode(CicadaPlayer.ScaleMode.SCALE_ASPECT_FIT);
+        setScaleMode(CicadaPlayer.ScaleMode.SCALE_ASPECT_FIT);
+    }
+
+
+    private void updateVideoRenderSize() {
+
+        int videoWidth = mCicadaVodPlayer.getVideoWidth();
+        int videoHeight = mCicadaVodPlayer.getVideoHeight();
+        //TODO
+//        int videoRotation = mAliyunVodPlayer.getVideoRotation();
+//        if (videoRotation == 90 || videoRotation == 270) {
+//            videoWidth = mAliyunVodPlayer.getVideoHeight();
+//            videoHeight = mAliyunVodPlayer.getVideoWidth();
+//        }
+        if (videoHeight == 0 || videoWidth == 0) {
+            return;
+        }
+
+        int viewWidth = getWidth();
+        int viewHeight = getHeight();
+
+        if (viewWidth == 0 || viewHeight == 0) {
+            return;
+        }
+
+
+        int videoRenderWidth = 0;
+        int videoRenderHeight = 0;
+
+
+        CicadaPlayer.ScaleMode scaleMode = mCicadaVodPlayer.getScaleMode();
+
+        if (scaleMode == CicadaPlayer.ScaleMode.SCALE_TO_FILL) {
+            videoRenderWidth = viewWidth;
+            videoRenderHeight = viewHeight;
+        } else if (scaleMode == CicadaPlayer.ScaleMode.SCALE_ASPECT_FILL) {
+
+            videoRenderWidth = viewWidth;
+            videoRenderHeight = viewHeight;
+
+            if (videoWidth * videoRenderHeight > videoRenderWidth * videoHeight) {
+                videoRenderWidth = (int) (videoRenderHeight * 1.0f * videoWidth / videoHeight);
+            } else if (videoWidth * videoRenderHeight < videoRenderWidth * videoHeight) {
+                videoRenderHeight = (int) (videoRenderWidth * 1.0f * videoHeight / videoWidth);
+            }
+        } else {
+            videoRenderWidth = viewWidth;
+            videoRenderHeight = viewHeight;
+
+            if (videoWidth * videoRenderHeight < videoRenderWidth * videoHeight) {
+                videoRenderWidth = (int) (videoRenderHeight * 1.0f * videoWidth / videoHeight);
+            } else if (videoWidth * videoRenderHeight > videoRenderWidth * videoHeight) {
+                videoRenderHeight = (int) (videoRenderWidth * 1.0f * videoHeight / videoWidth);
+            }
+        }
+//        assSubtitleView.setBackgroundColor(Color.parseColor("#3cFF0000"));
+//        Log.d(TAG, "setVideoRenderSize width = " + videoRenderWidth + " , height = " + videoRenderHeight);
+
+        assSubtitleView.setVideoRenderSize(videoRenderWidth, videoRenderHeight);
     }
 
     private int currentPlayState = CicadaPlayer.idle;
@@ -1600,7 +1670,7 @@ public class CicadaVodPlayerView extends FrameLayout {
      */
     private void addTextureView(View view) {
         LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-        params.gravity = Gravity.CENTER;
+        params.addRule(RelativeLayout.CENTER_IN_PARENT);
         //添加到布局中
         addView(view, params);
     }
@@ -1610,7 +1680,7 @@ public class CicadaVodPlayerView extends FrameLayout {
      */
     private void addSubViewByCenter(View view) {
         LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        params.gravity = Gravity.CENTER;
+        params.addRule(RelativeLayout.CENTER_IN_PARENT);
         addView(view, params);
     }
 
@@ -1759,15 +1829,15 @@ public class CicadaVodPlayerView extends FrameLayout {
         }
     }
 
+
+    private CicadaPlayer.OnVideoSizeChangedListener mOnVideoSizeChangedListener = null;
     /**
      * 设置视频宽高变化监听
      *
      * @param onVideoSizeChangedListener 视频宽高变化监听
      */
     public void setOnVideoSizeChangedListener(CicadaPlayer.OnVideoSizeChangedListener onVideoSizeChangedListener) {
-        if (mCicadaVodPlayer != null) {
-            mCicadaVodPlayer.setOnVideoSizeChangedListener(onVideoSizeChangedListener);
-        }
+        mOnVideoSizeChangedListener = onVideoSizeChangedListener;
     }
 
     /**
@@ -1803,9 +1873,7 @@ public class CicadaVodPlayerView extends FrameLayout {
      * @param scallingMode 缩放模式
      */
     public void setVideoScalingMode(CicadaPlayer.ScaleMode scallingMode) {
-        if (mCicadaVodPlayer != null) {
-            mCicadaVodPlayer.setScaleMode(scallingMode);
-        }
+        setScaleMode(scallingMode);
     }
 
     /**
@@ -2125,6 +2193,7 @@ public class CicadaVodPlayerView extends FrameLayout {
     public void setScaleMode(CicadaPlayer.ScaleMode scaleMode) {
         if (mCicadaVodPlayer != null) {
             mCicadaVodPlayer.setScaleMode(scaleMode);
+            updateVideoRenderSize();
             Toast.makeText(getContext(), getContext().getString(R.string.cicada_scale) + scaleMode, Toast.LENGTH_SHORT).show();
         }
     }

@@ -14,6 +14,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.cicada.player.demo.R;
+import com.cicada.player.utils.ass.AssTextView;
 import com.cicada.player.utils.ass.TextViewPool;
 
 import java.util.HashMap;
@@ -44,7 +45,7 @@ public class SubtitleView extends RelativeLayout {
 
     private TextViewPool mTextViewPool;
 
-    private Map<String, TextView> mSubtitleView = new HashMap<String, TextView>();
+    private Map<String, AssTextView> mSubtitleView = new HashMap<String, AssTextView>();
 
     public SubtitleView(@NonNull Context context) {
         super(context);
@@ -72,7 +73,7 @@ public class SubtitleView extends RelativeLayout {
 
         CharSequence charSequence = getFinalText(subtitle);
         LayoutParams params       = getFinalParam(subtitle);
-        TextView     textView     = getFinalTextView(subtitle);
+        AssTextView     textView     = getFinalTextView(subtitle);
         textView.setLayoutParams(params);
         textView.setText(charSequence);
         textView.setPadding(10,10,10,10);
@@ -87,8 +88,8 @@ public class SubtitleView extends RelativeLayout {
         mSubtitleView.put(subtitle.id, textView);
     }
 
-    private TextView getFinalTextView(Subtitle subtitle) {
-        TextView textView = mTextViewPool.obtain();
+    private AssTextView getFinalTextView(Subtitle subtitle) {
+        AssTextView textView = mTextViewPool.obtain();
         do {
             Map<String, Object> extraInfo = subtitle.extraInfo;
             if (extraInfo == null) {
@@ -136,7 +137,7 @@ public class SubtitleView extends RelativeLayout {
 
 
     public void dismiss(String id) {
-        TextView textView = mSubtitleView.remove(id);
+        AssTextView textView = mSubtitleView.remove(id);
         mTextViewPool.recycle(textView);
     }
 
