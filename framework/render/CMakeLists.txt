@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.6)
 set(CMAKE_CXX_STANDARD 11)
 project(render)
 
+#set(ENABLE_CHEAT_RENDER ON)
+
 list(APPEND SRC_FILES
         video/vsync/timedVSync.cpp
         video/vsync/timedVSync.h
