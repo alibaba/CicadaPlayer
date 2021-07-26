@@ -396,6 +396,8 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 #elif TARGET_OS_OSX
 - (NSImage *)imageFromPixelBuffer:(CVPixelBufferRef)pixelBufferRef
 {
+    CGSize newSize = CGSizeMake(self.displayLayer.bounds.size.width, self.displayLayer.bounds.size.height);
+    
     CVImageBufferRef imageBuffer = pixelBufferRef;
 
     //    CVPixelBufferLockBaseAddress(imageBuffer, 0);
@@ -404,15 +406,22 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     size_t height = CVPixelBufferGetHeight(imageBuffer);
     CIImage *coreImage = [CIImage imageWithCVPixelBuffer:pixelBufferRef];
     CIContext *temporaryContext = [CIContext contextWithOptions:nil];
+    
+    CGSize disPlaySize = [self getVideoSize];
+//    if (self.displayLayer.videoGravity == AVLayerVideoGravityResize) {
+//        // function imageTransform() will apply all transforms we applied to displayLayer,
+//        // so here we use the displayLayer's origin size
+//        disPlaySize = self.displayLayer.bounds.size;
+//    }
 
-    CGImageRef videoImage = [temporaryContext createCGImage:coreImage fromRect:CGRectMake(0, 0, width, height)];
-    NSImage *image = [[NSImage alloc] initWithCGImage:videoImage size:CGSizeMake(width, height)];
+    CGImageRef videoImage = [temporaryContext createCGImage:coreImage fromRect:CGRectMake(0, 0,width,height)];
+    NSImage *image = [[NSImage alloc] initWithSize:CGSizeMake(newSize.width, newSize.height)];
     //    CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
     // TODO: imageTransform
     NSBitmapImageRep* rep = [[NSBitmapImageRep alloc]
                                 initWithBitmapDataPlanes:NULL
-                                              pixelsWide:width
-                                              pixelsHigh:height
+                                              pixelsWide:newSize.width
+                                              pixelsHigh:newSize.height
                                            bitsPerSample:8
                                          samplesPerPixel:4
                                                 hasAlpha:YES
@@ -430,14 +439,14 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     }
     
     CGContextRef ctx = [[NSGraphicsContext currentContext] CGContext];
-    CGContextClearRect(ctx, NSMakeRect(0, 0, width, height));
+    CGContextClearRect(ctx, NSMakeRect(0, 0, newSize.width, newSize.height));
     CGContextSetFillColorWithColor(ctx,_bGColour);
-    CGContextFillRect(ctx, NSMakeRect(0, 0, width, height));
+    CGContextFillRect(ctx, NSMakeRect(0, 0, newSize.width, newSize.height));
     
-    CGContextTranslateCTM(ctx, width / 2.0, height / 2.0);
+    CGContextTranslateCTM(ctx, newSize.width / 2.0, newSize.height / 2.0);
     CGContextConcatCTM(ctx, CATransform3DGetAffineTransform(self.displayLayer.transform));
 //    CGContextScaleCTM(ctx, 1, -1);
-    CGPoint origin = CGPointMake(-(image.size.width / 2.0), -(image.size.height / 2.0));
+    CGPoint origin = CGPointMake(-(newSize.width / 2.0), -(newSize.height / 2.0));
     CGRect rect = CGRectZero;
     rect.origin = origin;
     rect.size = image.size;
