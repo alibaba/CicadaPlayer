@@ -20,6 +20,8 @@ namespace Cicada{
 
         virtual ~cachedSource();
 
+        void setSourceConfig(const IDataSource::SourceConfig &config);
+
         int Open(int flags);
 
         void Close();
@@ -53,6 +55,7 @@ namespace Cicada{
     private:
         sliceBufferSource *mBufferSource = nullptr;
         IDataSource *mDataSource = nullptr;
+        IDataSource::SourceConfig mSourceConfig{};
         int64_t mFileSize = -1;
         std::mutex mMutex;
         ISliceManager *mSliceManager = nullptr;
