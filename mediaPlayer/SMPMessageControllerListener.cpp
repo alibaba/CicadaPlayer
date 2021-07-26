@@ -271,6 +271,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
                 openStreamRet = mPlayer.mDemuxerService->OpenStream(i);
                 mPlayer.mCurrentSubtitleIndex = i;
                 if (meta->extradata && meta->extradata_size > 0) {
+                    meta->extradata[meta->extradata_size] = 0;
                     mPlayer.mPNotifier->NotifySubtitleHeader(mPlayer.mCurrentSubtitleIndex, (const char *) meta->extradata);
                 }
             }
