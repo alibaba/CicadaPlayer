@@ -27,7 +27,8 @@ public:
 
     uint8_t **getData() override
     {
-        return nullptr;
+        mData[0] = reinterpret_cast<uint8_t *>(mPBuffer);
+        return mData;
     }
 
     int *getLineSize() override
@@ -49,8 +50,7 @@ public:
 
 private:
     CVPixelBufferRef mPBuffer;
-
-
+    uint8_t *mData[1];
 };
 
 
