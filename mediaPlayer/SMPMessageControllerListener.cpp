@@ -377,10 +377,6 @@ void SMPMessageControllerListener::ProcessSetVideoBackgroundColor()
 
 void SMPMessageControllerListener::ProcessSetViewMsg(void *view)
 {
-    if (view == mPlayer.mSet->mView) {
-        return;
-    }
-
     mPlayer.mSet->mView = view;
     std::unique_lock<std::mutex> uMutex(mPlayer.mCreateMutex);
 
