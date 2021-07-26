@@ -399,7 +399,10 @@ void SMPMessageControllerListener::ProcessSetBitStreamMsg(readCB read, seekCB se
         mPlayer.mBSReadCb = read;
         mPlayer.mBSSeekCb = seek;
         mPlayer.mBSCbArg = arg;
-        mPlayer.ChangePlayerStatus(PLAYER_INITIALZED);
+
+        if (read != nullptr) {
+            mPlayer.ChangePlayerStatus(PLAYER_INITIALZED);
+        }
     }
 }
 
