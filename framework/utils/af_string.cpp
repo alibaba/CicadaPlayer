@@ -4,6 +4,7 @@
 
 #include "af_string.h"
 
+#include <cstring>
 #include <iterator>
 
 #ifndef __APPLE__
@@ -18,12 +19,12 @@ char *strnstr(const char *s, const char *find, size_t slen)
         do {
             do {
                 if (slen-- < 1 || (sc = *s++) == '\0') {
-                    return (NULL);
+                    return nullptr;
                 }
             } while (sc != c);
 
             if (len > slen) {
-                return (NULL);
+                return nullptr;
             }
         } while (strncmp(s, find, len) != 0);
 
