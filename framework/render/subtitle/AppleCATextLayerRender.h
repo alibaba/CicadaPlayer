@@ -56,10 +56,6 @@ namespace Cicada {
 - (void)showDialogue:(Cicada::AssDialogue)ret;
 - (void)hideDialogue:(Cicada::AssDialogue)ret;
 
-- (void)buildAssStyle:(CATextLayer *)textLayer withAssDialogue:(Cicada::AssDialogue)ret;
-- (NSArray *)matchString:(NSString *)string withRegx:(NSString *)regexStr;
-- (NSAttributedString *)buildAssStyleStr:(NSString *)style text:(NSString *)text defaultstyle:(Cicada::AssStyle)defaultstyle factor:(float)factor;
-
 @end
 
 @interface DialogueObj : NSObject

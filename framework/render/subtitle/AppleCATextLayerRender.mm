@@ -108,7 +108,7 @@ void AppleCATextLayerRender::setView(void *view)
     return array;
 }
 
-NSObject *getSubTitleColor(bool isBGR, NSInteger value)
+CicadaColor *getSubTitleColor(bool isBGR, NSInteger value)
 {
     if (isBGR) {
         return [CicadaColor colorWithRed:((float) (value & 0xFF)) / 255.0
@@ -123,7 +123,7 @@ NSObject *getSubTitleColor(bool isBGR, NSInteger value)
     }
 }
 
-- (NSAttributedString *)buildAssStyleStr:(NSString *)style text:(NSString *)text defaultstyle:(Cicada::AssStyle)defaultstyle factor:(float)factor
+- (NSAttributedString *)buildAssStyleStr:(NSString *)style text:(NSString *)text defaultstyle:(Cicada::AssStyle)defaultstyle factor:(float)factor showOutline:(BOOL)showOutline
 {
     NSMutableDictionary<NSAttributedStringKey, id> *attrs = @{}.mutableCopy;
 
@@ -132,7 +132,42 @@ NSObject *getSubTitleColor(bool isBGR, NSInteger value)
 
     NSObject *color = getSubTitleColor(false, defaultstyle.PrimaryColour);
     [attrs setValue:color forKey:NSForegroundColorAttributeName];
-
+    if (showOutline && defaultstyle.BorderStyle==1) {
+        if (defaultstyle.Outline>0) {
+            NSObject *outlineColour = getSubTitleColor(true, defaultstyle.OutlineColour);
+            [attrs setValue:outlineColour forKey:NSStrokeColorAttributeName];
+            [attrs setValue:@(defaultstyle.Outline) forKey:NSStrokeWidthAttributeName];
+        }
+        if (defaultstyle.Shadow>0) {
+            NSShadow *shadow = [[NSShadow alloc]init];
+            shadow.shadowOffset = CGSizeMake(defaultstyle.Shadow, defaultstyle.Shadow);
+            shadow.shadowColor = getSubTitleColor(true, defaultstyle.BackColour);
+            shadow.shadowBlurRadius = defaultstyle.Shadow;
+            [attrs setValue:shadow forKey:NSShadowAttributeName];
+        }
+    }
+    
+    if (defaultstyle.Bold==1) {
+        [attrs setValue:@(1) forKey:NSExpansionAttributeName];
+    }
+    
+    if (defaultstyle.Italic==1) {
+        [attrs setValue:@(1) forKey:NSObliquenessAttributeName];
+    }
+    
+    if (defaultstyle.Underline==1) {
+//        [attrs setValue:color forKey:NSUnderlineColorAttributeName];
+        [attrs setValue:@(1) forKey:NSUnderlineStyleAttributeName];
+    }
+    
+    if (defaultstyle.StrikeOut==1) {
+        [attrs setValue:@(0) forKey:NSBaselineOffsetAttributeName];
+        [attrs setValue:@(NSUnderlineStyleSingle) forKey:NSStrikethroughStyleAttributeName];
+        
+//        [attrs addAttributes:@{NSStrikethroughStyleAttributeName:@(NSUnderlineStyleSingle),NSBaselineOffsetAttributeName:@(0)} range:NSMakeRange(0, attrs.length)];
+    }
+    
+    
     if (style) {
         NSArray *styleArr = [style componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"{}"]];
         for (NSString *subStr in styleArr) {
@@ -190,16 +225,76 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
     [attrStr addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:range];
 
     NSDictionary *dic = [attrStr attributesAtIndex:0 effectiveRange:&range];
+    //need font only
+    NSMutableDictionary *destDic = @{}.mutableCopy;
+    for (NSString *key in dic.allKeys) {
+        if ([key isEqualToString:NSParagraphStyleAttributeName]
+            ||[key isEqualToString:NSFontAttributeName]) {
+            [destDic setValue:dic[key] forKey:key];
+        }
+    }
+ 
     textSize = [attrStr.string boundingRectWithSize:CGSizeMake(viewWidth, MAXFLOAT)
                                             options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
-                                         attributes:dic
+                                         attributes:destDic
                                             context:nil].size;
     
     CGSize textSize2 = [attrStr.string boundingRectWithSize:CGSizeMake(MAXFLOAT,textSize.height)
                                             options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
-                                         attributes:dic
+                                         attributes:destDic
                                             context:nil].size;
     return CGSizeMake(textSize2.width, textSize.height);
+}
+
+-(NSArray*) buildAttributedStrBySubtitle:(NSString*)subtitle defaultstyle:(Cicada::AssStyle)assStyle factor:(float)factorY showOutline:(BOOL)showOutline{
+    NSArray *lineCodes = [self matchString:subtitle withRegx:@"\\{[^\\{]+\\}"];
+
+    NSMutableAttributedString *attributedStr = [[NSMutableAttributedString alloc] init];
+    NSMutableString *allLineCodeStr = @"".mutableCopy;
+    if (lineCodes.count > 0) {
+        //TODO not for `p0` for the time being
+        if ([subtitle hasSuffix:@"p0}"]) {
+            subtitle = @"";
+        } else {
+            NSString *preStyle = @"";
+            for (int i = 0; i < lineCodes.count; i++) {
+                NSString *code = [lineCodes objectAtIndex:i];
+                [allLineCodeStr appendString:code];
+                NSRange range = [subtitle rangeOfString:code];
+                NSUInteger end = 0;
+                if (lineCodes.count > i + 1) {
+                    NSString *nextCode = [lineCodes objectAtIndex:i + 1];
+                    NSRange nextRange = [subtitle rangeOfString:nextCode];
+                    end = nextRange.location;
+                } else {
+                    end = [subtitle length];
+                }
+
+                if (i == 0 && range.location > 0) {
+                    NSString *text = [subtitle substringWithRange:NSMakeRange(0, range.location)];
+                    [attributedStr appendAttributedString:[self buildAssStyleStr:nil text:text defaultstyle:assStyle factor:factorY showOutline:showOutline]];
+                }
+                NSUInteger begin = range.location + range.length;
+                NSString *text = [subtitle substringWithRange:NSMakeRange(begin, end - begin)];
+                if (text.length > 0) {
+                    if (preStyle.length > 0) {
+                        code = [preStyle stringByAppendingString:code];
+                        preStyle = @"";
+                    }
+                    [attributedStr appendAttributedString:[self buildAssStyleStr:code text:text defaultstyle:assStyle factor:factorY showOutline:showOutline]];
+                } else {
+                    preStyle = [preStyle stringByAppendingString:code];
+                }
+
+                if (subtitle.length > end) {
+                    subtitle = [subtitle substringFromIndex:end];
+                }
+            }
+        }
+    } else {
+        [attributedStr appendAttributedString:[self buildAssStyleStr:nil text:subtitle defaultstyle:assStyle factor:factorY showOutline:showOutline]];
+    }
+    return @[attributedStr,allLineCodeStr];
 }
 
 - (void)buildAssStyle:(CATextLayer *)textLayer withAssDialogue:(const AssDialogue)ret
@@ -222,55 +317,13 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
     subtitle = [subtitle stringByReplacingOccurrencesOfString:@"\\N" withString:@"\n"];
 
 //            NSLog(@"====%@",subtitle);
-
-    NSArray *lineCodes = [self matchString:subtitle withRegx:@"\\{[^\\{]+\\}"];
-
-    //TODO not for `p0` for the time being
-    NSMutableAttributedString *attributedStr = [[NSMutableAttributedString alloc] init];
-    NSMutableString *allLineCodeStr = @"".mutableCopy;
-    if (lineCodes.count > 0) {
-        if ([subtitle hasSuffix:@"p0}"]) {
-            subtitle = @"";
-        } else {
-            NSString *preStyle = @"";
-            for (int i = 0; i < lineCodes.count; i++) {
-                NSString *code = [lineCodes objectAtIndex:i];
-                [allLineCodeStr appendString:code];
-                NSRange range = [subtitle rangeOfString:code];
-                NSUInteger end = 0;
-                if (lineCodes.count > i + 1) {
-                    NSString *nextCode = [lineCodes objectAtIndex:i + 1];
-                    NSRange nextRange = [subtitle rangeOfString:nextCode];
-                    end = nextRange.location;
-                } else {
-                    end = [subtitle length];
-                }
-
-                if (i == 0 && range.location > 0) {
-                    NSString *text = [subtitle substringWithRange:NSMakeRange(0, range.location)];
-                    [attributedStr appendAttributedString:[self buildAssStyleStr:nil text:text defaultstyle:assStyle factor:factorY]];
-                }
-                NSUInteger begin = range.location + range.length;
-                NSString *text = [subtitle substringWithRange:NSMakeRange(begin, end - begin)];
-                if (text.length > 0) {
-                    if (preStyle.length > 0) {
-                        code = [preStyle stringByAppendingString:code];
-                        preStyle = @"";
-                    }
-                    [attributedStr appendAttributedString:[self buildAssStyleStr:code text:text defaultstyle:assStyle factor:factorY]];
-                } else {
-                    preStyle = [preStyle stringByAppendingString:code];
-                }
-
-                if (subtitle.length > end) {
-                    subtitle = [subtitle substringFromIndex:end];
-                }
-            }
-        }
-    } else {
-        [attributedStr appendAttributedString:[self buildAssStyleStr:nil text:subtitle defaultstyle:assStyle factor:factorY]];
+    NSArray *arr = [self buildAttributedStrBySubtitle:subtitle defaultstyle:assStyle factor:factorY showOutline:YES];
+    if (arr.count!=2) {
+        return;
     }
-
+    NSMutableAttributedString *attributedStr = arr[0];
+    NSMutableString *allLineCodeStr = arr[1];
+    
     CGSize textSize = CGSizeZero;
     if (attributedStr.length > 0) {
         textLayer.string = attributedStr;
@@ -358,11 +411,29 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
         default:
             break;
     }
+    
+    for (CALayer *subLayer in textLayer.sublayers) {
+        [subLayer removeFromSuperlayer];
+    }
 
     [CATransaction begin];
     [CATransaction setDisableActions:YES];
     textLayer.frame = CGRectMake(x, y, textSize.width, textSize.height);
     [CATransaction commit];
+    
+    NSRange range = NSMakeRange(0, attributedStr.length);
+    NSDictionary *dic = [attributedStr attributesAtIndex:0 effectiveRange:&range];
+    if ([dic objectForKey:NSStrokeWidthAttributeName]) {
+        CATextLayer *strokeLayer = [[CATextLayer alloc] init];
+        strokeLayer.frame = textLayer.bounds;
+        
+        NSArray *arr = [self buildAttributedStrBySubtitle:subtitle defaultstyle:assStyle factor:factorY showOutline:NO];
+        
+        NSMutableAttributedString *frontAttributedStr = arr.firstObject;
+        strokeLayer.string = frontAttributedStr;
+        strokeLayer.alignmentMode = textLayer.alignmentMode;
+        [textLayer addSublayer:strokeLayer];
+    }
 //#if TARGET_OS_IPHONE
 //    textLayer.backgroundColor = [UIColor redColor].CGColor;
 //#elif TARGET_OS_OSX
