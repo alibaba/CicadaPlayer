@@ -136,8 +136,7 @@ namespace Cicada {
         /*
          * need flush async
          */
-        return true;
-        // return mSelectNum > 0 && mEnable;
+        return mSelectNum > 0 && mEnable;
     }
 
     void subTitlePlayer::enable(bool bEnable)

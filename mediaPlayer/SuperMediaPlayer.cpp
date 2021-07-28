@@ -2474,9 +2474,12 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
 
 void SuperMediaPlayer::RenderSubtitle(int64_t pts)
 {
-    if (mSubPlayer && mSubPlayer->isActive()) {
+    if (mSubPlayer) {
         mSubPlayer->update(getCurrentPosition());
-        return;
+
+        if (mSubPlayer->isActive()) {
+            return;
+        }
     }
 
     auto iter = mSubtitleShowedQueue.begin();
