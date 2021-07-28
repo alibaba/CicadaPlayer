@@ -29,6 +29,11 @@ function patch_ffmpeg() {
     git_am_patch ../../contribute/ffmpeg/0010-build-export-some-func-for-windows.patch
 }
 
+function patch_openssl() {
+    cd "${OPEN_SSL_SOURCE_DIR}" || exit
+    git_am_patch ../../contribute/openssl/0001-Configuration-darwin64-arm64-cc-for-Apple-silicon.patch
+}
+
 function git_apply_patch() {
     git apply $1
     if [[ $? -ne 0 ]]; then
@@ -69,6 +74,10 @@ function load_source() {
     if [[ -d ${LIBXML2_SOURCE_DIR} ]];then
         cd ${LIBXML2_SOURCE_DIR}
         git_am_patch ../../contribute/libxml2/0001-disable-check-libtool.patch
+    fi
+
+    if [[ -d ${OPEN_SSL_SOURCE_DIR} ]];then
+        patch_openssl
     fi
     return 0;
 }
