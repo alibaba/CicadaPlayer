@@ -38,16 +38,8 @@ endif ()
 add_executable(cicadaPlayer
         ${SRC_FILE})
 target_include_directories(cicadaPlayer PUBLIC ../mediaPlayer)
-if (MSVC)
 target_link_directories(cicadaPlayer PRIVATE
         ${COMMON_LIB_DIR})
-else ()
-target_link_directories(cicadaPlayer PRIVATE
-        ../external/install/ffmpeg/${CMAKE_SYSTEM_NAME}/x86_64/lib
-        ../external/install/curl/${CMAKE_SYSTEM_NAME}/x86_64/lib
-        ../external/install/openssl/${CMAKE_SYSTEM_NAME}/x86_64/lib
-        ${COMMON_LIB_DIR})
-endif ()
 
 target_link_libraries(cicadaPlayer PRIVATE
         media_player
