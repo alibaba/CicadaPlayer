@@ -48,7 +48,7 @@ function build_curl(){
             ssl_opt="--with-darwinssl"
         fi
         print_warning "native build for $1"
-        native_compile_set_platform_macOS
+        native_compile_set_platform_macOS $2
         export CFLAGS="${CFLAGS} $CPU_FLAGS"
     elif [[ "$1" == "Linux" ]];then
         LIBSDEPEND="LIBS=-lresolv"

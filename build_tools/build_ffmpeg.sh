@@ -26,8 +26,8 @@ function build_ffmpeg(){
     elif [[ "$1" == "win32" ]];then
         ffmpeg_cross_compile_set_win32 $2
     elif [[ "$1" == "Darwin" ]];then
-        print_warning "native build for $1"
-        local native_build=yes
+        print_warning "native build ffmpeg for $1  $2"
+ #       local native_build=yes
         if [[ "${SSL_USE_NATIVE}" != "TRUE" ]];then
             ffmpeg_config_add_user "--disable-securetransport"
         else
@@ -35,7 +35,7 @@ function build_ffmpeg(){
         fi
         ffmpeg_config_add_extra_cflags "-fno-stack-check"
 
-        ffmpeg_native_compile_set_macOS
+        ffmpeg_native_compile_set_macOS $2
     elif [[ "$1" == "Linux" ]];then
         local native_build=yes
     else

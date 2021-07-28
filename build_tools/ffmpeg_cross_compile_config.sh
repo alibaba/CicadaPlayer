@@ -55,5 +55,12 @@ function ffmpeg_cross_compile_set_win32(){
     fi
 }
 function ffmpeg_native_compile_set_macOS(){
-    native_compile_set_platform_macOS
+    native_compile_set_platform_macOS "$1"
+    ffmpeg_cross_compile_config_add "--target-os=darwin"
+    ffmpeg_cross_compile_config_add "--arch=${CPU_ARCH}"
+    if [ "${NEON_SUPPORT}" == "TRUE" ]
+    then
+         ffmpeg_cross_compile_config_add "--enable-neon"
+         ffmpeg_cross_compile_config_add "--enable-thumb"
+    fi
 }

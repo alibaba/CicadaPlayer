@@ -80,11 +80,11 @@ function build_openssl_111(){
         print_warning "native build for $1"
         if [ "$2" == "x86_64" ];then
             config_platform="darwin64-x86_64-cc"
-        else
-            config_platform="darwin-i386-cc"
+        elif [ "$2" == "arm64" ];then
+            config_platform="darwin64-arm64-cc"
         fi
         config_opt="${config_opt} no-shared"
-        native_compile_set_platform_macOS
+        native_compile_set_platform_macOS $2
         export CFLAGS="${CFLAGS} $CPU_FLAGS"
     elif [ "$1" == "Linux" ];then
         config_platform="linux-x86_64";
