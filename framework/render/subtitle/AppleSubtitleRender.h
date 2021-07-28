@@ -15,9 +15,9 @@ namespace Cicada {
 
         void setView(void *view) override;
 
-        int show(const std::string &data) override;
+        int show(int64_t index,const std::string &data) override;
 
-        int hide(const std::string &data) override;
+        int hide(int64_t index,const std::string &data) override;
 
         int intHeader(const char *header) override;
 

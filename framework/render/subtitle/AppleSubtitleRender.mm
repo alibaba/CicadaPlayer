@@ -17,13 +17,13 @@ void AppleSubtitleRender::setView(void *view)
 {
     mRender->setView(view);
 }
-int AppleSubtitleRender::show(const std::string &data)
+int AppleSubtitleRender::show(int64_t index,const std::string &data)
 {
-    return mRender->show(data);
+    return mRender->show(index,data);
 }
-int AppleSubtitleRender::hide(const std::string &data)
+int AppleSubtitleRender::hide(int64_t index,const std::string &data)
 {
-    return mRender->hide(data);
+    return mRender->hide(index,data);
 }
 int AppleSubtitleRender::intHeader(const char *header)
 {

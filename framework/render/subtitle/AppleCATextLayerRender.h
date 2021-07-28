@@ -31,9 +31,9 @@ namespace Cicada {
 
         void setView(void *view);
 
-        int show(const std::string &data);
+        int show(int64_t index,const std::string &data);
 
-        int hide(const std::string &data);
+        int hide(int64_t index,const std::string &data);
 
         int intHeader(const char *header);
 
@@ -43,23 +43,23 @@ namespace Cicada {
     };
 }// namespace Cicada
 
-@interface AppleCATextLayerRenderImpl : NSObject {
-    NSMutableDictionary *layerDic;
-    NSMutableDictionary *dialogueDic;
-}
+@interface AppleCATextLayerRenderImpl : NSObject
 
 @property(nonatomic, assign) Cicada::AssHeader mHeader;
 @property(nonatomic, strong) CALayer *mLayer;
+@property(nonatomic,strong)  NSMutableArray *dialogueArr;
 
 - (void)setup:(CALayer *)view;
 
-- (void)showDialogue:(Cicada::AssDialogue)ret;
-- (void)hideDialogue:(Cicada::AssDialogue)ret;
+- (void)showDialogue:(Cicada::AssDialogue)ret atIndex:(NSInteger)index;
+- (void)hideDialogue:(Cicada::AssDialogue)ret atIndex:(NSInteger)index;
 
 @end
 
 @interface DialogueObj : NSObject
 @property(nonatomic, assign) Cicada::AssDialogue dialogue;
+@property(nonatomic, assign) NSInteger index;
+@property(nonatomic,strong) CATextLayer *layer;
 @end
 
 #endif//CICADAMEDIA_APPLECATEXTLAYERRENDER_H

@@ -340,7 +340,7 @@ void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *dat
     CicadaOCHelper *helper = (CicadaOCHelper *) userData;
     if (helper->mSubtitleRender && helper->mCurrentSubtitleRendingIndex == subtitleIndex) {
         const char *content = (const char *) packet->getData();
-        helper->mSubtitleRender->show(content);
+        helper->mSubtitleRender->show(index,content);
     } else {
         if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleShow:trackIndex:subtitleID:subtitle:)]) {
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -383,7 +383,7 @@ void CicadaOCHelper::onHideSubtitle(int64_t index, int64_t size, const void *dat
 
     if (helper->mSubtitleRender && helper->mCurrentSubtitleRendingIndex == subtitleIndex) {
         const char *content = (const char *) packet->getData();
-        helper->mSubtitleRender->hide(content);
+        helper->mSubtitleRender->hide(index,content);
     } else {
         if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleHide:trackIndex:subtitleID:)]) {
             dispatch_async(dispatch_get_main_queue(), ^{

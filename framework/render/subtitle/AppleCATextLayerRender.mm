@@ -26,18 +26,18 @@ int AppleCATextLayerRender::intHeader(const char *header)
     }
     return -EINVAL;
 }
-int AppleCATextLayerRender::show(const string &data)
+int AppleCATextLayerRender::show(int64_t index,const string &data)
 {
     AssDialogue ret = AssUtils::parseAssDialogue(mHeader, data);
 
-    [(__bridge id) renderHandle showDialogue:ret];
+    [(__bridge id) renderHandle showDialogue:ret atIndex:index];
     return 0;
 }
 
-int AppleCATextLayerRender::hide(const string &data)
+int AppleCATextLayerRender::hide(int64_t index,const string &data)
 {
     AssDialogue ret = AssUtils::parseAssDialogue(mHeader, data);
-    [(__bridge id) renderHandle hideDialogue:ret];
+    [(__bridge id) renderHandle hideDialogue:ret atIndex:index];
     return 0;
 }
 void AppleCATextLayerRender::setView(void *view)
@@ -51,44 +51,63 @@ void AppleCATextLayerRender::setView(void *view)
 
 @implementation AppleCATextLayerRenderImpl
 
-- (void)showDialogue:(Cicada::AssDialogue)ret
+- (void)showDialogue:(Cicada::AssDialogue)ret atIndex:(NSInteger)index
 {
     dispatch_async(dispatch_get_main_queue(), ^{
-      CATextLayer *textLayer = nil;
-      NSString *layerKey = [NSString stringWithFormat:@"%i", ret.Layer];
-      if ([layerDic objectForKey:layerKey]) {
-          textLayer = [layerDic objectForKey:layerKey];
+        CATextLayer *textLayer = nil;
+        NSString *layerKey = [NSString stringWithFormat:@"%i", ret.Layer];
+        DialogueObj* obj = [self findIdleDialogueObj];
+      if (obj) {
+          textLayer = obj.layer;
       } else {
+          obj = [DialogueObj new];
+          [_dialogueArr addObject:obj];
           textLayer = [CATextLayer layer];
+          obj.layer = textLayer;
             //                  textLayer.frame = player.playerView.bounds;
 #if TARGET_OS_IPHONE
           textLayer.contentsScale = [UIScreen mainScreen].scale;
 #endif
           
           textLayer.wrapped = YES;
-          [self.mLayer insertSublayer:textLayer atIndex:ret.Layer + 1];
-
-          [layerDic setValue:textLayer forKey:layerKey];
+          [self.mLayer addSublayer:textLayer];
       }
 
-      textLayer.hidden = NO;
-      DialogueObj *obj = [DialogueObj new];
-      obj.dialogue = ret;
-      [dialogueDic setObject:obj forKey:layerKey];
+      
+        textLayer.hidden = NO;
+        obj.index = index;
+        obj.dialogue = ret;
+
       [self buildAssStyle:textLayer withAssDialogue:ret];
     });
 }
 
-- (void)hideDialogue:(Cicada::AssDialogue)ret
+- (void)hideDialogue:(Cicada::AssDialogue)ret atIndex:(NSInteger)index
 {
-    NSString *layerKey = [NSString stringWithFormat:@"%i", ret.Layer];
-    CALayer *assLab = [layerDic objectForKey:layerKey];
-    [dialogueDic removeObjectForKey:layerKey];
-    if (assLab) {
+    DialogueObj* obj = [self findDialogueObjByIdx:index];
+    if (!obj.layer.hidden) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          assLab.hidden = YES;
+            obj.layer.hidden = YES;
         });
     }
+}
+
+-(DialogueObj*)findDialogueObjByIdx:(NSInteger)index{
+    for (DialogueObj *item in _dialogueArr) {
+        if (item.index == index) {
+            return item;
+        }
+    }
+    return nil;
+}
+
+-(DialogueObj*)findIdleDialogueObj{
+    for (DialogueObj *item in _dialogueArr) {
+        if (item.layer.hidden) {
+            return item;
+        }
+    }
+    return nil;
 }
 
 - (NSArray *)matchString:(NSString *)string withRegx:(NSString *)regexStr
@@ -437,15 +456,14 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
 //#if TARGET_OS_IPHONE
 //    textLayer.backgroundColor = [UIColor redColor].CGColor;
 //#elif TARGET_OS_OSX
-//    textLayer.backgroundColor = [NSColor redColor].CGColor;
+    //    textLayer.backgroundColor = [NSColor red_dialogueArrlor;
 //#endif
 }
 
 - (void)setup:(CALayer *)view
 {
     _mLayer = view;
-    layerDic = @{}.mutableCopy;
-    dialogueDic = @{}.mutableCopy;
+    _dialogueArr = @[].mutableCopy;
     dispatch_async(dispatch_get_main_queue(), ^{
       [_mLayer addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:nil];
     });
@@ -459,11 +477,9 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
 #elif TARGET_OS_OSX
         NSRect bounds = [change[@"new"] rectValue];
 #endif
-        for (NSString *key in layerDic.allKeys) {
-            CATextLayer *layer = [layerDic objectForKey:key];
-            if (!layer.hidden) {
-                DialogueObj *obj = dialogueDic[key];
-                [self buildAssStyle:layer withAssDialogue:obj.dialogue];
+        for (DialogueObj *item in _dialogueArr) {
+            if (!item.layer.hidden) {
+                [self buildAssStyle:item.layer withAssDialogue:item.dialogue];
             }
         }
     }
