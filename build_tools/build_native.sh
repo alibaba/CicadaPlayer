@@ -59,14 +59,14 @@ function build_shared_framework(){
     if [[ "${SSL_USE_NATIVE}" != "TRUE" ]];then
         support_libs="${support_libs} openssl"
     fi
-
-    SRC_LIBRARIES_DIR="$CWD/install/ffmpeg/Darwin/x86_64/lib"
+    MAC_ARCH=$(uname -m)
+    SRC_LIBRARIES_DIR="$CWD/install/ffmpeg/Darwin/${MAC_ARCH}/lib"
 
     for support_lib in ${support_libs}
     do
-        if [ -d "install/${support_lib}/Darwin/x86_64/lib" ];then
-            SRC_LIBRARIES_DIR="$SRC_LIBRARIES_DIR $CWD/install/${support_lib}/Darwin/x86_64/lib"
-            local libs="$(cd install/${support_lib}/Darwin/x86_64/lib; ls *.a)"
+        if [ -d "install/${support_lib}/Darwin/${MAC_ARCH}/lib" ];then
+            SRC_LIBRARIES_DIR="$SRC_LIBRARIES_DIR $CWD/install/${support_lib}/Darwin/${MAC_ARCH}/lib"
+            local libs="$(cd install/${support_lib}/Darwin/${MAC_ARCH}/lib; ls *.a)"
             SRC_LIBRARIES="$SRC_LIBRARIES $libs"
         fi
     done
