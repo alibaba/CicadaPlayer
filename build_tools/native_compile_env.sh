@@ -23,11 +23,16 @@ function native_compile_set_platform_macOS(){
 
     CPU_FLAGS="-arch $ARCH"
     CPU_LDFLAGS="-arch $ARCH"
+    if [ "$ARCH" = "arm64" ];then
+      CROSS_COMPILE=arm-apple-darwin
+    else
+      CROSS_COMPILE=${ARCH}-apple-darwin
+    fi
 
     CC=clang
 
    if [ "$ARCH" = "arm64" ]
-    then
+   then
         NEON_SUPPORT="TRUE"
         AS="gas-preprocessor.pl -arch aarch64 -- $CC"
 #    else

@@ -47,7 +47,7 @@ function build_curl(){
         if [[ "${SSL_USE_NATIVE}" == "TRUE" ]];then
             ssl_opt="--with-darwinssl"
         fi
-        print_warning "native build for $1"
+        print_warning "native build curl for $1 $2"
         native_compile_set_platform_macOS $2
         export CFLAGS="${CFLAGS} $CPU_FLAGS"
     elif [[ "$1" == "Linux" ]];then
