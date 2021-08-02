@@ -93,13 +93,13 @@ UTCTime::UTCTime(const string &str)
                 in >> tzspec;
 
                 if (tzspec.length() >= 4) {
-                    tz = sign * std::strtoul(tzspec.substr(0, 2).c_str(), nullptr, 0) * 60;
+                    tz = sign * std::strtoul(tzspec.substr(0, 2).c_str(), nullptr, 10) * 60;
                     if (tzspec.length() == 5 && tzspec.find(':') == 2)
-                        tz += sign * std::strtoul(tzspec.substr(3, 2).c_str(), nullptr, 0);
+                        tz += sign * std::strtoul(tzspec.substr(3, 2).c_str(), nullptr, 10);
                     else
-                        tz += sign * std::strtoul(tzspec.substr(2, 2).c_str(), nullptr, 0);
+                        tz += sign * std::strtoul(tzspec.substr(2, 2).c_str(), nullptr, 10);
                 } else {
-                    tz = sign * std::strtoul(tzspec.c_str(), nullptr, 0) * 60;
+                    tz = sign * std::strtoul(tzspec.c_str(), nullptr, 10) * 60;
                 }
                 values[UTCTIME_TZ] = tz;
             }
