@@ -623,6 +623,10 @@ void SuperMediaPlayer::GetOption(const char *key, char *value)
     } else if (theKey == "renderFps") {
         float renderFps = GetVideoRenderFps();
         snprintf(value, MAX_OPT_VALUE_LENGTH, "%f", renderFps);
+    } else if (theKey == "videoDroppedInfo") {
+        uint64_t total, dropped;
+        mUtil->getVideoDroppedInfo(total, dropped);
+        snprintf(value, MAX_OPT_VALUE_LENGTH, "%llu/%llu", dropped, total);
     }
 }
 
@@ -2459,6 +2463,7 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
     } else {
         AF_LOGW("drop frame,master played time is %lld,video pts is %lld\n", masterPlayedTime, videoPts);
         videoFrame->setDiscard(true);
+        mUtil->videoRendered(false);
         mVideoCatchingUp = true;
 
         if (mFrameCb && (!mSecretPlayBack || mDrmKeyValid)) {

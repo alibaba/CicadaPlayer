@@ -607,8 +607,12 @@ void SMPMessageControllerListener::ProcessRenderedMsg(StreamType type, IAFFrame:
                 mPlayer.mCurrentFrameUtcTime = info.utcTime;
             }
         }
-
-        //   mPlayer.mUtil->render(info.pts);
+        /*
+         * exclude dropped by seeking
+         */
+        if (!mPlayer.mSeekFlag || rendered) {
+            mPlayer.mUtil->videoRendered(rendered);
+        }
         if (rendered) {
             mPlayer.checkFirstRender();
         }

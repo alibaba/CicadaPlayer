@@ -33,9 +33,13 @@ namespace Cicada {
         }
     }
 
-    void MediaPlayerUtil::render(int64_t pts)
+    void MediaPlayerUtil::videoRendered(bool rendered)
     {
         ++mTotalRenderCount;
+
+        if (!rendered) {
+            mDroppedRenderCount++;
+        }
 
         if (1 == mTotalRenderCount) {
             mFirstRenderTime = af_getsteady_ms();
@@ -51,6 +55,7 @@ namespace Cicada {
                         mVideoRenderFps);
                 mLastRenderCount = mTotalRenderCount;
                 mLastRenderTime = af_getsteady_ms();
+                AF_LOGD("%llu dropped of %llu video frames\n", mDroppedRenderCount.load(), mTotalRenderCount.load());
             }
         }
     }
@@ -64,6 +69,7 @@ namespace Cicada {
         }
 
         mTotalRenderCount = 0;
+        mDroppedRenderCount = 0;
         mLastRenderCount = 0;
         mFirstRenderTime = 0;
         mLastRenderTime = 0;

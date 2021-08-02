@@ -41,9 +41,15 @@ namespace Cicada {
 
         void notifyRead(enum readEvent event, uint64_t size);
 
-        void render(int64_t pts);
+        void videoRendered(bool rendered);
 
         void reset();
+
+        void getVideoDroppedInfo(uint64_t &total, uint64_t &dropped)
+        {
+            total = mTotalRenderCount;
+            dropped = mDroppedRenderCount;
+        }
 
         float getVideoRenderFps()
         { return mVideoRenderFps; }
@@ -61,8 +67,9 @@ namespace Cicada {
         static void addURLProperty(const std::string &name, CicadaJSONArray &array, IDataSource *dataSource);
 
     private:
-        int mTotalRenderCount = 0;
-        int mLastRenderCount = 0;
+        std::atomic<uint64_t> mTotalRenderCount{0};
+        std::atomic<uint64_t> mDroppedRenderCount{0};
+        uint64_t mLastRenderCount = 0;
         int64_t mFirstRenderTime = 0;
         int64_t mLastRenderTime = 0;
 
