@@ -27,7 +27,7 @@ namespace Cicada {
         CVPixelBufferRef avFrame2pixelBuffer(AVFrame *frame);
 
     private:
-        struct SwsContext *sws_ctx{nullptr};
+        //       struct SwsContext *sws_ctx{nullptr};
         AVFrame *mOutFrame{nullptr};
         IAFFrame::videoInfo mVideoInfo{};
         CVPixelBufferPoolRef mPixBufPool{nullptr};
