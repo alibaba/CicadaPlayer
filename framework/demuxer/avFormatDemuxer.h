@@ -82,6 +82,8 @@ namespace Cicada {
 
         bool isTSDiscontinue() override;
 
+        const vector<streamIndexEntryInfo> &getStreamIndexEntryInfo() override;
+
     protected:
         explicit avFormatDemuxer(int dummy);
 

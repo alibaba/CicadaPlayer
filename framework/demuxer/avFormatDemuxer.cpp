@@ -841,4 +841,45 @@ namespace Cicada {
         }
         return true;
     }
+    const vector<IDemuxer::streamIndexEntryInfo> &avFormatDemuxer::getStreamIndexEntryInfo()
+    {
+        if (mCtx == nullptr) {
+            return IDemuxer::getStreamIndexEntryInfo();
+        }
+        for (int i = 0; i < mCtx->nb_streams; ++i) {
+            AVIndexEntry *index_entries = mCtx->streams[i]->index_entries;
+            streamIndexEntryInfo entryInfo;
+            entryInfo.mDuration = mCtx->duration;
+            switch (mCtx->streams[i]->codecpar->codec_type) {
+                case AVMEDIA_TYPE_VIDEO:
+                    entryInfo.type = STREAM_TYPE_VIDEO;
+                    break;
+                case AVMEDIA_TYPE_AUDIO:
+                    entryInfo.type = STREAM_TYPE_AUDIO;
+                    break;
+                case AVMEDIA_TYPE_SUBTITLE:
+                    entryInfo.type = STREAM_TYPE_SUB;
+                    break;
+                default:
+                    break;
+            }
+            for (int j = 0; j < mCtx->streams[i]->nb_index_entries; ++j) {
+                int64_t timestamp = av_rescale_q(index_entries[i].timestamp, mCtx->streams[i]->time_base, av_get_time_base_q());
+                streamIndexEntryInfo::entryInfo info(index_entries[j].pos, timestamp, index_entries[j].flags & AVINDEX_KEYFRAME,
+                                                     index_entries[j].flags & AVINDEX_DISCARD_FRAME, index_entries[j].size);
+                entryInfo.mEntry.push_back(info);
+            }
+            mEntryInfos.push_back(entryInfo);
+        }
+        //        int index = 0;
+        //        for (const auto& item:mEntryInfos) {
+        //            AF_LOGD("stream %d %d duration %lld\n",index,item.type,item.mDuration);
+        //
+        //            for (const auto& item1: mEntryInfos[index].mEntry) {
+        //                AF_LOGD("time %lld pos %lld\n",item1.mTimestamp,item1.mPos);
+        //            }
+        //            index++;
+        //        }
+        return mEntryInfos;
+    }
 }

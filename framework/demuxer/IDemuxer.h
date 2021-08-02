@@ -6,8 +6,8 @@
 #define FRAMEWORK_DEMUXER_H
 
 #include "base/media/framework_type.h"
-#include "utils/AFMediaType.h"
 #include "play_list/playList.h"
+#include "utils/AFMediaType.h"
 
 #include "DemuxerMetaInfo.h"
 #include <base/IDCA.h>
@@ -37,9 +37,32 @@ namespace Cicada {
     } header_type;
 
     class CICADA_CPLUS_EXTERN IDemuxer : public OptionOwner, public IDCA {
+
     public:
+        class streamIndexEntryInfo {
+        public:
+            struct entryInfo {
+                int64_t mPos;
+                int64_t mTimestamp;
+                bool mKey;
+                bool mDiscard;
+                int32_t mSize;
+                entryInfo(int64_t pos, int64_t timestamp, bool key, bool discard, int32_t size)
+                    : mPos(pos), mTimestamp(timestamp), mKey(key), mDiscard(discard), mSize(size)
+                {}
+            };
 
+        public:
+            streamIndexEntryInfo() = default;
+            ~streamIndexEntryInfo() = default;
 
+        public:
+            int64_t mDuration{0};
+            Stream_type type{STREAM_TYPE_UNKNOWN};
+            std::vector<entryInfo> mEntry;
+        };
+
+    public:
         IDemuxer();
 
         explicit IDemuxer(string path);
@@ -49,7 +72,7 @@ namespace Cicada {
             sourceConfig = config;
         };
 
-        virtual ~IDemuxer();
+        ~IDemuxer() override;
 
         void SetDataCallBack(demuxer_callback_read read, demuxer_callback_seek seek, demuxer_callback_open open,
                              demuxer_callback_interrupt_data inter, void *arg);
@@ -104,8 +127,7 @@ namespace Cicada {
 
         virtual int GetSourceMeta(Source_meta **meta) const = 0;
 
-        attribute_deprecated
-        virtual int GetStreamMeta(Stream_meta *meta, int index, bool sub) const = 0;
+        attribute_deprecated virtual int GetStreamMeta(Stream_meta *meta, int index, bool sub) const = 0;
 
         virtual int GetStreamMeta(unique_ptr<streamMeta> &meta, int index, bool sub) const;
 
@@ -139,9 +161,7 @@ namespace Cicada {
         }
 
         virtual void setDataSourceIO()
-        {
-
-        }
+        {}
 
         virtual void *getCodecPar(int streamIndex)
         {
@@ -149,14 +169,16 @@ namespace Cicada {
         }
 
         virtual const std::string GetProperty(int index, const string &key) const
-        { return ""; }
+        {
+            return "";
+        }
 
         virtual int SetOption(const std::string &key, const int64_t value)
         {
             return 0;
         }
 
-        virtual int SetOption(const std::string &key, const std::string& value)
+        virtual int SetOption(const std::string &key, const std::string &value)
         {
             return 0;
         }
@@ -168,7 +190,9 @@ namespace Cicada {
         }
 
         virtual void setDemuxerCb(std::function<void(std::string, std::string)> func)
-        { mDemuxerCbfunc = func; }
+        {
+            mDemuxerCbfunc = func;
+        }
 
         virtual int64_t getBufferDuration(int index) const
         {
@@ -189,7 +213,7 @@ namespace Cicada {
         {
             return mName;
         }
-        
+
         virtual bool isRealTimeStream(int index)
         {
             return false;
@@ -206,6 +230,11 @@ namespace Cicada {
         }
         virtual bool isTSDiscontinue() = 0;
 
+        virtual const vector<streamIndexEntryInfo> &getStreamIndexEntryInfo()
+        {
+            return mEntryInfos;
+        }
+
     protected:
         demuxer_callback_read mReadCb{nullptr};
         demuxer_callback_seek mSeekCb{nullptr};
@@ -221,7 +250,8 @@ namespace Cicada {
 
         DemuxerMetaInfo *mMetaInfo = nullptr;
         std::string mName = "IDemuxer";
+        std::vector<streamIndexEntryInfo> mEntryInfos;
     };
-}
+}// namespace Cicada
 
-#endif //FRAMEWORK_DEMUXER_H
+#endif//FRAMEWORK_DEMUXER_H
