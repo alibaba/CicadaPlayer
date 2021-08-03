@@ -458,8 +458,8 @@ namespace Cicada {
         /*
          there are some bugs when reuse on iOS 14.x,eg h264 main profile to high profile
          */
-#if TARGET_OS_IPHONE
         bool canReuse = true;
+#if TARGET_OS_IPHONE
         if (Cicada::GetIosVersion() >= 14.0 && Cicada::GetIosVersion() < 15.0) {
             if (meta->codec == AF_CODEC_ID_H264) {
                 canReuse = false;
