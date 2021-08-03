@@ -626,7 +626,7 @@ void SuperMediaPlayer::GetOption(const char *key, char *value)
     } else if (theKey == "videoDroppedInfo") {
         uint64_t total, dropped;
         mUtil->getVideoDroppedInfo(total, dropped);
-        snprintf(value, MAX_OPT_VALUE_LENGTH, "%llu/%llu", dropped, total);
+        snprintf(value, MAX_OPT_VALUE_LENGTH, "%" PRIu64 "/%" PRIu64, dropped, total);
     }
 }
 
