@@ -1859,7 +1859,8 @@ void SuperMediaPlayer::doDeCode()
                 }
 
                 if (mVideoPacket && (!HAVE_AUDIO || audioDecoderEOS)) {
-                    if (!(mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)->getFlags() & DECFLAG_PASSTHROUGH_INFO)) {
+                    if (!(mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)->getFlags() & DECFLAG_PASSTHROUGH_INFO) &&
+                        mDemuxerService->getDemuxerHandle()->isTSDiscontinue()) {
                         if (mVideoPacket->getInfo().timePosition >= 0) {
                             mCurrentPos = mVideoPacket->getInfo().timePosition;
                         }

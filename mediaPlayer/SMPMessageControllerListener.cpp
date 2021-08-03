@@ -602,6 +602,8 @@ void SMPMessageControllerListener::ProcessRenderedMsg(StreamType type, IAFFrame:
         if ((mPlayer.mCurrentAudioIndex < 0 || mPlayer.mAudioEOS) && !mPlayer.isSeeking()) {
             if (info.timePosition >= 0) {
                 mPlayer.mCurrentPos = info.timePosition;
+            } else if (!mPlayer.mDemuxerService->getDemuxerHandle()->isTSDiscontinue() && info.pts >= 0) {
+                mPlayer.mCurrentPos = info.pts;
             }
             if (info.utcTime >= 0) {
                 mPlayer.mCurrentFrameUtcTime = info.utcTime;
