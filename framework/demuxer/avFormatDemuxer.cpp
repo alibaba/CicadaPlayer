@@ -843,8 +843,8 @@ namespace Cicada {
     }
     const vector<IDemuxer::streamIndexEntryInfo> &avFormatDemuxer::getStreamIndexEntryInfo()
     {
-        if (mCtx == nullptr) {
-            return IDemuxer::getStreamIndexEntryInfo();
+        if (mCtx == nullptr || !mEntryInfos.empty()) {
+            return mEntryInfos;
         }
         for (int i = 0; i < mCtx->nb_streams; ++i) {
             AVIndexEntry *index_entries = mCtx->streams[i]->index_entries;
