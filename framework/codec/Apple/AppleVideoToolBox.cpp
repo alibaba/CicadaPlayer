@@ -455,8 +455,20 @@ namespace Cicada {
         int rv = createVideoFormatDesc(pPacket->getInfo().extra_data, pPacket->getInfo().extra_data_size, meta->width, meta->height,
                                        decoder_spec, videoFormatDesRef);
 
+        /*
+         there are some bugs when reuse on iOS 14.x,eg h264 main profile to high profile
+         */
+#if TARGET_OS_IPHONE
+        bool canReuse = true;
+        if (Cicada::GetIosVersion() >= 14.0 && Cicada::GetIosVersion() < 15.0) {
+            if (meta->codec == AF_CODEC_ID_H264) {
+                canReuse = false;
+            }
+        }
+#endif
+
         if (rv == 0) {
-            if (!VTDecompressionSessionCanAcceptFormatDescription(mVTDecompressSessionRef, videoFormatDesRef)) {
+            if (!canReuse || !VTDecompressionSessionCanAcceptFormatDescription(mVTDecompressSessionRef, videoFormatDesRef)) {
                 flushReorderQueue();
                 close_decoder();
                 mVideoFormatDesRef = videoFormatDesRef;
