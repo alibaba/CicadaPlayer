@@ -73,21 +73,6 @@ namespace Cicada {
         do {
             ret = readPacketInternal();
         } while (ret >= 0);
-
-        for (int i = 0; i < mCtx->nb_streams; ++i) {
-            AVIndexEntry *index_entries = mCtx->streams[i]->index_entries;
-            streamIndexEntryInfo entryInfo;
-            entryInfo.mDuration = mCtx->duration;
-            entryInfo.type = STREAM_TYPE_SUB;
-            for (int j = 0; j < mCtx->streams[i]->nb_index_entries; ++j) {
-                int64_t timestamp = av_rescale_q(index_entries[j].timestamp, mCtx->streams[j]->time_base, av_get_time_base_q());
-                streamIndexEntryInfo::entryInfo info(index_entries[j].pos, timestamp, index_entries[j].flags & AVINDEX_KEYFRAME,
-                                                     index_entries[j].flags & AVINDEX_DISCARD_FRAME, index_entries[j].size);
-                entryInfo.mEntry.push_back(info);
-            }
-            mEntryInfos.push_back(entryInfo);
-        }
-
         return 0;
     }
 
@@ -305,6 +290,26 @@ namespace Cicada {
     int avFormatSubtitleDemuxer::interrupt_cb(void *opaque)
     {
         return static_cast<avFormatSubtitleDemuxer *>(opaque)->mInterrupted;
+    }
+    const vector<IDemuxer::streamIndexEntryInfo> &avFormatSubtitleDemuxer::getStreamIndexEntryInfo()
+    {
+        if (mCtx == nullptr || !mEntryInfos.empty()) {
+            return mEntryInfos;
+        }
+        for (int i = 0; i < mCtx->nb_streams; ++i) {
+            AVIndexEntry *index_entries = mCtx->streams[i]->index_entries;
+            streamIndexEntryInfo entryInfo;
+            entryInfo.mDuration = mCtx->duration;
+            entryInfo.type = STREAM_TYPE_SUB;
+            for (int j = 0; j < mCtx->streams[i]->nb_index_entries; ++j) {
+                int64_t timestamp = av_rescale_q(index_entries[j].timestamp, mCtx->streams[j]->time_base, av_get_time_base_q());
+                streamIndexEntryInfo::entryInfo info(index_entries[j].pos, timestamp, index_entries[j].flags & AVINDEX_KEYFRAME,
+                                                     index_entries[j].flags & AVINDEX_DISCARD_FRAME, index_entries[j].size);
+                entryInfo.mEntry.push_back(info);
+            }
+            mEntryInfos.push_back(entryInfo);
+        }
+        return mEntryInfos;
     }
 
 }// namespace Cicada

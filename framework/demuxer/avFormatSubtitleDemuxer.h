@@ -61,6 +61,7 @@ namespace Cicada {
         {
             return false;
         }
+        const vector<streamIndexEntryInfo> &getStreamIndexEntryInfo() override;
 
     private:
 
