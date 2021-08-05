@@ -96,7 +96,11 @@ namespace Cicada {
 
         ret = pHandle->readSegment(buffer, size);
 
-        if (ret == 0) {
+        // FIXME: workaround bug: when seek to 0 on a m3u8  file that have EXT-X-MEDIA-SEQUENCE tag and value is not 0,will play the second seg
+        /*
+ * moveToNextPartialSegment let the seq number +1 to lead the bug, but a vod hls is never a lhls
+ */
+        if (ret == 0 && pHandle->isLive()) {
             MoveToNextPart move_ret = pHandle->moveToNextPartialSegment();
             if (move_ret == MoveToNextPart::moveSuccess) {
                 return pHandle->readSegment(buffer, size);
