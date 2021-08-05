@@ -22,7 +22,7 @@ namespace Cicada{
 
         std::list<std::shared_ptr<segment>> &getSegments();
 
-        std::shared_ptr<segment> getSegmentByNumber(uint64_t number);
+        shared_ptr<segment> getSegmentByNumber(uint64_t number, bool force);
 
         bool getSegmentNumberByTime(uint64_t &time, uint64_t &num);
 

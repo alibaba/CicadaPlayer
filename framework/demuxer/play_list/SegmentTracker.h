@@ -28,7 +28,7 @@ namespace Cicada {
 
         std::shared_ptr<segment> getNextSegment();
 
-        std::shared_ptr<segment> getCurSegment();
+        std::shared_ptr<segment> getCurSegment(bool force);
 
         int getStreamType() const;
 

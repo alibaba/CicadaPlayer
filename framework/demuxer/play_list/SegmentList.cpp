@@ -37,13 +37,27 @@ namespace Cicada {
         return i;
     }
 
-    shared_ptr<segment> SegmentList::getSegmentByNumber(uint64_t number)
+    /*
+     * return the next segment if the segment with @param number not exist when force is true
+     */
+
+    shared_ptr<segment> SegmentList::getSegmentByNumber(uint64_t number, bool force)
     {
         std::lock_guard<std::mutex> uMutex(segmetsMuxtex);
 
+        if (number == UINT64_MAX) {
+            return nullptr;
+        }
+
         for (auto &segment : segments) {
-            if (segment->getSequenceNumber() >= number) {
-                return segment;
+            if (force) {
+                if (segment->getSequenceNumber() >= number) {
+                    return segment;
+                }
+            } else {
+                if (segment->getSequenceNumber() == number) {
+                    return segment;
+                }
             }
         }
 

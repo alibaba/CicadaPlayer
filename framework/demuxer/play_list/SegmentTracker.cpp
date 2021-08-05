@@ -52,13 +52,13 @@ namespace Cicada {
         }
     }
 
-    std::shared_ptr<segment> SegmentTracker::getCurSegment()
+    std::shared_ptr<segment> SegmentTracker::getCurSegment(bool force)
     {
         std::unique_lock<std::recursive_mutex> locker(mMutex);
         shared_ptr<segment> seg = nullptr;
 
         if (mRep->GetSegmentList()) {
-            seg = mRep->GetSegmentList()->getSegmentByNumber(mCurSegNum);
+            seg = mRep->GetSegmentList()->getSegmentByNumber(mCurSegNum, force);
         }
 
         if (seg) {
@@ -75,7 +75,7 @@ namespace Cicada {
         mCurSegNum++;
 
         if (mRep->GetSegmentList()) {
-            seg = mRep->GetSegmentList()->getSegmentByNumber(mCurSegNum);
+            seg = mRep->GetSegmentList()->getSegmentByNumber(mCurSegNum, true);
         }
 
         if (seg) {
