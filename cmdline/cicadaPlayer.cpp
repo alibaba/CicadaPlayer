@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
     player->SetIPResolveType(IpResolveWhatEver);
     player->SetFastStart(true);
     MediaPlayerConfig config = *(player->GetConfig());
-    config.mMaxBackwardBufferDuration = 20000;
+    //   config.mMaxBackwardBufferDuration = 20000;
     config.liveStartIndex = -3;
     player->SetConfig(&config);
     player->Prepare();
