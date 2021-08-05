@@ -1865,7 +1865,7 @@ void SuperMediaPlayer::doDeCode()
                             mCurrentPos = mVideoPacket->getInfo().timePosition;
                         }
                         if (mVideoPacket->getInfo().utcTime >= 0) {
-                            mCurrentFrameUtcTime = mVideoPacket->getInfo().timePosition;
+                            mCurrentFrameUtcTime = mVideoPacket->getInfo().utcTime;
                         }
                         //printTimePosition(mCurrentPos);
                     }
