@@ -88,6 +88,16 @@ function build_openssl_111(){
         export CFLAGS="${CFLAGS} $CPU_FLAGS"
     elif [ "$1" == "Linux" ];then
         config_platform="linux-x86_64";
+    elif [ "$1" == "maccatalyst" ];then
+        cross_compile_set_platform_maccatalyst "$2"
+        if [ "$2" == "x86_64" ];then
+            config_platform="darwin64-x86_64-cc"
+        elif [ "$2" == "arm64" ];then
+            config_platform="darwin64-arm64-cc"
+        fi
+        export CFLAGS="$CPU_FLAGS"
+        export LDFLAGS=
+        config_opt="${config_opt} no-shared"
     else
         echo "Unsupported platform $1"
         exit 1;

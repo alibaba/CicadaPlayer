@@ -38,8 +38,15 @@ function build_ffmpeg(){
         ffmpeg_native_compile_set_macOS $2
     elif [[ "$1" == "Linux" ]];then
         local native_build=yes
+    elif [ "$1" == "maccatalyst" ];then
+      if [[ "${SSL_USE_NATIVE}" != "TRUE" ]];then
+          ffmpeg_config_add_user "--disable-securetransport"
+      else
+          use_openssl="FALSE"
+      fi
+           ffmpeg_native_compile_set_maccatalyst "$2"
     else
-        echo "Unsupported platform"
+        echo "ffmpeg Unsupported platform $2"
         return -1;
     fi
 

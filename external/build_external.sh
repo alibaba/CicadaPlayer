@@ -246,6 +246,8 @@ elif [[ "$1" == "Linux" ]];then
     ../build_tools/build_native.sh
 elif [[ "$1" == "Windows" ]];then
     ../build_tools/build_win32.sh
+elif [[ "$1" == "maccatalyst" ]];then
+    ../build_tools/build_maccatalyst.sh
 fi
 
 

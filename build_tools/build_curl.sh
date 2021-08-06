@@ -53,8 +53,17 @@ function build_curl(){
     elif [[ "$1" == "Linux" ]];then
         LIBSDEPEND="LIBS=-lresolv"
         print_warning "native build for $1"
+    elif [ "$1" == "maccatalyst" ];then
+        LIBSDEPEND="LIBS=-lresolv"
+        if [[ "${SSL_USE_NATIVE}" == "TRUE" ]];then
+            ssl_opt="--with-darwinssl"
+        fi
+        cross_compile_set_platform_maccatalyst "$2"
+        export CFLAGS="${CPU_FLAGS}"
+        export LDFLAGS="${CPU_LDFLAGS}"
+        export CC=clang
     else
-        echo "Unsupported platform"
+        echo "curl Unsupported platform $1"
         exit 1;
     fi
 

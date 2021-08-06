@@ -33,7 +33,7 @@ function build_static_lib(){
     cd ${CWD}
 
     local build_xml="true"
-    if [[ "$1" == "iOS" ]] || [[ "$1" == "Darwin" ]];then
+    if [[ "$1" == "iOS" ]] || [[ "$1" == "Darwin" ]] || [[ "$1" == "maccatalyst" ]];then
         if [[ "${XML_USE_NATIVE}" == "TRUE" ]];then
             build_xml="false"
         fi
@@ -59,7 +59,7 @@ function build_static_lib(){
     fi
 
     local build_openssl="true"
-    if [[ "$1" == "iOS" ]] || [[ "$1" == "Darwin" ]];then
+    if [[ "$1" == "iOS" ]] || [[ "$1" == "Darwin" ]] || [[ "$1" == "maccatalyst" ]];then
         if [[ "${SSL_USE_NATIVE}" == "TRUE" ]] && [[ "$CRYPTO_USE_OPENSSL" != "TRUE" ]];then
             build_openssl="false"
         fi
