@@ -115,6 +115,13 @@
 			remoteGlobalIDString = 2D8D17CE4EE845569B565885;
 			remoteInfo = videodec;
 		};
+		9B1F75FF26BD721100335A64 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F7561AD2369505B001A5B1E /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 61E4FE3FE5A24B5BA2A76B80;
+			remoteInfo = install;
+		};
 		9E2ABC6D239FBDE800753787 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1F7561AD2369505B001A5B1E /* CicadaPlayerSDK.xcodeproj */;
@@ -142,13 +149,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = E517E7A36B11457A8E1E9802;
 			remoteInfo = communication;
-		};
-		CB987C0424C980C000ADCD00 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1F7561AD2369505B001A5B1E /* CicadaPlayerSDK.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 22B00742514544B7AD74CF07;
-			remoteInfo = install;
 		};
 		F3C2D0982620355200CAB6BB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -236,6 +236,7 @@
 		7111AC155FE01FC1C55489E3 /* Pods-AliPlayerDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AliPlayerDemo.release.xcconfig"; path = "Pods/Target Support Files/Pods-AliPlayerDemo/Pods-AliPlayerDemo.release.xcconfig"; sourceTree = "<group>"; };
 		92717E7A221D365100CE2881 /* CicadaSourceChooserModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CicadaSourceChooserModel.h; sourceTree = "<group>"; };
 		92717E7B221D365100CE2881 /* CicadaSourceChooserModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CicadaSourceChooserModel.m; sourceTree = "<group>"; };
+		9B1F75EE26BD45CC00335A64 /* CicadaDemo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CicadaDemo.entitlements; sourceTree = "<group>"; };
 		9E1E270823617F2600D20487 /* CicadaSlider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CicadaSlider.h; sourceTree = "<group>"; };
 		9E1E270923617F2600D20487 /* CicadaSlider.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CicadaSlider.m; sourceTree = "<group>"; };
 		9E2ABC53239FBDE800753787 /* CicadaDemoDevTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CicadaDemoDevTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -414,6 +415,7 @@
 		18FCB29021D6126A00289843 /* CicadaDemo */ = {
 			isa = PBXGroup;
 			children = (
+				9B1F75EE26BD45CC00335A64 /* CicadaDemo.entitlements */,
 				186F76E221D71FE4005DC20E /* CicadaCode */,
 				186F76E621D71FE4005DC20E /* AppSupportFiles */,
 				186F76DC21D71FE4005DC20E /* CicadaResource */,
@@ -510,7 +512,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				CB987C0524C980C000ADCD00 /* PBXTargetDependency */,
+				9B1F760026BD721100335A64 /* PBXTargetDependency */,
 			);
 			name = CicadaDemo;
 			productName = AliPlayerDemo;
@@ -777,10 +779,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		CB987C0524C980C000ADCD00 /* PBXTargetDependency */ = {
+		9B1F760026BD721100335A64 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = install;
-			targetProxy = CB987C0424C980C000ADCD00 /* PBXContainerItemProxy */;
+			targetProxy = 9B1F75FF26BD721100335A64 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -927,9 +929,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_ENTITLEMENTS = CicadaDemo/CicadaDemo.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = A2YNUJF7T7;
+				DEVELOPMENT_TEAM = Q2Y5QT6GLE;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -947,6 +950,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.aliyun.CicadaDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTS_MACCATALYST = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -957,10 +961,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_ENTITLEMENTS = CicadaDemo/CicadaDemo.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = A2YNUJF7T7;
+				DEVELOPMENT_TEAM = Q2Y5QT6GLE;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -979,6 +984,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.aliyun.CicadaDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTS_MACCATALYST = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

@@ -4,11 +4,13 @@ option(CMDLINE_BUILD "build command line example" OFF)
 project(CicadaPlayerSDK)
 
 set(TOP_DIR "${CMAKE_SOURCE_DIR}/../../..")
-
-
 if (IOS)
     set(TARGET_PLATFORM iOS)
-    set(PATH_NAME iOS)
+    if(${MACCATALYST})
+        set(PATH_NAME "maccatalyst")
+    else()
+        set(PATH_NAME "iOS")
+    endif()
 else ()
     set(TARGET_PLATFORM macOSX)
     set(PATH_NAME Darwin)
