@@ -147,25 +147,30 @@
     [super layoutSubviews];
     
     BOOL hideButton = YES;
-    if (IS_PORTRAIT) {
-        UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-        bool iphonexLeft = (orientation == UIDeviceOrientationLandscapeLeft || orientation == UIDeviceOrientationLandscapeRight);
-        if (IS_IPHONEX && iphonexLeft) {
-            NSNumber *value = [NSNumber numberWithInt:UIInterfaceOrientationPortrait];
-            [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
-            return;
-        }else {
-            self.frame = self.myFrame;
-            hideButton = NO;
-            [self.fullScreenButton setTitle:NSLocalizedString(@"全屏" , nil) forState:UIControlStateNormal];
+    if (TARGET_OS_MACCATALYST) {
+        self.fullScreenButton.hidden = YES;
+    } else {
+        if (IS_PORTRAIT) {
+            UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+            bool iphonexLeft = (orientation == UIDeviceOrientationLandscapeLeft || orientation == UIDeviceOrientationLandscapeRight);
+            if (IS_IPHONEX && iphonexLeft) {
+                NSNumber *value = [NSNumber numberWithInt:UIInterfaceOrientationPortrait];
+                [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
+                return;
+            } else {
+                self.frame = self.myFrame;
+                hideButton = NO;
+                [self.fullScreenButton setTitle:NSLocalizedString(@"全屏", nil) forState:UIControlStateNormal];
+            }
+        } else {
+            self.frame = [UIScreen mainScreen].bounds;
+            [self.fullScreenButton setTitle:NSLocalizedString(@"半屏", nil) forState:UIControlStateNormal];
         }
-    }else {
-        self.frame = [UIScreen mainScreen].bounds;
-        [self.fullScreenButton setTitle:NSLocalizedString(@"半屏" , nil) forState:UIControlStateNormal];
+        for (UIButton *btn in self.buttonsArray) {
+            btn.hidden = hideButton;
+        }
     }
-    for (UIButton *btn in self.buttonsArray) {
-        btn.hidden = hideButton;
-    }
+
     [self initViews];
 }
 
@@ -175,7 +180,7 @@
     CGFloat selfHeight = self.frame.size.height;
     NSInteger buttonHeight = 44;
     NSInteger bottonEdge = 0;
-    if (IS_PORTRAIT) {
+    if (IS_PORTRAIT || TARGET_OS_MACCATALYST) {
         bottonEdge = 44;
     }
     self.subTitleLabel.frame = CGRectMake((self.frame.size.width-self.subTitleLabel.frame.size.width)/2, IS_PORTRAIT?20:64, self.subTitleLabel.frame.size.width, self.subTitleLabel.frame.size.height);
@@ -188,6 +193,12 @@
     self.thumbnailView.frame = CGRectMake(selfWidth/2-80, (selfHeight-bottonEdge)/2-60, 160, 120);
     self.loadingView.center = CGPointMake(self.playerView.center.x, self.playerView.center.y - 20);
     self.loadingProgressLabel.center = CGPointMake(self.playerView.center.x, self.playerView.center.y + 10);
+
+    for (int i = 0; i < self.buttonsArray.count; i++) {
+        UIButton *button = [self.buttonsArray objectAtIndex:i];
+        button = [[UIButton alloc] initWithFrame:CGRectMake(selfWidth / self.buttonsArray.count * i, selfHeight - 44,
+                                                            selfWidth / self.buttonsArray.count, 44)];
+    }
 }
 
 - (void)progressSliderTouchDown:(UISlider *)sender {

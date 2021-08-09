@@ -91,12 +91,21 @@
     if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
         self.navigationController.interactivePopGestureRecognizer.enabled = NO;
     }
-    
-    self.CicadaView = [[CicadaDemoView alloc]initWithFrame:CGRectMake(0, NAVIGATION_HEIGHT, SCREEN_WIDTH, SCREEN_WIDTH/16*9+44)];
+
+    CGFloat screenW = SCREEN_WIDTH;
+    CGFloat screenH = SCREEN_HEIGHT;
+
+#if TARGET_OS_MACCATALYST
+    screenW = CGRectGetWidth(self.view.frame);
+    screenH = CGRectGetHeight(self.view.frame);
+#endif
+
+    self.CicadaView = [[CicadaDemoView alloc] initWithFrame:CGRectMake(0, NAVIGATION_HEIGHT, screenW, screenW / 16 * 9 + 44)];
     self.CicadaView.delegate = self;
     [self.view addSubview:self.CicadaView];
 
-    self.settingAndConfigView = [[CicadaSettingAndConfigView alloc]initWithFrame:CGRectMake(0, self.CicadaView.getMaxY, SCREEN_WIDTH, SCREEN_HEIGHT - self.CicadaView.getMaxY - SAFE_BOTTOM)];
+    self.settingAndConfigView = [[CicadaSettingAndConfigView alloc]
+            initWithFrame:CGRectMake(0, self.CicadaView.getMaxY, screenW, screenH - self.CicadaView.getMaxY - SAFE_BOTTOM)];
     self.settingAndConfigView.delegate = self;
     NSMutableArray *configArray = [CicadaTool getCicadaConfigArray];
     [self.settingAndConfigView setIshardwareDecoder:[CicadaTool isHardware]];
@@ -219,15 +228,19 @@
 }
 
 - (void)applicationEnterBackground {
+#if !TARGET_OS_MACCATALYST
     if (!self.settingAndConfigView.isPlayBackgournd) {
         [self.player pause];
     }
+#endif
 }
 
 - (void)applicationDidBecomeActive {
+#if !TARGET_OS_MACCATALYST
     if (!self.settingAndConfigView.isPlayBackgournd) {
         [self.player start];
     }
+#endif
 }
 
 #pragma mark navigationPopback

@@ -28,7 +28,16 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
 }
 
 - (void)addTableView {
-    self.tableView = [[UITableView alloc]initWithFrame:CGRectMake(0, NAVIGATION_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT-NAVIGATION_HEIGHT-SAFE_BOTTOM)];
+    CGFloat screenW = SCREEN_WIDTH;
+    CGFloat screenH = SCREEN_HEIGHT;
+
+#if TARGET_OS_MACCATALYST
+    screenW = CGRectGetWidth(self.view.frame);
+    screenH = CGRectGetHeight(self.view.frame);
+#endif
+
+    self.tableView =
+            [[UITableView alloc] initWithFrame:CGRectMake(0, NAVIGATION_HEIGHT, screenW, screenH - NAVIGATION_HEIGHT - SAFE_BOTTOM)];
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
     self.tableView.tableFooterView = [UIView new];
