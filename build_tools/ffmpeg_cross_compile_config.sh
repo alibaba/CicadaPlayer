@@ -74,4 +74,8 @@ function ffmpeg_native_compile_set_maccatalyst(){
          ffmpeg_cross_compile_config_add "--enable-neon"
          ffmpeg_cross_compile_config_add "--enable-thumb"
     fi
+
+    if [ "$1" == "x86_64" ]; then
+        ffmpeg_cross_compile_config_add "--disable-asm"
+    fi
 }
