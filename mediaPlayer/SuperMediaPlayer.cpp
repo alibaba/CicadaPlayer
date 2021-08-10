@@ -2401,16 +2401,17 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
          ---------------------------------------early----------------------------|------------------------late--------------
 
          ----------------------------------|-------------------------------|-----|-------------|--------------------------------------->
-         drop if pts discontinue          10s       render next time     10ms   0            500ms     drop
-
-                                                       |--------render-----|
+         drop if pts discontinue    disDelta s       render next time     10ms   0            500ms     drop
+            && audio reverting
+                                                                          |--------render-----|
 
 
          */
     bool render = force_render;
 
     if (!force_render) {
-        if (videoLateUs < -10 * 1000 && (!mDemuxerService->getDemuxerHandle()->isTSDiscontinue() || videoLateUs > -mPtsDiscontinueDelta)) {
+        if (videoLateUs < -10 * 1000 &&
+            (!mDemuxerService->getDemuxerHandle()->isTSDiscontinue() || videoLateUs > -mPtsDiscontinueDelta || !mAudioPtsRevert)) {
             return false;
         }
 
