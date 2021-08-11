@@ -3720,7 +3720,7 @@ int SuperMediaPlayer::CreateVideoDecoder(bool bHW, Stream_meta &meta)
     uint32_t dstFormat = 0;
 #ifdef __APPLE__
     dstFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
-    if (mFrameCb && mSet->pixelBufferOutputFormat) {
+    if ((mFrameCb || mVideoRenderingCb) && mSet->pixelBufferOutputFormat) {
         dstFormat = mSet->pixelBufferOutputFormat;
     } else {
         // TODO: move to VTB decoder
