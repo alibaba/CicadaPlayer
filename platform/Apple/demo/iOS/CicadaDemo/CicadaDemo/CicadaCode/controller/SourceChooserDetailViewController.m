@@ -44,6 +44,19 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
     [self.view addSubview:self.tableView];
 }
 
+- (void)viewWillLayoutSubviews
+{
+    [super viewWillLayoutSubviews];
+    CGFloat screenW = SCREEN_WIDTH;
+    CGFloat screenH = SCREEN_HEIGHT;
+
+#if TARGET_OS_MACCATALYST
+    screenW = CGRectGetWidth(self.view.frame);
+    screenH = CGRectGetHeight(self.view.frame);
+#endif
+    self.tableView.frame = CGRectMake(0, NAVIGATION_HEIGHT, screenW, screenH - NAVIGATION_HEIGHT - SAFE_BOTTOM);
+}
+
 #pragma mark TableView
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {

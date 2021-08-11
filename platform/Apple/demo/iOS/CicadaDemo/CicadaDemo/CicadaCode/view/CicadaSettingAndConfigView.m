@@ -10,9 +10,23 @@
 #import "UIView+AVPFrame.h"
 #import "CicadaSlider.h"
 
+#define kApplyBtnPreTag 200
+
+#define kContentView0PreTag1 100
+#define kContentView0PreTag2 1000
+#define kContentView0PreTag3 2000
+#define kContentView0PreTag4 3000
+
+#define kContentView1PreTag1 1000
+
+#define kContentView2PreTag1 2000
+
 static NSString * const tableViewCellIdentifier = @"UITableViewCell";
 
-@interface CicadaSettingAndConfigView ()<UITabBarDelegate,UITableViewDelegate,UITableViewDataSource>
+@interface CicadaSettingAndConfigView () <UITabBarDelegate, UITableViewDelegate, UITableViewDataSource> {
+    NSArray *switchTitleArray;
+    NSArray *leadTitleArray;
+}
 
 @property (nonatomic,strong)UITabBar *tabbar;
 @property (nonatomic,assign)NSInteger currentIndex;
@@ -91,10 +105,13 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
         self.containView1.hidden = self.containView2.hidden = self.tableView.hidden = YES;
         
         //containView0
-        NSArray * switchTitleArray = @[NSLocalizedString(@"自动播放" , nil),NSLocalizedString(@"静音" , nil),NSLocalizedString(@"循环" , nil),NSLocalizedString(@"硬解码" , nil),NSLocalizedString(@"精准seek" , nil),NSLocalizedString(@"后台播放" , nil)];
+        switchTitleArray = @[
+            NSLocalizedString(@"自动播放", nil), NSLocalizedString(@"静音", nil), NSLocalizedString(@"循环", nil),
+            NSLocalizedString(@"硬解码", nil), NSLocalizedString(@"精准seek", nil), NSLocalizedString(@"后台播放", nil)
+        ];
         for (int i = 0; i < switchTitleArray.count; i++) {
             UISwitch * addSwitch = [[UISwitch alloc]initWithFrame:CGRectMake(0, 0, 49, 31)];
-            addSwitch.tag = i;
+            addSwitch.tag = kContentView0PreTag1 + i;
             addSwitch.center = CGPointMake(selfWidth/switchTitleArray.count/2 * (2*i+1), 30);
             [addSwitch addTarget:self action:@selector(switchDidChange:) forControlEvents:UIControlEventValueChanged];
             if (i == 1) {
@@ -112,6 +129,7 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
             [self.containView0 addSubview:addSwitch];
             
             UILabel *switchLabel = [self commonLabel];
+            switchLabel.tag = kContentView0PreTag2 + i;
             NSArray *languages = [NSLocale preferredLanguages];
             NSString *currentLanguage = [languages objectAtIndex:0];
             if ([currentLanguage containsString:@"en"]) {
@@ -122,12 +140,16 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
             switchLabel.textAlignment = NSTextAlignmentCenter;
             [self.containView0 addSubview:switchLabel];
         }
-        
-        NSArray *leadTitleArray = @[NSLocalizedString(@"音量" , nil),NSLocalizedString(@"缩放模式" , nil),NSLocalizedString(@"镜像模式" , nil),NSLocalizedString(@"旋转模式" , nil),NSLocalizedString(@"倍速播放" , nil)];
+
+        leadTitleArray = @[
+            NSLocalizedString(@"音量", nil), NSLocalizedString(@"缩放模式", nil), NSLocalizedString(@"镜像模式", nil),
+            NSLocalizedString(@"旋转模式", nil), NSLocalizedString(@"倍速播放", nil)
+        ];
         NSArray *segAllTitleArray = @[@[NSLocalizedString(@"比例填充" , nil),NSLocalizedString(@"比例全屏" , nil),NSLocalizedString(@"拉伸全屏" , nil)],@[NSLocalizedString(@"无镜像" , nil),NSLocalizedString(@"水平镜像" , nil),NSLocalizedString(@"垂直镜像" , nil)],@[@"0°",@"90°",@"180°",@"270°"],@[NSLocalizedString(@"正常" , nil),NSLocalizedString(@"0.5倍速" , nil),NSLocalizedString(@"1.5倍速" , nil),NSLocalizedString(@"2倍速" , nil)]];
         CGFloat segMaxY = 0;
         for (int i = 0; i < leadTitleArray.count; i++) {
             UILabel *leadingLabel = [self commonLabel];
+            leadingLabel.tag = kContentView0PreTag3 + i;
             leadingLabel.frame = CGRectMake(15, 80+40*i, 60, 40);
             leadingLabel.text = leadTitleArray[i];
             [self.containView0 addSubview:leadingLabel];
@@ -139,6 +161,7 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
                 [self.voiceSlider addTarget:self action:@selector(voiceSliderDidChange:) forControlEvents:UIControlEventValueChanged];
                 [self.containView0 addSubview:self.voiceSlider];
                 UIView * line = [[UIView alloc]initWithFrame:CGRectMake(0, 0, 2, 30)];
+                line.tag = 2100;
                 line.backgroundColor = [UIColor darkGrayColor];
                 line.center = self.voiceSlider.center;
                 [self.containView0 addSubview:line];
@@ -146,7 +169,7 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
             }else {
                 NSArray *segTitleArray = segAllTitleArray[i-1];
                 UISegmentedControl * segmentedControl = [[UISegmentedControl alloc]initWithItems:segTitleArray];
-                segmentedControl.tag = i - 1;
+                segmentedControl.tag = i - 1 + kContentView0PreTag4;
                 segmentedControl.frame = CGRectMake(85, 85 + i*40, selfWidth-100, 30);
                 [segmentedControl addTarget:self action:@selector(segmentedControlDidChange:) forControlEvents:UIControlEventValueChanged];
                 segmentedControl.selectedSegmentIndex = 0;
@@ -154,6 +177,7 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
             }
         }
         UIButton *mediaButton = [[UIButton alloc]initWithFrame:CGRectMake(selfWidth-120, segMaxY + 10, 120, 40)];
+        mediaButton.tag = kApplyBtnPreTag;
         [mediaButton setTitle:NSLocalizedString(@"媒体信息" , nil) forState:UIControlStateNormal];
         mediaButton.titleLabel.font = [UIFont systemFontOfSize:14];
         [mediaButton setTitleColor:self.tabbar.tintColor forState:UIControlStateNormal];
@@ -172,6 +196,7 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
         CGFloat txtMaxY = 0;
         for (int i = 0; i<textFieldTitleArray.count; i++) {
             UILabel *label = [self commonLabel];
+            label.tag = kContentView1PreTag1 + i;
             label.frame = CGRectMake(15, 40*i+10, 120, 40);
             label.text = textFieldTitleArray[i];
             [self.containView1 addSubview:label];
@@ -189,6 +214,7 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
         }
         
         UILabel *label = [self commonLabel];
+        label.tag = 1100;
         label.frame = CGRectMake(15, txtMaxY + 10, 120, 40);
         label.text = NSLocalizedString(@"停止隐藏最后帧" , nil);
         [self.containView1 addSubview:label];
@@ -202,7 +228,7 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
         [refreshButton setTitleColor:self.tabbar.tintColor forState:UIControlStateNormal];
         [refreshButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateHighlighted];
         [refreshButton addTarget:self action:@selector(bottonButtonClick:) forControlEvents:UIControlEventTouchUpInside];
-        refreshButton.tag = 1;
+        refreshButton.tag = kApplyBtnPreTag + 1;
         [self.containView1 addSubview:refreshButton];
         self.containView1.contentSize = CGSizeMake(selfWidth, refreshButton.getMaxY+10);
         
@@ -213,6 +239,7 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
         CGFloat cacheTxtMaxY = 0;
         for (int i = 0; i<cacheTextFieldTitleArray.count; i++) {
             UILabel *label = [self commonLabel];
+            label.tag = kContentView2PreTag1 + i;
             label.frame = CGRectMake(15, 40*i+10, 120, 40);
             label.text = cacheTextFieldTitleArray[i];
             [self.containView2 addSubview:label];
@@ -233,6 +260,7 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
         UILabel *cacheLabel = [self commonLabel];
         cacheLabel.frame = CGRectMake(15, cacheTxtMaxY + 10, 100, 40);
         cacheLabel.text = NSLocalizedString(@"开启缓存配置" , nil);
+        cacheLabel.tag = 1002;
         [self.containView2 addSubview:cacheLabel];
         
         self.openCacheSwitch = [[UISwitch alloc]initWithFrame:CGRectMake(135, cacheTxtMaxY + 10, 49, 31)];
@@ -244,11 +272,101 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
         [cacheRefreshButton setTitleColor:self.tabbar.tintColor forState:UIControlStateNormal];
         [cacheRefreshButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateHighlighted];
         [cacheRefreshButton addTarget:self action:@selector(bottonButtonClick:) forControlEvents:UIControlEventTouchUpInside];
-        cacheRefreshButton.tag = 2;
+        cacheRefreshButton.tag = kApplyBtnPreTag + 2;
         [self.containView2 addSubview:cacheRefreshButton];
         self.containView2.contentSize = CGSizeMake(selfWidth, cacheRefreshButton.getMaxY+10);
     }
     return self;
+}
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+
+    CGFloat selfWidth = self.frame.size.width;
+    CGFloat selfHeight = self.frame.size.height;
+    CGFloat tabbarHeight = 49;
+
+    self.tabbar.frame = CGRectMake(0, selfHeight - tabbarHeight, selfWidth, tabbarHeight);
+
+    self.containView0.frame = CGRectMake(0, 0, selfWidth, selfHeight - tabbarHeight);
+    self.containView1.frame = CGRectMake(0, 0, selfWidth, selfHeight - tabbarHeight);
+    self.containView1.contentSize = CGSizeMake(selfWidth, selfHeight * 2);
+    self.containView2.frame = CGRectMake(0, 0, selfWidth, selfHeight - tabbarHeight);
+
+    self.tableView.frame = CGRectMake(0, 0, selfWidth, selfHeight - tabbarHeight);
+
+    //containView0
+    for (int i = 0; i < switchTitleArray.count; i++) {
+        UISwitch *addSwitch = [self.containView0 viewWithTag:i + kContentView0PreTag1];
+        addSwitch.frame = CGRectMake(0, 0, 49, 31);
+        addSwitch.center = CGPointMake(selfWidth / switchTitleArray.count / 2 * (2 * i + 1), 30);
+
+        UILabel *switchLabel = [self.containView0 viewWithTag:kContentView0PreTag2 + i];
+        switchLabel.frame = CGRectMake(selfWidth / switchTitleArray.count * i, 50, selfWidth / switchTitleArray.count, 20);
+    }
+
+    CGFloat segMaxY = 0;
+    for (int i = 0; i < leadTitleArray.count; i++) {
+        UILabel *leadingLabel = [self.containView0 viewWithTag:kContentView0PreTag3 + i];
+        leadingLabel.frame = CGRectMake(15, 80 + 40 * i, 60, 40);
+        if (i == leadTitleArray.count - 1) {
+            segMaxY = leadingLabel.getMaxY;
+        }
+        if (i == 0) {
+            self.voiceSlider.frame = CGRectMake(85, 85, selfWidth - 100, 30);
+            UIView *line = [self.containView0 viewWithTag:2100];
+            line.frame = CGRectMake(0, 0, 2, 30);
+        } else {
+            UISegmentedControl *segmentedControl = [self.containView0 viewWithTag:kContentView0PreTag4 + i - 1];
+            segmentedControl.frame = CGRectMake(85, 85 + i * 40, selfWidth - 100, 30);
+        }
+    }
+    UIButton *mediaButton = [self.containView0 viewWithTag:kApplyBtnPreTag];
+    mediaButton.frame = CGRectMake(selfWidth - 120, segMaxY + 10, 120, 40);
+    self.containView0.contentSize = CGSizeMake(selfWidth, mediaButton.getMaxY + 10);
+
+    //containView1
+    CGFloat txtMaxY = 0;
+    for (int i = 0; i < self.textFieldArray.count; i++) {
+        UILabel *label = [self.containView1 viewWithTag:kContentView1PreTag1 + i];
+        label.frame = CGRectMake(15, 40 * i + 10, 120, 40);
+
+        UITextField *textField = self.textFieldArray[i];
+        textField.frame = CGRectMake(140, 40 * i + 15, selfWidth - 155, 30);
+        if (i == self.textFieldArray.count - 1) {
+            txtMaxY = label.getMaxY;
+        }
+    }
+
+    UILabel *label = [self.containView1 viewWithTag:1100];
+    label.frame = CGRectMake(15, txtMaxY + 10, 120, 40);
+
+    self.showWhenStopSwitch.frame = CGRectMake(135, txtMaxY + 10, 49, 31);
+
+    UIButton *refreshButton = [self.containView1 viewWithTag:kApplyBtnPreTag + 1];
+    refreshButton.frame = CGRectMake(selfWidth - 120, txtMaxY + 10, 120, 40);
+    self.containView1.contentSize = CGSizeMake(selfWidth, refreshButton.getMaxY + 10);
+
+    //containView2
+    CGFloat cacheTxtMaxY = 0;
+    for (int i = 0; i < self.cacheTextFieldArray.count; i++) {
+        UILabel *label = [self.containView2 viewWithTag:kContentView2PreTag1 + i];
+        label.frame = CGRectMake(15, 40 * i + 10, 120, 40);
+        UIView *textField = [self.cacheTextFieldArray objectAtIndex:i];
+        textField.frame = CGRectMake(140, 40 * i + 15, selfWidth - 155, 30);
+        if (i == self.cacheTextFieldArray.count - 1) {
+            cacheTxtMaxY = label.getMaxY;
+        }
+    }
+
+    UILabel *cacheLabel = [self.containView2 viewWithTag:1002];
+    cacheLabel.frame = CGRectMake(15, cacheTxtMaxY + 10, 100, 40);
+    self.openCacheSwitch.frame = CGRectMake(135, cacheTxtMaxY + 10, 49, 31);
+
+    UIButton *cacheRefreshButton = [self.containView2 viewWithTag:kApplyBtnPreTag + 2];
+    cacheRefreshButton.frame = CGRectMake(selfWidth - 120, cacheTxtMaxY + 10, 120, 40);
+    self.containView2.contentSize = CGSizeMake(selfWidth, cacheRefreshButton.getMaxY + 10);
 }
 
 - (UILabel *)commonLabel {
@@ -260,7 +378,7 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
 
 - (void)switchDidChange:(UISwitch *)mySwitch {
     if ([self.delegate respondsToSelector:@selector(settingAndConfigView:switchChangedIndex:isOpen:)]) {
-        [self.delegate settingAndConfigView:self switchChangedIndex:mySwitch.tag isOpen:mySwitch.isOn];
+        [self.delegate settingAndConfigView:self switchChangedIndex:mySwitch.tag - kContentView0PreTag1 isOpen:mySwitch.isOn];
     }
 }
 
@@ -273,13 +391,15 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
 
 - (void)segmentedControlDidChange:(UISegmentedControl *)segmentedControl {
     if ([self.delegate respondsToSelector:@selector(settingAndConfigView:segmentedControlIndex:selectedIndex:)]) {
-        [self.delegate settingAndConfigView:self segmentedControlIndex:segmentedControl.tag selectedIndex:segmentedControl.selectedSegmentIndex];
+        [self.delegate settingAndConfigView:self
+                      segmentedControlIndex:segmentedControl.tag - kContentView0PreTag4
+                              selectedIndex:segmentedControl.selectedSegmentIndex];
     }
 }
 
 - (void)bottonButtonClick:(UIButton *)sender {
     if ([self.delegate respondsToSelector:@selector(settingAndConfigView:bottonButtonClickIndex:)]) {
-        [self.delegate settingAndConfigView:self bottonButtonClickIndex:sender.tag];
+        [self.delegate settingAndConfigView:self bottonButtonClickIndex:sender.tag - kApplyBtnPreTag];
     }
 }
 

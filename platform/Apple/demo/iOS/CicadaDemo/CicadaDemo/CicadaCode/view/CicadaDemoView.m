@@ -148,7 +148,12 @@
     
     BOOL hideButton = YES;
     if (TARGET_OS_MACCATALYST) {
-        self.fullScreenButton.hidden = YES;
+        if (self.frame.size.width > MACCATALYST_WIDTH) {
+            [self.fullScreenButton setTitle:NSLocalizedString(@"半屏", nil) forState:UIControlStateNormal];
+        } else {
+            [self.fullScreenButton setTitle:NSLocalizedString(@"全屏", nil) forState:UIControlStateNormal];
+            hideButton = NO;
+        }
     } else {
         if (IS_PORTRAIT) {
             UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
@@ -166,6 +171,7 @@
             self.frame = [UIScreen mainScreen].bounds;
             [self.fullScreenButton setTitle:NSLocalizedString(@"半屏", nil) forState:UIControlStateNormal];
         }
+
         for (UIButton *btn in self.buttonsArray) {
             btn.hidden = hideButton;
         }
@@ -196,8 +202,7 @@
 
     for (int i = 0; i < self.buttonsArray.count; i++) {
         UIButton *button = [self.buttonsArray objectAtIndex:i];
-        button = [[UIButton alloc] initWithFrame:CGRectMake(selfWidth / self.buttonsArray.count * i, selfHeight - 44,
-                                                            selfWidth / self.buttonsArray.count, 44)];
+        button.frame = CGRectMake(selfWidth / self.buttonsArray.count * i, selfHeight - 44, selfWidth / self.buttonsArray.count, 44);
     }
 }
 
