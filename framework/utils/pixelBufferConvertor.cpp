@@ -309,9 +309,9 @@ pixelBufferConvertor::pixelBufferConvertor()
 }
 pixelBufferConvertor::~pixelBufferConvertor()
 {
-    //    if (sws_ctx) {
-    //        sws_freeContext(sws_ctx);
-    //    }
+    if (sws_ctx) {
+        sws_freeContext(sws_ctx);
+    }
     av_frame_free(&mOutFrame);
     if (mPixBufPool) {
         CVPixelBufferPoolRelease(mPixBufPool);
@@ -365,18 +365,18 @@ int pixelBufferConvertor::init(const IAFFrame::videoInfo &src)
     }
 
 
-    //    if (sws_ctx) {
-    //        sws_freeContext(sws_ctx);
-    //        sws_ctx = nullptr;
-    //    }
+    if (sws_ctx) {
+        sws_freeContext(sws_ctx);
+        sws_ctx = nullptr;
+    }
     av_frame_free(&mOutFrame);
     dstFormat = static_cast<AVPixelFormat>(dst.format);
 
     if (src != dst) {
-        return -EINVAL;
-        //        sws_ctx = sws_getContext(src.width, src.height, static_cast<AVPixelFormat>(src.format), src.width, src.height, dstFormat,
-        //                                 SWS_BILINEAR, nullptr, nullptr, nullptr);
-        //        mOutFrame = alloc_picture(dstFormat, src.width, src.height);
+
+        sws_ctx = sws_getContext(src.width, src.height, static_cast<AVPixelFormat>(src.format), src.width, src.height, dstFormat,
+                                 SWS_BILINEAR, nullptr, nullptr, nullptr);
+        mOutFrame = alloc_picture(dstFormat, src.width, src.height);
     }
     return 0;
 }
@@ -405,10 +405,10 @@ IAFFrame *pixelBufferConvertor::convert(IAFFrame *frame)
     colorInfo.color_space = static_cast<AFColorSpace>(avFrame->colorspace);
     colorInfo.color_trc = static_cast<AFColorTransferCharacteristic>(avFrame->color_trc);
 
-    //    if (sws_ctx) {
-    //        sws_scale(sws_ctx, avFrame->data, avFrame->linesize, 0, avFrame->height, mOutFrame->data, mOutFrame->linesize);
-    //        avFrame = mOutFrame;
-    //    }
+    if (sws_ctx) {
+        sws_scale(sws_ctx, avFrame->data, avFrame->linesize, 0, avFrame->height, mOutFrame->data, mOutFrame->linesize);
+        avFrame = mOutFrame;
+    }
 
     CVPixelBufferRef pixelBuffer = avFrame2pixelBuffer(avFrame);
     if (pixelBuffer == nullptr) {
