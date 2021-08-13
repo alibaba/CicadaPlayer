@@ -83,7 +83,9 @@
     [super viewDidLoad];
     
     self.retryCount = 3;
+#if !TARGET_OS_MACCATALYST
     [self setScreenCanRotation:YES];
+#endif
     self.view.backgroundColor = [UIColor whiteColor];
     self.navigationItem.title = NSLocalizedString(@"播放" , nil);
     
@@ -203,7 +205,9 @@
     [self.player stop];
     [self.player destroy];
     [CicadaPlayer setAudioSessionDelegate:nil];
+#if !TARGET_OS_MACCATALYST
     [self setScreenCanRotation:NO];
+#endif
 }
 
 - (void)setScreenCanRotation:(BOOL)canRotation {

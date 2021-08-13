@@ -83,7 +83,9 @@
         [self addSubview:self.progressView];
         
         self.progressSlider = [[UISlider alloc]init];
+#if !TARGET_OS_MACCATALYST
         self.progressSlider.maximumTrackTintColor = [UIColor clearColor];
+#endif
         [self.progressSlider addTarget:self action:@selector(progressSliderTouchDown:) forControlEvents:UIControlEventTouchDown];
         [self.progressSlider addTarget:self action:@selector(progressSliderEventValueChanged:) forControlEvents:UIControlEventValueChanged];
         [self.progressSlider addTarget:self action:@selector(progressSliderDidChange:) forControlEvents:UIControlEventTouchUpInside];

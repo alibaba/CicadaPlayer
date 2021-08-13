@@ -317,6 +317,7 @@ static NSString * const tableViewCellIdentifier = @"UITableViewCell";
             self.voiceSlider.frame = CGRectMake(85, 85, selfWidth - 100, 30);
             UIView *line = [self.containView0 viewWithTag:2100];
             line.frame = CGRectMake(0, 0, 2, 30);
+            line.center = self.voiceSlider.center;
         } else {
             UISegmentedControl *segmentedControl = [self.containView0 viewWithTag:kContentView0PreTag4 + i - 1];
             segmentedControl.frame = CGRectMake(85, 85 + i * 40, selfWidth - 100, 30);
