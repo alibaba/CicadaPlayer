@@ -280,7 +280,7 @@
  */
 - (BOOL)navigationShouldPopOnBackButton{
     //如果竖屏可以返回，如果横屏，先竖屏幕
-    if (IS_PORTRAIT) {
+    if (IS_PORTRAIT || TARGET_OS_MACCATALYST) {
         return YES;
     }
     NSNumber *value = [NSNumber numberWithInt:UIInterfaceOrientationPortrait];
