@@ -74,6 +74,8 @@ namespace Cicada {
 
         static void interrupt_callback(void *arg, int inter);
 
+        static void setSegmentList_callback(void *arg, const std::vector<mediaSegmentListEntry> &segments);
+
         std::string GetProperty(int index, const std::string &key);
 
         int SetOption(const std::string &key, int64_t value);

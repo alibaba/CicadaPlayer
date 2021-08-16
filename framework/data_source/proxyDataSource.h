@@ -15,6 +15,8 @@ typedef int (*openImpl)(void *arg, const char *url,int64_t start, int64_t end);
 
 typedef void (*interruptImpl)(void *arg, int inter);
 
+typedef void (*setSegmentListImpl)(void *arg, const std::vector<Cicada::mediaSegmentListEntry> &segments);
+
 namespace Cicada{
     class proxyDataSource : public IDataSource {
     public:
@@ -32,25 +34,28 @@ namespace Cicada{
 
         int Read(void *buf, size_t nbyte) override;
 
-        void setImpl(readImpl read, seekImpl seek, openImpl open, interruptImpl interrupt, void *arg);
+        void setImpl(readImpl read, seekImpl seek, openImpl open, interruptImpl interrupt, setSegmentListImpl setSegmentList, void *arg);
 
         void Interrupt(bool interrupt) override;
-//
-//        virtual string Get_error_info(int error);
-//
-//        virtual void Set_config(SourceConfig &config);
-//
-//        virtual void Get_config(SourceConfig &config);
-//
-//        virtual const string GetOption(const string &key);
-//
-//        virtual const string GetUri();
+
+        void setSegmentList(const std::vector<mediaSegmentListEntry> &segments) override;
+        //
+        //        virtual string Get_error_info(int error);
+        //
+        //        virtual void Set_config(SourceConfig &config);
+        //
+        //        virtual void Get_config(SourceConfig &config);
+        //
+        //        virtual const string GetOption(const string &key);
+        //
+        //        virtual const string GetUri();
 
     private:
         readImpl mRead = nullptr;
         seekImpl mSeek = nullptr;
         openImpl mOpen = nullptr;
         interruptImpl mInter = nullptr;
+        setSegmentListImpl mSetSegmentList = nullptr;
 
         void* mUserArg = nullptr;
 

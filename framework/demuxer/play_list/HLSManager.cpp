@@ -599,4 +599,17 @@ namespace Cicada {
 
         return targetDuration;
     }
+
+    vector<mediaSegmentListEntry> HLSManager::getSegmentList(int index)
+    {
+        if (mMuxedStream) {
+            return mMuxedStream->getSegmentList();
+        }
+        for (auto &i : mStreamInfoList) {
+            if (i->mPStream->getId() == index) {
+                return i->mPStream->getSegmentList();
+            }
+        }
+        return {};
+    }
 }

@@ -93,6 +93,8 @@ namespace Cicada{
             return true;
         }
 
+        vector<mediaSegmentListEntry> getSegmentList(int index) override;
+
     private:
         explicit playList_demuxer(int dummy) : IDemuxer("")
         {

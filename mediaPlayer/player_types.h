@@ -66,6 +66,8 @@ namespace Cicada {
         string drmMagicKey;
         string sessionId{};
         int netWorkRetryCount{0};
+        int maxBufferMemoryKB{10 * 1024};
+        std::string localCacheDir{};
     };
 }
 

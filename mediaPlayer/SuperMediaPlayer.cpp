@@ -588,6 +588,15 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
         mSet->netWorkRetryCount = (int) atol(value);
     } else if (theKey == "maxBackwardBufferDuration") {
         mBufferController->SetMaxBackwardDuration(BUFFER_TYPE_ALL, atoll(value) * 1000);
+    } else if (theKey == "maxBufferMemoryKB") {
+        int memSize = atoi(value);
+        if (memSize >= 0) {
+            mSet->maxBufferMemoryKB = memSize;
+            mSet->mOptions.set(theKey, std::to_string(memSize), options::REPLACE);
+        }
+    } else if (theKey == "localCacheDir") {
+        mSet->localCacheDir = value;
+        mSet->mOptions.set(theKey, value, options::REPLACE);
     }
 
     return 0;
@@ -627,6 +636,8 @@ void SuperMediaPlayer::GetOption(const char *key, char *value)
         uint64_t total, dropped;
         mUtil->getVideoDroppedInfo(total, dropped);
         snprintf(value, MAX_OPT_VALUE_LENGTH, "%" PRIu64 "/%" PRIu64, dropped, total);
+    } else if (theKey == "maxBufferMemoryKB") {
+        snprintf(value, MAX_OPT_VALUE_LENGTH, "%d", mSet->maxBufferMemoryKB);
     }
 }
 

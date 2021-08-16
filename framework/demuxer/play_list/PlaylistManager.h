@@ -74,6 +74,8 @@ namespace Cicada{
 
         virtual int64_t getTargetDuration() = 0;
 
+        virtual vector<mediaSegmentListEntry> getSegmentList(int index) = 0;
+
     protected:
         playList *mPList = nullptr;
         IDataSource *mExtDataSource = nullptr;

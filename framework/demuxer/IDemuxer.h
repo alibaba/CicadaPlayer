@@ -36,8 +36,9 @@ namespace Cicada {
         header_type_extract,
     } header_type;
 
-    class CICADA_CPLUS_EXTERN IDemuxer : public OptionOwner, public IDCA {
+    typedef void (*demuxer_callback_setSegmentList)(void *arg, const std::vector<Cicada::mediaSegmentListEntry> &segments);
 
+    class CICADA_CPLUS_EXTERN IDemuxer : public OptionOwner, public IDCA, public IMediaInfoProvider {
     public:
         class streamIndexEntryInfo {
         public:
@@ -75,7 +76,7 @@ namespace Cicada {
         ~IDemuxer() override;
 
         void SetDataCallBack(demuxer_callback_read read, demuxer_callback_seek seek, demuxer_callback_open open,
-                             demuxer_callback_interrupt_data inter, void *arg);
+                             demuxer_callback_interrupt_data inter, demuxer_callback_setSegmentList setSegmentList, void *arg);
 
         void setMeta(DemuxerMetaInfo *metaInfo)
         {
@@ -235,11 +236,24 @@ namespace Cicada {
             return mEntryInfos;
         }
 
+    public:
+        int64_t estimateExclusiveEndPositionBytes(const string &url, int64_t timeMicSec, int64_t totalLength) override;
+
+        int64_t estimatePlayTimeMicSec(const string &url, int64_t filePosition, int64_t totalLength) override;
+
+        int allowDataCache(const string &url) override;
+
+        virtual vector<mediaSegmentListEntry> getSegmentList(int index) override
+        {
+            return {};
+        }
+
     protected:
         demuxer_callback_read mReadCb{nullptr};
         demuxer_callback_seek mSeekCb{nullptr};
         demuxer_callback_open mOpenCb{nullptr};
         demuxer_callback_interrupt_data mInterruptCb{nullptr};
+        demuxer_callback_setSegmentList mSetSegmentList{nullptr};
         void *mUserArg{nullptr};
         std::function<void(std::string, std::string)> mDemuxerCbfunc;
         string mPath{};

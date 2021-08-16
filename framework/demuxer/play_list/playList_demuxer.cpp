@@ -41,7 +41,7 @@ namespace Cicada {
         }
 
         mProxySource = new proxyDataSource();
-        mProxySource->setImpl(mReadCb, mSeekCb, mOpenCb, mInterruptCb, mUserArg);
+        mProxySource->setImpl(mReadCb, mSeekCb, mOpenCb, mInterruptCb, mSetSegmentList, mUserArg);
         mProxySource->setOptions(mOpts);
         PlaylistManager *playlistManager = nullptr;
         mParser->SetDataCallBack(mReadCb, mSeekCb, mUserArg);
@@ -238,6 +238,14 @@ namespace Cicada {
             return mPPlaylistManager->getTargetDuration();
         }
         return INT64_MIN;
+    }
+
+    vector<mediaSegmentListEntry> playList_demuxer::getSegmentList(int index)
+    {
+        if (mPPlaylistManager) {
+            return mPPlaylistManager->getSegmentList(index);
+        }
+        return {};
     }
 
     bool playList_demuxer::is_supported(const string &uri, const uint8_t *buffer, int64_t size, int *type, const Cicada::DemuxerMeta *meta,

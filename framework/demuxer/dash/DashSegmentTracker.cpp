@@ -817,6 +817,30 @@ int64_t DashSegmentTracker::getDurationToStartStream() const
     return duration;
 }
 
+vector<mediaSegmentListEntry> DashSegmentTracker::getSegmentList()
+{
+    if (isLive()) {
+        return {};
+    }
+    Dash::SegmentBase *segmentBase = mRep->inheritSegmentBase();
+    if (segmentBase) {
+        return {};
+    }
+    uint64_t startNumber = getStartSegmentNumber(mRep);
+    bool b_gap = false;
+    Dash::DashSegment *segment = nullptr;
+    vector<mediaSegmentListEntry> ret;
+    do {
+        segment = mRep->getNextMediaSegment(startNumber, &startNumber, &b_gap);
+        if (segment) {
+            std::string uri = segment->getUrlSegment().toString(startNumber, getCurrentRepresentation());
+            ret.push_back(mediaSegmentListEntry(uri, getSegmentDuration()));
+        }
+        startNumber++;
+    } while (segment);
+    return ret;
+}
+
 int64_t DashSegmentTracker::getSegmentDuration() const
 {
     auto rep = getNextRepresentation(mAdapt, nullptr);

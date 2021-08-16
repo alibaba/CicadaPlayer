@@ -58,8 +58,11 @@ namespace Cicada {
             return new Cicada::CurlDataSource(uri);
         }
 
-        bool is_supported(const std::string &uri) override
+        bool is_supported(const std::string &uri, int flags) override
         {
+            if (flags != 0) {
+                return false;
+            }
             return probe(uri);
         }
 

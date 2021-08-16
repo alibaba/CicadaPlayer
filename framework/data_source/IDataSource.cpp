@@ -86,6 +86,11 @@ namespace Cicada {
         return 0;
     }
 
+    void IDataSource::setMediaInfoProvider(IMediaInfoProvider *provider)
+    {
+        mMediaInfoProvider = provider;
+    }
+
     void IDataSource::setPost(bool post, int64_t size, const uint8_t *data) {
         mBPost = post;
         mPostData = data;

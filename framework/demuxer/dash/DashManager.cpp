@@ -568,6 +568,16 @@ int64_t DashManager::getTargetDuration()
     return mPList->maxSegmentDuration;
 }
 
+vector<mediaSegmentListEntry> DashManager::getSegmentList(int index)
+{
+    for (auto &i : mStreamInfoList) {
+        if (i->mPStream->getId() == index) {
+            return i->mPStream->getSegmentList();
+        }
+    }
+    return {};
+}
+
 std::list<AdaptationSet *> DashManager::FindSuitableAdaptationSets(Period* period)
 {
     std::list<AdaptationSet *> &adaptSetList = period->GetAdaptSets();

@@ -64,6 +64,8 @@ namespace Cicada {
 
         int64_t getTargetDuration() override;
 
+        vector<mediaSegmentListEntry> getSegmentList(int index) override;
+
     private:
         std::list<AdaptationSet *> FindSuitableAdaptationSets(Period* period);
         std::list<DashStreamInfo *> mStreamInfoList{};

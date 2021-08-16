@@ -17,6 +17,25 @@ namespace Cicada {
         SEEK_SIZE = 0x10000,
     };
 
+    struct mediaSegmentListEntry {
+        std::string url;
+        int64_t duration = 0;
+
+        mediaSegmentListEntry(const std::string &_url, int64_t _duration) : url(_url), duration(_duration)
+        {}
+    };
+
+    class IMediaInfoProvider {
+    public:
+        virtual int64_t estimateExclusiveEndPositionBytes(const std::string &url, int64_t timeMicSec, int64_t totalLength) = 0;
+        virtual int64_t estimatePlayTimeMicSec(const std::string &url, int64_t filePosition, int64_t totalLength) = 0;
+        /**
+         * @return -1 unkown, 1 allow, 0 disallow
+         */
+        virtual int allowDataCache(const std::string &url) = 0;
+        virtual std::vector<mediaSegmentListEntry> getSegmentList(int index) = 0;
+    };
+
     class IDataSource : public OptionOwner {
     public:
         class Listener {
@@ -68,6 +87,8 @@ namespace Cicada {
 
         virtual int setRange(int64_t start, int64_t end);
 
+        virtual void setMediaInfoProvider(IMediaInfoProvider *provider);
+
         virtual void setPost(bool post, int64_t size, const uint8_t *data);
 
         virtual int Open(int flags) = 0;
@@ -96,10 +117,16 @@ namespace Cicada {
 
         virtual speedLevel getSpeedLevel();
 
+        virtual void setSegmentList(const std::vector<mediaSegmentListEntry> &segments)
+        {}
+
 
     protected:
         std::atomic_bool mInterrupt{false};
         SourceConfig mConfig{};
+        /**
+         * the main/first url
+         */
         std::string mUri{};
         int64_t rangeStart{INT64_MIN};
         int64_t rangeEnd{INT64_MIN};
@@ -108,6 +135,7 @@ namespace Cicada {
         const uint8_t *mPostData{nullptr};
         int64_t mPostSize{0};
 
+        IMediaInfoProvider *mMediaInfoProvider{nullptr};
     };
 }
 

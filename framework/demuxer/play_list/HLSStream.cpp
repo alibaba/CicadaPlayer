@@ -555,6 +555,10 @@ namespace Cicada {
         int ret;
 
         if (mExtDataSource) {
+            if (mIsFirstOpen) {
+                mIsFirstOpen = false;
+                mExtDataSource->setSegmentList(getSegmentList());
+            }
             mExtDataSource->setRange(start, end);
             return mExtDataSource->Open(uri);
         }
@@ -591,9 +595,10 @@ namespace Cicada {
     {
         resetSource();
         std::lock_guard<std::mutex> lock(mHLSMutex);
-        mPdataSource = dataSourcePrototype::create(url, mOpts);
+        mPdataSource = dataSourcePrototype::create(url, mOpts, DS_NEED_CACHE);
         mPdataSource->Set_config(mSourceConfig);
         mPdataSource->Interrupt(mInterrupted);
+        mPdataSource->setSegmentList(getSegmentList());
     }
 
     void HLSStream::clearDataFrames()
@@ -1236,6 +1241,14 @@ namespace Cicada {
             return mPTracker->getTargetDuration();
         }
         return INT64_MIN;
+    }
+
+    vector<mediaSegmentListEntry> HLSStream::getSegmentList()
+    {
+        if (mPTracker) {
+            return mPTracker->getSegmentList();
+        }
+        return {};
     }
 
     int HLSStream::start()

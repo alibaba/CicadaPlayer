@@ -873,7 +873,7 @@ int SMPMessageControllerListener::openUrl()
 
     {
         std::lock_guard<std::mutex> locker(mPlayer.mCreateMutex);
-        mPlayer.mDataSource = dataSourcePrototype::create(mPlayer.mSet->url, &(mPlayer.mSet->mOptions));
+        mPlayer.mDataSource = dataSourcePrototype::create(mPlayer.mSet->url, &(mPlayer.mSet->mOptions), DS_NEED_CACHE);
     }
 
     if (mPlayer.mDataSource) {

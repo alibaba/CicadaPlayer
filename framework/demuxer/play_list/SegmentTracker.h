@@ -7,9 +7,10 @@
 
 #include "Representation.h"
 #include "data_source/IDataSource.h"
+#include "demuxer/IDemuxer.h"
 #include "utils/afThread.h"
-#include <mutex>
 #include <base/OptionOwner.h>
+#include <mutex>
 
 using namespace std;
 
@@ -87,6 +88,8 @@ namespace Cicada {
         void MoveToLiveStartSegment(const int64_t liveStartIndex);
 
         int64_t getTargetDuration();
+
+        vector<mediaSegmentListEntry> getSegmentList();
 
     private:
         int loadPlayList();

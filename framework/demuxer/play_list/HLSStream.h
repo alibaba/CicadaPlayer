@@ -102,6 +102,8 @@ namespace Cicada {
 
         int64_t getTargetDuration();
 
+        vector<mediaSegmentListEntry> getSegmentList();
+
     private:
 
         static const char *hls_id3;
@@ -232,6 +234,8 @@ namespace Cicada {
 
         std::string mDRMMagicKey{};
         SegmentEncryption mCurrentEncryption{};
+
+        std::atomic_bool mIsFirstOpen{true};
     };
 }
 

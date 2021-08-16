@@ -154,9 +154,10 @@ namespace Cicada {
              */
             if ((mPDataSource == nullptr || mPDataSource->Seek(0, SEEK_SIZE) <= 0) && (mSeekCb == nullptr)) {
                 AF_LOGD("not support seek\n");
-                mDemuxerPtr->SetDataCallBack(read_callback, nullptr, open_callback, interrupt_callback, this);
+                mDemuxerPtr->SetDataCallBack(read_callback, nullptr, open_callback, interrupt_callback, setSegmentList_callback, this);
             } else {
-                mDemuxerPtr->SetDataCallBack(read_callback, seek_callback, open_callback, interrupt_callback, this);
+                mDemuxerPtr->SetDataCallBack(read_callback, seek_callback, open_callback, interrupt_callback, setSegmentList_callback,
+                                             this);
             }
         }
 
@@ -165,6 +166,9 @@ namespace Cicada {
         }
 
         int openRet = mDemuxerPtr->Open();
+        if (openRet >= 0 && mPDataSource != nullptr) {
+            mPDataSource->setMediaInfoProvider(mDemuxerPtr.get());
+        }
         return openRet;
     }
 
@@ -440,4 +444,12 @@ namespace Cicada {
         }
     }
 
+    void demuxer_service::setSegmentList_callback(void *arg, const std::vector<mediaSegmentListEntry> &segments)
+    {
+        auto *pHandle = static_cast<demuxer_service *>(arg);
+
+        if (pHandle->mPDataSource) {
+            pHandle->mPDataSource->setSegmentList(segments);
+        }
+    }
 }

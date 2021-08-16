@@ -517,4 +517,19 @@ namespace Cicada {
             return mRep->targetDuration;
         }
     }
+
+    vector<mediaSegmentListEntry> SegmentTracker::getSegmentList()
+    {
+        vector<mediaSegmentListEntry> ret;
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
+        if (mRep->GetSegmentList()) {
+            auto segments = mRep->GetSegmentList()->getSegments();
+
+            for (auto it = segments.begin(); it != segments.end(); it++) {
+                std::string uri = Helper::combinePaths(getBaseUri(), (*it)->getDownloadUrl());
+                ret.push_back(mediaSegmentListEntry(uri, (*it)->duration));
+            }
+        }
+        return ret;
+    }
 }

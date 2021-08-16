@@ -195,6 +195,11 @@ int64_t DashStream::getDurationToStartStream()
     return mPTracker->getDurationToStartStream();
 }
 
+vector<mediaSegmentListEntry> DashStream::getSegmentList()
+{
+    return mPTracker->getSegmentList();
+}
+
 static inline uint64_t getSize(const uint8_t *data, unsigned int len, unsigned int shift)
 {
     uint64_t size(0);
@@ -428,6 +433,10 @@ int DashStream::openSegment(const string &uri, int64_t start, int64_t end)
         fixEnd++;
     }
     if (mExtDataSource) {
+        if (mIsFirstOpen) {
+            mIsFirstOpen = false;
+            mExtDataSource->setSegmentList(getSegmentList());
+        }
         mExtDataSource->setRange(start, fixEnd);
         return mExtDataSource->Open(uri);
     }
@@ -464,9 +473,10 @@ void DashStream::recreateSource(const string &url)
 {
     resetSource();
     std::lock_guard<std::mutex> lock(mHLSMutex);
-    mPdataSource = dataSourcePrototype::create(url, mOpts);
+    mPdataSource = dataSourcePrototype::create(url, mOpts, DS_NEED_CACHE);
     mPdataSource->Set_config(mSourceConfig);
     mPdataSource->Interrupt(mInterrupted);
+    mPdataSource->setSegmentList(getSegmentList());
 }
 
 void DashStream::clearDataFrames()

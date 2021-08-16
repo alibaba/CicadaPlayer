@@ -52,19 +52,28 @@ namespace Cicada {
         return -1;
     }
 
-    void proxyDataSource::setImpl(readImpl read, seekImpl seek, openImpl open, interruptImpl interrupt, void *arg)
+    void proxyDataSource::setImpl(readImpl read, seekImpl seek, openImpl open, interruptImpl interrupt, setSegmentListImpl setSegmentList,
+                                  void *arg)
     {
         mOpen = open;
         mRead = read;
         mSeek = seek;
         mUserArg = arg;
         mInter = interrupt;
+        mSetSegmentList = setSegmentList;
     }
 
     void proxyDataSource::Interrupt(bool interrupt)
     {
         if (mInter) {
             return mInter(mUserArg, interrupt);
+        }
+    }
+
+    void proxyDataSource::setSegmentList(const std::vector<mediaSegmentListEntry> &segments)
+    {
+        if (mSetSegmentList) {
+            mSetSegmentList(mUserArg, segments);
         }
     }
 }
