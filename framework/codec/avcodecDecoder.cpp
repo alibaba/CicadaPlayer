@@ -114,12 +114,12 @@ namespace Cicada {
             return gen_framework_errno(error_class_codec, isAudio ? codec_error_audio_not_support : codec_error_video_not_support);
         }
 
-        // TODO: not set extradata when XXvc
-
-        if (AF_CODEC_ID_PCM_S16LE == meta->codec) {
+        if (isAudio) {
             mPDecoder->codecCont->channels = meta->channels;
             mPDecoder->codecCont->sample_rate = meta->samplerate;
         }
+
+        // TODO: not set extradata when XXvc
 
         if (meta->extradata != nullptr && meta->extradata_size > 0) {
             mPDecoder->codecCont->extradata = (uint8_t *) av_mallocz(meta->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
