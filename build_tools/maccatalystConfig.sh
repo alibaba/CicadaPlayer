@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function maccatalyst_init_globe_env(){
-    export MACOS_X86_64_VERSION="10.11"
+    export MACOS_X86_64_VERSION="10.15"
     MACOS_ARM64_VERSION="11.0"      # Min support for Apple Silicon is 11.0
     CATALYST_IOS="13.0"				# Min supported is iOS 13.0 for Mac Catalyst
     MACOSX_SDK=$(xcrun --sdk macosx --show-sdk-path)
