@@ -120,6 +120,9 @@ namespace Cicada {
         virtual void setSegmentList(const std::vector<mediaSegmentListEntry> &segments)
         {}
 
+        virtual void enableCache(const std::string &originUrl, bool enable)
+        {}
+
 
     protected:
         std::atomic_bool mInterrupt{false};

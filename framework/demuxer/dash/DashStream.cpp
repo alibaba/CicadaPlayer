@@ -200,6 +200,11 @@ vector<mediaSegmentListEntry> DashStream::getSegmentList()
     return mPTracker->getSegmentList();
 }
 
+void DashStream::enableCache(bool enalbe)
+{
+    mEnableCache = enalbe;
+}
+
 static inline uint64_t getSize(const uint8_t *data, unsigned int len, unsigned int shift)
 {
     uint64_t size(0);
@@ -438,7 +443,9 @@ int DashStream::openSegment(const string &uri, int64_t start, int64_t end)
             mExtDataSource->setSegmentList(getSegmentList());
         }
         mExtDataSource->setRange(start, fixEnd);
-        return mExtDataSource->Open(uri);
+        int ret = mExtDataSource->Open(uri);
+        mExtDataSource->enableCache(uri, mEnableCache);
+        return ret;
     }
 
     if (mPdataSource == nullptr) {
@@ -448,6 +455,7 @@ int DashStream::openSegment(const string &uri, int64_t start, int64_t end)
     } else {
         mPdataSource->setRange(start, fixEnd);
         ret = mPdataSource->Open(uri);
+        mPdataSource->enableCache(uri, mEnableCache);
     }
 
     return ret;
@@ -477,6 +485,7 @@ void DashStream::recreateSource(const string &url)
     mPdataSource->Set_config(mSourceConfig);
     mPdataSource->Interrupt(mInterrupted);
     mPdataSource->setSegmentList(getSegmentList());
+    mPdataSource->enableCache(url, mEnableCache);
 }
 
 void DashStream::clearDataFrames()

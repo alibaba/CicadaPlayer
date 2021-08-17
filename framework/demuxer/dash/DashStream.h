@@ -86,6 +86,8 @@ namespace Cicada {
 
         vector<mediaSegmentListEntry> getSegmentList();
 
+        void enableCache(bool enalbe);
+
     private:
 
         static int read_callback(void *arg, uint8_t *buffer, int size);
@@ -190,6 +192,7 @@ namespace Cicada {
         int64_t mStreamStartTime = 0;
         int64_t mSuggestedPresentationDelay = 0;
         atomic_bool mIsFirstOpen{true};
+        bool mEnableCache{false};
     };
 }
 

@@ -162,6 +162,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
     int bandWidthNearStreamIndex = -1;
     int minBandWidthDelta = INT_MAX;
     int mDefaultBandWidth = mPlayer.mSet->mDefaultBandWidth;
+    int videoStreamCount = 0;
 
     for (int i = 0; i < nbStream; ++i) {
         mPlayer.mDemuxerService->GetStreamMeta(pMeta, i, false);
@@ -172,12 +173,23 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         }
 
         if (meta->type == STREAM_TYPE_MIXED || meta->type == STREAM_TYPE_VIDEO) {
+            videoStreamCount++;
             int metaBandWidth = (int) meta->bandwidth;
 
             if (abs(mDefaultBandWidth - metaBandWidth) < minBandWidthDelta) {
                 bandWidthNearStreamIndex = i;
                 minBandWidthDelta = abs(mDefaultBandWidth - metaBandWidth);
             }
+        }
+    }
+
+    if (mPlayer.mDemuxerService->isPlayList() || videoStreamCount > 1) {
+        if (mPlayer.mDataSource) {
+            mPlayer.mDataSource->enableCache(mPlayer.mSet->url, false);
+        }
+    } else {
+        if (mPlayer.mDataSource) {
+            mPlayer.mDataSource->enableCache(mPlayer.mSet->url, true);
         }
     }
 

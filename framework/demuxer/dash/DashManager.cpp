@@ -41,6 +41,7 @@ int DashManager::init()
     int ret;
     std::list<Period *> &periodList = mPList->GetPeriods();
     int id = 0;
+    int videoStreamCount = 0;
 
     for (auto &pit : periodList) {
         std::list<AdaptationSet *> adaptSetList = FindSuitableAdaptationSets(pit);
@@ -51,6 +52,9 @@ int DashManager::init()
             for (auto &rit : representList) {
                 rit->mPlayListType = playList_demuxer::playList_type_dash;
                 auto *pTracker = new DashSegmentTracker(ait, rit, mSourceConfig);
+                if (pTracker->getStreamType() == STREAM_TYPE_VIDEO) {
+                    videoStreamCount++;
+                }
                 pTracker->setOptions(mOpts);
                 auto *info = new DashStreamInfo();
                 info->mPStream = new DashStream(pTracker, id++);
@@ -60,6 +64,11 @@ int DashManager::init()
                 mStreamInfoList.push_back(info);
             }
         }
+    }
+
+    bool bEnableCache = videoStreamCount > 1 ? false : true;
+    for (auto &i : mStreamInfoList) {
+        i->mPStream->enableCache(bEnableCache);
     }
 
     if (mStreamInfoList.size() == 1) {

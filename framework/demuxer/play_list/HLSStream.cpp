@@ -560,7 +560,13 @@ namespace Cicada {
                 mExtDataSource->setSegmentList(getSegmentList());
             }
             mExtDataSource->setRange(start, end);
-            return mExtDataSource->Open(uri);
+            int ret = mExtDataSource->Open(uri);
+            if (mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
+                mExtDataSource->enableCache(uri, true);
+            } else {
+                mExtDataSource->enableCache(uri, false);
+            }
+            return ret;
         }
 
         if (mPdataSource == nullptr) {
@@ -570,6 +576,11 @@ namespace Cicada {
         } else {
             mPdataSource->setRange(start, end);
             ret = mPdataSource->Open(uri);
+            if (mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
+                mPdataSource->enableCache(uri, true);
+            } else {
+                mPdataSource->enableCache(uri, false);
+            }
         }
 
         return ret;
@@ -599,6 +610,11 @@ namespace Cicada {
         mPdataSource->Set_config(mSourceConfig);
         mPdataSource->Interrupt(mInterrupted);
         mPdataSource->setSegmentList(getSegmentList());
+        if (mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
+            mPdataSource->enableCache(url, true);
+        } else {
+            mPdataSource->enableCache(url, false);
+        }
     }
 
     void HLSStream::clearDataFrames()
