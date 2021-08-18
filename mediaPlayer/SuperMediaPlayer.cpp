@@ -1282,6 +1282,15 @@ void SuperMediaPlayer::doReadPacket()
                 mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_DEMUXER_EOF, "Demuxer End of File");
             }
 
+            if (mPlayStatus == PLAYER_PREPARING) {
+                if (HAVE_VIDEO && !mHaveVideoPkt) {
+                    closeVideo();
+                }
+                if (HAVE_AUDIO && !mHaveAudioPkt) {
+                    closeAudio();
+                }
+            }
+
             mEof = true;
             break;
         } else if (ret == FRAMEWORK_ERR_EXIT) {
@@ -1423,12 +1432,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
             if (std::min(duration_v, duration_a) == 0 && std::max(duration_v, duration_a) > 2 * 60 * 1000000) {
                 if (duration_v > duration_a) {
                     if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)) {
-                        mDemuxerService->CloseStream(mCurrentAudioIndex);
-                        mCurrentAudioIndex = -1;
-                        mMasterClock.setReferenceClock(nullptr, nullptr);
-                        mAudioFrameQue.clear();
-                        mBufferController->ClearPacket(BUFFER_TYPE_AUDIO);
-                        AF_LOGW("close audio stream");
+                        closeAudio();
                     }
                 } else {
                     if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
@@ -1660,6 +1664,18 @@ bool SuperMediaPlayer::DoCheckBufferPass()
 
     return true;
 }
+
+void SuperMediaPlayer::closeAudio()
+{
+    AF_LOGW("close audio stream");
+    mDemuxerService->CloseStream(mCurrentAudioIndex);
+    mCurrentAudioIndex = -1;
+    mMasterClock.setReferenceClock(nullptr, nullptr);
+    //    mAudioFrameQue.clear();
+    mBufferController->ClearPacket(BUFFER_TYPE_AUDIO);
+    FlushAudioPath();
+}
+
 void SuperMediaPlayer::closeVideo()
 {
     AF_LOGW("close video stream");
@@ -2242,11 +2258,7 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
         }
     } else if (render_ret == IAudioRender::OPEN_AUDIO_DEVICE_FAILED) {
         AF_LOGE("render audio failed due to can not open device, close audio stream");
-        mDemuxerService->CloseStream(mCurrentAudioIndex);
-        mCurrentAudioIndex = -1;
-        mMasterClock.setReferenceClock(nullptr, nullptr);
-        mAudioFrameQue.clear();
-        mBufferController->ClearPacket(BUFFER_TYPE_AUDIO);
+        closeAudio();
         if (HAVE_VIDEO) {
             mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_OPEN_AUDIO_DEVICE_FAILED, "open audio device failed");
         } else {
@@ -2752,8 +2764,7 @@ void SuperMediaPlayer::setUpAVPath()
 
         if (ret < 0) {
             AF_LOGE("%s SetUpAudioPath failed,url is %s %s", __FUNCTION__, mSet->url.c_str(), framework_err2_string(ret));
-            mDemuxerService->CloseStream(mCurrentAudioIndex);
-            mCurrentAudioIndex = -1;
+            closeAudio();
             mCATimeBase = 0;
         } else {
         }
@@ -2891,7 +2902,7 @@ int SuperMediaPlayer::ReadPacket()
     //                pFrame->getInfo().duration);
 
     if (pFrame->getInfo().streamIndex == mCurrentVideoIndex || pFrame->getInfo().streamIndex == mWillChangedVideoStreamIndex) {
-
+        mHaveVideoPkt = true;
         if (mMediaFrameCb && (!pMedia_Frame->isProtected() || mDrmKeyValid)) {
             mMediaFrameCb(mMediaFrameCbArg, pMedia_Frame.get(), ST_TYPE_VIDEO);
         }
@@ -2964,6 +2975,8 @@ int SuperMediaPlayer::ReadPacket()
         }
     } else if (pFrame->getInfo().streamIndex == mCurrentAudioIndex || pFrame->getInfo().streamIndex == mWillChangedAudioStreamIndex) {
         // printTimePosition(pFrame->getInfo().timePosition);
+        mHaveAudioPkt = true;
+
         if (mFirstAudioPts == INT64_MIN) {
             mFirstAudioPts = pFrame->getInfo().pts - pFrame->getInfo().timePosition;
             mFirstSeekStartTime = pFrame->getInfo().timePosition;
@@ -3800,6 +3813,7 @@ void SuperMediaPlayer::Reset()
     mVideoInterlaced = InterlacedType_UNKNOWN;
     mVideoParserTimes = 0;
     mVideoPtsRevert = mAudioPtsRevert = false;
+    mHaveVideoPkt = mHaveAudioPkt = false;
     mLowMem = false;
     mCurrentVideoMeta = nullptr;
     mAdaptiveVideo = false;

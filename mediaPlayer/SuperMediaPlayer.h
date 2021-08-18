@@ -364,6 +364,8 @@ namespace Cicada {
 
         static bool isWideVineVideo(const Stream_meta *meta);
 
+        void closeAudio();
+
         void closeVideo();
 
         void checkFirstRender();
@@ -469,6 +471,8 @@ namespace Cicada {
         int64_t mPlayedVideoPts{INT64_MIN}; // sync pts
         bool mVideoPtsRevert{false};
         bool mAudioPtsRevert{false};
+        bool mHaveVideoPkt{false};
+        bool mHaveAudioPkt{false};
         int64_t mPlayedAudioPts{INT64_MIN};
         int64_t mFirstVideoPts{INT64_MIN};
         int64_t mCurVideoPts{INT64_MIN};  // update from render cb
