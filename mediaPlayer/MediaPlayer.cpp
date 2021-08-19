@@ -444,10 +444,6 @@ namespace Cicada {
             playerConfig.networkTimeout = 0;
         }
 
-        if (playerConfig.maxBufferMemoryKB < 0) {
-            playerConfig.maxBufferMemoryKB = 0;
-        }
-
         if (playerConfig.startBufferDuration < 0) {
             playerConfig.startBufferDuration = 0;
         }
@@ -496,8 +492,6 @@ namespace Cicada {
         CicadaSetOption(handle, "timerInterval", to_string(playerConfig.mPositionTimerIntervalMs).c_str());
         CicadaSetOption(handle, "networkRetryCount", to_string(playerConfig.networkRetryCount).c_str());
         CicadaSetOption(handle, "maxBackwardBufferDuration", to_string(playerConfig.mMaxBackwardBufferDuration).c_str());
-        CicadaSetOption(handle, "maxBufferMemoryKB", to_string(playerConfig.maxBufferMemoryKB).c_str());
-        CicadaSetOption(handle, "localCacheDir", playerConfig.localCacheDir.c_str());
         if (playerConfig.pixelBufferOutputFormat != 0) {
             CicadaSetOption(handle, "pixelBufferOutputFormat", to_string(playerConfig.pixelBufferOutputFormat).c_str());
         }

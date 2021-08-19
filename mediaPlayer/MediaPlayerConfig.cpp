@@ -24,8 +24,6 @@ namespace Cicada {
         mDisableVideo = false;
         mPositionTimerIntervalMs = 500;
         mMaxBackwardBufferDuration = 0;
-        maxBufferMemoryKB = 10 * 1024;
-        localCacheDir = "";
     }
 
     std::string MediaPlayerConfig::toString() const
@@ -46,8 +44,6 @@ namespace Cicada {
         item.addValue("mDisableVideo", mDisableVideo);
         item.addValue("mPositionTimerIntervalMs", mPositionTimerIntervalMs);
         item.addValue("mMaxBackwardBufferDuration", (double) mMaxBackwardBufferDuration);
-        item.addValue("maxBufferMemoryKB", maxBufferMemoryKB);
-        item.addValue("localCacheDir", localCacheDir);
         return item.printJSON();
     }
 }
