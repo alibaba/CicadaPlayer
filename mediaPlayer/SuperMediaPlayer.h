@@ -73,6 +73,9 @@ namespace Cicada {
         LiveTimeSyncSlowDown
     };
 
+    const static float MIN_SPEED = 0.5;
+    const static float MAX_SPEED = 5;
+
     class SuperMediaPlayer : public ICicadaPlayer, private CicadaPlayerPrototype {
 
         friend class SuperMediaPlayerDataSourceListener;

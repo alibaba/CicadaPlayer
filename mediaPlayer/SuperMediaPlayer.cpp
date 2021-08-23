@@ -751,6 +751,7 @@ void SuperMediaPlayer::RemoveAllCustomHttpHeader()
 // TODO: move to mainService thread
 void SuperMediaPlayer::setSpeed(float speed)
 {
+    speed = max(min(speed, MAX_SPEED), MIN_SPEED);
     MsgParam param;
     MsgSpeedParam speedParam;
     speedParam.speed = speed;
