@@ -94,10 +94,12 @@ namespace Cicada {
 #endif
     private:
 #define MAX_QUEUE_SIZE 4
+#define MAX_INPUT_SIZE 20
+#define MAX_INPUT_DURATION (200 * 1000)
         AudioQueueBufferRef _audioQueueBufferRefArray[MAX_QUEUE_SIZE]{};
         AudioQueueRef _audioQueueRef{nullptr};
         AudioStreamBasicDescription mAudioFormat{};
-        SpscQueue<IAFFrame *> mInPut{10};
+        SpscQueue<IAFFrame *> mInPut{MAX_INPUT_SIZE};
         int64_t mPlayedBufferSize{0};
         uint8_t mBufferAllocatedCount{0};
         bool mNeedFlush{false};

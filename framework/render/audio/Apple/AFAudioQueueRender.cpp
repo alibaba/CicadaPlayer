@@ -348,7 +348,10 @@ int64_t AFAudioQueueRender::device_get_position()
 
 int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
 {
-    if (mNeedFlush || mInPut.write_available() <= 0) {
+    int duration = (frame->getInfo().audio.nb_samples * 1000000) / frame->getInfo().audio.sample_rate;
+    int maxInputCount = min(MAX_INPUT_DURATION / duration, (int) MAX_INPUT_SIZE);
+
+    if (mNeedFlush || mInPut.write_available() <= 0 || mInPut.size() >= maxInputCount) {
         return -EAGAIN;
     }
     if (mStartStatus != AVAudioSessionErrorCodeNone && mPlaying) {
