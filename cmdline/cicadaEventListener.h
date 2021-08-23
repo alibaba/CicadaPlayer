@@ -43,6 +43,8 @@ public:
 
     void onFullScreen(bool full) override;
 
+    void onSpeedReset() override;
+
 protected:
     Cicada::MediaPlayer *mediaPlayer;
     bool paused = false;

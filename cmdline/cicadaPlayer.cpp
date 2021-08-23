@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 
     log_enable_color(1);
     log_set_level(AF_LOG_LEVEL_TRACE, 1);
-    //    setProperty("protected.audio.render.hw.tempo","OFF");
+    setProperty("protected.audio.render.hw.tempo", "OFF");
     //
     //    changeAudioFormat();
 
