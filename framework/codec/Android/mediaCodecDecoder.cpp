@@ -56,7 +56,10 @@ namespace Cicada {
         }
 
         if (atoi(version.c_str()) < 21) {
-            if (flags & DECFLAG_ADAPTIVE || codec == AF_CODEC_ID_HEVC || maxSize > 1920) {
+            if (flags & DECFLAG_ADAPTIVE || codec == AF_CODEC_ID_HEVC
+                //maxSize will be judged by the codec. Tianmao box supports large width/height.
+                /*|| maxSize > 1920*/
+            ) {
                 return false;
             }
         }
