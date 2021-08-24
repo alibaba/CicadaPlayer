@@ -51,7 +51,7 @@ index b531a39adc..4835b1e75f 100644
          break;
 +    case FLV_CODECID_HEVC:
 +        par->codec_id = AV_CODEC_ID_HEVC;
-+        vstream->need_parsing = AVSTREAM_PARSE_NONE;
++        vstream->need_parsing = AVSTREAM_PARSE_HEADERS;
 +        ret = 3;     // not 4, reading packet type will consume one byte
 +        break;
      default:
