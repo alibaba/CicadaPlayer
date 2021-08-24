@@ -3471,7 +3471,6 @@ int SuperMediaPlayer::setUpAudioRender(const IAFFrame::audioInfo &info)
 
     if (!mSecretPlayBack) {
         mAVDeviceManager->setAudioRenderingCb(mAudioRenderingCb, mAudioRenderingCbUserData);
-        mAVDeviceManager->setVideoRenderingCb(mVideoRenderingCb, mVideoRenderingCbUserData);
     }
     return 0;
 }
@@ -3488,6 +3487,10 @@ int SuperMediaPlayer::setUpVideoRender(uint64_t flags)
         AF_LOGE("can't create video render\n");
         mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_VIDEO_RENDER_INIT_ERROR, "init video render failed");
         return -EINVAL;
+    }
+
+    if (!mSecretPlayBack) {
+        mAVDeviceManager->setVideoRenderingCb(mVideoRenderingCb, mVideoRenderingCbUserData);
     }
 
     //re set view in case for not set view before
