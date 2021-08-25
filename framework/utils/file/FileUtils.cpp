@@ -27,26 +27,26 @@ namespace Cicada {
 
     static FileUtils a;
 
-    int FileUtils::isDirExist(const char *dir_path)
+    bool FileUtils::isDirExist(const char *dir_path)
     {
         if (dir_path == nullptr) {
-            return -1;
+            return false;
         }
 
         DIR *dir = opendir(dir_path);
 
         if (dir == nullptr) {
-            return -1;
+            return false;
         }
 
         closedir(dir);
-        return FILE_TRUE;
+        return true;
     }
 
-    int FileUtils::isFileExist(const char *file_path)
+    bool FileUtils::isFileExist(const char *file_path)
     {
         if (file_path == nullptr) {
-            return -1;
+            return false;
         }
 
 #ifdef _WIN32
@@ -56,10 +56,10 @@ namespace Cicada {
 
         if (access(file_path, F_OK) != -1) {
 #endif
-            return FILE_TRUE;
+            return true;
         }
 
-        return -1;
+        return false;
     }
 
     int64_t FileUtils::getFileLength(const char *filePath)
@@ -74,16 +74,16 @@ namespace Cicada {
         return ret;
     }
 
-    int FileUtils::touch(const char *fileAbsPath)
+    bool FileUtils::touch(const char *fileAbsPath)
     {
         FILE *file = fopen(fileAbsPath, "ab+");
 
         if (file == nullptr) {
-            return -1;
+            return false;
         }
 
         fclose(file);
-        return FILE_TRUE;
+        return true;
     }
 
     char *FileUtils::path_normalize(const char *path)
@@ -114,25 +114,27 @@ namespace Cicada {
     }
 
     //copy from https://github.com/stephenmathieson/mkdirp.c
-    int FileUtils::mkdirs(const char *path)
+    bool FileUtils::mkdirs(const char *path)
     {
         //1.if already exited.
         if (isDirExist(path) == 0) {
-            return FILE_TRUE;
+            return true;
         }
 
         //2.not created yet.
         char *pathname = nullptr;
         char *parent   = nullptr;
 
-        if (nullptr == path) { return -1; }
+        if (nullptr == path) {
+            return false;
+        }
 
         pathname = path_normalize(path);
 
         if (nullptr == pathname) {
             free(pathname);
             free(parent);
-            return -1;
+            return false;
         }
 
         parent = strdup(pathname);
@@ -140,7 +142,7 @@ namespace Cicada {
         if (nullptr == parent) {
             free(pathname);
             free(parent);
-            return -1;
+            return false;
         }
 
         char *p = parent + strlen(parent);
@@ -155,7 +157,7 @@ namespace Cicada {
         if (p != parent && 0 != mkdirs(parent)) {
             free(pathname);
             free(parent);
-            return -1;
+            return false;
         }
 
         free(parent);
@@ -168,12 +170,10 @@ namespace Cicada {
         int rc = mkdir(pathname, 511);
 #endif
         free(pathname);
-        return 0 == rc || EEXIST == errno
-               ? FILE_TRUE
-               : -1;
+        return 0 == rc || EEXIST == errno;
     }
 
-    int FileUtils::rmrf(const char *targetPath)
+    bool FileUtils::rmrf(const char *targetPath)
     {
         if (isDirExist(targetPath) == 0) {
             DIR           *dir;
@@ -182,7 +182,7 @@ namespace Cicada {
             dir = opendir(targetPath);
 
             if (dir == nullptr) {
-                return -1;
+                return false;
             }
 
             while ((entry = readdir(dir)) != nullptr) {
@@ -196,11 +196,11 @@ namespace Cicada {
 
             closedir(dir);
             rmdir(targetPath);
-        } else if (isFileExist(targetPath) == FILE_TRUE) {
+        } else if (isFileExist(targetPath)) {
             unlink(targetPath);
         }
 
-        return FILE_TRUE;
+        return true;
     }
 
     int64_t FileUtils::getFileCreateTime(const char *filePath)
@@ -216,10 +216,10 @@ namespace Cicada {
         return (int64_t) buf.st_ctime;
     }
 
-    int FileUtils::Rename(const char *oldName, const char *newName)
+    bool FileUtils::Rename(const char *oldName, const char *newName)
     {
         int ret = rename(oldName, newName);//success == 0;
-        return ret;
+        return ret == 0;
     }
     uint64_t FileUtils::getDirSize(const char *path)
     {

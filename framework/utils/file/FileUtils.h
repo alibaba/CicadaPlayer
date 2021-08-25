@@ -14,7 +14,6 @@
 #define PATH_SEPARATION '/'
 #endif
 
-#define FILE_TRUE 0
 #define UTILS_PATH_MAX 4096
 #include <dirent.h>
 #include <functional>
@@ -23,23 +22,23 @@ namespace Cicada {
 
     class CICADA_CPLUS_EXTERN FileUtils {
     public:
-        static int isFileExist(const char *file_path);
+        static bool isFileExist(const char *file_path);
 
-        static int isDirExist(const char *dirAbsPath);
+        static bool isDirExist(const char *dirAbsPath);
 
         static int64_t getFileLength(const char *filePath);
 
-        static int touch(const char *fileAbsPath);
+        static bool touch(const char *fileAbsPath);
 
-        static int mkdirs(const char *dirAbsPath);
+        static bool mkdirs(const char *dirAbsPath);
 
-        static int rmrf(const char *targetPath);
+        static bool rmrf(const char *targetPath);
 
         static char *path_normalize(const char *path);
 
         static int64_t getFileCreateTime(const char *filePath);
 
-        static int Rename(const char *oldName, const char *newName);
+        static bool Rename(const char *oldName, const char *newName);
 
         static uint64_t getDirSize(const char *path);
 

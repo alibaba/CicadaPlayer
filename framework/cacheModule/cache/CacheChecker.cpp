@@ -47,11 +47,9 @@ CacheRet CacheChecker::checkConfig()
         return CACHE_ERROR_CACHE_DIR_EMPTY;
     }
 
-    if (FileUtils::isDirExist(cacheDir.c_str()) != FILE_TRUE) {
+    if (!FileUtils::isDirExist(cacheDir.c_str())) {
         //create cache dir if not exits.
-        int ret = FileUtils::mkdirs(cacheDir.c_str());
-
-        if (ret == FILE_TRUE) {
+        if (FileUtils::mkdirs(cacheDir.c_str())) {
             return CACHE_SUCCESS;
         } else {
             return CACHE_ERROR_CACHE_DIR_ERROR;
@@ -123,8 +121,8 @@ bool CacheChecker::checkSpaceEnough()
 
         if (leftSpaceIfDeleteFile + mMediaSize < MAX_DIR_SIZE) {
             //remove this , space is enough
-            int ret = FileUtils::rmrf(cacheFileInfo.path.c_str());
-            return (ret == FILE_TRUE);
+            bool ret = FileUtils::rmrf(cacheFileInfo.path.c_str());
+            return ret;
         } else {
             //remove this is NOT enough yet，remove and continue
             int ret = FileUtils::rmrf(cacheFileInfo.path.c_str());
