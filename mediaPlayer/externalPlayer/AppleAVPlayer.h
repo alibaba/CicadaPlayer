@@ -153,13 +153,16 @@ namespace Cicada {
         void SetUpdateViewCB(UpdateViewCB cb, void *userData) override
         {}
 
-        void setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)> &drmCallback) override
+        void setDrmRequestCallback(const std::function<DrmResponseData *(const DrmRequestParam &drmRequestParam)> &drmCallback) override
         {}
 
         float getCurrentDownloadSpeed() override
         {
             return 0;
         }
+
+        void SetUrlHashCB(UrlHashCB cb, void *userData) override
+        {}
 
     public:
         static bool is_supported(const options *opts)

@@ -104,6 +104,8 @@ namespace Cicada {
 
         vector<mediaSegmentListEntry> getSegmentList();
 
+        int64_t getBufferDuration() const;
+
     private:
 
         static const char *hls_id3;

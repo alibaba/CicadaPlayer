@@ -88,6 +88,8 @@ namespace Cicada {
 
         void enableCache(bool enalbe);
 
+        int64_t getBufferDuration() const;
+
         void setPreferAudio(bool preferAudio);
 
     private:

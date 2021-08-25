@@ -40,6 +40,8 @@ namespace Cicada {
 
         virtual void SetUpdateViewCB(UpdateViewCB cb, void *userData) = 0;
 
+        virtual void SetUrlHashCB(UrlHashCB cb, void *userData) = 0;
+
         /*
          *设置显示窗口
          */

@@ -53,7 +53,7 @@ namespace Cicada {
     }
 
     void proxyDataSource::setImpl(readImpl read, seekImpl seek, openImpl open, interruptImpl interrupt, setSegmentListImpl setSegmentList,
-                                  void *arg)
+                                  getBufferDurationImpl getBufferDuration, enableCacheImpl enableCache, void *arg)
     {
         mOpen = open;
         mRead = read;
@@ -61,6 +61,8 @@ namespace Cicada {
         mUserArg = arg;
         mInter = interrupt;
         mSetSegmentList = setSegmentList;
+        mGetBufferDuration = getBufferDuration;
+        mEnableCache = enableCache;
     }
 
     void proxyDataSource::Interrupt(bool interrupt)
@@ -75,5 +77,20 @@ namespace Cicada {
         if (mSetSegmentList) {
             mSetSegmentList(mUserArg, segments);
         }
+    }
+
+    void proxyDataSource::enableCache(const std::string &originUrl, bool enable)
+    {
+        if (mEnableCache) {
+            mEnableCache(mUserArg, originUrl, enable);
+        }
+    }
+
+    int64_t proxyDataSource::getBufferDuration()
+    {
+        if (mGetBufferDuration) {
+            return mGetBufferDuration(mUserArg, 0);
+        }
+        return 0;
     }
 }

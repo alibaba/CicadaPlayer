@@ -610,6 +610,7 @@ namespace Cicada {
         mPdataSource->Set_config(mSourceConfig);
         mPdataSource->Interrupt(mInterrupted);
         mPdataSource->setSegmentList(getSegmentList());
+        mPdataSource->setUrlToUniqueIdCallback(mUrlHashCb, mUrlHashCbUserData);
         if (mPTracker->getStreamType() == STREAM_TYPE_MIXED) {
             mPdataSource->enableCache(url, true);
         } else {
@@ -1594,6 +1595,17 @@ namespace Cicada {
         } else {
             return false;
         }
+    }
+
+    int64_t HLSStream::getBufferDuration() const
+    {
+        if (mExtDataSource) {
+            return mExtDataSource->getBufferDuration();
+        }
+        if (mPdataSource) {
+            return mPdataSource->getBufferDuration();
+        }
+        return 0;
     }
 
     HLSStream::WebVttParser::WebVttParser() = default;

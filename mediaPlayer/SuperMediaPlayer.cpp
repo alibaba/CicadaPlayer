@@ -1322,13 +1322,14 @@ void SuperMediaPlayer::doReadPacket()
             static const int BufferGap = 1000 * 1000;
 
             if ((mSet->maxBufferDuration > 2 * BufferGap) && (cur_buffer_duration > mSet->maxBufferDuration - BufferGap) &&
-                getPlayerBufferDuration(false, true) > 0) {
+                getPlayerBufferDuration(false, true) > mSet->startBufferDuration) {
                 break;
             }
         }
 
         if (cur_buffer_duration > mSet->maxBufferDuration &&
-            getPlayerBufferDuration(false, true) > 0// we need readout the buffer in demuxer when no buffer in player
+            getPlayerBufferDuration(false, true) > mSet->startBufferDuration
+            // we need readout the buffer in demuxer when no buffer in player, player keep at least start buffer duration
         ) {
             mBufferIsFull = true;
             break;
@@ -4202,6 +4203,12 @@ void SuperMediaPlayer::SetUpdateViewCB(UpdateViewCB cb, void *userData)
 {
     mUpdateViewCB = cb;
     mUpdateViewCBUserData = userData;
+}
+
+void SuperMediaPlayer::SetUrlHashCB(UrlHashCB cb, void *userData)
+{
+    mUrlHashCb = cb;
+    mUrlHashCbUserData = userData;
 }
 
 int SuperMediaPlayer::invokeComponent(std::string content)

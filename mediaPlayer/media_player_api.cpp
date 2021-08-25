@@ -96,6 +96,14 @@ void CicadaSetUpdateViewCallback(playerHandle *pHandle, UpdateViewCB cb, void *u
     }
 }
 
+void CicadaSetUrlHashCallback(playerHandle *pHandle, UrlHashCB cb, void *userData)
+{
+    GET_PLAYER;
+    if (player) {
+        player->SetUrlHashCB(cb, userData);
+    }
+}
+
 void CicadaSetComponentCb(playerHandle *pHandle, player_component_type type, void *factory)
 {
     GET_PLAYER;

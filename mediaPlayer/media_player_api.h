@@ -36,6 +36,8 @@ void CicadaSetVideoRenderingCallBack(playerHandle *pHandle, videoRenderingFrameC
 
 void CicadaSetUpdateViewCallback(playerHandle *pHandle, UpdateViewCB cb, void *userData);
 
+void CicadaSetUrlHashCallback(playerHandle *pHandle, UrlHashCB cb, void *userData);
+
 /*
  * set external component callback
  */

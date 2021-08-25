@@ -22,7 +22,7 @@ FileCntl::FileCntl(string filePath)
 
 FileCntl::~FileCntl()
 {
-    if (mFd > 0) {
+    if (mFd >= 0) {
         closeFile();
     }
 }
@@ -42,6 +42,21 @@ int FileCntl::openFile(int flags)
     }
     return -errno;
 }
+
+void FileCntl::openFileForOverWrite()
+{
+    openFile(O_WRONLY | O_CREAT | O_TRUNC);
+}
+
+void FileCntl::truncateFile(int length)
+{
+#ifdef _WIN32
+    _chsize_s(mFd, length);
+#else
+    ftruncate(mFd, length);
+#endif
+}
+
 
 int64_t FileCntl::seekFile(int64_t offset, int whence)
 {
@@ -74,3 +89,10 @@ void FileCntl::closeFile()
         mFd = -1;
     }
 }
+
+bool FileCntl::isValid()
+{
+    return mFd >= 0;
+}
+
+

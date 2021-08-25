@@ -99,7 +99,9 @@ namespace Cicada{
             return true;
         }
 
-        vector<mediaSegmentListEntry> getSegmentList(int index) override;
+        int64_t getBufferDuration(int index) const override;
+
+        void setUrlToUniqueIdCallback(UrlHashCB cb, void *userData) override;
 
     private:
         explicit playList_demuxer(int dummy) : IDemuxer("")
@@ -134,6 +136,8 @@ namespace Cicada{
         proxyDataSource *mProxySource = nullptr;
 
         int64_t mFirstSeekPos = INT64_MIN;
+        UrlHashCB mUrlHashCb{nullptr};
+        void *mUrlHashCbUserData{nullptr};
     };
 }
 

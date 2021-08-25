@@ -13,7 +13,7 @@
 #include <base/OptionOwner.h>
 #include <demuxer/demuxer_service.h>
 
-namespace Cicada{
+namespace Cicada {
     class AbstractStream : public OptionOwner {
     public:
         AbstractStream();
@@ -73,13 +73,21 @@ namespace Cicada{
             mMergerAudioHeader = aMergeHeader;
         }
 
+        virtual void setUrlToUniqueIdCallback(UrlHashCB cb, void *userData)
+        {
+            mUrlHashCb = cb;
+            mUrlHashCbUserData = userData;
+        }
+
     protected:
         IDataSource *mExtDataSource = nullptr;
         IDataSource::SourceConfig mSourceConfig{};
         header_type mMergeVideoHeader = header_type::header_type_no_touch;
         header_type mMergerAudioHeader = header_type::header_type_no_touch;
+        UrlHashCB mUrlHashCb{nullptr};
+        void *mUrlHashCbUserData{nullptr};
     };
-}
+}// namespace Cicada
 
 
-#endif //FRAMEWORK_ABSTRACTSTREAM_H
+#endif//FRAMEWORK_ABSTRACTSTREAM_H

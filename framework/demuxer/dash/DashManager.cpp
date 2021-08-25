@@ -70,6 +70,7 @@ int DashManager::init()
                 info->mPStream->setOptions(mOpts);
                 info->mPStream->setDataSourceConfig(mSourceConfig);
                 info->mPStream->setBitStreamFormat(mMergeVideoHeader, mMergerAudioHeader);
+                info->mPStream->setUrlToUniqueIdCallback(mUrlHashCb, mUrlHashCbUserData);
                 mStreamInfoList.push_back(info);
             }
         }
@@ -610,14 +611,17 @@ int64_t DashManager::getTargetDuration()
     return mPList->maxSegmentDuration;
 }
 
-vector<mediaSegmentListEntry> DashManager::getSegmentList(int index)
+int64_t DashManager::getBufferDuration(int index) const
 {
+    if (mMuxedStream) {
+        return mMuxedStream->getBufferDuration();
+    }
     for (auto &i : mStreamInfoList) {
         if (i->mPStream->getId() == index) {
-            return i->mPStream->getSegmentList();
+            return i->mPStream->getBufferDuration();
         }
     }
-    return {};
+    return 0;
 }
 
 std::list<AdaptationSet *> DashManager::FindSuitableAdaptationSets(Period* period)

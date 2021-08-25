@@ -58,6 +58,7 @@ namespace Cicada {
                     info->mPStream->setOptions(mOpts);
                     info->mPStream->setDataSourceConfig(mSourceConfig);
                     info->mPStream->setBitStreamFormat(mMergeVideoHeader, mMergerAudioHeader);
+                    info->mPStream->setUrlToUniqueIdCallback(mUrlHashCb, mUrlHashCbUserData);
                     mStreamInfoList.push_back(info);
                 }
             }
@@ -600,16 +601,17 @@ namespace Cicada {
         return targetDuration;
     }
 
-    vector<mediaSegmentListEntry> HLSManager::getSegmentList(int index)
+    int64_t HLSManager::getBufferDuration(int index) const
     {
         if (mMuxedStream) {
-            return mMuxedStream->getSegmentList();
+            return mMuxedStream->getBufferDuration();
         }
         for (auto &i : mStreamInfoList) {
             if (i->mPStream->getId() == index) {
-                return i->mPStream->getSegmentList();
+                return i->mPStream->getBufferDuration();
             }
         }
-        return {};
+        return 0;
     }
+
 }

@@ -44,6 +44,8 @@ namespace Cicada {
     } client_buffer_level;
 
     typedef void (*demuxer_callback_setSegmentList)(void *arg, const std::vector<Cicada::mediaSegmentListEntry> &segments);
+    typedef int64_t (*demuxer_callback_getBufferDuration)(void *arg, int index);
+    typedef void (*demuxer_callback_enableCache)(void *arg, const std::string &originUrl, bool enable);
 
     class CICADA_CPLUS_EXTERN IDemuxer : public OptionOwner, public IDCA, public IMediaInfoProvider {
     public:
@@ -83,7 +85,8 @@ namespace Cicada {
         ~IDemuxer() override;
 
         void SetDataCallBack(demuxer_callback_read read, demuxer_callback_seek seek, demuxer_callback_open open,
-                             demuxer_callback_interrupt_data inter, demuxer_callback_setSegmentList setSegmentList, void *arg);
+                             demuxer_callback_interrupt_data inter, demuxer_callback_setSegmentList setSegmentList,
+                             demuxer_callback_getBufferDuration getBufferDuration, demuxer_callback_enableCache enableCache, void *arg);
 
         void setMeta(DemuxerMetaInfo *metaInfo)
         {
@@ -243,6 +246,9 @@ namespace Cicada {
             return mEntryInfos;
         }
 
+        virtual void setUrlToUniqueIdCallback(UrlHashCB cb, void *userData)
+        {}
+
         virtual UTCTimer *getUTCTimer()
         {
             return nullptr;
@@ -256,12 +262,7 @@ namespace Cicada {
 
         int64_t estimatePlayTimeMicSec(const string &url, int64_t filePosition, int64_t totalLength) override;
 
-        int allowDataCache(const string &url) override;
-
-        virtual vector<mediaSegmentListEntry> getSegmentList(int index) override
-        {
-            return {};
-        }
+        std::pair<int64_t, int64_t> estimatePlayTimeMicSecRange(const pair<int64_t, int64_t> &fileRange) override;
 
     protected:
         demuxer_callback_read mReadCb{nullptr};
@@ -269,6 +270,8 @@ namespace Cicada {
         demuxer_callback_open mOpenCb{nullptr};
         demuxer_callback_interrupt_data mInterruptCb{nullptr};
         demuxer_callback_setSegmentList mSetSegmentList{nullptr};
+        demuxer_callback_getBufferDuration mGetBufferDuration{nullptr};
+        demuxer_callback_enableCache mEnableCache{nullptr};
         void *mUserArg{nullptr};
         std::function<void(std::string, std::string)> mDemuxerCbfunc;
         string mPath{};

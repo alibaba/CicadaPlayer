@@ -138,6 +138,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
 #else
         mPlayer.mDemuxerService->getDemuxerHandle()->setBitStreamFormat(header_type::header_type_merge, header_type::header_type_merge);
 #endif
+        mPlayer.mDemuxerService->getDemuxerHandle()->setUrlToUniqueIdCallback(mPlayer.mUrlHashCb, mPlayer.mUrlHashCbUserData);
         if (noFile) {
             IDataSource::SourceConfig config;
             mPlayer.mDataSource->Get_config(config);
@@ -889,6 +890,7 @@ int SMPMessageControllerListener::openUrl()
     }
 
     if (mPlayer.mDataSource) {
+        mPlayer.mDataSource->setUrlToUniqueIdCallback(mPlayer.mUrlHashCb, mPlayer.mUrlHashCbUserData);
         mPlayer.mDataSource->Set_config(config);
         int ret = mPlayer.mDataSource->Open(0);
         return ret;

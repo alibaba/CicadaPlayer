@@ -30,11 +30,16 @@ public:
         return openFile(O_WRONLY | O_CREAT);
     }
 
+    void openFileForOverWrite();
+
+    void truncateFile(int length);
+
     int writeFile(uint8_t *buf, int size);
     int readFile(uint8_t *buf, int size);
     int64_t seekFile(int64_t offset, int whence);
 
     void closeFile();
+    bool isValid();
 
 private:
     string mFilePath;

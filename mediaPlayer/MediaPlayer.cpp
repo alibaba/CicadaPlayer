@@ -1241,6 +1241,12 @@ namespace Cicada {
         CicadaSetUpdateViewCallback(handle, cb, userData);
     }
 
+    void MediaPlayer::SetUrlHashCallback(UrlHashCB cb, void *userData)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaSetUrlHashCallback(handle, cb, userData);
+    }
+
     void MediaPlayer::SetStreamTypeFlags(uint64_t flags)
     {
         GET_PLAYER_HANDLE;

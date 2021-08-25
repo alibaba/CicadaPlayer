@@ -9,11 +9,7 @@
 #include <cstdint>
 #include <string>
 
-#ifdef _WIN32
-#define PATH_SEPARATION '\\'
-#else
 #define PATH_SEPARATION '/'
-#endif
 
 #define UTILS_PATH_MAX 4096
 #include <dirent.h>
@@ -28,6 +24,8 @@ namespace Cicada {
         static bool isDirExist(const char *dirAbsPath);
 
         static int64_t getFileLength(const char *filePath);
+
+        static long getFileTime(const char *filePath, int64_t &mtimeSec, int64_t &atimeSec);
 
         static bool touch(const char *fileAbsPath);
 
@@ -44,6 +42,8 @@ namespace Cicada {
         static uint64_t getDirSize(const char *path);
 
         static void forEachDir(const char *path, const std::function<void(struct dirent *entry)> &);
+
+        static bool getDiskSpaceInfo(const char *path, uint64_t &availableBytes, uint64_t &totalBytes);
 
         static inline bool isExist(const std::string &path)
         {

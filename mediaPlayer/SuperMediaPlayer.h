@@ -104,6 +104,8 @@ namespace Cicada {
 
         void SetUpdateViewCB(UpdateViewCB cb, void *userData) override;
 
+        void SetUrlHashCB(UrlHashCB cb, void *userData) override;
+
         // TODO: use setParameters and setOpt to set
         void SetRefer(const char *refer) override;
 
@@ -575,6 +577,9 @@ namespace Cicada {
 
         videoRenderingFrameCB mVideoRenderingCb{nullptr};
         void *mVideoRenderingCbUserData{nullptr};
+
+        UrlHashCB mUrlHashCb{nullptr};
+        void *mUrlHashCbUserData{nullptr};
 
         bool mIsDummy{false};
         readCB mBSReadCb = nullptr;

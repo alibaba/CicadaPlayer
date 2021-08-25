@@ -881,4 +881,13 @@ namespace Cicada {
         //        }
         return mEntryInfos;
     }
+
+    int64_t avFormatDemuxer::getBufferDuration(int index) const
+    {
+        if (mGetBufferDuration) {
+            return mGetBufferDuration(mUserArg, 0);
+        }
+        return 0;
+    }
+
 }

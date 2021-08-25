@@ -85,6 +85,8 @@ namespace Cicada {
 
         const vector<streamIndexEntryInfo> &getStreamIndexEntryInfo() override;
 
+        int64_t getBufferDuration(int index)  const override;
+
     protected:
         explicit avFormatDemuxer(int dummy);
 

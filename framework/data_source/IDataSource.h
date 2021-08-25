@@ -30,12 +30,10 @@ namespace Cicada {
     public:
         virtual int64_t estimateExclusiveEndPositionBytes(const std::string &url, int64_t timeMicSec, int64_t totalLength) = 0;
         virtual int64_t estimatePlayTimeMicSec(const std::string &url, int64_t filePosition, int64_t totalLength) = 0;
-        /**
-         * @return -1 unkown, 1 allow, 0 disallow
-         */
-        virtual int allowDataCache(const std::string &url) = 0;
-        virtual std::vector<mediaSegmentListEntry> getSegmentList(int index) = 0;
+        virtual std::pair<int64_t, int64_t> estimatePlayTimeMicSecRange(const std::pair<int64_t, int64_t> &fileRange) = 0;
     };
+
+    typedef std::string (*UrlHashCB)(const char *, void *userData);
 
     class IDataSource : public OptionOwner {
     public:
@@ -155,6 +153,13 @@ namespace Cicada {
             return 0;
         }
 
+        virtual int64_t getBufferDuration()
+        {
+            return 0;
+        }
+
+        virtual void setUrlToUniqueIdCallback(UrlHashCB onUrlHash, void *userData)
+        {}
 
     protected:
         std::atomic_bool mInterrupt{false};

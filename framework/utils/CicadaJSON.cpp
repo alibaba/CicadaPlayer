@@ -170,6 +170,23 @@ CicadaJSONItem CicadaJSONItem::getItem(const std::string &name) const
     return CicadaJSONItem();
 }
 
+CicadaJSONArray CicadaJSONItem::getArray(const std::string& name) const
+{
+    if (nullptr == mJSON) {
+        return CicadaJSONArray();
+    }
+
+    if (cJSON_HasObjectItem(mJSON, name.c_str())) {
+        cJSON *json = cJSON_GetObjectItem(mJSON, name.c_str());
+
+        if (json != nullptr) {
+            return CicadaJSONArray(json);
+        }
+    }
+
+    return CicadaJSONArray();
+}
+
 bool CicadaJSONItem::hasItem(const std::string &name) const
 {
     if (nullptr == mJSON) {
@@ -275,9 +292,15 @@ CicadaJSONArray::CicadaJSONArray(CicadaJSONItem jsonItem)
     mArray = jsonItem.getJSONCopy();
 }
 
+CicadaJSONArray::CicadaJSONArray(cJSON *JSONOutSide)
+{
+    mArray = JSONOutSide;
+    mShouldRelease = false;
+}
+
 CicadaJSONArray::~CicadaJSONArray()
 {
-    if (mArray) {
+    if (mArray && mShouldRelease) {
         cJSON_Delete(mArray);
     }
 
@@ -407,4 +430,3 @@ std::string CicadaJSONArray::printJSON() const
     std::lock_guard<std::mutex> lock(mMutex);
     return PrintJson(mArray);
 }
-

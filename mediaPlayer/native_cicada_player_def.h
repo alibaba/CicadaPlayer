@@ -193,6 +193,8 @@ typedef bool (*onRenderFrame)(void *userData, IAFFrame *frame);
 
 typedef bool (*UpdateViewCB)(int videoType, void *userData);
 
+typedef std::string (*UrlHashCB)(const char *url, void *userData);
+
 class ErrorConverter {
 public:
     virtual int ConvertErrorCode(int code, int &outCode, std::string &outStr) = 0;

@@ -74,7 +74,13 @@ namespace Cicada{
 
         virtual int64_t getTargetDuration() = 0;
 
-        virtual vector<mediaSegmentListEntry> getSegmentList(int index) = 0;
+        virtual int64_t getBufferDuration(int index) const = 0;
+
+        virtual void setUrlToUniqueIdCallback(UrlHashCB cb, void *userData)
+        {
+            mUrlHashCb = cb;
+            mUrlHashCbUserData = userData;
+        }
 
         virtual UTCTimer *getUTCTimer()
         {
@@ -92,6 +98,8 @@ namespace Cicada{
         IDataSource::SourceConfig mSourceConfig{};
         header_type mMergeVideoHeader = header_type::header_type_no_touch;
         header_type mMergerAudioHeader = header_type::header_type_no_touch;
+        UrlHashCB mUrlHashCb{nullptr};
+        void *mUrlHashCbUserData{nullptr};
     };
 }
 

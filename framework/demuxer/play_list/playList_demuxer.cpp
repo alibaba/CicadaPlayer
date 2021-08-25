@@ -41,7 +41,7 @@ namespace Cicada {
         }
 
         mProxySource = new proxyDataSource();
-        mProxySource->setImpl(mReadCb, mSeekCb, mOpenCb, mInterruptCb, mSetSegmentList, mUserArg);
+        mProxySource->setImpl(mReadCb, mSeekCb, mOpenCb, mInterruptCb, mSetSegmentList, mGetBufferDuration, mEnableCache, mUserArg);
         mProxySource->setOptions(mOpts);
         PlaylistManager *playlistManager = nullptr;
         mParser->SetDataCallBack(mReadCb, mSeekCb, mUserArg);
@@ -67,6 +67,7 @@ namespace Cicada {
         playlistManager->setExtDataSource(mProxySource);
         playlistManager->setDataSourceConfig(sourceConfig);
         playlistManager->setBitStreamFormat(mMergeVideoHeader, mMergeAudioHeader);
+        playlistManager->setUrlToUniqueIdCallback(mUrlHashCb, mUrlHashCbUserData);
         mPPlaylistManager = playlistManager;
         ret = playlistManager->init();
 
@@ -240,14 +241,6 @@ namespace Cicada {
         return INT64_MIN;
     }
 
-    vector<mediaSegmentListEntry> playList_demuxer::getSegmentList(int index)
-    {
-        if (mPPlaylistManager) {
-            return mPPlaylistManager->getSegmentList(index);
-        }
-        return {};
-    }
-
     bool playList_demuxer::is_supported(const string &uri, const uint8_t *buffer, int64_t size, int *type, const Cicada::DemuxerMeta *meta,
                                         const Cicada::options *opts)
     {
@@ -263,6 +256,20 @@ namespace Cicada {
             return true;
         }
         return false;
+    }
+
+    int64_t playList_demuxer::getBufferDuration(int index) const
+    {
+        if (mPPlaylistManager) {
+            return mPPlaylistManager->getBufferDuration(index);
+        }
+        return 0;
+    }
+
+    void playList_demuxer::setUrlToUniqueIdCallback(UrlHashCB cb, void *userData)
+    {
+        mUrlHashCb = cb;
+        mUrlHashCbUserData = userData;
     }
     UTCTimer *playList_demuxer::getUTCTimer()
     {

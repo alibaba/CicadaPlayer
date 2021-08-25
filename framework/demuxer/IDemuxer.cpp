@@ -22,7 +22,9 @@ namespace Cicada {
     }
 
     void IDemuxer::SetDataCallBack(demuxer_callback_read read, demuxer_callback_seek seek, demuxer_callback_open open,
-                                   demuxer_callback_interrupt_data inter, demuxer_callback_setSegmentList setSegmentList, void *arg)
+                                   demuxer_callback_interrupt_data inter, demuxer_callback_setSegmentList setSegmentList,
+                                   demuxer_callback_getBufferDuration getBufferDuration, demuxer_callback_enableCache enableCache,
+                                   void *arg)
     {
         mReadCb = read;
         mUserArg = arg;
@@ -30,6 +32,8 @@ namespace Cicada {
         mOpenCb = open;
         mInterruptCb = inter;
         mSetSegmentList = setSegmentList;
+        mGetBufferDuration = getBufferDuration;
+        mEnableCache = enableCache;
     }
 
     int IDemuxer::GetStreamMeta(unique_ptr<streamMeta> &meta, int index, bool sub) const
@@ -93,12 +97,13 @@ namespace Cicada {
             return -1;
         }
 
-        int64_t durationMills = infoList[0].mDuration;
+        int64_t durationMicSec = infoList[0].mDuration;
         if (totalLength > 0 && filePosition >= totalLength) {
-            return durationMills > 0 ? durationMills : -1;
+            return durationMicSec > 0 ? durationMicSec : -1;
         }
 
         const streamIndexEntryInfo::entryInfo tmpEntry(filePosition, 0, false, false, 0);
+        auto compFunc = [](const decltype(tmpEntry) &l, const decltype(tmpEntry) &r) { return l.mPos < r.mPos; };
 
         for (const auto &info : infoList) {
             const auto &entryList = info.mEntry;
@@ -107,8 +112,7 @@ namespace Cicada {
                 continue;
             }
 
-            auto it = std::upper_bound(entryList.begin(), entryList.end(), tmpEntry,
-                                       [](const decltype(tmpEntry) &l, const decltype(tmpEntry) &r) { return l.mPos < r.mPos; });
+            auto it = std::upper_bound(entryList.begin(), entryList.end(), tmpEntry, compFunc);
 
             //TODO: we need to update the entryList during demuxing process. eg. flv mkv will update the entryList when demuxing
             if (it != entryList.begin()) {
@@ -121,12 +125,53 @@ namespace Cicada {
             }
         }
 
-        return -1;
+        return 0;   //NOT in any entry, regard it as meta info, return 0
     }
 
-    int IDemuxer::allowDataCache(const string &url)
+    std::pair<int64_t, int64_t> IDemuxer::estimatePlayTimeMicSecRange(const pair<int64_t, int64_t> &fileRange)
     {
-        //TODO:
-        return -1;
-    };
+        int64_t rangeStart = 0, rangeEnd = 0;
+
+        const auto &infoList = getStreamIndexEntryInfo();
+
+        if (!infoList.empty()) {
+            int64_t duration = infoList[0].mDuration;
+            rangeEnd = duration;
+
+            const streamIndexEntryInfo::entryInfo tmpEntryStart(fileRange.first, 0, false, false, 0);
+            const streamIndexEntryInfo::entryInfo tmpEntryEnd(fileRange.second, 0, false, false, 0);
+
+            auto compFun = [](const decltype(tmpEntryStart) &l, const decltype(tmpEntryStart) &r) { return l.mPos < r.mPos; };
+
+            for (const auto &info : infoList) {
+                const auto &entryList = info.mEntry;
+
+                if (entryList.empty()) {
+                    continue;
+                }
+
+
+                auto leftMaxIt = std::lower_bound(entryList.begin(), entryList.end(), tmpEntryStart, compFun);
+
+                if (leftMaxIt == entryList.end()) { //no more entry, no valid range
+                    rangeStart = duration;
+                    break;
+                }
+                rangeStart = std::max(rangeStart, leftMaxIt->mTimestamp);
+
+                auto rightMinIt = std::upper_bound(entryList.begin(), entryList.end(), tmpEntryEnd, compFun);
+                if (rightMinIt == entryList.begin()) { //no entry left to this pos, no valid range
+                    rangeEnd = 0;
+                    break;
+                }
+                rightMinIt--;
+
+                rangeEnd = std::min(rangeEnd, rightMinIt->mTimestamp);
+            }
+
+        }
+
+        return pair<int64_t, int64_t>(rangeStart, rangeEnd);
+    }
+
 }

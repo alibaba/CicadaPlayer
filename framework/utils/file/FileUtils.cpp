@@ -9,6 +9,11 @@
 #include <process.h>
 #else
 #include <unistd.h>
+#ifdef __APPLE__
+#include <sys/mount.h>
+#else
+#include <sys/vfs.h>
+#endif
 #endif
 #include "FileUtils.h"
 #include <cstdio>
@@ -64,11 +69,31 @@ namespace Cicada {
 
     int64_t FileUtils::getFileLength(const char *filePath)
     {
-        struct stat fileStat {};
-        int64_t       ret = stat(filePath, &fileStat);
+        struct stat fileStat {
+        };
+        int64_t ret = stat(filePath, &fileStat);
 
         if (ret == 0) {
             return (int64_t) fileStat.st_size;
+        }
+
+        return ret;
+    }
+
+    long FileUtils::getFileTime(const char *filePath, int64_t &mtimeSec, int64_t &atimeSec)
+    {
+        struct stat fileStat {
+        };
+        int64_t ret = stat(filePath, &fileStat);
+
+        if (ret == 0) {
+#ifdef _WIN32
+            mtimeSec = fileStat.st_mtime;
+            atimeSec = fileStat.st_atime;
+#else
+            mtimeSec = fileStat.st_mtimespec.tv_sec;
+            atimeSec = fileStat.st_atimespec.tv_sec;
+#endif
         }
 
         return ret;
@@ -234,7 +259,15 @@ namespace Cicada {
         dirPath += PATH_SEPARATION;
         while ((entry = readdir(dir)) != nullptr) {
             string filePath = dirPath + entry->d_name;
-            size += getFileLength(filePath.c_str());
+            string name(entry->d_name);
+            if (entry->d_type == DT_DIR) {
+                if (name == "." || name == "..") {
+                    continue;
+                }
+                size += getDirSize(filePath.c_str());
+            } else {
+                size += getFileLength(filePath.c_str());
+            }
         }
         closedir(dir);
         return size;
@@ -251,6 +284,28 @@ namespace Cicada {
             func(entry);
         }
         closedir(dir);
+    }
+
+    bool FileUtils::getDiskSpaceInfo(const char *path, uint64_t &availableBytes, uint64_t &totalBytes)
+    {
+        bool ret = false;
+#ifdef _WIN32
+        ULARGE_INTEGER liFreeBytesAvailable, liTotalBytes, liTotalFreeBytes;
+        ret = GetDiskFreeSpaceEx(path, &liFreeBytesAvailable, &liTotalBytes, &liTotalFreeBytes);
+        if (ret) {
+            availableBytes = liFreeBytesAvailable.QuadPart;
+            totalBytes = liTotalBytes.QuadPart;
+        }
+#else
+        struct statfs buf;
+        int sfRet = statfs(path, &buf);
+        ret = sfRet == 0;
+        if (ret) {
+            availableBytes = buf.f_bavail * buf.f_bsize;
+            totalBytes = buf.f_blocks * buf.f_bsize;
+        }
+#endif
+        return ret;
     }
     static bool pathIsStatus(const char *path, int flag)
     {
@@ -274,4 +329,4 @@ namespace Cicada {
     {
         return pathIsStatus(path.c_str(), S_IFREG);
     }
-}
+}// namespace Cicada

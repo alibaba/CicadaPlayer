@@ -76,6 +76,10 @@ namespace Cicada {
 
         static void setSegmentList_callback(void *arg, const std::vector<mediaSegmentListEntry> &segments);
 
+        static int64_t getBufferDuration_callback(void *arg, int index);
+
+        static void enableCache_callback(void *arg, const std::string &originUrl, bool enable);
+
         std::string GetProperty(int index, const std::string &key);
 
         int SetOption(const std::string &key, int64_t value);

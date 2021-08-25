@@ -209,6 +209,17 @@ void DashStream::enableCache(bool enalbe)
     mEnableCache = enalbe;
 }
 
+int64_t DashStream::getBufferDuration() const
+{
+    if (mExtDataSource) {
+        return mExtDataSource->getBufferDuration();
+    }
+    if (mPdataSource) {
+        return mPdataSource->getBufferDuration();
+    }
+    return 0;
+}
+
 static inline uint64_t getSize(const uint8_t *data, unsigned int len, unsigned int shift)
 {
     uint64_t size(0);
@@ -487,6 +498,7 @@ void DashStream::recreateSource(const string &url)
     mPdataSource->Set_config(mSourceConfig);
     mPdataSource->Interrupt(mInterrupted);
     mPdataSource->setSegmentList(getSegmentList());
+    mPdataSource->setUrlToUniqueIdCallback(mUrlHashCb, mUrlHashCbUserData);
     mPdataSource->enableCache(url, mEnableCache);
 }
 

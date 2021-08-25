@@ -64,7 +64,7 @@ namespace Cicada {
 
         int64_t getTargetDuration() override;
 
-        vector<mediaSegmentListEntry> getSegmentList(int index) override;
+        int64_t getBufferDuration(int index) const override;
 
         UTCTimer *getUTCTimer() override;
 
