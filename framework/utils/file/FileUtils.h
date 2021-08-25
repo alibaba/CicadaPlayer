@@ -8,18 +8,20 @@
 #include "utils/CicadaType.h"
 
 #ifdef _WIN32
-#define PATH_SEPARATION   '\\'
+#define PATH_SEPARATION '\\'
 #else
-#define PATH_SEPARATION   '/'
+#define PATH_SEPARATION '/'
 #endif
 
 #define FILE_TRUE 0
 #define UTILS_PATH_MAX 4096
+#include <dirent.h>
+#include <functional>
 
 namespace Cicada {
 
     class CICADA_CPLUS_EXTERN FileUtils {
-        public:
+    public:
         static int isFileExist(const char *file_path);
 
         static int isDirExist(const char *dirAbsPath);
@@ -32,12 +34,16 @@ namespace Cicada {
 
         static int rmrf(const char *targetPath);
 
-        static char * path_normalize(const char *path);
+        static char *path_normalize(const char *path);
 
-        static long getFileCreateTime(const char* filePath);
+        static long getFileCreateTime(const char *filePath);
 
-        static int Rename(const char* oldName, const char* newName);
+        static int Rename(const char *oldName, const char *newName);
+
+        static uint64_t getDirSize(const char *path);
+
+        static void forEachDir(const char *path, const std::function<void(struct dirent *entry)> &);
     };
-}
+}// namespace Cicada
 
-#endif //CICADA_FILEUTILS_H
+#endif//CICADA_FILEUTILS_H

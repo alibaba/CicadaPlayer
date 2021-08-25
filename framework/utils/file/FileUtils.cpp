@@ -10,17 +10,18 @@
 #else
     #include <unistd.h>
 #endif
-#include <sys/stat.h>
-#include <dirent.h>
-#include <cstdio>
 #include "FileUtils.h"
+#include <cstdio>
 #include <cstdlib>
 #include <ctime>
 #include <stdint.h>
+#include <string>
+#include <sys/stat.h>
 
 extern "C" {
 #include <cerrno>
 }
+using namespace std;
 
 namespace Cicada {
 
@@ -219,5 +220,36 @@ namespace Cicada {
     {
         int ret = rename(oldName, newName);//success == 0;
         return ret;
+    }
+    uint64_t FileUtils::getDirSize(const char *path)
+    {
+        uint64_t size = 0;
+        DIR *dir;
+        struct dirent *entry;
+        dir = opendir(path);
+        if (dir == nullptr) {
+            return 0;
+        }
+        string dirPath = path;
+        dirPath += PATH_SEPARATION;
+        while ((entry = readdir(dir)) != nullptr) {
+            string filePath = dirPath + entry->d_name;
+            size += getFileLength(filePath.c_str());
+        }
+        closedir(dir);
+        return size;
+    }
+    void FileUtils::forEachDir(const char *path, const function<void(struct dirent *)> &func)
+    {
+        DIR *dir;
+        struct dirent *entry;
+        dir = opendir(path);
+        if (dir == nullptr) {
+            return;
+        }
+        while ((entry = readdir(dir)) != nullptr) {
+            func(entry);
+        }
+        closedir(dir);
     }
 }
