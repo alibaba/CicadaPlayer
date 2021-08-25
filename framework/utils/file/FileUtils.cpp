@@ -62,13 +62,13 @@ namespace Cicada {
         return -1;
     }
 
-    long FileUtils::getFileLength(const char *filePath)
+    int64_t FileUtils::getFileLength(const char *filePath)
     {
         struct stat fileStat {};
         int64_t       ret = stat(filePath, &fileStat);
 
         if (ret == 0) {
-            return fileStat.st_size;
+            return (int64_t) fileStat.st_size;
         }
 
         return ret;
@@ -203,7 +203,7 @@ namespace Cicada {
         return FILE_TRUE;
     }
 
-    long FileUtils::getFileCreateTime(const char *filePath)
+    int64_t FileUtils::getFileCreateTime(const char *filePath)
     {
         struct stat buf {};
         int         result;
@@ -213,7 +213,7 @@ namespace Cicada {
             return -1;
         }
 
-        return buf.st_ctime;
+        return (int64_t) buf.st_ctime;
     }
 
     int FileUtils::Rename(const char *oldName, const char *newName)

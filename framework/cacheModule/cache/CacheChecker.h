@@ -14,8 +14,8 @@
 class CacheFileInfo {
 public:
     string path;
-    long   length;
-    long   createTime;
+    int64_t length;
+    int64_t createTime;
 };
 
 class CacheChecker {

@@ -6,6 +6,7 @@
 #define CICADA_FILEUTILS_H
 
 #include "utils/CicadaType.h"
+#include <stdint.h>
 
 #ifdef _WIN32
 #define PATH_SEPARATION '\\'
@@ -26,7 +27,7 @@ namespace Cicada {
 
         static int isDirExist(const char *dirAbsPath);
 
-        static long getFileLength(const char *filePath);
+        static int64_t getFileLength(const char *filePath);
 
         static int touch(const char *fileAbsPath);
 
@@ -36,7 +37,7 @@ namespace Cicada {
 
         static char *path_normalize(const char *path);
 
-        static long getFileCreateTime(const char *filePath);
+        static int64_t getFileCreateTime(const char *filePath);
 
         static int Rename(const char *oldName, const char *newName);
 
