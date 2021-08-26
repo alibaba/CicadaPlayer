@@ -47,7 +47,15 @@ int64_t FileCntl::seekFile(int64_t offset, int whence)
 
 int FileCntl::writeFile(uint8_t *buf, int size)
 {
-    int writeSize = write(mFd, buf, size);
+    int writeSize = 0;
+    do {
+        size_t ret = write(mFd, buf + writeSize, size - writeSize);
+        if (ret < 0) {
+            return -errno;
+        }
+        assert(ret != 0);
+        writeSize += (int) ret;
+    } while (writeSize < size);
     return writeSize;
 }
 
