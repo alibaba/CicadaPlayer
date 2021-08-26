@@ -6,7 +6,8 @@
 #define CICADA_FILEUTILS_H
 
 #include "utils/CicadaType.h"
-#include <stdint.h>
+#include <cstdint>
+#include <string>
 
 #ifdef _WIN32
 #define PATH_SEPARATION '\\'
@@ -43,6 +44,15 @@ namespace Cicada {
         static uint64_t getDirSize(const char *path);
 
         static void forEachDir(const char *path, const std::function<void(struct dirent *entry)> &);
+
+        static inline bool isExist(const std::string &path)
+        {
+            return isFileExist(path.c_str());
+        }
+
+        static bool isDir(const std::string &path);
+
+        static bool isRegularFile(const std::string &path);
     };
 }// namespace Cicada
 

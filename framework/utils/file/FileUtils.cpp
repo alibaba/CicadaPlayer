@@ -252,4 +252,22 @@ namespace Cicada {
         }
         closedir(dir);
     }
+    static bool pathIsStatus(const char *path, int flag)
+    {
+        struct stat buf {
+        };
+        if (lstat(path, &buf) < 0) {
+            return false;
+        }
+        return buf.st_mode & flag;
+    }
+
+    bool FileUtils::isDir(const string &path)
+    {
+        return pathIsStatus(path.c_str(), S_IFDIR);
+    }
+    bool FileUtils::isRegularFile(const string &path)
+    {
+        return pathIsStatus(path.c_str(), S_IFREG);
+    }
 }

@@ -9,11 +9,10 @@
 #else
     #include <unistd.h>
 #endif
-#include <fcntl.h>
 
 FileCntl::FileCntl(string filePath)
 {
-    mFilePath = filePath;
+    mFilePath = std::move(filePath);
 }
 
 FileCntl::~FileCntl()
@@ -23,7 +22,7 @@ FileCntl::~FileCntl()
     }
 }
 
-void FileCntl::openFile(int flags)
+int FileCntl::openFile(int flags)
 {
 #ifdef WIN32// Windows
 #ifdef _MSC_VER
@@ -33,21 +32,10 @@ void FileCntl::openFile(int flags)
 #endif// _MSC_VER
 #endif// WIN32
     mFd = open(mFilePath.c_str(), flags, 0666);
-}
-
-void FileCntl::openFile()
-{
-    openFile(O_RDWR | O_CREAT);
-}
-
-void FileCntl::openFileForRead()
-{
-    openFile(O_RDONLY);
-}
-
-void FileCntl::openFileForWrite()
-{
-    openFile(O_WRONLY | O_CREAT);
+    if (mFd > 0) {
+        return 0;
+    }
+    return -errno;
 }
 
 int64_t FileCntl::seekFile(int64_t offset, int whence)
