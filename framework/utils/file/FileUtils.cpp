@@ -154,7 +154,7 @@ namespace Cicada {
         *p = '\0';
 
         // make parent dir
-        if (p != parent && 0 != mkdirs(parent)) {
+        if (p != parent && !mkdirs(parent)) {
             free(pathname);
             free(parent);
             return false;
