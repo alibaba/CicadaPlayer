@@ -117,7 +117,7 @@ namespace Cicada {
     bool FileUtils::mkdirs(const char *path)
     {
         //1.if already exited.
-        if (isDirExist(path) == 0) {
+        if (isDirExist(path)) {
             return true;
         }
 
@@ -175,7 +175,7 @@ namespace Cicada {
 
     bool FileUtils::rmrf(const char *targetPath)
     {
-        if (isDirExist(targetPath) == 0) {
+        if (isDirExist(targetPath)) {
             DIR           *dir;
             struct dirent *entry;
             char          path[UTILS_PATH_MAX];
