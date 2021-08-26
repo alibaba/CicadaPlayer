@@ -10,6 +10,8 @@
     #include <unistd.h>
 #endif
 
+#include <cerrno>
+
 FileCntl::FileCntl(string filePath)
 {
     mFilePath = std::move(filePath);
@@ -61,5 +63,3 @@ void FileCntl::closeFile()
         mFd = -1;
     }
 }
-
-
