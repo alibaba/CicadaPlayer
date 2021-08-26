@@ -125,7 +125,7 @@ bool CacheChecker::checkSpaceEnough()
             return ret;
         } else {
             //remove this is NOT enough yet，remove and continue
-            int ret = FileUtils::rmrf(cacheFileInfo.path.c_str());
+            bool ret = FileUtils::rmrf(cacheFileInfo.path.c_str());
         }
     }
 

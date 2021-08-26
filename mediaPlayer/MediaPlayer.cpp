@@ -744,7 +744,7 @@ namespace Cicada {
 
                 if (sourceUrl != player->mPlayUrl) {
                     //remove wrong cache file, and try play original url.
-                    if (Cicada::FileUtils::rmrf(player->mPlayUrl.c_str())) {
+                    if (!Cicada::FileUtils::rmrf(player->mPlayUrl.c_str())) {
                         if (player->mListener.ErrorCallback) {
                             player->mListener.ErrorCallback(MEDIA_PLAYER_ERROR_DEMUXER_OPEN_CACHEFILE, errorMsg,
                                                             player->mListener.userData);
