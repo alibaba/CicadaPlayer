@@ -140,6 +140,10 @@ CurlDataSource::~CurlDataSource()
     }
     Interrupt(true);
     Close();
+    if (headerList) {
+        curl_slist_free_all(headerList);
+        headerList = nullptr;
+    }
     AF_LOGI("~!CurlDataSource");
 }
 
