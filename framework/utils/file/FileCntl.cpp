@@ -50,7 +50,7 @@ int FileCntl::writeFile(uint8_t *buf, int size)
 {
     int writeSize = 0;
     do {
-        size_t ret = write(mFd, buf + writeSize, size - writeSize);
+        ssize_t ret = write(mFd, buf + writeSize, size - writeSize);
         if (ret < 0) {
             return -errno;
         }
