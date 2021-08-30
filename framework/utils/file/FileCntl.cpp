@@ -4,10 +4,12 @@
 
 #include "FileCntl.h"
 #ifdef _WIN32
-    #include <io.h>
-    #include <process.h>
+#include <basetsd.h>
+#include <io.h>
+#include <process.h>
+typedef SSIZE_T ssize_t;
 #else
-    #include <unistd.h>
+#include <unistd.h>
 #endif
 
 #include <cassert>

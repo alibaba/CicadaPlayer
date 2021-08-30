@@ -4,11 +4,11 @@
 
 #include <memory.h>
 #ifdef _WIN32
-    #include <io.h>
-    #include <process.h>
-    #include <direct.h>
+#include <direct.h>
+#include <io.h>
+#include <process.h>
 #else
-    #include <unistd.h>
+#include <unistd.h>
 #endif
 #include "FileUtils.h"
 #include <cstdio>
@@ -256,7 +256,11 @@ namespace Cicada {
     {
         struct stat buf {
         };
+#ifdef _WIN32
+        if (stat(path, &buf) < 0) {
+#else
         if (lstat(path, &buf) < 0) {
+#endif
             return false;
         }
         return buf.st_mode & flag;

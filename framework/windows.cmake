@@ -32,6 +32,7 @@ if (MSVC)
   find_package(LibXml2 REQUIRED)
   link_libraries(${LIBXML2_LIBRARIES})
   include_directories(${LIBXML2_INCLUDE_DIR})
+  add_definitions(-DNOMINMAX)
 else ()
   set(COMMON_LIB_DIR ${COMMON_LIB_DIR}
         ${WINDOWS_INSTALL_DIR}/curl/win32/${ARCH}/lib
