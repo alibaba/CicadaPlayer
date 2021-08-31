@@ -557,6 +557,7 @@ namespace Cicada {
         bool mAudioEOS{false};
         bool mVideoEOS{false};
         int64_t mVideoDelayTime{0};
+        bool mCalculateSpeedUsePacket{true};
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H

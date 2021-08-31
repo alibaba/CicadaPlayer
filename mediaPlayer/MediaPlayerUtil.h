@@ -9,11 +9,11 @@
 #ifndef ApsaraPlayerUtil_h
 #define ApsaraPlayerUtil_h
 
+#include "demuxer/demuxer_service.h"
+#include "native_cicada_player_def.h"
+#include "utils/AFMediaType.h"
 #include <deque>
 #include <string>
-#include "demuxer/demuxer_service.h"
-#include "utils/AFMediaType.h"
-#include "native_cicada_player_def.h"
 //#include "render_engine/math/geometry.h"
 
 using namespace Cicada;
@@ -29,7 +29,8 @@ namespace Cicada {
             readEvent_Again,
             readEvent_Got,
             readEvent_timeOut,
-            readEvent_Loop
+            readEvent_Loop,
+            readEvent_Network,
 
         };
 
@@ -52,7 +53,9 @@ namespace Cicada {
         }
 
         float getVideoRenderFps()
-        { return mVideoRenderFps; }
+        {
+            return mVideoRenderFps;
+        }
 
         float getCurrentDownloadSpeed() const
         {
@@ -81,12 +84,10 @@ namespace Cicada {
         int64_t mReadGotIndex = 0;
         int64_t mReadTimeOutIndex = 0;
         int64_t mLastReadTime = 0;
-        uint64_t mReadGotSize{0};
-
+        std::atomic<uint64_t> mReadGotSize{0};
         float mCurrentDownloadSpeed{0};
-
         float mVideoRenderFps = 0;
     };
-}
+}// namespace Cicada
 
 #endif /* ApsaraPlayerUtil_h */

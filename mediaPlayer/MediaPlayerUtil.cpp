@@ -155,7 +155,6 @@ namespace Cicada {
 
             case readEvent_Got:
                 mReadGotIndex++;
-                assert(size > 0);
                 mReadGotSize += size;
                 break;
 
@@ -165,6 +164,12 @@ namespace Cicada {
 
             case readEvent_Loop:
                 mReadLoopIndex++;
+                break;
+
+            case readEvent_Network:
+                assert(size > 0);
+                mReadGotSize += size;
+            default:
                 break;
         }
 

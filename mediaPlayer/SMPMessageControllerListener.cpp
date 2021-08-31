@@ -90,6 +90,10 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
                     mPlayer.NotifyError(ret);
                     return;
                 }
+            } else {
+                if (mPlayer.mDataSource->getFlags() & IDataSource::flag_report_speed) {
+                    mPlayer.mCalculateSpeedUsePacket = false;
+                }
             }
         }
     }

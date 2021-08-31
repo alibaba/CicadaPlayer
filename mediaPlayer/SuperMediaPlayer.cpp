@@ -2846,7 +2846,7 @@ int SuperMediaPlayer::ReadPacket()
     }
 
     pFrame = pMedia_Frame.get();
-    mUtil->notifyRead(MediaPlayerUtil::readEvent_Got, pFrame->getSize());
+    mUtil->notifyRead(MediaPlayerUtil::readEvent_Got, mCalculateSpeedUsePacket ? pFrame->getSize() : 0);
 
     // TODO: get the min first stream pts
     if (pFrame->getInfo().timePosition >= 0 && mMediaStartPts == INT64_MIN && pFrame->getInfo().streamIndex != mCurrentSubtitleIndex &&
@@ -3834,6 +3834,7 @@ void SuperMediaPlayer::Reset()
     mWATimeBase = 0;
     mSuggestedPresentationDelay = 0;
     mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncNormal;
+    mCalculateSpeedUsePacket = true;
 }
 
 int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)

@@ -80,5 +80,9 @@ namespace Cicada {
             }
         }
     }
-
+    bool SuperMediaPlayerDataSourceListener::onNetWorkInPut(uint64_t size, IDataSource::Listener::bitStreamType type)
+    {
+        mPlayer.mUtil->notifyRead(MediaPlayerUtil::readEvent_Network, size);
+        return Listener::onNetWorkInPut(size, type);
+    }
 }
