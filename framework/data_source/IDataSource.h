@@ -46,10 +46,21 @@ namespace Cicada {
 //                NetWorkRetryStatusAbort,
             };
 
+            enum bitStreamType {
+                bitStreamTypeMedia,
+            };
+
             virtual NetWorkRetryStatus onNetWorkRetry(int error) = 0;
 
             virtual void onNetWorkConnected()
             {
+            }
+            /*
+             * return, whether stop report to other
+             */
+            virtual bool onNetWorkInPut(uint64_t size, bitStreamType type)
+            {
+                return false;
             }
         };
 
@@ -80,6 +91,7 @@ namespace Cicada {
             std::string toString();
         };
 
+        const static uint64_t flag_report_speed = 1 << 0;
 
         explicit IDataSource(std::string url);
 
@@ -122,6 +134,10 @@ namespace Cicada {
 
         virtual void enableCache(const std::string &originUrl, bool enable)
         {}
+        virtual uint64_t getFlags()
+        {
+            return 0;
+        }
 
 
     protected:

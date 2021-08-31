@@ -183,6 +183,11 @@ size_t Cicada::CURLConnection::write_callback(char *buffer, size_t size, size_t 
     CURLConnection *pHandle = (CURLConnection *) userp;
     uint32_t amount = (uint32_t) (size * nitems);
 
+    if (pHandle->mPConfig && pHandle->mPConfig->listener) {
+        // TODO: get file type form content type
+        pHandle->mPConfig->listener->onNetWorkInPut(amount, IDataSource::Listener::bitStreamTypeMedia);
+    }
+
     if (pHandle->overflowSize) {
         // we have our overflow buffer - first get rid of as much as we can
         uint32_t maxWriteable = std::min(RingBuffergetMaxWriteSize(pHandle->pRbuf), pHandle->overflowSize);

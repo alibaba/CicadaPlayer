@@ -41,6 +41,10 @@ namespace Cicada {
         std::string Get_error_info(int error) override;
 
         std::string GetOption(const std::string &key) override;
+        uint64_t getFlags() override
+        {
+            return flag_report_speed;
+        }
 
     private:
         static int check_interrupt(void *pHandle);
@@ -71,6 +75,7 @@ namespace Cicada {
         AVIOInterruptCB mInterruptCB{};
         int mInterrupted{};
         char mErrorMsg[AV_ERROR_MAX_STRING_SIZE]{};
+        bool isNetWork{true};
     };
 }
 

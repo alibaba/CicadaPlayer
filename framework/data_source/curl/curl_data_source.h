@@ -39,6 +39,10 @@ namespace Cicada {
         void Interrupt(bool interrupt) override;
 
         std::string GetUri() override;
+        uint64_t getFlags() override
+        {
+            return flag_report_speed;
+        }
 
     private:
 
