@@ -198,7 +198,7 @@ namespace Cicada {
 
                     auto pSegment = std::make_shared<segment>(sequenceNumber++);
                     pSegment->setSourceUrl(uritag->getValue().value);
-                    if (segmentParts.size() > 0) {
+                    if (!segmentParts.empty()) {
                         pSegment->updateParts(segmentParts);
                         segmentParts.clear();
                     }
@@ -257,16 +257,16 @@ namespace Cicada {
                 break;
 
                 case SingleValueTag::EXTXPLAYLISTTYPE:
-                    rep->b_live = (static_cast<const SingleValueTag *>(tag)->getValue().value != "VOD");
+                    rep->b_live = (dynamic_cast<const SingleValueTag *>(tag)->getValue().value != "VOD");
                     break;
 
                 case SingleValueTag::EXTXBYTERANGE:
-                    ctx_byterange = static_cast<const SingleValueTag *>(tag);
+                    ctx_byterange = dynamic_cast<const SingleValueTag *>(tag);
                     break;
 
                 case SingleValueTag::EXTXPROGRAMDATETIME: {
                     //rep->b_consistent = false;
-                    std::string timeValue = static_cast<const SingleValueTag *>(tag)->getValue().value;
+                    std::string timeValue = dynamic_cast<const SingleValueTag *>(tag)->getValue().value;
                     absReferenceTime = UTCTime(timeValue).time();
                 }
                 break;
@@ -357,7 +357,7 @@ namespace Cicada {
                 break;
 
                 case AttributesTag::EXTXPART: {
-                    const auto *keytag = static_cast<const AttributesTag *>(tag);
+                    const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
                     SegmentPart part;
                     part.sequence = segmentParts.size();
 
@@ -384,7 +384,7 @@ namespace Cicada {
                 }
 
                 case AttributesTag::EXTXPARTINF: {
-                    const AttributesTag *keytag = static_cast<const AttributesTag *>(tag);
+                    const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
                     const Attribute *partTargetAttr;
                     if (keytag && (partTargetAttr = keytag->getAttributeByName("PART-TARGET"))) {
                         double duration = partTargetAttr->floatingPoint();
@@ -406,16 +406,16 @@ namespace Cicada {
                     break;
             }
         }
-        
-        if (segmentParts.size() > 0) {
+
+        if (!segmentParts.empty()) {
             auto pSegment = std::make_shared<segment>(sequenceNumber);
             pSegment->setSourceUrl("");
             int64_t duration = 0;
 
-            for (auto part : segmentParts) {
+            for (const auto &part : segmentParts) {
                 duration += part.duration;
             }
-     
+
             pSegment->duration = duration;
             pSegment->startTime = static_cast<uint64_t>(nzStartTime);
             pSegment->updateParts(segmentParts);

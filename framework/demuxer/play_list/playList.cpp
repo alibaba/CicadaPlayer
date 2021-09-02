@@ -50,7 +50,7 @@ namespace Cicada {
                 rList = a->getRepresentations();
                 std::list<Representation *>::iterator k;
 
-                for (k = rList.begin(); k != rList.end(); k++) {
+                for (k = rList.begin(); k != rList.end(); ++k) {
                     Representation *r = (*k);
                     r->print();
                 }

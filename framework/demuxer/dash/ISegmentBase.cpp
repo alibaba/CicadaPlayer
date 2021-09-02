@@ -68,7 +68,7 @@ DashSegment *ISegmentBase::findSegmentByScaledTime(const std::vector<DashSegment
         }
 
         ret = seg;
-        it++;
+        ++it;
     }
 
     return ret;

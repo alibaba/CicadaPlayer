@@ -57,12 +57,12 @@ namespace Cicada {
         {
             std::lock_guard<std::mutex> lock(mMutex);
 
-            if (mFuncs.size() > 0) {
+            if (!mFuncs.empty()) {
                 func = mFuncs.front();
                 mFuncs.pop();
             }
 
-            if (mFuncs.size() > 0) {
+            if (!mFuncs.empty()) {
                 haveMore = true;
             }
         }

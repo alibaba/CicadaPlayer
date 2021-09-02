@@ -71,7 +71,7 @@ namespace Cicada {
     {
         std::lock_guard<std::recursive_mutex> lck(mMutex);
         mParts = parts;
-        if (mParts.size() > 0) {
+        if (!mParts.empty()) {
             mSegType = SEG_LHLS;
             if (mPartsNextIndex == 0) {
                 moveToNextPart();
@@ -94,7 +94,7 @@ namespace Cicada {
 
         if (mUri.empty()) {
             // dose not have complete segment, use part
-            if (mParts.size() > 0 && mPartsNextIndex >= 0 && mPartsNextIndex < mParts.size()) {
+            if (!mParts.empty() && mPartsNextIndex >= 0 && mPartsNextIndex < mParts.size()) {
                 uri = mParts[mPartsNextIndex].uri;
                 ++mPartsNextIndex;
             } else {
@@ -104,7 +104,7 @@ namespace Cicada {
             // has complete segment
             if (mPartsNextIndex > 0) {
                 // has played part, use next part
-                if (mParts.size() > 0 && mPartsNextIndex >= 0 && mPartsNextIndex < mParts.size()) {
+                if (!mParts.empty() && mPartsNextIndex >= 0 && mPartsNextIndex < mParts.size()) {
                     uri = mParts[mPartsNextIndex].uri;
                     ++mPartsNextIndex;
                 } else {
@@ -130,7 +130,7 @@ namespace Cicada {
         if (fixedPartIndex >= mParts.size()) {
             fixedPartIndex = mParts.size() - 1;
         }
-        std::string uri = "";
+        std::string uri;
         if (!mUri.empty() && fixedPartIndex == 0) {
             uri = mUri;
             mPartsNextIndex = -1;

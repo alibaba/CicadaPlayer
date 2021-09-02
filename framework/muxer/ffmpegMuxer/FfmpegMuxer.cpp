@@ -79,7 +79,7 @@ int FfmpegMuxer::open()
     if (!mSourceMetaMap.empty()) {
         map<string, string>::iterator mapIt;
 
-        for (mapIt = mSourceMetaMap.begin(); mapIt != mSourceMetaMap.end(); mapIt++) {
+        for (mapIt = mSourceMetaMap.begin(); mapIt != mSourceMetaMap.end(); ++mapIt) {
             av_dict_set(&mDestFormatContext->metadata, mapIt->first.c_str(), mapIt->second.c_str(),
                         0);
         }

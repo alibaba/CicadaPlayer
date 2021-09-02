@@ -189,7 +189,7 @@ namespace Cicada {
         if (mCurrent != mPacketMap.end()) {
             packet = ((*(mCurrent)).second->clone());
             mCurrentPts = packet->getInfo().pts;
-            mCurrent++;
+            ++mCurrent;
         } else {
             return 0;
         }

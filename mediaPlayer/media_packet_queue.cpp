@@ -73,7 +73,7 @@ void MediaPacketQueue::AddPacket(mediaPacket frame)
         mCurrent = mQueue.begin();
     }
     if (mCurrent == mQueue.end()) {
-        mCurrent--;
+        --mCurrent;
     }
 }
 
@@ -238,7 +238,7 @@ std::unique_ptr<IAFPacket> MediaPacketQueue::getPacket()
         }
     } else {
         packet = (*mCurrent)->clone();
-        mCurrent++;
+        ++mCurrent;
     }
 
     if (packet && packet->getInfo().duration > 0 && !packet->getDiscard()) {
@@ -293,7 +293,7 @@ void MediaPacketQueue::PopFrontPacket()
         mQueue.pop_front();
         mCurrent = mQueue.begin();
     } else {
-        mCurrent++;
+        ++mCurrent;
     }
 
     if (mDropedExtra_data && mDropedExtra_data_size > 0 && mCurrent != mQueue.end()) {
