@@ -252,6 +252,8 @@ void AudioTrackRender::flush_device_inner(bool clearFrameQueue)
         pause_device();
     }
 
+    mOverFlowPlayedSimples +=  (getDevicePlayedSimples() - mAudioFlushPosition);
+
     if (audio_track && method_flush) {
         handle->CallVoidMethod(audio_track, method_flush);
 
@@ -267,6 +269,7 @@ void AudioTrackRender::flush_device_inner(bool clearFrameQueue)
             delete mFrameQueue.front();
             mFrameQueue.pop();
         }
+        mOverFlowPlayedSimples = 0;
     }
 
     mMaxQueSize = 2;
@@ -315,7 +318,7 @@ void AudioTrackRender::device_mute(bool bMute)
 
 int64_t AudioTrackRender::device_get_position()
 {
-    uint64_t playedSimples = getDevicePlayedSimples() - mAudioFlushPosition;
+    uint64_t playedSimples = mOverFlowPlayedSimples + getDevicePlayedSimples() - mAudioFlushPosition;
     int64_t position = static_cast<int64_t>((playedSimples) / (float(mOutputInfo.sample_rate) / 1000000));
     return position;
 }
