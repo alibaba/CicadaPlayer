@@ -12,6 +12,7 @@
 
 typedef bool (*videoRenderingFrameCB)(void *userData, IAFFrame *frame, const CicadaJSONItem &params);
 
+
 class IVideoRender {
 
 public:
@@ -74,6 +75,7 @@ public:
             }
         }
     };
+
 
     class IVideoRenderFilter {
     public:
@@ -159,11 +161,6 @@ public:
 
     }
 
-    virtual void setFilter(IVideoRenderFilter *filter)
-    {
-        mFilter = filter;
-    }
-
     /**
      * set display view
      * @param view
@@ -199,13 +196,36 @@ public:
         mRenderingCbUserData = userData;
     }
 
+    class videoProcessTextureCb {
+    public:
+        videoProcessTextureCb() = default;
+
+        virtual ~videoProcessTextureCb() = default;
+
+        /**
+         * @param type      TEXTURE_YUV 0, TEXTURE_RGBA 1
+         * @return
+         */
+        virtual bool init(int type) = 0;
+
+        virtual bool needProcess() = 0;
+
+        virtual bool processTexture(std::unique_ptr<IAFFrame> &textureFrame) = 0;
+    };
+
+    virtual void setVideoProcessTextureCb(videoProcessTextureCb *cb)
+    {
+        mProcessTextureCb = cb;
+    }
+
 protected:
-    IVideoRenderFilter *mFilter{};
     bool mInvalid{false};
     IVideoRenderListener *mListener{nullptr};
 
     videoRenderingFrameCB mRenderingCb{nullptr};
     void *mRenderingCbUserData{nullptr};
+
+    videoProcessTextureCb *mProcessTextureCb{nullptr};
 };
 
 

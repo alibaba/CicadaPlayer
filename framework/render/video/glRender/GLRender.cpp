@@ -538,6 +538,7 @@ IProgramContext *GLRender::getProgram(int frameFormat, IAFFrame *frame)
     if (mPrograms.count(frameFormat) > 0) {
         IProgramContext *pContext = mPrograms[frameFormat].get();
         pContext->setRenderingCb(mRenderingCb, mRenderingCbUserData);
+        pContext->setVideoProcessTextureCb(mProcessTextureCb);
         if (mContext != nullptr) {
             pContext->setGLContext(mContext->GetContext());
         }
@@ -571,6 +572,7 @@ IProgramContext *GLRender::getProgram(int frameFormat, IAFFrame *frame)
         return nullptr;
     }
 
+    targetProgram->setVideoProcessTextureCb(mProcessTextureCb);
     int ret = targetProgram->initProgram();
 
     if (ret == 0) {

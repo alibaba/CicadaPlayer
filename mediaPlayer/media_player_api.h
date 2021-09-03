@@ -249,6 +249,28 @@ void CicadaSetAutoPlay(playerHandle *player, bool bAutoPlay);
  */
 bool CicadaIsAutoPLay(playerHandle *pHandle);
 
+
+/**
+ * Set filter config. call this before prepare. If want update filter config, call updateFilterConfig()
+ * @param filterConfig
+ */
+void CicadaSetFilterConfig(playerHandle *pHandle, const std::string &filterConfig);
+
+/**
+ * upadate filter config.
+ * @param target  Empty or not found, will make no effect. Should not be empty.
+ * @param options
+ */
+void CicadaUpdateFilterConfig(playerHandle *pHandle, const std::string &target, const std::string &options);
+
+/**
+ * disable/enable filter.
+ * @param target  if empty , disable all filters.
+ * @param invalid  true: enable(default); false: disable
+ */
+void CicadaSetFilterInvalid(playerHandle *pHandle, const std::string &target, bool invalid);
+
+
 void CicadaAddExtSubtitle(playerHandle *pHandle, const char *uri);
 
 void CicadaSelectExtSubtitle(playerHandle *pHandle, int index, bool select);

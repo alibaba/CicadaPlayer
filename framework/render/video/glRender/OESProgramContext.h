@@ -6,8 +6,9 @@
 #define SOURCE_OESRENDER_H
 
 
-#include "platform/android/decoder_surface.h"
 #include "GLRender.h"
+#include "OES2FBOProgram.h"
+#include "platform/android/decoder_surface.h"
 
 class OESProgramContext : public IProgramContext , private DecoderSurfaceCallback{
 public:
@@ -45,6 +46,9 @@ private:
     void updateDrawRegion();
 
     void onFrameAvailable() override ;
+
+    void drawTexture(GLenum target, GLuint textureId, bool toFBO);
+
 private:
 
     IVideoRender::Rotate mRotate = IVideoRender::Rotate_None;
@@ -59,7 +63,7 @@ private:
     int mFrameWidth = 0;
     int mFrameHeight = 0;
 
-    GLuint                mOutTextureId    = 0;
+    GLuint mOESTextureId = 0;
     Cicada::DecoderSurface *mDecoderSurface = nullptr;
 
     GLuint mOESProgram = 0;
@@ -96,6 +100,9 @@ private:
     uint32_t mBackgroundColor = 0xff000000;
     bool mBackgroundColorChanged = true;
 
+    OES2FBOProgram *mOES2FBOProgram{nullptr};
+
+    bool textureProcessInitRet{false};
 };
 
 

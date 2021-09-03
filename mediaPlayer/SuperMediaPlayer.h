@@ -32,6 +32,7 @@ using namespace std;
 #include <cacheModule/CacheModule.h>
 #include <cacheModule/cache/CacheConfig.h>
 #include <codec/IDecoder.h>
+#include <filter/FilterManager.h>
 
 #ifdef __APPLE__
 
@@ -217,6 +218,12 @@ namespace Cicada {
 
         bool IsAutoPlay() override;
 
+        void SetFilterConfig(const std::string &filterConfig) override;
+
+        void UpdateFilterConfig(const std::string &target, const std::string &options) override;
+
+        void SetFilterInvalid(const std::string &target, bool invalid) override;
+
         void addExtSubtitle(const char *uri) override;
 
         int selectExtSubtitle(int index, bool bSelect) override;
@@ -305,6 +312,8 @@ namespace Cicada {
         static int64_t getAudioPlayTimeStampCB(void *arg);
 
         int64_t getAudioPlayTimeStamp();
+
+        bool doFilter(unique_ptr<IAFFrame> &frame);
 
         bool render();
 
@@ -399,6 +408,21 @@ namespace Cicada {
             SuperMediaPlayer &mPlayer;
         };
 
+        class ApsaraVideoProcessTextureCallback : public IVideoRender::videoProcessTextureCb {
+        public:
+            explicit ApsaraVideoProcessTextureCallback(SuperMediaPlayer &player) : mPlayer(player)
+            {}
+
+            bool init(int type) override;
+
+            bool needProcess() override;
+
+            bool processTexture(std::unique_ptr<IAFFrame> &textureFrame) override;
+
+        private:
+            SuperMediaPlayer &mPlayer;
+        };
+
     private:
         static IVideoRender::Scale convertScaleMode(ScaleMode mode);
 
@@ -443,6 +467,7 @@ namespace Cicada {
         std::unique_ptr<PlayerMessageControl> mMessageControl{nullptr};
         std::unique_ptr<ApsaraAudioRenderCallback> mAudioRenderCB{nullptr};
         std::unique_ptr<ApsaraVideoRenderListener> mVideoRenderListener{nullptr};
+        std::unique_ptr<ApsaraVideoProcessTextureCallback> mVideoProcessCb{nullptr};
         std::unique_ptr<BufferController> mBufferController{nullptr};
         std::mutex mAppStatusMutex;
         std::atomic<APP_STATUS> mAppStatus{APP_FOREGROUND};
@@ -528,6 +553,8 @@ namespace Cicada {
         std::unique_ptr<IAFPacket> mAudioPacket{};
         std::unique_ptr<mediaPlayerSubTitleListener> mSubListener;
         std::unique_ptr<subTitlePlayer> mSubPlayer;
+        std::mutex mFilterManagerMutex{};
+        std::unique_ptr<FilterManager> mFilterManager;
         bool dropLateVideoFrames = false;
         bool waitingForStart = false;
         bool mBRendingStart {false};
@@ -558,6 +585,7 @@ namespace Cicada {
         bool mVideoEOS{false};
         int64_t mVideoDelayTime{0};
         bool mCalculateSpeedUsePacket{true};
+        std::unique_ptr<CicadaJSONArray> mFilterConfig;
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H

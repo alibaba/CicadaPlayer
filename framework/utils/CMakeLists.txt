@@ -75,6 +75,8 @@ list(APPEND SOURCE_FILES
         ../base/media/IAFPacket.h
         ../base/media/AVAFPacket.cpp
         ../base/media/AVAFPacket.h
+        ../base/media/TextureFrame.cpp
+        ../base/media/TextureFrame.h
         )
 
 list(APPEND SOURCE_FILES

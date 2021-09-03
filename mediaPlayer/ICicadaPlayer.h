@@ -265,6 +265,15 @@ namespace Cicada {
 
         virtual bool IsAutoPlay() = 0;
 
+        virtual void SetFilterConfig(const std::string &filterConfig)
+        {}
+
+        virtual void UpdateFilterConfig(const std::string &target, const std::string &options)
+        {}
+
+        virtual void SetFilterInvalid(const std::string &target, bool invalid)
+        {}
+
         virtual int invokeComponent(std::string content) = 0;
 
         virtual float getCurrentDownloadSpeed() = 0;

@@ -5,6 +5,7 @@
 
 #include "OESProgramContext.h"
 #include <base/media/AFMediaCodecFrame.h>
+#include <base/media/TextureFrame.h>
 #include <render/video/glRender/base/utils.h>
 #include <utils/CicadaJSON.h>
 #include <utils/af_string.h>
@@ -49,7 +50,7 @@ OESProgramContext::~OESProgramContext() {
     glDetachShader(mOESProgram, mFragmentShader);
     glDeleteShader(mVertShader);
     glDeleteShader(mFragmentShader);
-    glDeleteTextures(1, &mOutTextureId);
+    glDeleteTextures(1, &mOESTextureId);
     glDeleteProgram(mOESProgram);
     if (mDecoderSurface != nullptr) {
         delete mDecoderSurface;
@@ -91,16 +92,17 @@ int OESProgramContext::initProgram() {
         return -1;
     }
 
-    glUseProgram(mOESProgram);
     getShaderLocations();
 
-    glEnableVertexAttribArray(mPositionLocation);
-    glEnableVertexAttribArray(mTexCoordLocation);
+    if (mProcessTextureCb != nullptr) {
+        textureProcessInitRet = mProcessTextureCb->init(TextureFrame::TEXTURE_RGBA);
+    }
 
     return 0;
 }
 
-void OESProgramContext::useProgram(){
+void OESProgramContext::useProgram()
+{
     glUseProgram(mOESProgram);
 }
 
@@ -131,7 +133,7 @@ void OESProgramContext::updateWindowSize(int width, int height, bool windowChang
 }
 
 void *OESProgramContext::getSurface() {
-    if (mOutTextureId <= 0 || mDecoderSurface == nullptr) {
+    if (mOESTextureId <= 0 || mDecoderSurface == nullptr) {
         return nullptr;
     }
 
@@ -367,19 +369,6 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
         }
     }
 
-    if (mRegionChanged) {
-        updateDrawRegion();
-        mRegionChanged = false;
-    }
-
-    if (mCoordsChanged) {
-        updateFlipCoords();
-        mCoordsChanged = false;
-    }
-
-    glVertexAttribPointer(mPositionLocation, 3, GL_FLOAT, GL_FALSE, 12, mDrawRegion);
-    glVertexAttribPointer(mTexCoordLocation, 2, GL_FLOAT, GL_FALSE, 8, mOESFlipCoords);
-
     mDecoderSurface->UpdateTexImg();
     mDecoderSurface->GetTransformMatrix(mOESSTMatrix);
 
@@ -387,7 +376,7 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
     if (mRenderingCb) {
         CicadaJSONItem params{};
         params.addValue("glContext", (long) mGLContext);
-        params.addValue("oesId", (int) mOutTextureId);
+        params.addValue("oesId", (int) mOESTextureId);
         params.addValue("matrix", (long) mOESSTMatrix);
         rendered = mRenderingCb(mRenderingCbUserData, codecFrame, params);
     }
@@ -396,23 +385,53 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
         return -1;
     }
 
-    glUniformMatrix4fv(mMVPMatrixLocation, 1, GL_FALSE, mOESMVMatrix);
-    glUniformMatrix4fv(mSTMatrixLocation, 1, GL_FALSE, mOESSTMatrix);
-    glUniform1i(mTextureLocation, 0);
-
-    glViewport(0, 0, mWindowWidth, mWindowHeight);
-
-    if(mBackgroundColorChanged) {
-        float color[4] = {0.0f,0.0f,0.0f,1.0f};
-        cicada::convertToGLColor(mBackgroundColor , color);
-        glClearColor(color[0], color[1], color[2], color[3]);
-        mBackgroundColorChanged = false;
+    bool needProcess;
+    if (textureProcessInitRet) {
+        needProcess = mProcessTextureCb->needProcess();
+    } else {
+        needProcess = false;
     }
 
-    glClear(GL_COLOR_BUFFER_BIT);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_EXTERNAL_OES, mOutTextureId);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    if (!needProcess) {
+        drawTexture(GL_TEXTURE_EXTERNAL_OES, mOESTextureId, false);
+        return 0;
+    }
+
+    if (mOES2FBOProgram == nullptr) {
+        mOES2FBOProgram = new OES2FBOProgram();
+        int ret = mOES2FBOProgram->initProgram();
+        if (ret < 0) {
+            AF_LOGE("OES 2 FBO init fail: %d", ret);
+            drawTexture(GL_TEXTURE_EXTERNAL_OES, mOESTextureId, false);
+            return 0;
+        }
+    }
+
+    bool updateFrameBuffer = mOES2FBOProgram->updateFrameBuffer(mFrameWidth, mFrameHeight);
+    if (!updateFrameBuffer) {
+        drawTexture(GL_TEXTURE_EXTERNAL_OES, mOESTextureId, false);
+        return 0;
+    }
+
+    GLuint FBOBuffer = mOES2FBOProgram->getFrameBuffer();
+    glBindFramebuffer(GL_FRAMEBUFFER, FBOBuffer);
+    drawTexture(GL_TEXTURE_EXTERNAL_OES, mOESTextureId, true);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    GLuint FBOTextureId = mOES2FBOProgram->getFrameTexture();
+    GLuint inTexture[1]{FBOTextureId};
+    TextureFrame *pFrame = new TextureFrame(TextureFrame::TEXTURE_RGBA, mGLContext, reinterpret_cast<int *>(inTexture), nullptr,
+                                            mFrameWidth, mFrameHeight);
+    std::unique_ptr<IAFFrame> textureFrame = std::unique_ptr<TextureFrame>(pFrame);
+    bool success = mProcessTextureCb->processTexture(textureFrame);
+
+    if (!success) {
+        AF_LOGW("process texture fail , will render FBO");
+        drawTexture(GL_TEXTURE_2D, FBOTextureId, false);
+    } else {
+        int outTexture = ((TextureFrame *) textureFrame.get())->getTexture()[0];
+        drawTexture(GL_TEXTURE_2D, outTexture, false);
+    }
 
     return 0;
 }
@@ -423,20 +442,20 @@ void OESProgramContext::onFrameAvailable() {
 }
 
 void OESProgramContext::createSurface() {
-    glDeleteTextures(1, &mOutTextureId);
+    glDeleteTextures(1, &mOESTextureId);
     if (mDecoderSurface != nullptr) {
         delete mDecoderSurface;
     }
 
-    glGenTextures(1, &mOutTextureId);
-    glBindTexture(GL_TEXTURE_EXTERNAL_OES, mOutTextureId);
+    glGenTextures(1, &mOESTextureId);
+    glBindTexture(GL_TEXTURE_EXTERNAL_OES, mOESTextureId);
     glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     mDecoderSurface = new DecoderSurface(this);
-    mDecoderSurface->Init(mOutTextureId, nullptr);
+    mDecoderSurface->Init(mOESTextureId, nullptr);
 
     {
         std::unique_lock<std::mutex> lock(mFrameAvailableMutex);
@@ -457,4 +476,77 @@ void OESProgramContext::getShaderLocations() {
     mMVPMatrixLocation = glGetUniformLocation(mOESProgram, "uMVPMatrix");
     mSTMatrixLocation = glGetUniformLocation(mOESProgram, "uSTMatrix");
     mTextureLocation = glGetUniformLocation(mOESProgram, "sTexture");
+}
+
+void OESProgramContext::drawTexture(GLenum target, GLuint textureId, bool toFBO)
+{
+    if (target == GL_TEXTURE_EXTERNAL_OES) {
+        glUseProgram(mOESProgram);
+    } else {
+        mOES2FBOProgram->useProgram();
+    }
+
+    GLfloat drawRegion[12] = {1.0, -1.0, 0.0, -1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0, 1.0, 0.0};
+    GLfloat flipCoords[8] = {1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0};
+
+    int viewPortWith = mFrameWidth;
+    int viewPortHeight = mFrameHeight;
+
+    if (target != GL_TEXTURE_EXTERNAL_OES || !toFBO) {
+
+        viewPortWith = mWindowWidth;
+        viewPortHeight = mWindowHeight;
+
+        if (mRegionChanged) {
+            updateDrawRegion();
+            mRegionChanged = false;
+        }
+
+        if (mCoordsChanged) {
+            updateFlipCoords();
+            mCoordsChanged = false;
+        }
+
+        memcpy(drawRegion, mDrawRegion, 12 * sizeof(GLfloat));
+        memcpy(flipCoords, mOESFlipCoords, 8 * sizeof(GLfloat));
+    }
+
+    if (target == GL_TEXTURE_EXTERNAL_OES) {
+        glVertexAttribPointer(mPositionLocation, 3, GL_FLOAT, GL_FALSE, 12, drawRegion);
+        glEnableVertexAttribArray(mPositionLocation);
+        glVertexAttribPointer(mTexCoordLocation, 2, GL_FLOAT, GL_FALSE, 8, flipCoords);
+        glEnableVertexAttribArray(mTexCoordLocation);
+
+        glUniformMatrix4fv(mMVPMatrixLocation, 1, GL_FALSE, mOESMVMatrix);
+        glUniformMatrix4fv(mSTMatrixLocation, 1, GL_FALSE, mOESSTMatrix);
+        glUniform1i(mTextureLocation, 0);
+    } else {
+        mOES2FBOProgram->enableDrawRegion(drawRegion);
+        mOES2FBOProgram->enableFlipCoords(flipCoords);
+        mOES2FBOProgram->uniform1i();
+    }
+
+    glViewport(0, 0, viewPortWith, viewPortHeight);
+
+    if (mBackgroundColorChanged) {
+        float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+        cicada::convertToGLColor(mBackgroundColor, color);
+        glClearColor(color[0], color[1], color[2], color[3]);
+        mBackgroundColorChanged = false;
+    }
+
+    glClear(GL_COLOR_BUFFER_BIT);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(target, textureId);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    if (target == GL_TEXTURE_EXTERNAL_OES) {
+        glDisableVertexAttribArray(mPositionLocation);
+        glDisableVertexAttribArray(mTexCoordLocation);
+    } else {
+        mOES2FBOProgram->disableDrawRegion();
+        mOES2FBOProgram->disableFlipCoords();
+    }
+    glBindTexture(target, 0);
+    glUseProgram(0);
 }

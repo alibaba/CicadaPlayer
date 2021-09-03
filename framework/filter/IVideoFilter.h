@@ -11,29 +11,71 @@
 
 namespace Cicada {
     class IVideoFilter {
-    public:
-        typedef IAFFrame::videoInfo format;
 
-        IVideoFilter(const format &srcFormat, const format &dstFormat, bool active)
+    public:
+        enum Feature {
+            None,
+            PassThrough = 1, // support do not do filter
+            Buffer = 1 << 1, //buffer after decode
+            Texture = 1 << 2,// texture before render
+        };
+
+    public:
+        IVideoFilter(const IAFFrame::videoInfo &srcFormat, const IAFFrame::videoInfo &dstFormat, bool active)
             : mSrcFormat(srcFormat), mDstFormat(dstFormat), mActive(active){};
+        IVideoFilter(){};
         virtual ~IVideoFilter() = default;
 
         //        virtual bool beSupported(const char* capacity) = 0;
         virtual bool setOption(const std::string &key, const std::string &value, const std::string &capacity) = 0;
 
-        attribute_warn_unused_result virtual int init() = 0;
+        /**
+         * init filter.
+         * @param type  TEXTURE_YUV: 0, TEXTURE_RGBA:1.
+         * @return
+         */
+        virtual bool init(int type) = 0;
 
+        /**
+         *
+         * @param frame
+         * @param timeOut
+         * @return
+         * Success: >=0
+         * Fail: < 0
+         */
         virtual int push(std::unique_ptr<IAFFrame> &frame, uint64_t timeOut) = 0;
 
+        /**
+         *
+         * @param frame
+         * @param timeOut
+         * @return
+         * Success: >=0
+         * Fail: < 0
+         */
         virtual int pull(std::unique_ptr<IAFFrame> &frame, uint64_t timeOut) = 0;
 
         virtual void flush() = 0;
 
-    protected:
-        format mSrcFormat;
-        format mDstFormat;
+        virtual std::string getName() = 0;
 
-        bool mActive;
+        virtual bool is_supported(const std::string &target, int width, int height, int format) = 0;
+
+        virtual Cicada::IVideoFilter *clone(IAFFrame::videoInfo srcFormat, IAFFrame::videoInfo dstFormat, bool active) = 0;
+
+        virtual bool isFeatureSupported(Feature feature) = 0;
+
+        void setInvalid(bool invalid)
+        {
+            mInvalid = invalid;
+        }
+
+    protected:
+        IAFFrame::videoInfo mSrcFormat{};
+        IAFFrame::videoInfo mDstFormat{};
+        bool mInvalid{false};
+        bool mActive{false};
     };
 }// namespace Cicada
 

@@ -138,6 +138,8 @@ if (ENABLE_GLRENDER)
         set(SRC_FILES ${SRC_FILES}
                 video/glRender/OESProgramContext.cpp
                 video/glRender/OESProgramContext.h
+                video/glRender/OES2FBOProgram.cpp
+                video/glRender/OES2FBOProgram.h
                 video/glRender/platform/android/decoder_surface.cpp
                 video/glRender/platform/android/decoder_surface.h
                 )

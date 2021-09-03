@@ -345,6 +345,26 @@ namespace Cicada {
         void SetCacheConfig(const CacheConfig &config);
 
         /**
+         * Set filter config. call this before prepare. If want update filter config, call updateFilterConfig()
+         * @param filterConfig
+         */
+        void SetFilterConfig(const std::string &filterConfig);
+
+        /**
+         * upadate filter config.
+         * @param target  Empty or not found, will make no effect. Should not be empty.
+         * @param options
+         */
+        void UpdateFilterConfig(const std::string &target, const std::string &options);
+
+        /**
+         * disable/enable filter.
+         * @param target  if empty , disable all filters.
+         * @param invalid  true: enable(default); false: disable
+         */
+        void SetFilterInvalid(const std::string &target, bool invalid);
+
+        /**
          * get cache url. Should SetCacheConfig before call this.
          * @param URL orignal url
          * @return cached url.

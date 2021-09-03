@@ -37,7 +37,7 @@ private:
 
     void fillDataToYUVTextures(uint8_t **data, int *pLineSize, int format);
 
-    void bindYUVTextures();
+    void bindYUVTextures(GLuint pInt[3]);
 
     void getShaderLocations();
 
@@ -74,7 +74,7 @@ private:
     IVideoRender::Flip   mFlip   = IVideoRender::Flip_None;
 
     Rect   mCropRect{0,0,0,0};
-    int mYLineSize = 0;
+    int mLineSize[3] = {0};
 
     GLuint  mProgram = 0;
     GLuint mVertShader = 0;
@@ -111,7 +111,7 @@ private:
 
     uint32_t mBackgroundColor = 0xff000000;
     bool mBackgroundColorChanged = true;
-
+    bool textureProcessInitRet{false};
 };
 
 

@@ -61,6 +61,7 @@ SuperMediaPlayer::SuperMediaPlayer()
     mMessageControl = static_cast<unique_ptr<PlayerMessageControl>>(new PlayerMessageControl(*mMsgCtrlListener));
     mAudioRenderCB = static_cast<unique_ptr<ApsaraAudioRenderCallback>>(new ApsaraAudioRenderCallback(*this));
     mVideoRenderListener = static_cast<unique_ptr<ApsaraVideoRenderListener>>(new ApsaraVideoRenderListener(*this));
+    mVideoProcessCb = static_cast<unique_ptr<ApsaraVideoProcessTextureCallback>>(new ApsaraVideoProcessTextureCallback(*this));
     mApsaraThread = static_cast<unique_ptr<afThread>>(new afThread([this]() -> int { return this->mainService(); }, LOG_TAG));
     mSourceListener = static_cast<unique_ptr<SuperMediaPlayerDataSourceListener>>(new SuperMediaPlayerDataSourceListener(*this));
     mDcaManager = static_cast<unique_ptr<SMP_DCAManager>>(new SMP_DCAManager(*this));
@@ -88,6 +89,7 @@ SuperMediaPlayer::~SuperMediaPlayer()
     delete mPNotifier;
     mPNotifier = nullptr;
     mMessageControl = nullptr;
+    mFilterManager = nullptr;
 }
 
 void SuperMediaPlayer::putMsg(PlayMsgType type, const MsgParam &param, bool trigger)
@@ -138,6 +140,7 @@ void SuperMediaPlayer::SetDataSource(const char *url)
 
 void SuperMediaPlayer::Prepare()
 {
+
     if (mPlayStatus != PLAYER_INITIALZED && mPlayStatus != PLAYER_STOPPED) {
         Stop();
     }
@@ -210,6 +213,7 @@ void SuperMediaPlayer::SeekTo(int64_t pos, bool bAccurate)
     mSeekPos = pos * 1000;
     mSeekNeedCatch = bAccurate;
 }
+
 void SuperMediaPlayer::Mute(bool bMute)
 {
     if (bMute == mSet->bMute) {
@@ -1185,8 +1189,8 @@ void SuperMediaPlayer::ProcessVideoLoop()
     }
 
     if (!mBRendingStart && mPlayStatus == PLAYER_PLAYING && !mBufferingFlag) {
-        if ((mEof && (!HAVE_AUDIO || mAVDeviceManager->isAudioRenderValid()) &&
-             (!HAVE_VIDEO || mAVDeviceManager->isVideoRenderValid())) ||// render out the cache frame in renders
+        if ((mEof && (!HAVE_AUDIO || mAVDeviceManager->isAudioRenderValid()) && (!HAVE_VIDEO || mAVDeviceManager->isVideoRenderValid())) ||
+            // render out the cache frame in renders
             ((!HAVE_VIDEO || !mVideoFrameQue.empty() || (APP_BACKGROUND == mAppStatus)) && (!HAVE_AUDIO || !mAudioFrameQue.empty()))) {
             startRendering(true);
         }
@@ -1972,6 +1976,7 @@ bool SuperMediaPlayer::checkEOSAudio()
     }
     return true;
 }
+
 bool SuperMediaPlayer::checkEOSVideo()
 {
     if (!HAVE_VIDEO) {
@@ -2158,11 +2163,29 @@ int SuperMediaPlayer::FillVideoFrame()
         //            AF_LOGI("DecodeVideoPacket p_dec_delay frame :%lld pos:%lld, mPlayedAudioPts:%lld, posdiff:%lld audiodiff:%lld videodiff:%lld",
         //                    pFrame->GetPts()/1000, pos/1000, mPlayedAudioPts/1000, (pos - pFrame->GetPts())/1000,
         //                    (mLastInputAudio - mPlayedAudioPts)/1000, (mLastInputVideo - pFrame->GetPts())/1000);
+
+        if (!isHDRVideo(meta)) {
+            bool success = doFilter(pFrame);
+            if (!success) {
+                //            AF_LOGW("filter fail..");
+            }
+        }
+
         mVideoFrameQue.push(move(pFrame));
         videoDecoderFull = true;
     }
 
     return ret;
+}
+
+bool SuperMediaPlayer::doFilter(unique_ptr<IAFFrame> &frame)
+{
+    std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
+    if (mFilterManager != nullptr) {
+        bool success = mFilterManager->doFilter(frame);
+        return success;
+    }
+    return false;
 }
 
 bool SuperMediaPlayer::render()
@@ -3676,13 +3699,14 @@ bool SuperMediaPlayer::CreateVideoRender(uint64_t flags)
     mAVDeviceManager->getVideoRender()->setFlip(convertMirrorMode(mSet->mirrorMode));
     mAVDeviceManager->getVideoRender()->setDisPlay(mSet->mView);
     mAVDeviceManager->setVideoRenderListener(mVideoRenderListener.get());
+    mAVDeviceManager->getVideoRender()->setVideoProcessTextureCb(mVideoProcessCb.get());
+
     int renderRet = mAVDeviceManager->getVideoRender()->init();
 
     if (renderRet != 0) {
         // for windows init failed, which may need change render type in future.
         mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_VIDEO_RENDER_INIT_ERROR, "init video render failed");
     }
-
     mAVDeviceManager->setSpeed(mSet->rate);
     return true;
 }
@@ -3960,6 +3984,40 @@ bool SuperMediaPlayer::IsAutoPlay()
     return mAutoPlay;
 }
 
+void SuperMediaPlayer::SetFilterConfig(const std::string &filterConfig)
+{
+    std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
+    if (mFilterManager != nullptr) {
+        AF_LOGW("not support change filterConfig after be set");
+        return;
+    }
+
+    mFilterConfig = std::unique_ptr<CicadaJSONArray>(new CicadaJSONArray(filterConfig));
+    if (mFilterConfig == nullptr || !mFilterConfig->isValid()) {
+        AF_LOGD("filterConfig not JSON Array");
+        return;
+    }
+
+    //TODO videoInfo is useless now.
+    mFilterManager = std::unique_ptr<FilterManager>(new FilterManager(IAFFrame::videoInfo(), *(mFilterConfig.get())));
+}
+
+void SuperMediaPlayer::UpdateFilterConfig(const std::string &target, const std::string &options)
+{
+    std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
+    if (mFilterManager != nullptr) {
+        mFilterManager->updateFilter(target, options);
+    }
+}
+
+void SuperMediaPlayer::SetFilterInvalid(const std::string &target, bool invalid)
+{
+    std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
+    if (mFilterManager != nullptr) {
+        mFilterManager->setInvalid(target, invalid);
+    }
+}
+
 void SuperMediaPlayer::addExtSubtitle(const char *uri)
 {
     MsgParam param;
@@ -4017,6 +4075,7 @@ void SuperMediaPlayer::startRendering(bool start)
     }
     mAVDeviceManager->pauseAudioRender(!start);
 }
+
 void SuperMediaPlayer::SetOnRenderCallBack(onRenderFrame cb, void *userData)
 {
     mFrameCb = cb;
@@ -4091,11 +4150,12 @@ bool SuperMediaPlayer::isHDRVideo(const Stream_meta *meta)
     bool isHDRVideo = false;
 
     if (meta->pixel_fmt == AF_PIX_FMT_YUV420P10BE || meta->pixel_fmt == AF_PIX_FMT_YUV420P10LE) {
-        AF_LOGI("HDR video\n");
+        AF_LOGD("HDR video\n");
         isHDRVideo = true;
     }
     return isHDRVideo;
 }
+
 float SuperMediaPlayer::getCurrentDownloadSpeed()
 {
     return mUtil->getCurrentDownloadSpeed();
@@ -4105,7 +4165,25 @@ void SuperMediaPlayer::ApsaraAudioRenderCallback::onFrameInfoUpdate(IAFFrame::AF
 {
     mPlayer.RenderCallback(ST_TYPE_AUDIO, rendered, info);
 }
+
 void SuperMediaPlayer::ApsaraVideoRenderListener::onFrameInfoUpdate(IAFFrame::AFFrameInfo &info, bool rendered)
 {
     mPlayer.RenderCallback(ST_TYPE_VIDEO, rendered, info);
+}
+
+bool SuperMediaPlayer::ApsaraVideoProcessTextureCallback::init(int type)
+{
+    std::lock_guard<std::mutex> filterLock(mPlayer.mFilterManagerMutex);
+    return mPlayer.mFilterManager->initFilter(IVideoFilter::Texture, type);
+}
+
+bool SuperMediaPlayer::ApsaraVideoProcessTextureCallback::needProcess()
+{
+    std::lock_guard<std::mutex> filterLock(mPlayer.mFilterManagerMutex);
+    return mPlayer.mFilterManager->hasFilter(IVideoFilter::Texture);
+}
+
+bool SuperMediaPlayer::ApsaraVideoProcessTextureCallback::processTexture(std::unique_ptr<IAFFrame> &textureFrame)
+{
+    return mPlayer.doFilter(textureFrame);
 }

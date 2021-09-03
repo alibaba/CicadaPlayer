@@ -158,8 +158,8 @@ void SMPAVDeviceManager::flushDevice(uint64_t deviceTypes)
         }
         if (mAudioRenderValid
         /*
-              flush the Audio render on APPLE platform, otherwise it will output nise on reuse, but I don't know the reason.
-             */
+                  flush the Audio render on APPLE platform, otherwise it will output nise on reuse, but I don't know the reason.
+                 */
 #if __APPLE__
             || mAudioRender
 #endif

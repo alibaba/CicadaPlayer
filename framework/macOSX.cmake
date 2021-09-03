@@ -16,6 +16,7 @@ set(COMMON_LIB_DIR ${COMMON_LIB_DIR}
         ${MAC_INSTALL_DIR}/cares/Darwin/${MAC_ARCH}/lib
         ${MAC_INSTALL_DIR}/dav1d/Darwin/${MAC_ARCH}/lib
         /opt/homebrew/lib/
+        ../../../prebuild/Darwin/mpf/lib
         )
 set(COMMON_INC_DIR ${COMMON_INC_DIR}
         ${MAC_INSTALL_DIR}/curl/Darwin/${MAC_ARCH}/include
@@ -27,6 +28,8 @@ set(COMMON_INC_DIR ${COMMON_INC_DIR}
         ${MAC_INSTALL_DIR}/../boost/
         ${MAC_INSTALL_DIR}/../external/ffmpeg/
         /opt/homebrew/include/
+        ../../../privateService/filter
+        ../../../prebuild/Darwin/mpf/include
         ${PROJECT_SOURCE_DIR})
 
 

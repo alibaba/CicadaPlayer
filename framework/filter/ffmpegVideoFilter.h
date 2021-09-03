@@ -10,17 +10,20 @@ extern "C" {
 }
 
 #include "IVideoFilter.h"
+#include "filterPrototype.h"
 #include <base/media/spsc_queue.h>
 #include <utils/afThread.h>
 namespace Cicada {
-    class ffmpegVideoFilter : public IVideoFilter {
+    class ffmpegVideoFilter : public IVideoFilter, protected filterPrototype {
     public:
-        ffmpegVideoFilter(const format &srcFormat, const format &dstFormat, bool active);
+        ffmpegVideoFilter();
+
+        ffmpegVideoFilter(const IAFFrame::videoInfo &srcFormat, const IAFFrame::videoInfo &dstFormat, bool active);
         ~ffmpegVideoFilter() override;
 
         bool setOption(const std::string &key, const std::string &value, const std::string &capacity) override;
 
-        attribute_warn_unused_result int init() override;
+        attribute_warn_unused_result bool init(int type) override;
 
         int push(std::unique_ptr<IAFFrame> &frame, uint64_t timeOut) override;
 
@@ -28,8 +31,23 @@ namespace Cicada {
 
         void flush() override;
 
+        std::string getName() override;
+
+        bool is_supported(const std::string &target, int width, int height, int format) override;
+
+        Cicada::IVideoFilter *clone(IAFFrame::videoInfo srcFormat, IAFFrame::videoInfo dstFormat, bool active) override;
+
+        bool isFeatureSupported(Feature feature) override;
+
     private:
         int FilterLoop();
+
+        explicit ffmpegVideoFilter(int dummy)
+        {
+            addPrototype(this);
+        }
+
+        static ffmpegVideoFilter se;
 
     private:
         AVFilterContext *buffersink_ctx{nullptr};

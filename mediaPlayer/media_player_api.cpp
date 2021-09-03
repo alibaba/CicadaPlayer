@@ -517,6 +517,33 @@ bool CicadaIsAutoPLay(playerHandle *pHandle)
     return false;
 }
 
+void CicadaSetFilterConfig(playerHandle *pHandle, const std::string &filterConfig)
+{
+    GET_PLAYER;
+
+    if (player) {
+        player->SetFilterConfig(filterConfig);
+    }
+}
+
+void CicadaUpdateFilterConfig(playerHandle *pHandle, const std::string &target, const std::string &options)
+{
+    GET_PLAYER;
+
+    if (player) {
+        player->UpdateFilterConfig(target, options);
+    }
+}
+
+void CicadaSetFilterInvalid(playerHandle *pHandle, const std::string &target, bool invalid)
+{
+    GET_PLAYER;
+
+    if (player) {
+        player->SetFilterInvalid(target, invalid);
+    }
+}
+
 void CicadaSetDecoderType(playerHandle *pHandle, DecoderType type)
 {
     GET_PLAYER;

@@ -1107,6 +1107,25 @@ namespace Cicada {
 #endif
     }
 
+    void MediaPlayer::SetFilterConfig(const string &filterConfig)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaSetFilterConfig(handle, filterConfig);
+    }
+
+    void MediaPlayer::UpdateFilterConfig(const std::string &target, const std::string &options)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaUpdateFilterConfig(handle, target, options);
+    }
+
+    void MediaPlayer::SetFilterInvalid(const std::string &target, bool invalid)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaSetFilterInvalid(handle, target, invalid);
+    }
+
+
     string MediaPlayer::GetCachePathByURL(const string &URL)
     {
 #ifdef ENABLE_CACHE_MODULE
