@@ -334,18 +334,6 @@ namespace Cicada {
 
         int streamIndex = pkt->stream_index;
 
-        int encryption_info_size;
-        const uint8_t *new_encryption_info = av_packet_get_side_data(pkt,
-                                                                     AV_PKT_DATA_ENCRYPTION_INFO,
-                                                                     &encryption_info_size);
-        if (encryption_info_size > 0 && new_encryption_info != nullptr) {
-            mStreamCtxMap[streamIndex]->bsf = nullptr;
-        } else {
-            if (mStreamCtxMap[streamIndex]->bsf == nullptr) {
-                createBsf(streamIndex);
-            }
-        }
-
         bool needUpdateExtraData = false;
         int new_extradata_size;
         const uint8_t *new_extradata = av_packet_get_side_data(pkt,
@@ -359,12 +347,16 @@ namespace Cicada {
             codecpar->extradata = static_cast<uint8_t *>(av_malloc(new_extradata_size + AV_INPUT_BUFFER_PADDING_SIZE));
             memcpy(codecpar->extradata, new_extradata, new_extradata_size);
             codecpar->extradata_size = new_extradata_size;
-
-            if (mStreamCtxMap[streamIndex]->bsf) {
-                createBsf(streamIndex);
-            }
+            createBsf(streamIndex);
             needUpdateExtraData = true;
         }
+
+        int encryption_info_size;
+        const uint8_t *new_encryption_info = av_packet_get_side_data(pkt, AV_PKT_DATA_ENCRYPTION_INFO, &encryption_info_size);
+        if (encryption_info_size > 0 && new_encryption_info != nullptr) {
+            mStreamCtxMap[streamIndex]->bsf = nullptr;
+        }
+
         /*
          * TODO: can't support this for now, audio render only support fixed sample size
          */
