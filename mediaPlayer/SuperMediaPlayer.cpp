@@ -931,7 +931,11 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key)
 
             return "";
         }
-
+        case PROPERTY_KEY_VIDEO_DROPPED_INFO: {
+            char dropInfo[MAX_OPT_VALUE_LENGTH] = {0};
+            GetOption("videoDroppedInfo", dropInfo);
+            return dropInfo;
+        }
         default:
             break;
     }
