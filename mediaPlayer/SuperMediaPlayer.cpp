@@ -4178,13 +4178,21 @@ void SuperMediaPlayer::ApsaraVideoRenderListener::onFrameInfoUpdate(IAFFrame::AF
 bool SuperMediaPlayer::ApsaraVideoProcessTextureCallback::init(int type)
 {
     std::lock_guard<std::mutex> filterLock(mPlayer.mFilterManagerMutex);
-    return mPlayer.mFilterManager->initFilter(IVideoFilter::Texture, type);
+    if (mPlayer.mFilterManager) {
+        return mPlayer.mFilterManager->initFilter(IVideoFilter::Texture, type);
+    } else {
+        return false;
+    }
 }
 
 bool SuperMediaPlayer::ApsaraVideoProcessTextureCallback::needProcess()
 {
     std::lock_guard<std::mutex> filterLock(mPlayer.mFilterManagerMutex);
-    return mPlayer.mFilterManager->hasFilter(IVideoFilter::Texture);
+    if (mPlayer.mFilterManager) {
+        return mPlayer.mFilterManager->hasFilter(IVideoFilter::Texture);
+    } else {
+        return false;
+    }
 }
 
 bool SuperMediaPlayer::ApsaraVideoProcessTextureCallback::processTexture(std::unique_ptr<IAFFrame> &textureFrame)
