@@ -436,6 +436,7 @@ namespace Cicada {
 
         mStreamCtxMap[index] = unique_ptr<AVStreamCtx>(new AVStreamCtx());
         mStreamCtxMap[index]->opened = true;
+        createBsf(index);
         return 0;
     }
 
