@@ -29,8 +29,6 @@ public:
     virtual ~filterPrototype() = default;
 
 private:
-    static Cicada::IVideoFilter *getMaxScoreFilter(const std::list<Cicada::IVideoFilter *> &filterList);
-
     static std::list<Cicada::IVideoFilter *> getTargetSupportFilters(const CicadaJSONItem &item, const IAFFrame::videoInfo &videoInfo);
 
     static void dummy(int dummy);

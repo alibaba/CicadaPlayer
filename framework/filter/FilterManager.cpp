@@ -48,6 +48,13 @@ void FilterManager::setupFilterChains()
         }
 
         std::unique_ptr<IVideoFilter> targetFilter = std::unique_ptr<IVideoFilter>(filter);
+        std::string options;
+        if (configItem.hasItem(filterPrototype::FILTER_CONFIG_KEY_OPTIONS)) {
+            options = configItem.getString(filterPrototype::FILTER_CONFIG_KEY_OPTIONS);
+            targetFilter->setOption("options", options, "");
+        } else {
+            AF_LOGW("filter config has no `options`");
+        }
 
         std::string target = configItem.getString(filterPrototype::FILTER_CONFIG_KEY_TARGET);
         if ((filterFeature & IVideoFilter::Feature::Texture) && filter->isFeatureSupported(IVideoFilter::Feature::Texture)) {

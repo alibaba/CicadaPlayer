@@ -39,37 +39,33 @@ Cicada::IVideoFilter *filterPrototype::create(int feature, CicadaJSONItem &item,
         return nullptr;
     }
 
-    std::list<IVideoFilter *> bufferSupportedFilters{};
-    std::list<IVideoFilter *> textureSupportedFilters{};
-    for (IVideoFilter *filter : supportFilters) {
-        bool textureSupport = filter->isFeatureSupported(IVideoFilter::Feature::Texture);
-        if (textureSupport) {
-            textureSupportedFilters.push_back(filter);
-        }
-
-        bool bufferSupport = filter->isFeatureSupported(IVideoFilter::Feature::Buffer);
-        if (bufferSupport) {
-            bufferSupportedFilters.push_back(filter);
-        }
-    }
-
     bool needTextureFilter = (feature & IVideoFilter::Feature::Texture);
     bool needBufferFilter = (feature & IVideoFilter::Feature::Buffer);
 
     IVideoFilter *filter{nullptr};
+    int maxScore = 0;
+    for (IVideoFilter *filterItem : supportFilters) {
+        int score = 0;
+        if (needTextureFilter && filterItem->isFeatureSupported(IVideoFilter::Feature::Texture)) {
+            score += 100;
+        }
 
-    {
-        //TODO add feature to filter when probe score
-        if (needTextureFilter && needBufferFilter) {
-            //we choose textureFilter first
-            filter = getMaxScoreFilter(textureSupportedFilters);
-            if (filter == nullptr) {
-                filter = getMaxScoreFilter(bufferSupportedFilters);
-            }
-        } else if (needTextureFilter) {
-            filter = getMaxScoreFilter(textureSupportedFilters);
-        } else if (needBufferFilter) {
-            filter = getMaxScoreFilter(bufferSupportedFilters);
+        if (needBufferFilter && filterItem->isFeatureSupported(IVideoFilter::Feature::Buffer)) {
+            score += 50;
+        }
+
+        if (score == 0) {
+            AF_LOGD("filter %s can not match the feature %d", filterItem->getName().c_str(), feature);
+            continue;
+        }
+
+        if (filterItem->isFeatureSupported(IVideoFilter::Feature::PassThrough)) {
+            score += 1;
+        }
+
+        if (score >= maxScore) {
+            filter = filterItem;
+            maxScore = score;
         }
     }
 
@@ -78,46 +74,8 @@ Cicada::IVideoFilter *filterPrototype::create(int feature, CicadaJSONItem &item,
         return nullptr;
     }
 
-    AF_LOGI("use filter %s", filter->getName().c_str());
-
-    std::string options;
-    if (item.hasItem(FILTER_CONFIG_KEY_OPTIONS)) {
-        options = item.getString(FILTER_CONFIG_KEY_OPTIONS);
-    } else {
-        AF_LOGW("filter config has no `options`");
-    }
-
     IVideoFilter *finalFilter = filter->clone(videoInfo, videoInfo, active);
-    finalFilter->setOption("options", options, "");
-
     return finalFilter;
-}
-
-
-Cicada::IVideoFilter *filterPrototype::getMaxScoreFilter(const std::list<Cicada::IVideoFilter *> &filterList)
-{
-
-    if (filterList.empty()) {
-        AF_LOGW("filter list is empty");
-        return nullptr;
-    }
-
-    IVideoFilter *targetFilter = nullptr;
-    int max_score = 0;
-
-    for (IVideoFilter *item : filterList) {
-        int score = 1;
-        if (item->isFeatureSupported(IVideoFilter::Feature::PassThrough)) {
-            score += 1;
-        }
-
-        if (score > max_score) {
-            max_score = score;
-            targetFilter = item;
-        }
-    }
-
-    return targetFilter;
 }
 
 std::list<Cicada::IVideoFilter *> filterPrototype::getTargetSupportFilters(const CicadaJSONItem &item, const IAFFrame::videoInfo &videoInfo)
