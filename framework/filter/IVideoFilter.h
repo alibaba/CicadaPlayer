@@ -71,11 +71,17 @@ namespace Cicada {
             mInvalid = invalid;
         }
 
+        void setSpeed(float speed)
+        {
+            mSpeed = speed;
+        }
+
     protected:
         IAFFrame::videoInfo mSrcFormat{};
         IAFFrame::videoInfo mDstFormat{};
         bool mInvalid{false};
         bool mActive{false};
+        float mSpeed = 1.0;
     };
 }// namespace Cicada
 

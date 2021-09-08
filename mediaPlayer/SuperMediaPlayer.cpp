@@ -2285,6 +2285,7 @@ bool SuperMediaPlayer::doFilter(unique_ptr<IAFFrame> &frame)
 {
     std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
     if (mFilterManager != nullptr) {
+        // todo dofilter parameter should be list<unique_ptr<IAFFrame>>
         bool success = mFilterManager->doFilter(frame);
         return success;
     }
