@@ -191,7 +191,7 @@ bool VideoFilterChain::init(int type)
             ++iter;
         }
     }
-    //if all init fail , we do not pass to texture filter
+
     return !mVideoFiltersMap.empty();
 }
 

@@ -81,7 +81,7 @@ void FilterManager::setupFilterChains()
     }
 }
 
-bool FilterManager::doFilter(unique_ptr<IAFFrame> &frame)
+bool FilterManager::push(std::unique_ptr<IAFFrame> &frame)
 {
     if (!mNeedFilter) {
         return false;
@@ -92,25 +92,31 @@ bool FilterManager::doFilter(unique_ptr<IAFFrame> &frame)
         return false;
     }
 
-    if (format == AF_PIX_FMT_CICADA_TEXTURE) {
-        return doFilter(IVideoFilter::Feature::Texture, frame);
-    } else {
-        return doFilter(IVideoFilter::Feature::Buffer, frame);
-    }
+    IVideoFilter::Feature feature = format == AF_PIX_FMT_CICADA_TEXTURE ? IVideoFilter::Feature::Texture : IVideoFilter::Feature::Buffer;
 
-    return false;
-}
-
-bool FilterManager::doFilter(IVideoFilter::Feature feature, std::unique_ptr<IAFFrame> &frame)
-{
     if (!hasFilter(feature)) {
         //        AF_LOGW("not found filter for %d ?! ", feature);
         return false;
     }
     std::unique_ptr<VideoFilterChain> &filterChain = mFilterChains.at(feature);
     int ret = filterChain->push(frame);
-    ret = filterChain->pull(frame);
+    return (ret >= 0);
+}
 
+bool FilterManager::pull(int format, std::unique_ptr<IAFFrame> &frame)
+{
+    if (format == AF_PIX_FMT_CICADA_MEDIA_CODEC) {
+        return false;
+    }
+
+    IVideoFilter::Feature feature = format == AF_PIX_FMT_CICADA_TEXTURE ? IVideoFilter::Feature::Texture : IVideoFilter::Feature::Buffer;
+
+    if (!hasFilter(feature)) {
+        //        AF_LOGW("not found filter for %d ?! ", feature);
+        return false;
+    }
+    std::unique_ptr<VideoFilterChain> &filterChain = mFilterChains.at(feature);
+    int ret = filterChain->pull(frame);
     return (ret >= 0);
 }
 

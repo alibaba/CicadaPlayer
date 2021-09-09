@@ -2268,25 +2268,43 @@ int SuperMediaPlayer::FillVideoFrame()
         //                    (mLastInputAudio - mPlayedAudioPts)/1000, (mLastInputVideo - pFrame->GetPts())/1000);
 
         if (!isHDRVideo(meta)) {
-            bool success = doFilter(pFrame);
-            if (!success) {
-                //            AF_LOGW("filter fail..");
+            int format = pFrame->getInfo().video.format;
+            bool success = push(pFrame);
+            if (success) {
+                while (true) {
+                    std::unique_ptr<IAFFrame> frame = nullptr;
+                    success = pull(format, frame);
+                    if (success) {
+                        mVideoFrameQue.push(move(frame));
+                    } else {
+                        break;
+                    }
+                }
+            } else {
+                mVideoFrameQue.push(move(pFrame));
             }
         }
-
-        mVideoFrameQue.push(move(pFrame));
         videoDecoderFull = true;
     }
 
     return ret;
 }
 
-bool SuperMediaPlayer::doFilter(unique_ptr<IAFFrame> &frame)
+bool SuperMediaPlayer::push(unique_ptr<IAFFrame> &frame)
 {
     std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
     if (mFilterManager != nullptr) {
-        // todo dofilter parameter should be list<unique_ptr<IAFFrame>>
-        bool success = mFilterManager->doFilter(frame);
+        bool success = mFilterManager->push(frame);
+        return success;
+    }
+    return false;
+}
+
+bool SuperMediaPlayer::pull(int format, unique_ptr<IAFFrame> &frame)
+{
+    std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
+    if (mFilterManager != nullptr) {
+        bool success = mFilterManager->pull(format, frame);
         return success;
     }
     return false;
@@ -4311,7 +4329,12 @@ bool SuperMediaPlayer::ApsaraVideoProcessTextureCallback::needProcess()
     }
 }
 
-bool SuperMediaPlayer::ApsaraVideoProcessTextureCallback::processTexture(std::unique_ptr<IAFFrame> &textureFrame)
+bool SuperMediaPlayer::ApsaraVideoProcessTextureCallback::push(std::unique_ptr<IAFFrame> &textureFrame)
 {
-    return mPlayer.doFilter(textureFrame);
+    return mPlayer.push(textureFrame);
+}
+
+bool SuperMediaPlayer::ApsaraVideoProcessTextureCallback::pull(std::unique_ptr<IAFFrame> &textureFrame)
+{
+    return mPlayer.pull(AF_PIX_FMT_CICADA_TEXTURE, textureFrame);
 }

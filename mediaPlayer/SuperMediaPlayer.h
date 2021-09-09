@@ -315,7 +315,9 @@ namespace Cicada {
 
         int64_t getAudioPlayTimeStamp();
 
-        bool doFilter(unique_ptr<IAFFrame> &frame);
+        bool push(std::unique_ptr<IAFFrame> &frame);
+
+        bool pull(int format, std::unique_ptr<IAFFrame> &frame);
 
         bool render();
 
@@ -421,7 +423,9 @@ namespace Cicada {
 
             bool needProcess() override;
 
-            bool processTexture(std::unique_ptr<IAFFrame> &textureFrame) override;
+            bool push(std::unique_ptr<IAFFrame> &textureFrame) override;
+
+            bool pull(std::unique_ptr<IAFFrame> &textureFrame) override;
 
         private:
             SuperMediaPlayer &mPlayer;

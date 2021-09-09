@@ -423,15 +423,24 @@ int OESProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
     TextureFrame *pFrame = new TextureFrame(TextureFrame::TEXTURE_RGBA, mGLContext, reinterpret_cast<int *>(inTexture), nullptr,
                                             mFrameWidth, mFrameHeight);
     std::unique_ptr<IAFFrame> textureFrame = std::unique_ptr<TextureFrame>(pFrame);
-    bool success = mProcessTextureCb->processTexture(textureFrame);
+    bool success = mProcessTextureCb->push(textureFrame);
 
     if (!success) {
         AF_LOGW("process texture fail , will render FBO");
         drawTexture(GL_TEXTURE_2D, FBOTextureId, false);
+        return 0;
+    }
+// TODO pull until no frame
+    success = mProcessTextureCb->pull(textureFrame);
+    if (!success) {
+        AF_LOGW("process texture fail , will render FBO");
+        drawTexture(GL_TEXTURE_2D, FBOTextureId, false);
+
     } else {
         int outTexture = ((TextureFrame *) textureFrame.get())->getTexture()[0];
         drawTexture(GL_TEXTURE_2D, outTexture, false);
     }
+
 
     return 0;
 }

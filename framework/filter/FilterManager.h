@@ -16,7 +16,9 @@ namespace Cicada {
 
         ~FilterManager();
 
-        bool doFilter(std::unique_ptr<IAFFrame> &frame);
+        bool push(std::unique_ptr<IAFFrame> &frame);
+
+        bool pull(int format, std::unique_ptr<IAFFrame> &frame);
 
         void setNeedFilter(bool needFilter);
 
@@ -31,7 +33,6 @@ namespace Cicada {
     private:
         void setupFilterChains();
 
-        bool doFilter(IVideoFilter::Feature feature, std::unique_ptr<IAFFrame> &frame);
 
     private:
         std::map<IVideoFilter::Feature, std::unique_ptr<VideoFilterChain>> mFilterChains{};

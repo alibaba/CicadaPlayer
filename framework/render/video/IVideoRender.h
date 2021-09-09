@@ -210,7 +210,9 @@ public:
 
         virtual bool needProcess() = 0;
 
-        virtual bool processTexture(std::unique_ptr<IAFFrame> &textureFrame) = 0;
+        virtual bool push(std::unique_ptr<IAFFrame> &textureFrame) = 0;
+
+        virtual bool pull(std::unique_ptr<IAFFrame> &textureFrame) = 0;
     };
 
     virtual void setVideoProcessTextureCb(videoProcessTextureCb *cb)

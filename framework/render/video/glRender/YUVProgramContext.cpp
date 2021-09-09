@@ -223,14 +223,16 @@ int YUVProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
         auto *pFrame = new TextureFrame(TextureFrame::TEXTURE_YUV, mGLContext, reinterpret_cast<int *>(mYUVTextures), mLineSize,
                                         mFrameWidth, mFrameHeight);
         std::unique_ptr<IAFFrame> textureFrame = std::unique_ptr<TextureFrame>(pFrame);
-        bool success = mProcessTextureCb->processTexture(textureFrame);
-        if (!success) {
-            AF_LOGW("process texture fail , will draw orignal yuv");
-        } else {
-            int *outTexture = ((TextureFrame *) textureFrame.get())->getTexture();
-            finalTextures[0] = outTexture[0];
-            finalTextures[1] = outTexture[1];
-            finalTextures[2] = outTexture[2];
+        bool success = mProcessTextureCb->push(textureFrame);
+        if (success) {
+        //TODO pull until no frame
+            success = mProcessTextureCb->pull(textureFrame);
+            if (success) {
+                int *outTexture = ((TextureFrame *) textureFrame.get())->getTexture();
+                finalTextures[0] = outTexture[0];
+                finalTextures[1] = outTexture[1];
+                finalTextures[2] = outTexture[2];
+            }
         }
     }
 
