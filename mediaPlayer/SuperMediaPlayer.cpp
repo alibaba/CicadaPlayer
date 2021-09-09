@@ -3677,9 +3677,12 @@ void SuperMediaPlayer::updateVideoMeta()
 {
     mDemuxerService->GetStreamMeta(mCurrentVideoMeta, mCurrentVideoIndex, false);
     auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
-    if (mVideoWidth != meta->width || mVideoHeight != meta->height || mVideoRotation != meta->rotate) {
-        mVideoWidth = meta->displayWidth;
-        mVideoHeight = meta->displayHeight;
+
+    int with = meta->displayWidth == 0 ? meta->width : meta->displayWidth;
+    int height = meta->displayHeight == 0 ? meta->height : meta->displayHeight;
+    if (mVideoWidth != with || mVideoHeight != height || mVideoRotation != meta->rotate) {
+        mVideoWidth = with;
+        mVideoHeight = height;
         mVideoRotation = meta->rotate;
         mPNotifier->NotifyVideoSizeChanged(mVideoWidth, mVideoHeight);
     }
