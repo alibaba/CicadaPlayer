@@ -36,8 +36,20 @@ namespace Cicada {
         bool removeFilter(const std::string &target);
 
     private:
+        void filterLoop();
+
+        static void pullFrames(std::unique_ptr<IVideoFilter> &filter, SpscQueue<IAFFrame *> &outFrames);
+
+        static void pushFrames(std::unique_ptr<IVideoFilter> &filter, SpscQueue<IAFFrame *> &inputFrames);
+
+        static void swapFrames(SpscQueue<IAFFrame *> &dstFrames, SpscQueue<IAFFrame *> &srcFrames);
+
+        static void clearFrames(SpscQueue<IAFFrame *> &frames);
+
+    private:
         std::map<std::string, std::unique_ptr<IVideoFilter>> mVideoFiltersMap{};
-        std::unique_ptr<IAFFrame> mInPutFrame{nullptr};
+        SpscQueue<IAFFrame *> mInPutFrames{10};
+        SpscQueue<IAFFrame *> mOutPutFrames{10};
     };
 }// namespace Cicada
 #endif//SOURCE_VIDEOFILTERCHAIN_H
