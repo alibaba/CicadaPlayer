@@ -35,6 +35,8 @@ namespace Cicada {
 
         bool removeFilter(const std::string &target);
 
+        void setSpeed(float speed);
+
     private:
         void filterLoop();
 

@@ -30,6 +30,8 @@ namespace Cicada {
 
         void updateFilter(const std::string &target, const std::string &options);
 
+        void setSpeed(float speed);
+
     private:
         void setupFilterChains();
 

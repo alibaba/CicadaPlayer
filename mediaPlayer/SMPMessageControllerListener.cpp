@@ -700,6 +700,7 @@ void SMPMessageControllerListener::ProcessSetSpeed(float speed)
         mPlayer.mAVDeviceManager->setSpeed(speed);
         mPlayer.mSet->rate = speed;
         mPlayer.mMasterClock.SetScale(speed);
+        mPlayer.mFilterManager->setSpeed(speed);
     }
 }
 

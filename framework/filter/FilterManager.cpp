@@ -153,3 +153,10 @@ void FilterManager::updateFilter(const std::string &target, const std::string &o
         iter.second->updateFilter(target, options);
     }
 }
+
+void FilterManager::setSpeed(float speed)
+{
+    for (auto &iter : mFilterChains) {
+        iter.second->setSpeed(speed);
+    }
+}

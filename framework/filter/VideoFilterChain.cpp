@@ -203,3 +203,10 @@ bool VideoFilterChain::removeFilter(const std::string &target)
     }
     return false;
 }
+
+void VideoFilterChain::setSpeed(float speed)
+{
+    for (auto &iter : mVideoFiltersMap) {
+        iter.second->setSpeed(speed);
+    }
+}
