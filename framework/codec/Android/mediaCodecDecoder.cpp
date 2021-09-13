@@ -105,9 +105,9 @@ namespace Cicada {
 
         mMeta = *meta;
         mVideoOutObser = voutObsr;
+        updateCSD(meta, meta->extradata, meta->extradata_size);
 
         lock_guard<recursive_mutex> func_entry_lock(mFuncEntryMutex);
-        setCSD(meta);
 
         if (drmInfo != nullptr) {
             if (mRequireDrmHandlerCallback != nullptr) {
@@ -126,11 +126,12 @@ namespace Cicada {
         return configDecoder();
     }
 
-    int mediaCodecDecoder::setCSD(const Stream_meta *meta) {
+    void mediaCodecDecoder::updateCSD(const Stream_meta *meta, const uint8_t *extradata, int extradata_size)
+    {
         if (meta->codec == AF_CODEC_ID_HEVC) {
 
-            if (meta->extradata == nullptr || meta->extradata_size == 0) {
-                return -1;
+            if (extradata == nullptr || extradata_size == 0) {
+                return;
             }
 
             uint8_t *vps_data = nullptr;
@@ -140,14 +141,10 @@ namespace Cicada {
             int sps_data_size = 0;
             int pps_data_size = 0;
 
-            int ret = parse_h265_extraData(CodecID2AVCodecID(AF_CODEC_ID_HEVC),meta->extradata, meta->extradata_size,
-                                           &vps_data,&vps_data_size,
-                                           &sps_data,&sps_data_size,
-                                           &pps_data,&pps_data_size,
-                                           &naluLengthSize);
+            int ret = parse_h265_extraData(CodecID2AVCodecID(AF_CODEC_ID_HEVC), extradata, extradata_size, &vps_data, &vps_data_size,
+                                           &sps_data, &sps_data_size, &pps_data, &pps_data_size, &naluLengthSize);
             if (ret >= 0) {
-
-                std::list<CodecSpecificData> csdList{};
+                mCSDList.clear();
                 CodecSpecificData csd0{};
 
                 const int data_size =
@@ -159,17 +156,12 @@ namespace Cicada {
                 memcpy(data + vps_data_size + sps_data_size, pps_data, pps_data_size);
 
                 csd0.setScd("csd-0", data, data_size);
-                csdList.push_back(csd0);
-                mDecoder->setCodecSpecificData(csdList);
-
-                csdList.clear();
+                mCSDList.push_back(csd0);
             }
-
-            return ret;
         } else if (meta->codec == AF_CODEC_ID_H264) {
 
-            if (meta->extradata == nullptr || meta->extradata_size == 0) {
-                return -1;
+            if (extradata == nullptr || extradata_size == 0) {
+                return;
             }
 
             uint8_t *sps_data = nullptr;
@@ -177,27 +169,21 @@ namespace Cicada {
             int sps_data_size = 0;
             int pps_data_size = 0;
 
-            int ret = parse_h264_extraData(CodecID2AVCodecID(AF_CODEC_ID_H264),meta->extradata, meta->extradata_size,
-                                           &sps_data,&sps_data_size,
-                                           &pps_data,&pps_data_size,
-                                           &naluLengthSize);
+            int ret = parse_h264_extraData(CodecID2AVCodecID(AF_CODEC_ID_H264), extradata, extradata_size, &sps_data, &sps_data_size,
+                                           &pps_data, &pps_data_size, &naluLengthSize);
             if (ret >= 0) {
 
-                std::list<CodecSpecificData> csdList{};
+                mCSDList.clear();
                 CodecSpecificData csd0{};
                 csd0.setScd("csd-0", sps_data, sps_data_size);
-                csdList.push_back(csd0);
+                mCSDList.push_back(csd0);
                 CodecSpecificData csd1{};
                 csd1.setScd("csd-1", pps_data, pps_data_size);
-                csdList.push_back(csd1);
-                mDecoder->setCodecSpecificData(csdList);
-
-                csdList.clear();
+                mCSDList.push_back(csd1);
             }
 
-            return ret;
         } else if (meta->codec == AF_CODEC_ID_AAC) {
-            if (meta->extradata == nullptr || meta->extradata_size == 0) {
+            if (extradata == nullptr || extradata_size == 0) {
                 isADTS = true;
                 //ADTS, has no extra data . MediaCodec MUST set csd when decode aac
 
@@ -215,7 +201,7 @@ namespace Cicada {
                     }
                 }
                 if (sampleIndex < 0) {
-                    return -1;
+                    return;
                 }
 
                 const size_t kCsdLength = 2;
@@ -232,17 +218,14 @@ namespace Cicada {
                 csdList.clear();
             } else {
                 isADTS = false;
-                std::list<CodecSpecificData> csdList{};
+                mCSDList.clear();
                 CodecSpecificData csd0{};
-                csd0.setScd("csd-0", meta->extradata, meta->extradata_size);
-                csdList.push_back(csd0);
-                mDecoder->setCodecSpecificData(csdList);
-
-                csdList.clear();
+                csd0.setScd("csd-0", (void *) extradata, extradata_size);
+                mCSDList.push_back(csd0);
             }
-            return 0;
+            return;
         } else {
-            return -1;
+            return;
         }
     }
 
@@ -305,6 +288,15 @@ namespace Cicada {
                     return ret;
                 }
             }
+        }
+
+        if (pPacket != nullptr && pPacket->getInfo().extra_data != nullptr) {
+            updateCSD(&mMeta, pPacket->getInfo().extra_data, pPacket->getInfo().extra_data_size);
+        }
+
+        if (!mCSDList.empty()) {
+            mDecoder->setCodecSpecificData(mCSDList);
+            mCSDList.clear();
         }
 
         int index = mDecoder->dequeueInputBufferIndex(1000);
