@@ -33,9 +33,13 @@ namespace Cicada {
 
         void setInvalid(const std::string &target, bool invalid);
 
+        bool isInvalid(const std::string &target);
+
         bool removeFilter(const std::string &target);
 
         void setSpeed(float speed);
+
+        bool hasFilter(const std::string &target);
 
     private:
         void filterLoop();

@@ -99,7 +99,7 @@ bool FilterManager::push(std::unique_ptr<IAFFrame> &frame)
 
     IVideoFilter::Feature feature = format == AF_PIX_FMT_CICADA_TEXTURE ? IVideoFilter::Feature::Texture : IVideoFilter::Feature::Buffer;
 
-    if (!hasFilter(feature)) {
+    if (!hasFilter(feature, "")) {
         //        AF_LOGW("not found filter for %d ?! ", feature);
         return false;
     }
@@ -116,7 +116,7 @@ bool FilterManager::pull(int format, std::unique_ptr<IAFFrame> &frame)
 
     IVideoFilter::Feature feature = format == AF_PIX_FMT_CICADA_TEXTURE ? IVideoFilter::Feature::Texture : IVideoFilter::Feature::Buffer;
 
-    if (!hasFilter(feature)) {
+    if (!hasFilter(feature, "")) {
         //        AF_LOGW("not found filter for %d ?! ", feature);
         return false;
     }
@@ -137,9 +137,17 @@ void FilterManager::setInvalid(const std::string &target, bool invalid)
     }
 }
 
+bool FilterManager::isInvalid(IVideoFilter::Feature feature, const std::string &target)
+{
+    if (hasFilter(feature, target)) {
+        return mFilterChains.find(feature)->second->isInvalid(target);
+    }
+    return false;
+}
+
 bool FilterManager::initFilter(IVideoFilter::Feature feature, int filterType)
 {
-    if (!hasFilter(feature)) {
+    if (!hasFilter(feature, "")) {
         return false;
     }
 
@@ -147,9 +155,18 @@ bool FilterManager::initFilter(IVideoFilter::Feature feature, int filterType)
     return targetFilterChain->init(filterType);
 }
 
-bool FilterManager::hasFilter(IVideoFilter::Feature feature)
+bool FilterManager::hasFilter(IVideoFilter::Feature feature, const string &target)
 {
-    return mFilterChains.count(feature) > 0;
+    int count = mFilterChains.count(feature);
+    bool ret = count > 0;
+    if (!ret) {
+        return false;
+    }
+    if (target.empty()) {
+        return ret;
+    } else {
+        return mFilterChains.find(feature)->second->hasFilter(target);
+    }
 }
 
 void FilterManager::updateFilter(const std::string &target, const std::string &options)

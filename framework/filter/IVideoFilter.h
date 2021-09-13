@@ -72,6 +72,11 @@ namespace Cicada {
             mInvalid = invalid;
         }
 
+        virtual bool isInvalid()
+        {
+            return mInvalid;
+        }
+
         void setSpeed(float speed)
         {
             mSpeed = speed;

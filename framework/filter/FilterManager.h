@@ -28,7 +28,9 @@ namespace Cicada {
 
         bool initFilter(IVideoFilter::Feature feature, int filterType);
 
-        bool hasFilter(IVideoFilter::Feature feature);
+        bool hasFilter(IVideoFilter::Feature feature, const std::string &target);
+
+        bool isInvalid(IVideoFilter::Feature feature, const std::string &target);
 
         void updateFilter(const std::string &target, const std::string &options);
 

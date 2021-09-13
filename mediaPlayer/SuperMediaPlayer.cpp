@@ -1125,6 +1125,9 @@ int SuperMediaPlayer::updateLoopGap()
                     if (mVideoInterlaced == InterlacedType_YES) {
                         fps *= 2;
                     }
+                    if (!mFilterManager->isInvalid(IVideoFilter::Feature::Buffer, "vfi")) {
+                        fps *= 2;
+                    }
                     return 1000 / int((float) fps * mSet->rate * 1.5);
                 }
             }
@@ -4336,7 +4339,7 @@ bool SuperMediaPlayer::ApsaraVideoProcessTextureCallback::needProcess()
 {
     std::lock_guard<std::mutex> filterLock(mPlayer.mFilterManagerMutex);
     if (mPlayer.mFilterManager) {
-        return mPlayer.mFilterManager->hasFilter(IVideoFilter::Texture);
+        return mPlayer.mFilterManager->hasFilter(IVideoFilter::Texture, "");
     } else {
         return false;
     }

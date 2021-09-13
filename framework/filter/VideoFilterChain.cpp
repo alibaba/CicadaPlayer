@@ -178,6 +178,14 @@ void VideoFilterChain::setInvalid(const std::string &target, bool invalid)
     }
 }
 
+bool VideoFilterChain::isInvalid(const std::string &target)
+{
+    std::unique_ptr<IVideoFilter> &filter = mVideoFiltersMap.find(target)->second;
+    if (filter != nullptr) {
+        return filter->isInvalid();
+    }
+}
+
 bool VideoFilterChain::init(int type)
 {
     auto iter = mVideoFiltersMap.begin();
@@ -209,4 +217,9 @@ void VideoFilterChain::setSpeed(float speed)
     for (auto &iter : mVideoFiltersMap) {
         iter.second->setSpeed(speed);
     }
+}
+
+bool VideoFilterChain::hasFilter(const std::string &target)
+{
+    return mVideoFiltersMap.find(target) != mVideoFiltersMap.end();
 }
