@@ -59,12 +59,20 @@ namespace Cicada {
         }
 
         mConfig = config;
-        EGLint context_attrib_list[] = {
-            EGL_CONTEXT_CLIENT_VERSION, mClientVersion,
-            EGL_NONE,
+
+        // Create an OpenGL ES 3.0 context.
+        EGLint context_attrib_list_gles3[] = {
+                EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE,
         };
-        AF_LOGI("EGLContext client version %d", mClientVersion);
-        mContext = eglCreateContext(mDisplay, config, sharedContext, context_attrib_list);
+        mContext =  eglCreateContext(mDisplay, config, sharedContext, context_attrib_list_gles3);
+        if (EGL_NO_CONTEXT == mContext) {
+            AF_LOGE("not support OpenGL ES 3.0");
+            // Failed, create an OpenGL ES 2.0 context.
+            EGLint context_attrib_list_gles2[] = {
+                    EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE,
+            };
+            mContext = eglCreateContext(mDisplay, config, sharedContext, context_attrib_list_gles2);
+        }
 
         if (EGL_NO_CONTEXT == mContext) {
             EGLint err = eglGetError();

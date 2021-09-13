@@ -61,7 +61,6 @@ namespace Cicada{
         EGLConfig mConfig{nullptr};
         EGLSurface mNoSurface{EGL_NO_SURFACE};
         std::string mExtensions;
-        EGLint mClientVersion{2};
         int mWidth{0};
         int mHeight{0};
         EGLint mMajor{0};
