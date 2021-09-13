@@ -16,6 +16,8 @@ namespace Cicada {
 
         ~FilterManager();
 
+        void setStreamMeta(const Stream_meta* meta);
+
         bool push(std::unique_ptr<IAFFrame> &frame);
 
         bool pull(int format, std::unique_ptr<IAFFrame> &frame);
@@ -39,8 +41,11 @@ namespace Cicada {
     private:
         std::map<IVideoFilter::Feature, std::unique_ptr<VideoFilterChain>> mFilterChains{};
 
+        const Stream_meta * streamMeta{nullptr};
+
         IAFFrame::videoInfo mVideoInfo{};
         std::string mFilterConfig{};
+        bool mFilterInited{false};
         bool mNeedFilter{true};
     };
 }// namespace Cicada

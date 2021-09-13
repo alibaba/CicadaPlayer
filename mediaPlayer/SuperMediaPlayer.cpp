@@ -2267,23 +2267,23 @@ int SuperMediaPlayer::FillVideoFrame()
         //                    pFrame->GetPts()/1000, pos/1000, mPlayedAudioPts/1000, (pos - pFrame->GetPts())/1000,
         //                    (mLastInputAudio - mPlayedAudioPts)/1000, (mLastInputVideo - pFrame->GetPts())/1000);
 
-        if (!isHDRVideo(meta)) {
-            int format = pFrame->getInfo().video.format;
-            bool success = push(pFrame);
-            if (success) {
-                while (true) {
-                    std::unique_ptr<IAFFrame> frame = nullptr;
-                    success = pull(format, frame);
-                    if (success) {
-                        mVideoFrameQue.push(move(frame));
-                    } else {
-                        break;
-                    }
+
+        int format = pFrame->getInfo().video.format;
+        bool success = push(pFrame);
+        if (success) {
+            while (true) {
+                std::unique_ptr<IAFFrame> frame = nullptr;
+                success = pull(format, frame);
+                if (success) {
+                    mVideoFrameQue.push(move(frame));
+                } else {
+                    break;
                 }
-            } else {
-                mVideoFrameQue.push(move(pFrame));
             }
+        } else {
+            mVideoFrameQue.push(move(pFrame));
         }
+
         videoDecoderFull = true;
     }
 
@@ -3064,6 +3064,13 @@ int SuperMediaPlayer::ReadPacket()
                 auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
                 mVideoParser = new bitStreamParser();
                 mVideoParser->init(meta);
+
+                {
+                    std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
+                    if (mFilterManager != nullptr) {
+                        mFilterManager->setStreamMeta(meta);
+                    }
+                }
             }
 
             mVideoParser->parser(pFrame->getData(), static_cast<int>(pFrame->getSize()));
@@ -3800,6 +3807,12 @@ void SuperMediaPlayer::updateVideoMeta()
 {
     mDemuxerService->GetStreamMeta(mCurrentVideoMeta, mCurrentVideoIndex, false);
     auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
+    {
+        std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
+        if (mFilterManager != nullptr) {
+            mFilterManager->setStreamMeta(meta);
+        }
+    }
 
     int with = meta->displayWidth == 0 ? meta->width : meta->displayWidth;
     int height = meta->displayHeight == 0 ? meta->height : meta->displayHeight;

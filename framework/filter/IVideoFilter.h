@@ -18,6 +18,7 @@ namespace Cicada {
             PassThrough = 1, // support do not do filter
             Buffer = 1 << 1, //buffer after decode
             Texture = 1 << 2,// texture before render
+            HDR = 1 << 3 , // HDR viedeo buffer
         };
 
     public:

@@ -41,11 +41,18 @@ Cicada::IVideoFilter *filterPrototype::create(int feature, CicadaJSONItem &item,
 
     bool needTextureFilter = (feature & IVideoFilter::Feature::Texture);
     bool needBufferFilter = (feature & IVideoFilter::Feature::Buffer);
+    bool needHDRFilter = (feature & IVideoFilter::Feature::HDR);
 
     IVideoFilter *filter{nullptr};
     int maxScore = 0;
     for (IVideoFilter *filterItem : supportFilters) {
         int score = 0;
+
+        if(needHDRFilter && !filterItem->isFeatureSupported(IVideoFilter::Feature::HDR)) {
+            AF_LOGD("filter %s not support HDR" , filterItem->getName().c_str());
+            continue;
+        }
+
         if (needTextureFilter && filterItem->isFeatureSupported(IVideoFilter::Feature::Texture)) {
             score += 100;
         }

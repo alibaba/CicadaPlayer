@@ -243,7 +243,6 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
                     openStreamRet = mPlayer.mDemuxerService->OpenStream(i);
                     mPlayer.mCurrentVideoIndex = i;
                     mPlayer.updateVideoMeta();
-                    mPlayer.mDemuxerService->GetStreamMeta(mPlayer.mCurrentVideoMeta, i, false);
                 }
             }
         } else if (!mPlayer.mSet->bDisableAudio && meta->type == STREAM_TYPE_AUDIO) {

@@ -17,7 +17,6 @@ FilterManager::FilterManager(const IAFFrame::videoInfo &videoInfo, const CicadaJ
     mVideoInfo = videoInfo;
     mFilterConfig = config.printJSON();
 
-    setupFilterChains();
 }
 
 FilterManager::~FilterManager()
@@ -36,6 +35,12 @@ void FilterManager::setupFilterChains()
     //use buffer filter
     filterFeature = IVideoFilter::Feature::Buffer;
 #endif
+
+    assert(streamMeta != nullptr);
+    if (streamMeta->pixel_fmt == AF_PIX_FMT_YUV420P10BE || streamMeta->pixel_fmt == AF_PIX_FMT_YUV420P10LE) {
+        AF_LOGD("HDR video\n");
+        filterFeature |= IVideoFilter::Feature::HDR;
+    }
 
     CicadaJSONArray config(mFilterConfig);
     int size = config.getSize();
@@ -158,5 +163,15 @@ void FilterManager::setSpeed(float speed)
 {
     for (auto &iter : mFilterChains) {
         iter.second->setSpeed(speed);
+    }
+}
+
+void FilterManager::setStreamMeta(const Stream_meta* meta) {
+    streamMeta = meta;
+
+    if (!mFilterInited) {
+        //TODO how to deal with pixel format changed
+        setupFilterChains();
+        mFilterInited = true;
     }
 }

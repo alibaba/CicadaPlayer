@@ -327,6 +327,8 @@ bool ffmpegVideoFilter::isFeatureSupported(IVideoFilter::Feature feature)
             return false;
         case PassThrough:
             return false;
+        case HDR:
+            return false;
         case None:
             break;
     }
