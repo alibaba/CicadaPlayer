@@ -5,10 +5,11 @@
 #ifndef SOURCE_MEDIACODEC_DECODER_H
 #define SOURCE_MEDIACODEC_DECODER_H
 
-#include <jni.h>
-#include <string>
-#include <map>
 #include <base/media/IAFPacket.h>
+#include <cassert>
+#include <jni.h>
+#include <map>
+#include <string>
 
 #define MC_ERROR (-1)
 #define MC_INFO_OUTPUT_FORMAT_CHANGED (-2)
@@ -53,14 +54,20 @@ namespace Cicada {
     class CodecSpecificData {
     public:
         CodecSpecificData() = default;
-
-        void setScd(const std::string& keyStr ,void* data, int size){
-            buffer = data;
-            len = size;
-            key = keyStr;
+        ~CodecSpecificData()
+        {
+            if (buffer != nullptr) {
+                free(buffer);
+            }
         }
 
-        ~CodecSpecificData() {
+        void setScd(const std::string& keyStr ,void* data, int size){
+            assert(data != nullptr);
+
+            len = size;
+            key = keyStr;
+            buffer = malloc(size);
+            memcpy(buffer, data, size);
         }
 
         std::string key{};
@@ -80,7 +87,7 @@ namespace Cicada {
 
         ~MediaCodec_Decoder();
 
-        void setCodecSpecificData(std::list<CodecSpecificData> csds);
+        void setCodecSpecificData(const std::list<std::unique_ptr<CodecSpecificData>> &csds);
 
         int setDrmInfo(const std::string &uuid, const void *sessionId, int size);
 

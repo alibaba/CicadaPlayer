@@ -99,7 +99,7 @@ namespace Cicada{
 
         int codecType = CODEC_VIDEO;
         std::string mMime{};
-        std::list<CodecSpecificData> mCSDList{};
+        std::list<std::unique_ptr<CodecSpecificData>> mCSDList{};
         MediaCodec_Decoder *mDecoder{nullptr};
 
         std::recursive_mutex mFuncEntryMutex;
