@@ -128,6 +128,10 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         mPlayer.ResetSeekStatus();
     }
 
+    if (mPlayer.mFilterManager) {
+        mPlayer.mFilterManager->clearBuffer();
+    }
+
     AF_LOGD("initOpen start");
     ret = mPlayer.mDemuxerService->createDemuxer((mPlayer.mBSReadCb || noFile) ? demuxer_type_bit_stream : demuxer_type_unknown);
 
@@ -496,6 +500,10 @@ void SMPMessageControllerListener::ProcessSeekToMsg(int64_t seekPos, bool bAccur
     mPlayer.FlushVideoPath();
     mPlayer.FlushAudioPath();
     mPlayer.FlushSubtitleInfo();
+
+    if (mPlayer.mFilterManager) {
+        mPlayer.mFilterManager->clearBuffer();
+    }
 
     if (mPlayer.mSubPlayer) {
         mPlayer.mSubPlayer->seek(seekPos);

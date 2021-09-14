@@ -327,11 +327,11 @@ namespace Cicada {
 
         void releaseStreamInfo(const StreamInfo *info) const;
 
-        // mSeekFlag will be set when processing (after remove from mMessageControl), it have gap
+        // mClearFlag will be set when processing (after remove from mMessageControl), it have gap
         bool isSeeking()
         {
             return INT64_MIN != mSeekPos;
-        } //{return mSeekFlag || mMessageControl.findMsgByType(MSG_SEEKTO);}
+        }//{return mClearFlag || mMessageControl.findMsgByType(MSG_SEEKTO);}
 
 //        void setRotationMode(RotateMode rotateMode, MirrorMode mirrorMode) const;
 

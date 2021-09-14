@@ -82,12 +82,19 @@ namespace Cicada {
             mSpeed = speed;
         }
 
+        virtual void clearBuffer()
+        {
+            mClearFlag = true;
+            flush();
+        }
+
     protected:
         IAFFrame::videoInfo mSrcFormat{};
         IAFFrame::videoInfo mDstFormat{};
         bool mInvalid{false};
         bool mActive{false};
         float mSpeed = 1.0;
+        bool mClearFlag{false};
     };
 }// namespace Cicada
 

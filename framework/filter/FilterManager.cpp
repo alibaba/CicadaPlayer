@@ -142,7 +142,7 @@ bool FilterManager::isInvalid(IVideoFilter::Feature feature, const std::string &
     if (hasFilter(feature, target)) {
         return mFilterChains.find(feature)->second->isInvalid(target);
     }
-    return false;
+    return true;
 }
 
 bool FilterManager::initFilter(IVideoFilter::Feature feature, int filterType)
@@ -180,6 +180,13 @@ void FilterManager::setSpeed(float speed)
 {
     for (auto &iter : mFilterChains) {
         iter.second->setSpeed(speed);
+    }
+}
+
+void FilterManager::clearBuffer()
+{
+    for (auto &iter : mFilterChains) {
+        iter.second->clearBuffer();
     }
 }
 

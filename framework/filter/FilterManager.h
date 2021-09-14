@@ -36,6 +36,8 @@ namespace Cicada {
 
         void setSpeed(float speed);
 
+        void clearBuffer();
+
     private:
         void setupFilterChains();
 

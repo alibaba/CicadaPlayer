@@ -131,6 +131,7 @@ void VideoFilterChain::pushFrames(std::unique_ptr<IVideoFilter> &filter, SpscQue
                 inputFrames.pop();
             } else if (ret == -EAGAIN) {
                 AF_LOGD("filter %s push EAGAIN", filter->getName().c_str());
+                //todo why not eagain
                 break;
             } else {
                 AF_LOGW("filer %s push Error = %d ", filter->getName().c_str(), ret);
@@ -184,6 +185,7 @@ bool VideoFilterChain::isInvalid(const std::string &target)
     if (filter != nullptr) {
         return filter->isInvalid();
     }
+    return true;
 }
 
 bool VideoFilterChain::init(int type)
@@ -216,6 +218,17 @@ void VideoFilterChain::setSpeed(float speed)
 {
     for (auto &iter : mVideoFiltersMap) {
         iter.second->setSpeed(speed);
+    }
+}
+
+void VideoFilterChain::clearBuffer()
+{
+    while (!mOutPutFrames.empty()) {
+        delete mOutPutFrames.front();
+        mOutPutFrames.pop();
+    }
+    for (auto &iter : mVideoFiltersMap) {
+        iter.second->clearBuffer();
     }
 }
 

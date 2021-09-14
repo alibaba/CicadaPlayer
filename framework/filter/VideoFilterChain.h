@@ -39,6 +39,8 @@ namespace Cicada {
 
         void setSpeed(float speed);
 
+        void clearBuffer();
+
         bool hasFilter(const std::string &target);
 
     private:
