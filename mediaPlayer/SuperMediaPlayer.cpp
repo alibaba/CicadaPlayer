@@ -2156,6 +2156,14 @@ int SuperMediaPlayer::FillVideoFrame()
 
         auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
 
+        if (!mAdaptiveVideo && mVideoWidth > 0 && (pFrame->getInfo().video.width != mVideoWidth || pFrame->getInfo().video.height != mVideoHeight)) {
+
+            // displayWidth and displayHeight is changed, but we can't know the sar for now
+
+            // TODO: get the sar from frame or update current video meta
+            meta->displayWidth = meta->displayHeight = 0;
+        }
+
         if (meta->displayWidth > 0 && meta->displayHeight > 0) {
             pFrame->getInfo().video.dar = 1.0 * meta->displayWidth / meta->displayHeight;
         } else {
