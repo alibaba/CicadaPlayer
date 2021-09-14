@@ -132,11 +132,6 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
 
     // TODO: video tool box HW decoder not merge the header
     if (mPlayer.mDemuxerService->getDemuxerHandle()) {
-#ifdef __APPLE__
-        mPlayer.mDemuxerService->getDemuxerHandle()->setBitStreamFormat(header_type::header_type_extract, header_type::header_type_extract);
-#else
-        mPlayer.mDemuxerService->getDemuxerHandle()->setBitStreamFormat(header_type::header_type_merge, header_type::header_type_merge);
-#endif
         if (noFile) {
             IDataSource::SourceConfig config;
             mPlayer.mDataSource->Get_config(config);
@@ -237,7 +232,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
             if (mPlayer.mCurrentVideoIndex < 0 && !mPlayer.mMixMode && meta->attached_pic == 0) {
                 if (bandWidthNearStreamIndex == i) {
                     AF_LOGD("get a video stream\n");
-                    openStreamRet = mPlayer.mDemuxerService->OpenStream(i);
+                    openStreamRet = mPlayer.OpenStream(i);
                     mPlayer.mCurrentVideoIndex = i;
                     mPlayer.updateVideoMeta();
                     mPlayer.mDemuxerService->GetStreamMeta(mPlayer.mCurrentVideoMeta, i, false);
@@ -261,7 +256,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
 
             if (mPlayer.mCurrentAudioIndex < 0 && !mPlayer.mMixMode) {
                 AF_LOGD("get a audio stream\n");
-                openStreamRet = mPlayer.mDemuxerService->OpenStream(i);
+                openStreamRet = mPlayer.OpenStream(i);
                 mPlayer.mCurrentAudioIndex = i;
                 mPlayer.mCATimeBase = meta->ptsTimeBase;
             }
@@ -284,7 +279,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
                  */
                 (meta->codec != AF_CODEC_ID_NONE || mPlayer.mDemuxerService->isPlayList())) {
                 AF_LOGD("get a subtitle stream\n");
-                openStreamRet = mPlayer.mDemuxerService->OpenStream(i);
+                openStreamRet = mPlayer.OpenStream(i);
                 mPlayer.mCurrentSubtitleIndex = i;
                 if (meta->extradata && meta->extradata_size > 0) {
                     meta->extradata[meta->extradata_size] = 0;
@@ -303,7 +298,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
                 AF_LOGD("already readed stream");
             } else if (bandWidthNearStreamIndex == i) {
                 mPlayer.mMixMode = true;
-                openStreamRet = mPlayer.mDemuxerService->OpenStream(i);
+                openStreamRet = mPlayer.OpenStream(i);
                 mPlayer.mMainStreamId = i;
             }
 
@@ -801,7 +796,7 @@ void SMPMessageControllerListener::switchVideoStream(int index, Stream_type type
 void SMPMessageControllerListener::switchAudio(int index)
 {
     // TODO: use position to seek demuxer ,and drop the late packet
-    int ret = mPlayer.mDemuxerService->OpenStream(index);
+    int ret = mPlayer.OpenStream(index);
 
     if (ret < 0) {
         AF_LOGD("subtitle", "switch audio open stream failed,stream index %d\n", index);
@@ -826,7 +821,7 @@ void SMPMessageControllerListener::switchAudio(int index)
 
 void SMPMessageControllerListener::switchSubTitle(int index)
 {
-    int ret = mPlayer.mDemuxerService->OpenStream(index);
+    int ret = mPlayer.OpenStream(index);
 
     if (ret < 0) {
         AF_LOGD("subtitle", "switch subtitle open stream failed,stream index %d\n", index);
