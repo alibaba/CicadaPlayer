@@ -79,7 +79,7 @@ SuperMediaPlayer::~SuperMediaPlayer()
         return;
     }
     Stop();
-    AF_LOGD("SuperMediaPlayer");
+    AF_LOGD("~SuperMediaPlayer");
     mCanceled = true;
     mPlayerCondition.notify_one();
     mApsaraThread->stop();
@@ -89,6 +89,7 @@ SuperMediaPlayer::~SuperMediaPlayer()
     delete mPNotifier;
     mPNotifier = nullptr;
     mMessageControl = nullptr;
+    mAVDeviceManager = nullptr;
     mFilterManager = nullptr;
 }
 
