@@ -121,6 +121,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
 
     //prepare之前seek
     if (mPlayer.mSeekPos > 0) {
+        mPlayer.mPNotifier->NotifySeeking(false);
         mPlayer.mDemuxerService->Seek(mPlayer.mSeekPos, 0, -1);
         mPlayer.mSeekFlag = true;
     } else {
