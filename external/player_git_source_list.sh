@@ -29,6 +29,13 @@ fi
 OPENSSL_BRANCH="OpenSSL_1_1_1g"
 clone_git $OPENSSL_GIT $OPENSSL_BRANCH
 
+
+if [ -z "${NGHTTP2_GIT}" ];then
+    NGHTTP2_GIT="https://github.com/nghttp2/nghttp2.git"
+fi
+NGHTTP2_BRANCH="v1.44.0"
+clone_git ${NGHTTP2_GIT} "${NGHTTP2_BRANCH}"
+
 if [ -z "${CURL_GIT}" ];then
     CURL_GIT="https://github.com/curl/curl.git"
 fi

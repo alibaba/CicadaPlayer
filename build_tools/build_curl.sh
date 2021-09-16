@@ -93,8 +93,7 @@ function build_curl(){
                 --without-librtmp \
                 --without-brotli \
                 --without-libidn \
-                --without-zstd \
-                --without-nghttp2"
+                --without-zstd"
     local build_dir="${CWD}/build/curl/$1/$2"
     local install_dir="${CWD}/install/curl/$1/$2"
 
@@ -115,7 +114,13 @@ function build_curl(){
             local rtmp_opt="--with-librtmp=${LIBRTMP_INSTALL_DIR}"
         fi
 
-        ${CURL_SOURCE_DIR}/configure -host=${CROSS_COMPILE} CC="${CC}" ${ssl_opt} ${resolver_opt} ${config} ${rtmp_opt} --prefix=${install_dir} ${LIBSDEPEND} || exit 1
+        if [[ -d "${NGHTTP2_INSTALL_DIR}" ]];then
+            local nghttp2_opt="--with-nghttp2=${NGHTTP2_INSTALL_DIR}"
+         else
+            local nghttp2_opt="--without-nghttp2"
+        fi
+
+        ${CURL_SOURCE_DIR}/configure -host=${CROSS_COMPILE} CC="${CC}" ${ssl_opt} ${resolver_opt} ${config} ${rtmp_opt} ${nghttp2_opt} --prefix=${install_dir} ${LIBSDEPEND} || exit 1
         make -j8 install V=1 || exit 1
         cd -
     fi

@@ -12,6 +12,7 @@ source build_librtmp.sh
 source build_ares.sh
 source build_boost.sh
 source build_libxml2.sh
+source build_nghttp2.sh
 
 function apply_ffmpeg_config(){
     ffmpeg_config_reset
@@ -87,6 +88,16 @@ function build_static_lib(){
         fi
     else
         print_warning "RTMPDUM source not found"
+    fi
+
+    if [[ -d "$NGHTTP2_SOURCE_DIR" ]];then
+
+        build_nghttp2  $1 ${arch}
+        if [[ $? -ne 0 ]]; then
+            echo "build_librtmp build failed"
+            exit -1
+        fi
+
     fi
 
     if [[ -d "${CURL_SOURCE_DIR}" ]];then
@@ -230,6 +241,10 @@ function link_shared_lib_Android(){
 
     if [[ -d "${LIBXML2_INSTALL_DIR}" ]];then
         ldflags="$ldflags -lxml2 -L${LIBXML2_INSTALL_DIR}/lib/"
+    fi
+
+    if [[ -d "${NGHTTP2_INSTALL_DIR}" ]];then
+        ldflags="$ldflags -lnghttp2 -L${NGHTTP2_INSTALL_DIR}/lib/"
     fi
 
     cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
