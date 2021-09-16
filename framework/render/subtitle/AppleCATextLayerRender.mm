@@ -323,9 +323,15 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
     CGFloat w = CGRectGetWidth(self.mLayer.frame);
     CGFloat h = CGRectGetHeight(self.mLayer.frame);
 
-    float factorX = w*1.0f/self.mHeader.PlayResX;
-    float factorY = h*1.0f/self.mHeader.PlayResY;
-    
+    float factorX = 1.0;
+    float factorY = 1.0;
+    if (self.mHeader.PlayResX > 0) {
+        factorX = w * 1.0f / self.mHeader.PlayResX;
+    }
+    if (self.mHeader.PlayResY > 0) {
+        factorY = h * 1.0f / self.mHeader.PlayResY;
+    }
+
     //TODO detect whether it is the default style
     std::map<std::string, AssStyle> styles = self.mHeader.styles;
     auto iter = styles.begin();
@@ -441,17 +447,19 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
     [CATransaction commit];
     
     NSRange range = NSMakeRange(0, attributedStr.length);
-    NSDictionary *dic = [attributedStr attributesAtIndex:0 effectiveRange:&range];
-    if ([dic objectForKey:NSStrokeWidthAttributeName]) {
-        CATextLayer *strokeLayer = [[CATextLayer alloc] init];
-        strokeLayer.frame = textLayer.bounds;
-        
-        NSArray *arr = [self buildAttributedStrBySubtitle:subtitle defaultstyle:assStyle factor:factorY showOutline:NO];
-        
-        NSMutableAttributedString *frontAttributedStr = arr.firstObject;
-        strokeLayer.string = frontAttributedStr;
-        strokeLayer.alignmentMode = textLayer.alignmentMode;
-        [textLayer addSublayer:strokeLayer];
+    if (range.length > 0) {
+        NSDictionary *dic = [attributedStr attributesAtIndex:0 effectiveRange:&range];
+        if ([dic objectForKey:NSStrokeWidthAttributeName]) {
+            CATextLayer *strokeLayer = [[CATextLayer alloc] init];
+            strokeLayer.frame = textLayer.bounds;
+
+            NSArray *arr = [self buildAttributedStrBySubtitle:subtitle defaultstyle:assStyle factor:factorY showOutline:NO];
+
+            NSMutableAttributedString *frontAttributedStr = arr.firstObject;
+            strokeLayer.string = frontAttributedStr;
+            strokeLayer.alignmentMode = textLayer.alignmentMode;
+            [textLayer addSublayer:strokeLayer];
+        }
     }
 //#if TARGET_OS_IPHONE
 //    textLayer.backgroundColor = [UIColor redColor].CGColor;
