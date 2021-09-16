@@ -391,6 +391,7 @@ int Cicada::CURLConnection::esayHandle_set_common_opt()
     curl_easy_setopt(mHttp_handle, CURLOPT_HEADERFUNCTION, write_response);
     curl_easy_setopt(mHttp_handle, CURLOPT_HEADERDATA, this);
     curl_easy_setopt(mHttp_handle, CURLOPT_BUFFERSIZE, READ_BUFFER_SIZE);
+    curl_easy_setopt(mHttp_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
     return 0;
 }
 
@@ -439,9 +440,7 @@ int CURLConnection::FillBuffer(uint32_t want)
                                        overflowSize);
             RingBufferWriteData(pRbuf, pOverflowBuffer, amount);
 
-            if (amount < overflowSize)
-                memcpy(pOverflowBuffer, pOverflowBuffer + amount,
-                       overflowSize - amount);
+            if (amount < overflowSize) memmove(pOverflowBuffer, pOverflowBuffer + amount, overflowSize - amount);
 
             overflowSize -= amount;
             char *p = static_cast<char *>(realloc(pOverflowBuffer,
