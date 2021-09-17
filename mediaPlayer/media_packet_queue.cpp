@@ -175,24 +175,24 @@ int64_t MediaPacketQueue::GetFirstTimePos()
     return (*mCurrent)->getInfo().timePosition;
 }
 
-int64_t MediaPacketQueue::GetKeyPTSBefore(int64_t pts)
+int64_t MediaPacketQueue::GetFirstKeyPTS(int64_t pts)
 {
     ADD_LOCK;
-    int64_t lastKeyPts = INT64_MIN;
+    int64_t firstKeyPts = INT64_MIN;
 
-    for (auto r_iter = mQueue.rbegin(); r_iter != mQueue.rend(); ++r_iter) {
-        IAFPacket *packet = (*r_iter).get();
+    for (auto &r_iter : mQueue) {
+        IAFPacket *packet = r_iter.get();
 
         if (packet && (packet->getInfo().flags & AF_PKT_FLAG_KEY) && packet->getInfo().pts <= pts) {
-            lastKeyPts = packet->getInfo().pts;
-            return lastKeyPts;
+            firstKeyPts = packet->getInfo().pts;
+            return firstKeyPts;
         }
         if (packet == (*mCurrent).get()) {
             break;
         }
     }
 
-    return lastKeyPts;
+    return firstKeyPts;
 }
 
 int64_t MediaPacketQueue::GetKeyTimePositionBefore(int64_t pts)

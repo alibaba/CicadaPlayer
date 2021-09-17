@@ -51,7 +51,7 @@ namespace Cicada {
 
         void Rewind(BUFFER_TYPE type);
 
-        int64_t GetKeyPTSBefore(BUFFER_TYPE type, int64_t pts);
+        int64_t GetFirstKeyPTS(BUFFER_TYPE type, int64_t pts);
 
         int64_t GetPacketLastTimePos(BUFFER_TYPE type);
 

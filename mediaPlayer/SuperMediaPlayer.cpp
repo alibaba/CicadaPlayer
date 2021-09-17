@@ -2465,10 +2465,10 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
 
         // To avoid video frame packet overload when video decoder can't catch up.
         if (videoLateUs >= 500 * 1000 && !PTS_REVERTING) {
-            int64_t lastVideoKeyPts = mBufferController->GetKeyPTSBefore(BUFFER_TYPE_VIDEO, masterPlayedTime);
+            int64_t firstVideoKeyPts = mBufferController->GetFirstKeyPTS(BUFFER_TYPE_VIDEO, masterPlayedTime);
 
-            if (lastVideoKeyPts != INT64_MIN) {
-                int64_t dropVideoCount = mBufferController->ClearPacketBeforePts(BUFFER_TYPE_VIDEO, lastVideoKeyPts);
+            if (firstVideoKeyPts != INT64_MIN) {
+                int64_t dropVideoCount = mBufferController->ClearPacketBeforePts(BUFFER_TYPE_VIDEO, firstVideoKeyPts);
 
                 if (dropVideoCount > 0) {
                     FlushVideoPath();
