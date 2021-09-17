@@ -303,8 +303,6 @@ namespace Cicada {
 
         bool SeekInCache(int64_t pos);
 
-        int OpenStream(int index);
-
         void SwitchVideo(int64_t startTime);
 
         int64_t getPlayerBufferDuration(bool gotMax, bool internal);

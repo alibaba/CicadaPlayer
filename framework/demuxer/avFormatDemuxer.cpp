@@ -354,7 +354,7 @@ namespace Cicada {
         int encryption_info_size;
         const uint8_t *new_encryption_info = av_packet_get_side_data(pkt, AV_PKT_DATA_ENCRYPTION_INFO, &encryption_info_size);
         if (encryption_info_size > 0 && new_encryption_info != nullptr) {
-            assert(mStreamCtxMap[streamIndex]->bsf == nullptr);
+            mStreamCtxMap[streamIndex]->bsf = nullptr;
         }
 
         /*

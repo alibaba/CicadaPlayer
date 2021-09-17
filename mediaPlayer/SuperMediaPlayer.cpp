@@ -3338,30 +3338,10 @@ bool SuperMediaPlayer::SeekInCache(int64_t pos)
     return true;
 }
 
-int SuperMediaPlayer::OpenStream(int index)
-{
-
-#ifdef __APPLE__
-    mDemuxerService->getDemuxerHandle()->setBitStreamFormat(header_type::header_type_extract, header_type::header_type_extract);
-#else
-    unique_ptr<streamMeta> streamMeta{};
-    mDemuxerService->GetStreamMeta(streamMeta, index, false);
-    auto *meta = (Stream_meta *) (streamMeta.get());
-    if (isWideVineVideo(meta)) {
-        mDemuxerService->getDemuxerHandle()->setBitStreamFormat(header_type::header_type_no_touch, header_type::header_type_no_touch);
-    } else {
-        mDemuxerService->getDemuxerHandle()->setBitStreamFormat(header_type::header_type_merge, header_type::header_type_merge);
-    }
-#endif
-
-    int ret = mDemuxerService->OpenStream(index);
-    return ret;
-}
-
 void SuperMediaPlayer::SwitchVideo(int64_t startTime)
 {
     AF_LOGD("video change find start time is %lld", startTime);
-    int ret = OpenStream(mWillChangedVideoStreamIndex);
+    int ret = mDemuxerService->OpenStream(mWillChangedVideoStreamIndex);
 
     if (ret < 0) {
         AF_LOGD("video", "switch video open stream failed,stream index %d\n", mCurrentVideoIndex);
@@ -3442,7 +3422,8 @@ int SuperMediaPlayer::setUpAudioDecoder(const Stream_meta *meta)
     uint64_t flags = DECFLAG_SW;
 
 #ifdef ANDROID
-    if (isWideVineVideo(meta)) {
+    bool isWideVineVideo = (meta->keyFormat != nullptr && strcmp(meta->keyFormat, "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed") == 0);
+    if (isWideVineVideo) {
         flags |= DECFLAG_HW;
     }
 #endif
