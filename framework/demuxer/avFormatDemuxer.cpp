@@ -334,16 +334,12 @@ namespace Cicada {
 
         int streamIndex = pkt->stream_index;
 
-        int encryption_info_size;
-        const uint8_t *new_encryption_info = av_packet_get_side_data(pkt,
-                                                                     AV_PKT_DATA_ENCRYPTION_INFO,
-                                                                     &encryption_info_size);
-        if (encryption_info_size > 0 && new_encryption_info != nullptr) {
-            mStreamCtxMap[streamIndex]->bsf = nullptr;
-        } else {
-            if (mStreamCtxMap[streamIndex]->bsf == nullptr) {
-                createBsf(streamIndex);
-            }
+        // If is drm encrypted, should not create bsf.
+        // But can not know if stream is encrypted when open stream,
+        // so create bsf here when got first pkt.
+        if (!mStreamCtxMap[pkt->stream_index]->bsfInited) {
+            createBsf(pkt, streamIndex);
+            mStreamCtxMap[pkt->stream_index]->bsfInited = true;
         }
 
         bool needUpdateExtraData = false;
@@ -359,10 +355,7 @@ namespace Cicada {
             codecpar->extradata = static_cast<uint8_t *>(av_malloc(new_extradata_size + AV_INPUT_BUFFER_PADDING_SIZE));
             memcpy(codecpar->extradata, new_extradata, new_extradata_size);
             codecpar->extradata_size = new_extradata_size;
-
-            if (mStreamCtxMap[streamIndex]->bsf) {
-                createBsf(streamIndex);
-            }
+            createBsf(pkt, streamIndex);
             needUpdateExtraData = true;
         }
         /*
@@ -444,6 +437,7 @@ namespace Cicada {
 
         mStreamCtxMap[index] = unique_ptr<AVStreamCtx>(new AVStreamCtx());
         mStreamCtxMap[index]->opened = true;
+        mStreamCtxMap[index]->bsfInited = false;
         return 0;
     }
 
@@ -461,8 +455,14 @@ namespace Cicada {
         mStreamCtxMap[index]->opened = false;
     }
 
-    int avFormatDemuxer::createBsf(int index)
+    int avFormatDemuxer::createBsf(AVPacket *pkt, int index)
     {
+        int encryption_info_size;
+        const uint8_t *new_encryption_info = av_packet_get_side_data(pkt, AV_PKT_DATA_ENCRYPTION_INFO, &encryption_info_size);
+        if (encryption_info_size > 0 && new_encryption_info != nullptr) {
+            return 0;
+        }
+
         string bsfName{};
         int ret = 0;
         const AVCodecParameters *codecpar = mCtx->streams[index]->codecpar;

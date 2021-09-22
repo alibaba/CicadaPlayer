@@ -36,7 +36,8 @@ namespace Cicada {
         class AVStreamCtx {
         public:
             std::unique_ptr<IAVBSF> bsf{};
-            bool opened = true;
+            bool opened{true};
+            bool bsfInited{false};
         };
 
     public:
@@ -112,7 +113,7 @@ namespace Cicada {
 
         void init();
 
-        int createBsf(int index);
+        int createBsf(AVPacket *pkt, int index);
 
         int ReadPacketInternal(std::unique_ptr<IAFPacket> &packet);
 
