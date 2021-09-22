@@ -16,8 +16,6 @@ PBAFFrame::PBAFFrame(CVPixelBufferRef pixelBuffer, int64_t pts, int64_t duration
     mInfo.pts = pts;
     mInfo.duration = duration;
     mInfo.video.format = AF_PIX_FMT_APPLE_PIXEL_BUFFER;
-    mInfo.video.width = (int) CVPixelBufferGetWidth(mPBuffer);
-    mInfo.video.height = (int) CVPixelBufferGetHeight(mPBuffer);
 
     mInfo.video.colorInfo = info;
 
@@ -28,6 +26,15 @@ PBAFFrame::PBAFFrame(CVPixelBufferRef pixelBuffer, int64_t pts, int64_t duration
         mInfo.video.colorRange = COLOR_RANGE_LIMITIED;
     } else {
         mInfo.video.colorRange = COLOR_RANGE_UNSPECIFIED;
+    }
+
+    if (pixel_format == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange || pixel_format == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange ||
+        pixel_format == kCVPixelFormatType_420YpCbCr8Planar) {
+        mInfo.video.width = (int) CVPixelBufferGetWidthOfPlane(mPBuffer, 0);
+        mInfo.video.height = (int) CVPixelBufferGetHeightOfPlane(mPBuffer, 0);
+    } else {
+        mInfo.video.width = (int) CVPixelBufferGetWidth(mPBuffer);
+        mInfo.video.height = (int) CVPixelBufferGetHeight(mPBuffer);
     }
 
     CFTypeRef colorAttachments = CVBufferGetAttachment((CVPixelBufferRef) pixelBuffer, kCVImageBufferYCbCrMatrixKey, NULL);
