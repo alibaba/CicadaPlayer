@@ -5,6 +5,7 @@
 
 #include "ffmpegVideoFilter.h"
 #include <base/media/AVAFPacket.h>
+#include <utils/ffmpeg_utils.h>
 #include <utils/frame_work_log.h>
 #include <utils/timer.h>
 
@@ -128,7 +129,7 @@ end:
     avfilter_inout_free(&outputs);
 
     if (ret < 0) {
-        AF_LOGE("ffmpegVideoFilter::init fail %d (%s) ", ret, av_err2str(ret));
+        AF_LOGE("ffmpegVideoFilter::init fail %d (%s) ", ret, getErrorString(ret));
     }
 
     return ret >= 0;
