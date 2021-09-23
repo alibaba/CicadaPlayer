@@ -14,6 +14,7 @@
 #include "utils/mediaFrame.h"
 #include <cassert>
 #include <cerrno>
+#include <utils/timer.h>
 
 #undef LOG_TAG
 #define LOG_TAG "DashManager"
@@ -625,4 +626,8 @@ std::list<AdaptationSet *> DashManager::FindSuitableAdaptationSets(Period* perio
         ret.push_back(suitableAudio);
     }
     return ret;
+}
+UTCTimer *DashManager::getUTCTimer()
+{
+    return af_get_utc_timer();
 }

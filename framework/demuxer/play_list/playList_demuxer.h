@@ -72,6 +72,8 @@ namespace Cicada{
 
         int64_t getMaxGopTimeUs() override;
 
+        UTCTimer *getUTCTimer() override;
+
         void flush() override
         {
             // TODO:

@@ -66,6 +66,8 @@ namespace Cicada {
 
         vector<mediaSegmentListEntry> getSegmentList(int index) override;
 
+        UTCTimer *getUTCTimer() override;
+
     private:
         std::list<AdaptationSet *> FindSuitableAdaptationSets(Period* period);
         std::list<DashStreamInfo *> mStreamInfoList{};

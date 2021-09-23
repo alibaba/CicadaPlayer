@@ -264,4 +264,11 @@ namespace Cicada {
         }
         return false;
     }
+    UTCTimer *playList_demuxer::getUTCTimer()
+    {
+        if (mPPlaylistManager) {
+            return mPPlaylistManager->getUTCTimer();
+        }
+        return nullptr;
+    }
 }

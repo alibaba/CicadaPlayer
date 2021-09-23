@@ -76,6 +76,11 @@ namespace Cicada{
 
         virtual vector<mediaSegmentListEntry> getSegmentList(int index) = 0;
 
+        virtual UTCTimer *getUTCTimer()
+        {
+            return nullptr;
+        }
+
     protected:
         playList *mPList = nullptr;
         IDataSource *mExtDataSource = nullptr;

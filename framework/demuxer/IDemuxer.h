@@ -236,6 +236,11 @@ namespace Cicada {
             return mEntryInfos;
         }
 
+        virtual UTCTimer *getUTCTimer()
+        {
+            return nullptr;
+        }
+
     public:
         int64_t estimateExclusiveEndPositionBytes(const string &url, int64_t timeMicSec, int64_t totalLength) override;
 
