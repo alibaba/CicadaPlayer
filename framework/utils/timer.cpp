@@ -2,10 +2,10 @@
 // Created by moqi on 2018/5/12.
 //
 #include "timer.h"
-#include "UTCTimer.h"
 #include <chrono>
 #include <ctime>
 #include <thread>
+using namespace Cicada;
 
 int64_t af_gettime_ms()
 {
@@ -72,4 +72,8 @@ void af_init_utc_time_ms(int64_t timeMs)
 int64_t af_get_utc_time()
 {
     return gUtcTimer.get();
+}
+UTCTimer *af_get_utc_timer()
+{
+    return &gUtcTimer;
 }
