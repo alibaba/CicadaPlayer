@@ -259,6 +259,7 @@ int DashStream::open_internal()
     if (!mPTracker->bufferingAvailable()) {
         return -EAGAIN;
     }
+    mIsStartSegment = true;
     mCurSeg = mPTracker->getStartSegment();
     int trySegmentTimes = 0;
 
@@ -621,6 +622,7 @@ int DashStream::read(unique_ptr<IAFPacket> &packet)
 
 int DashStream::updateSegment()
 {
+    mIsStartSegment = false;
     if (!mPTracker->bufferingAvailable()) {
         return -EAGAIN;
     }
@@ -844,14 +846,16 @@ int DashStream::read_internal(std::unique_ptr<IAFPacket> &packet)
             mStreamStartTimeMap[streamIndex].lastFramePts = packet->getInfo().pts;
         }
 
-        int64_t timePos = packet->getInfo().timePosition;
-        if (timePos == INT64_MIN) {
-            timePos = packet->getInfo().pts;
-        }
-        if (timePos >= 0 && mStreamStartTime >= 0 && mSuggestedPresentationDelay > 0) {
-            if (timePos < af_get_utc_time() - mStreamStartTime - mSuggestedPresentationDelay) {
-                //AF_LOGD("setDiscard timePos = %lld", timePos);
-                packet->setDiscard(true);
+        if (mIsStartSegment) {
+            int64_t timePos = packet->getInfo().timePosition;
+            if (timePos == INT64_MIN) {
+                timePos = packet->getInfo().pts;
+            }
+            if (timePos >= 0 && mStreamStartTime >= 0 && mSuggestedPresentationDelay > 0) {
+                if (timePos < af_get_utc_time() - mStreamStartTime - mSuggestedPresentationDelay) {
+                    // AF_LOGD("setDiscard timePos = %lld", timePos);
+                    packet->setDiscard(true);
+                }
             }
         }
 

@@ -193,6 +193,7 @@ namespace Cicada {
         int64_t mSuggestedPresentationDelay = 0;
         atomic_bool mIsFirstOpen{true};
         bool mEnableCache{false};
+        bool mIsStartSegment{false};
     };
 }
 
