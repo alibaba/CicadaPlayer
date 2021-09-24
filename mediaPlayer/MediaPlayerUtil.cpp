@@ -78,6 +78,7 @@ namespace Cicada {
         mVideoRenderFps = 0;
         mReadGotSize = 0;
         mCurrentDownloadSpeed = 0;
+        mNetworkSpeed.clear();
     }
 
     void MediaPlayerUtil::getPropertyJSONStr(const std::string &name, CicadaJSONArray &array, bool isArray,
@@ -182,6 +183,16 @@ namespace Cicada {
 
             if (timeS > 1.0) {
                 mCurrentDownloadSpeed = (float) mReadGotSize * 8 / timeS;
+
+                {
+                    std::lock_guard<std::mutex> lockGuard(utilMutex);
+                    if (mNetworkSpeed.size() >= MAX_NETWORK_SPEED_COUNT) {
+                        mNetworkSpeed.erase(mNetworkSpeed.begin());
+                    }
+
+                    mNetworkSpeed[time] = mCurrentDownloadSpeed;
+                }
+
                 AF_LOGD("mReadLoopIndex is \t %f\n", (float) mReadLoopIndex / timeS);
                 AF_LOGD("mReadAgainIndex is\t %f\n", (float) mReadAgainIndex / timeS);
                 AF_LOGD("mReadGotIndex is\t %f\n", (float) mReadGotIndex / timeS);
@@ -194,4 +205,19 @@ namespace Cicada {
         }
     }
 
+    std::map<int64_t, int64_t> MediaPlayerUtil::getNetworkSpeed(int64_t timeFrom, int64_t timeTo)
+    {
+
+        std::map<int64_t, int64_t> result{};
+        {
+            std::lock_guard<std::mutex> lockGuard(utilMutex);
+            for (auto &item : mNetworkSpeed) {
+                if (item.first >= timeFrom && item.first < timeTo) {
+                    result.insert(item);
+                }
+            }
+        }
+
+        return result;
+    }
 }

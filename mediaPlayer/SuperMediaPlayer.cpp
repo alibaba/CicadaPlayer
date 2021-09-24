@@ -826,7 +826,7 @@ int64_t SuperMediaPlayer::GetPropertyInt(PropertyKey key)
     return 0;
 }
 
-std::string SuperMediaPlayer::GetPropertyString(PropertyKey key)
+std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSONItem &param)
 {
     switch (key) {
         case PROPERTY_KEY_RESPONSE_INFO: {
@@ -940,6 +940,25 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key)
             char dropInfo[MAX_OPT_VALUE_LENGTH] = {0};
             GetOption("videoDroppedInfo", dropInfo);
             return dropInfo;
+        }
+        case PROPERTY_KEY_NETWORK_SPEED: {
+            if (!param.hasItem("from") || !param.hasItem("to")) {
+                return "";
+            }
+
+            //steady microseconds
+            int64_t from = param.getInt64("from", -1);
+            int64_t to = param.getInt64("to", -1);
+            if (from < 0 || to < 0 || from > to) {
+                return "";
+            }
+            std::map<int64_t, int64_t> speeds = mUtil->getNetworkSpeed(from, to);
+            CicadaJSONItem value{};
+            for (auto &item : speeds) {
+                value.addValue(AfString::to_string(item.first), AfString::to_string((int) (item.second / 1024)));
+            }
+
+            return value.printJSON();
         }
         default:
             break;

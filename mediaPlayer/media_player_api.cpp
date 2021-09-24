@@ -604,12 +604,12 @@ void CicadaGetVideoRotation(playerHandle *pHandle, int &rotation)
     }
 }
 
-std::string CicadaGetPropertyString(playerHandle *pHandle, PropertyKey key)
+std::string CicadaGetPropertyString(playerHandle *pHandle, PropertyKey key, const CicadaJSONItem &param)
 {
     GET_PLAYER;
 
     if (player) {
-        return player->GetPropertyString(key);
+        return player->GetPropertyString(key, param);
     }
 
     return "";

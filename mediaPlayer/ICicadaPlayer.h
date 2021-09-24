@@ -194,7 +194,7 @@ namespace Cicada {
          */
         virtual void GetVideoRotation(int &rotation) = 0;
 
-        virtual std::string GetPropertyString(PropertyKey key)
+        virtual std::string GetPropertyString(PropertyKey key, const CicadaJSONItem &param)
         {
             return "";
         };

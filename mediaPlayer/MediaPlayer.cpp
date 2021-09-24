@@ -641,7 +641,13 @@ namespace Cicada {
     std::string MediaPlayer::GetPropertyString(PropertyKey key)
     {
         GET_PLAYER_HANDLE
-        return CicadaGetPropertyString(handle, key);
+        return CicadaGetPropertyString(handle, key, {});
+    }
+
+    std::string MediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSONItem &param)
+    {
+        GET_PLAYER_HANDLE
+        return CicadaGetPropertyString(handle, key, param);
     }
 
     void MediaPlayer::SetOption(const char *key, const char *value)

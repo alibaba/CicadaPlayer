@@ -20,6 +20,8 @@ namespace Cicada {
         // analytics query interface
         int64_t OnAnalyticsGetCurrentPosition() override;
 
+        std::string OnAnalyticsGetNetworkSpeed(int64_t from, int64_t to) override;
+
         int64_t OnAnalyticsGetBufferedPosition() override;
 
         int64_t OnAnalyticsGetDuration() override;

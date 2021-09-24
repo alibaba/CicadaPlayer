@@ -290,7 +290,7 @@ void CicadaGetVideoRotation(playerHandle *player, int &rotation);
 /*
  * get string property
  */
-std::string CicadaGetPropertyString(playerHandle *player, PropertyKey key);
+std::string CicadaGetPropertyString(playerHandle *player, PropertyKey key, const CicadaJSONItem &param);
 
 /*
  * get long property

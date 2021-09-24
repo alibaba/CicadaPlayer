@@ -62,6 +62,8 @@ namespace Cicada {
             return mCurrentDownloadSpeed;
         }
 
+        std::map<int64_t, int64_t> getNetworkSpeed(int64_t timeFrom, int64_t timeTo);
+
         static void getPropertyJSONStr(const std::string &name, CicadaJSONArray &array, bool isArray,
                                        std::deque<StreamInfo *> &streamInfoQueue, demuxer_service *service);
 
@@ -87,6 +89,10 @@ namespace Cicada {
         std::atomic<uint64_t> mReadGotSize{0};
         float mCurrentDownloadSpeed{0};
         float mVideoRenderFps = 0;
+
+        std::mutex utilMutex{};
+        const int MAX_NETWORK_SPEED_COUNT = 600;// 10min
+        std::map<int64_t, int64_t> mNetworkSpeed{};
     };
 }// namespace Cicada
 

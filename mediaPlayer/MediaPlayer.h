@@ -325,6 +325,8 @@ namespace Cicada {
 
         std::string GetPropertyString(PropertyKey key);
 
+        std::string GetPropertyString(PropertyKey key, const CicadaJSONItem &param);
+
         void SetOption(const char *key, const char *value);
 
         void GetOption(const char *key, char *value);

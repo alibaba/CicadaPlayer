@@ -204,7 +204,7 @@ namespace Cicada {
 
         void Interrupt(bool inter);
 
-        std::string GetPropertyString(PropertyKey key) override;
+        std::string GetPropertyString(PropertyKey key, const CicadaJSONItem &param) override;
 
         int64_t GetPropertyInt(PropertyKey key) override;
 
