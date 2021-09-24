@@ -194,6 +194,7 @@ namespace Cicada {
         atomic_bool mIsFirstOpen{true};
         bool mEnableCache{false};
         bool mIsStartSegment{false};
+        bool mIsPreload{false};
     };
 }
 

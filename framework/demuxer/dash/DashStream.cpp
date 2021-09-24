@@ -623,12 +623,14 @@ int DashStream::read(unique_ptr<IAFPacket> &packet)
 int DashStream::updateSegment()
 {
     mIsStartSegment = false;
-    if (!mPTracker->bufferingAvailable()) {
-        return -EAGAIN;
-    }
     Dash::DashSegment *seg = nullptr;
     AF_LOGD("getCurSegNum is %llu\n", mPTracker->getCurSegNum());
-    seg = mPTracker->getNextSegment();
+    if (mIsPreload) {
+        seg = mCurSeg;
+        mIsPreload = false;
+    } else {
+        seg = mPTracker->getNextSegment();
+    }
 
     // if current segment time > live delay, discard it
     if (isLive()) {
@@ -652,6 +654,7 @@ int DashStream::updateSegment()
             if (isHttpError(ret) || isLocalFileError(ret)) {
                 resetSource();
                 if (!mPTracker->bufferingAvailable()) {
+                    mIsPreload = true;
                     return -EAGAIN;
                 }
                 seg = mPTracker->getNextSegment();
