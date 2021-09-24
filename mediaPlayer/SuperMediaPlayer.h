@@ -384,6 +384,8 @@ namespace Cicada {
 
         int setUpVideoRender(uint64_t renderFlags);
 
+        void updateBufferInfo(bool force);
+
         class ApsaraAudioRenderCallback : public IAudioRenderListener {
         public:
             explicit ApsaraAudioRenderCallback(SuperMediaPlayer &player) : mPlayer(player)
@@ -587,6 +589,7 @@ namespace Cicada {
         bool mCalculateSpeedUsePacket{true};
         std::unique_ptr<CicadaJSONArray> mFilterConfig;
         UTCTimer *mUtcTimer{nullptr};
+        int64_t updateBufferInfoLastTimeMs{INT64_MIN};
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H

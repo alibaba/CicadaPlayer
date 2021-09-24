@@ -960,6 +960,26 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
 
             return value.printJSON();
         }
+        case PROPERTY_KEY_BUFFER_INFO: {
+            if (!param.hasItem("from") || !param.hasItem("to")) {
+                return "";
+            }
+
+            //steady microseconds
+            int64_t from = param.getInt64("from", -1);
+            int64_t to = param.getInt64("to", -1);
+            if (from < 0 || to < 0 || from > to) {
+                return "";
+            }
+
+            std::map<int64_t, std::string> bufferInfo = mUtil->getBufferInfo(from, to);
+            CicadaJSONItem value{};
+            for (auto &item : bufferInfo) {
+                value.addValue(AfString::to_string(item.first), item.second);
+            }
+
+            return value.printJSON();
+        }
         default:
             break;
     }
@@ -1249,11 +1269,42 @@ void SuperMediaPlayer::ProcessVideoLoop()
         }
     }
     checkEOS();
+    updateBufferInfo(false);
+
     curTime = af_gettime_relative() / 1000;
 
     if (curTime - mTimerLatestTime > mTimerInterval) {
         OnTimer(curTime);
         mTimerLatestTime = curTime;
+    }
+}
+
+void SuperMediaPlayer::updateBufferInfo(bool force)
+{
+    int64_t time = af_getsteady_ms();
+    if (updateBufferInfoLastTimeMs < 0) {
+        updateBufferInfoLastTimeMs = time;
+    }
+
+    if (force || time - updateBufferInfoLastTimeMs >= 1000) {
+        updateBufferInfoLastTimeMs = time;
+
+        CicadaJSONItem bufferInfo{};
+        if (HAVE_VIDEO) {
+            int64_t packetBufferDuration = mBufferController->GetPacketDuration(BUFFER_TYPE_VIDEO);
+            if (packetBufferDuration < 0) {
+                packetBufferDuration =
+                        mBufferController->GetPacketLastPTS(BUFFER_TYPE_VIDEO) - mBufferController->GetPacketPts(BUFFER_TYPE_VIDEO);
+            }
+            bufferInfo.addValue("v", packetBufferDuration);
+        }
+
+        if (HAVE_AUDIO) {
+            int64_t packetBufferDuration = mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO);
+            bufferInfo.addValue("a", packetBufferDuration);
+        }
+
+        mUtil->updateBufferInfo(bufferInfo);
     }
 }
 
@@ -1470,6 +1521,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
             if (mEof && getPlayerBufferDuration(true, false) <= 0) {
                 // If player don`t get any packets when read eof
                 if (mSeekPos > 0) {
+                    updateBufferInfo(true);
                     //If caused by before prepare seeked, treat as play completed.
                     mPNotifier->NotifyLoading(loading_event_end, 0);
                     playCompleted();
@@ -1623,6 +1675,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
             if (!mSeekFlag || mEof) {
                 if (mBufferingFlag) {
                     mLoadingProcess = -1;
+                    updateBufferInfo(true);
                     mPNotifier->NotifyLoading(loading_event_end, 0);
                     AF_LOGD("loading end");
 
@@ -2644,6 +2697,7 @@ void SuperMediaPlayer::OnTimer(int64_t curTime)
 
         PostBufferPositionMsg();
     }
+
     mPNotifier->NotifyCurrentDownloadSpeed(mUtil->getCurrentDownloadSpeed());
 }
 
@@ -3916,6 +3970,7 @@ void SuperMediaPlayer::Reset()
     mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncNormal;
     mCalculateSpeedUsePacket = true;
     mUtcTimer = nullptr;
+    updateBufferInfoLastTimeMs = INT64_MIN;
 }
 
 int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)
