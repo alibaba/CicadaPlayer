@@ -49,6 +49,8 @@ namespace Cicada {
 
         int64_t GetKeyTimePositionBefore(BUFFER_TYPE type, int64_t pts);
 
+        int64_t GetKeyTimePositionBeforeUtcTime(BUFFER_TYPE type, int64_t time);
+
         void Rewind(BUFFER_TYPE type);
 
         int64_t GetFirstKeyPTS(BUFFER_TYPE type, int64_t pts);

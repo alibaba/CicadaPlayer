@@ -128,6 +128,23 @@ namespace Cicada {
         return INT64_MIN;
     }
 
+    int64_t BufferController::GetKeyTimePositionBeforeUtcTime(BUFFER_TYPE type, int64_t time)
+    {
+        switch (type) {
+            case BUFFER_TYPE_AUDIO:
+                return mAudioPacketQueue.GetKeyTimePositionBeforeUTCTime(time);
+
+            case BUFFER_TYPE_VIDEO:
+                return mVideoPacketQueue.GetKeyTimePositionBeforeUTCTime(time);
+
+            default:
+                AF_LOGE("error media type");
+                break;
+        }
+
+        return INT64_MIN;
+    }
+
     void BufferController::Rewind(BUFFER_TYPE type)
     {
         if (type & BUFFER_TYPE_AUDIO) {

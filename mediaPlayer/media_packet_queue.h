@@ -34,6 +34,8 @@ namespace Cicada {
 
         int64_t GetKeyTimePositionBefore(int64_t pts);
 
+        int64_t GetKeyTimePositionBeforeUTCTime(int64_t time);
+
         int64_t GetFirstKeyPTS(int64_t pts);
 
         int64_t GetLastKeyTimePos();

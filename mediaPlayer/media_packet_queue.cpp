@@ -214,6 +214,25 @@ int64_t MediaPacketQueue::GetKeyTimePositionBefore(int64_t pts)
     return lastKeyPos;
 }
 
+int64_t MediaPacketQueue::GetKeyTimePositionBeforeUTCTime(int64_t time)
+{
+    ADD_LOCK;
+    int64_t lastKeyPos = INT64_MIN;
+
+    for (auto r_iter = mQueue.rbegin(); r_iter != mQueue.rend(); ++r_iter) {
+        IAFPacket *packet = (*r_iter).get();
+        if (packet && (packet->getInfo().flags & AF_PKT_FLAG_KEY) && packet->getInfo().utcTime > 0 && packet->getInfo().utcTime <= time) {
+            lastKeyPos = packet->getInfo().timePosition;
+            return lastKeyPos;
+        }
+        if (packet == (*mCurrent).get()) {
+            break;
+        }
+    }
+
+    return lastKeyPos;
+}
+
 std::unique_ptr<IAFPacket> MediaPacketQueue::getPacket()
 {
     ADD_LOCK;
