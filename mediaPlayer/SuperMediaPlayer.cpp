@@ -1201,6 +1201,29 @@ void SuperMediaPlayer::ProcessVideoLoop()
     }
 
     doRender();
+    if (mUtcTimer) {
+        if (mFirstRendered) {
+            if (mCurrentFrameUtcTime <= 0) {
+                AF_LOGW("wrong current frame utc time");
+            }
+        }
+
+        if (mCurrentFrameUtcTime > 0 /*&& mPlayStatus == PLAYER_PLAYING*/) {
+      //      AF_LOGD("delayTime is utc timer is %lld mCurrentFrameUtcTime us %lld\n",mUtcTimer->get(),mCurrentFrameUtcTime.load());
+            LiveTimeSync(mUtcTimer->get() - mCurrentFrameUtcTime);
+        }
+    } else if (mDuration == 0) {
+        int64_t lastAudio = mBufferController->GetPacketLastPTS(BUFFER_TYPE_AUDIO);
+        if ((lastAudio != INT64_MIN) && (mPlayedAudioPts != INT64_MIN)) {
+            int64_t delayTime = lastAudio - mPlayedAudioPts;
+            static int64_t lastT = af_getsteady_ms();
+
+            if (af_getsteady_ms() - lastT > 1000) {
+                lastT = af_getsteady_ms();
+                AF_LOGD("lastAudio:%lld mPlayedAudioPts:%lld, delayTime:%lld", lastAudio, mPlayedAudioPts, delayTime);
+            }
+        }
+    }
     checkEOS();
     curTime = af_gettime_relative() / 1000;
 
@@ -1414,6 +1437,9 @@ bool SuperMediaPlayer::DoCheckBufferPass()
                 }
             } else {
                 ChangePlayerStatus(PLAYER_PREPARED);
+                if (mDemuxerService->isWallclockTimeSyncStream(mCurrentVideoIndex)) {
+                    mUtcTimer = mDemuxerService->getDemuxerHandle()->getUTCTimer();
+                }
                 AF_LOGD("PLAYER_PREPARED");
                 AF_LOGD("prepare use %lld ms\n", (af_gettime_relative() - mPrepareStartTime) / 1000);
                 notifyPreparedCallback();
@@ -1546,80 +1572,6 @@ bool SuperMediaPlayer::DoCheckBufferPass()
         break;
     }
 
-    while (isTimeSync && mSuggestedPresentationDelay > 0) {
-        if (!HAVE_AUDIO) {
-            int64_t maxBufferDuration = getPlayerBufferDuration(true, false);
-
-            if (maxBufferDuration > mSuggestedPresentationDelay + 1000 * 1000 * 5) {
-                int64_t lastVideoPos = mBufferController->GetPacketLastTimePos(BUFFER_TYPE_VIDEO);
-                lastVideoPos -= std::max(mSuggestedPresentationDelay, (int64_t)(500 * 1000ll));
-                int64_t lastVideoKeyTimePos = mBufferController->GetKeyTimePositionBefore(BUFFER_TYPE_VIDEO, lastVideoPos);
-                if (lastVideoKeyTimePos != INT64_MIN) {
-                    mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_VIDEO, lastVideoKeyTimePos);
-                }
-                break;
-            }
-
-            LiveTimeSync(maxBufferDuration);
-            break;
-        }
-
-        int64_t maxBufferDuration = getPlayerBufferDuration(true, false);
-
-        if (maxBufferDuration > mSuggestedPresentationDelay + 1000 * 1000 * 5) {
-            //drop frame
-            int64_t lastVideoPos = mBufferController->GetPacketLastTimePos(BUFFER_TYPE_VIDEO);
-            int64_t lastAudioPos = mBufferController->GetPacketLastTimePos(BUFFER_TYPE_AUDIO);
-            int64_t lastAudioPts = mBufferController->GetPacketLastPTS(BUFFER_TYPE_AUDIO);
-            int64_t lastPos;
-
-            if (lastVideoPos == INT64_MIN) {
-                lastPos = lastAudioPos;
-            } else if (lastAudioPos == INT64_MIN) {
-                lastPos = lastVideoPos;
-            } else {
-                lastPos = lastAudioPos < lastVideoPos ? lastAudioPos : lastVideoPos;
-            }
-
-            lastPos -= std::max(mSuggestedPresentationDelay, (int64_t)(500 * 1000ll));
-            int64_t lastVideoKeyTimePos = mBufferController->GetKeyTimePositionBefore(BUFFER_TYPE_VIDEO, lastPos);
-            if (lastVideoKeyTimePos != INT64_MIN) {
-                AF_LOGD("drop left lastPts %lld, lastVideoKeyPts %lld", lastPos, lastVideoKeyTimePos);
-                mMsgCtrlListener->ProcessSetSpeed(1.0);
-                int64_t dropVideoCount = mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_VIDEO, lastVideoKeyTimePos);
-                int64_t dropAudioCount = mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_AUDIO, lastVideoKeyTimePos);
-
-                if (dropVideoCount > 0) {
-                    FlushVideoPath();
-                    AF_LOGD("drop left video duration is %lld,left video size is %d",
-                            mBufferController->GetPacketDuration(BUFFER_TYPE_VIDEO), mBufferController->GetPacketSize(BUFFER_TYPE_VIDEO));
-                }
-
-                if (dropAudioCount > 0) {
-                    FlushAudioPath();
-                    AF_LOGD("drop left aduio duration is %lld,left aduio size is %d",
-                            mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO), mBufferController->GetPacketSize(BUFFER_TYPE_AUDIO));
-                    mMasterClock.setTime(mBufferController->GetPacketPts(BUFFER_TYPE_AUDIO));
-                }
-            }
-        }
-
-        int64_t lastAudio = mBufferController->GetPacketLastPTS(BUFFER_TYPE_AUDIO);
-
-        if ((lastAudio != INT64_MIN) && (mPlayedAudioPts != INT64_MIN)) {
-            int64_t delayTime = lastAudio - mPlayedAudioPts;
-            static int64_t lastT = af_getsteady_ms();
-
-            if (af_getsteady_ms() - lastT > 1000) {
-                lastT = af_getsteady_ms();
-                AF_LOGD("lastAudio:%lld mPlayedAudioPts:%lld, delayTime:%lld", lastAudio, mPlayedAudioPts, delayTime);
-            }
-
-            LiveTimeSync(delayTime);
-        }
-        break;
-    }
-
     //check buffering status
     if ((mBufferingFlag || mFirstBufferFlag)) {
         if (((cur_buffer_duration > HighBufferDur || (HighBufferDur >= mSet->maxBufferDuration && mBufferIsFull)) &&
@@ -1714,6 +1666,7 @@ void SuperMediaPlayer::LiveCatchUp(int64_t delayTime)
 
 void SuperMediaPlayer::LiveTimeSync(int64_t delayTime)
 {
+    AF_LOGD("delayTime is %lld rate is %f  buffer duration is %lld\n", delayTime, mSet->rate.load(), getPlayerBufferDuration(false, false));
     int64_t maxGopTime = mDemuxerService->getDemuxerHandle()->getMaxGopTimeUs();
     if (maxGopTime <= 0) {
         maxGopTime = 2 * 1000 * 1000;
@@ -1721,8 +1674,65 @@ void SuperMediaPlayer::LiveTimeSync(int64_t delayTime)
     if (maxGopTime > mSuggestedPresentationDelay) {
         maxGopTime = mSuggestedPresentationDelay;
     }
+
+    while (mSuggestedPresentationDelay > 0) {
+        if (!HAVE_AUDIO) {
+            if (delayTime > mSuggestedPresentationDelay + 1000 * 1000 * 5) {
+                int64_t lastVideoPos = mBufferController->GetPacketLastTimePos(BUFFER_TYPE_VIDEO);
+                lastVideoPos -= std::max(mSuggestedPresentationDelay, (int64_t) (500 * 1000ll));
+                int64_t lastVideoKeyTimePos = mBufferController->GetKeyTimePositionBefore(BUFFER_TYPE_VIDEO, lastVideoPos);
+                if (lastVideoKeyTimePos != INT64_MIN) {
+                    mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_VIDEO, lastVideoKeyTimePos);
+                }
+                break;
+            }
+            break;
+        }
+
+        if (delayTime > mSuggestedPresentationDelay + 1000 * 1000 * 5) {
+            //drop frame
+            int64_t lastVideoPos = mBufferController->GetPacketLastTimePos(BUFFER_TYPE_VIDEO);
+            int64_t lastAudioPos = mBufferController->GetPacketLastTimePos(BUFFER_TYPE_AUDIO);
+            int64_t lastAudioPts = mBufferController->GetPacketLastPTS(BUFFER_TYPE_AUDIO);
+            int64_t lastPos;
+
+            if (lastVideoPos == INT64_MIN) {
+                lastPos = lastAudioPos;
+            } else if (lastAudioPos == INT64_MIN) {
+                lastPos = lastVideoPos;
+            } else {
+                lastPos = lastAudioPos < lastVideoPos ? lastAudioPos : lastVideoPos;
+            }
+
+            lastPos -= std::max(mSuggestedPresentationDelay, (int64_t) (500 * 1000ll));
+            int64_t lastVideoKeyTimePos = mBufferController->GetKeyTimePositionBefore(BUFFER_TYPE_VIDEO, lastPos);
+            if (lastVideoKeyTimePos != INT64_MIN) {
+                AF_LOGD("drop left lastPts %lld, lastVideoKeyPts %lld", lastPos, lastVideoKeyTimePos);
+                mMsgCtrlListener->ProcessSetSpeed(1.0);
+                mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncNormal;
+                int64_t dropVideoCount = mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_VIDEO, lastVideoKeyTimePos);
+                int64_t dropAudioCount = mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_AUDIO, lastVideoKeyTimePos);
+
+                if (dropVideoCount > 0) {
+                    FlushVideoPath();
+                    AF_LOGD("drop left video duration is %lld,left video size is %d",
+                            mBufferController->GetPacketDuration(BUFFER_TYPE_VIDEO), mBufferController->GetPacketSize(BUFFER_TYPE_VIDEO));
+                }
+
+                if (dropAudioCount > 0) {
+                    FlushAudioPath();
+                    AF_LOGD("drop left aduio duration is %lld,left aduio size is %d",
+                            mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO), mBufferController->GetPacketSize(BUFFER_TYPE_AUDIO));
+                    mMasterClock.setTime(mBufferController->GetPacketPts(BUFFER_TYPE_AUDIO));
+                }
+            }
+            break;
+        }
+        break;
+    }
+
     int64_t bufferDelay = mSuggestedPresentationDelay;
-    if ((delayTime > bufferDelay + maxGopTime * 0.5) && (delayTime > 150 * 1000)) {
+    if ((delayTime > bufferDelay + maxGopTime / 2) && (delayTime > 150 * 1000)) {
         mMsgCtrlListener->ProcessSetSpeed(1.2);
         if (mLiveTimeSyncType != LiveTimeSyncType::LiveTimeSyncCatchUp) {
             mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncCatchUp;
@@ -1736,7 +1746,7 @@ void SuperMediaPlayer::LiveTimeSync(int64_t delayTime)
         }
     }
     if (mLiveTimeSyncType == LiveTimeSyncType::LiveTimeSyncCatchUp) {
-        if ((delayTime < bufferDelay - maxGopTime) || (delayTime < 100 * 1000)) {
+        if ((delayTime < bufferDelay) || (delayTime < 100 * 1000)) {
             mMsgCtrlListener->ProcessSetSpeed(1.0);
             mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncNormal;
             AF_LOGD("LiveTimeSync, delayTime=%lld, recover from catch up", delayTime);
@@ -3874,6 +3884,7 @@ void SuperMediaPlayer::Reset()
     mSuggestedPresentationDelay = 0;
     mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncNormal;
     mCalculateSpeedUsePacket = true;
+    mUtcTimer = nullptr;
 }
 
 int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)

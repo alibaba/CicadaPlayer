@@ -586,6 +586,7 @@ namespace Cicada {
         int64_t mVideoDelayTime{0};
         bool mCalculateSpeedUsePacket{true};
         std::unique_ptr<CicadaJSONArray> mFilterConfig;
+        UTCTimer *mUtcTimer{nullptr};
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H
