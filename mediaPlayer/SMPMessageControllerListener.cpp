@@ -148,7 +148,9 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
 
         mPlayer.mDcaManager->createObservers();
         mPlayer.sendDCAMessage();
+        mPlayer.mDemuxerService->getDemuxerHandle()->SetOption("preferAudio", mPlayer.mSet->preferAudio);
     }
+
 
     //step2: Demuxer init and getstream index
     ret = mPlayer.mDemuxerService->initOpen((mPlayer.mBSReadCb || noFile) ? demuxer_type_bit_stream : demuxer_type_unknown);

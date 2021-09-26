@@ -636,3 +636,8 @@ void DashManager::setClientBufferLevel(client_buffer_level level)
     // TODO: tobe impl
     PlaylistManager::setClientBufferLevel(level);
 }
+void DashManager::preferAudio(bool prefer)
+{
+    // TODO: tobe impl
+    PlaylistManager::preferAudio(prefer);
+}

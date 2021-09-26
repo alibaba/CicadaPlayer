@@ -83,6 +83,8 @@ namespace Cicada{
 
         virtual void setClientBufferLevel(client_buffer_level level)
         {}
+        virtual void preferAudio(bool prefer)
+        {}
 
     protected:
         playList *mPList = nullptr;

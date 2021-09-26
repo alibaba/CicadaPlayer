@@ -70,6 +70,8 @@ namespace Cicada {
 
         void setClientBufferLevel(client_buffer_level level) override;
 
+        void preferAudio(bool prefer) override;
+
     private:
         std::list<AdaptationSet *> FindSuitableAdaptationSets(Period* period);
         std::list<DashStreamInfo *> mStreamInfoList{};

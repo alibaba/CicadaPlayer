@@ -594,6 +594,9 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
         mBufferController->SetMaxBackwardDuration(BUFFER_TYPE_ALL, atoll(value) * 1000);
     } else if (theKey == "preferAudio") {
         mSet->preferAudio = (atoi(value) != 0);
+        if (mDemuxerService && mDemuxerService->getDemuxerHandle()) {
+            mDemuxerService->getDemuxerHandle()->SetOption("preferAudio", mSet->preferAudio);
+        }
     }
 
     return 0;

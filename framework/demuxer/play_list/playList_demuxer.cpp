@@ -277,4 +277,12 @@ namespace Cicada {
             mPPlaylistManager->setClientBufferLevel(level);
         }
     }
+    int playList_demuxer::SetOption(const string &key, const int64_t value)
+    {
+        if (key == "preferAudio" && mPPlaylistManager) {
+            mPPlaylistManager->preferAudio(value);
+            return 0;
+        }
+        return IDemuxer::SetOption(key, value);
+    }
 }

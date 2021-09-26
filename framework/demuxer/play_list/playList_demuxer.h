@@ -76,6 +76,8 @@ namespace Cicada{
 
         void setClientBufferLevel(client_buffer_level level) override;
 
+        int SetOption(const std::string &key, const int64_t value) override;
+
         void flush() override
         {
             // TODO:
