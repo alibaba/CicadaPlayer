@@ -1375,6 +1375,24 @@ bool SuperMediaPlayer::DoCheckBufferPass()
     int64_t cur_buffer_duration = getPlayerBufferDuration(false, false);
     int64_t HighBufferDur = mSet->highLevelBufferDuration;
 
+    if (mEof) {
+        mDemuxerService->getDemuxerHandle()->setClientBufferLevel(client_buffer_level_normal);
+    } else {
+        if (cur_buffer_duration < mSet->highLevelBufferDuration) {
+            if (mPlayStatus == PLAYER_PLAYING) {
+                mDemuxerService->getDemuxerHandle()->setClientBufferLevel(client_buffer_level_low);
+            } else {
+                mDemuxerService->getDemuxerHandle()->setClientBufferLevel(client_buffer_level_normal);
+            }
+        } else if (cur_buffer_duration >= mSet->maxBufferDuration - 3 * 1000 * 1000) {
+            mDemuxerService->getDemuxerHandle()->setClientBufferLevel(client_buffer_level_low_full);
+        } else if (cur_buffer_duration > 2 * mSet->highLevelBufferDuration) {
+            mDemuxerService->getDemuxerHandle()->setClientBufferLevel(client_buffer_level_normal);
+        } else {
+            // TODO:
+        }
+    }
+
     if (mFirstBufferFlag && !mEof) {
         HighBufferDur = mSet->startBufferDuration;
 
