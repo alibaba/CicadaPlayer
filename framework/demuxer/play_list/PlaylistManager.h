@@ -81,6 +81,9 @@ namespace Cicada{
             return nullptr;
         }
 
+        virtual void setClientBufferLevel(client_buffer_level level)
+        {}
+
     protected:
         playList *mPList = nullptr;
         IDataSource *mExtDataSource = nullptr;

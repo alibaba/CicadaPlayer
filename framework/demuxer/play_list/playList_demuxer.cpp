@@ -271,4 +271,10 @@ namespace Cicada {
         }
         return nullptr;
     }
+    void playList_demuxer::setClientBufferLevel(client_buffer_level level)
+    {
+        if (mPPlaylistManager) {
+            mPPlaylistManager->setClientBufferLevel(level);
+        }
+    }
 }

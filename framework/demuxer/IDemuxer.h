@@ -36,6 +36,13 @@ namespace Cicada {
         header_type_extract,
     } header_type;
 
+    typedef enum client_buffer_level {
+        client_buffer_level_unknown,
+        client_buffer_level_low,
+        client_buffer_level_normal,
+        client_buffer_level_low_full,
+    } client_buffer_level;
+
     typedef void (*demuxer_callback_setSegmentList)(void *arg, const std::vector<Cicada::mediaSegmentListEntry> &segments);
 
     class CICADA_CPLUS_EXTERN IDemuxer : public OptionOwner, public IDCA, public IMediaInfoProvider {
@@ -240,6 +247,9 @@ namespace Cicada {
         {
             return nullptr;
         }
+
+        virtual void setClientBufferLevel(client_buffer_level level)
+        {}
 
     public:
         int64_t estimateExclusiveEndPositionBytes(const string &url, int64_t timeMicSec, int64_t totalLength) override;

@@ -631,3 +631,8 @@ UTCTimer *DashManager::getUTCTimer()
 {
     return af_get_utc_timer();
 }
+void DashManager::setClientBufferLevel(client_buffer_level level)
+{
+    // TODO: tobe impl
+    PlaylistManager::setClientBufferLevel(level);
+}

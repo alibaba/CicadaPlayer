@@ -68,6 +68,8 @@ namespace Cicada {
 
         UTCTimer *getUTCTimer() override;
 
+        void setClientBufferLevel(client_buffer_level level) override;
+
     private:
         std::list<AdaptationSet *> FindSuitableAdaptationSets(Period* period);
         std::list<DashStreamInfo *> mStreamInfoList{};

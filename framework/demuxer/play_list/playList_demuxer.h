@@ -74,6 +74,8 @@ namespace Cicada{
 
         UTCTimer *getUTCTimer() override;
 
+        void setClientBufferLevel(client_buffer_level level) override;
+
         void flush() override
         {
             // TODO:
