@@ -492,6 +492,7 @@ namespace Cicada {
         CicadaSetOption(handle, "timerInterval", to_string(playerConfig.mPositionTimerIntervalMs).c_str());
         CicadaSetOption(handle, "networkRetryCount", to_string(playerConfig.networkRetryCount).c_str());
         CicadaSetOption(handle, "maxBackwardBufferDuration", to_string(playerConfig.mMaxBackwardBufferDuration).c_str());
+        CicadaSetOption(handle, "preferAudio", playerConfig.preferAudio ? "1" : "0");
         if (playerConfig.pixelBufferOutputFormat != 0) {
             CicadaSetOption(handle, "pixelBufferOutputFormat", to_string(playerConfig.pixelBufferOutputFormat).c_str());
         }

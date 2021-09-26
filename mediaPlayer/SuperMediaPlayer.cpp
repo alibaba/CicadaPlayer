@@ -592,6 +592,8 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
         mSet->netWorkRetryCount = (int) atol(value);
     } else if (theKey == "maxBackwardBufferDuration") {
         mBufferController->SetMaxBackwardDuration(BUFFER_TYPE_ALL, atoll(value) * 1000);
+    } else if (theKey == "preferAudio") {
+        mSet->preferAudio = (atoi(value) != 0);
     }
 
     return 0;
@@ -3227,6 +3229,27 @@ int64_t SuperMediaPlayer::getPlayerBufferDuration(bool gotMax, bool internal)
     int i = 0;
     int64_t duration = -1;
 
+    if (HAVE_AUDIO) {
+        int64_t &duration_c = durations[i++];
+        duration_c = mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO);
+        //            AF_LOGD("audioDuration is %lld\n",audioDuration);
+        if (!internal && mDemuxerService && mDemuxerService->getDemuxerHandle()) {
+            duration_c += mDemuxerService->getDemuxerHandle()->getBufferDuration(mCurrentAudioIndex);
+        }
+
+        if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)) {
+            int64_t audioPacketDuration = mBufferController->GetOnePacketDuration(BUFFER_TYPE_AUDIO);
+            if (audioPacketDuration <= 0) {
+                audioPacketDuration = 23 * 1000;
+            }
+            duration_c += mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)->getInputPaddingSize() * audioPacketDuration;
+        }
+
+        if (mSet->preferAudio) {
+            return duration_c;
+        }
+    }
+
     if (HAVE_VIDEO) {
         int64_t &duration_c = durations[i++];
         duration_c = mBufferController->GetPacketDuration(BUFFER_TYPE_VIDEO);
@@ -3246,23 +3269,6 @@ int64_t SuperMediaPlayer::getPlayerBufferDuration(bool gotMax, bool internal)
         if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
             // FIXME: get the accurate duration
             duration_c += mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)->getInputPaddingSize() * 40 * 1000;
-        }
-    }
-
-    if (HAVE_AUDIO) {
-        int64_t &duration_c = durations[i++];
-        duration_c = mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO);
-        //            AF_LOGD("audioDuration is %lld\n",audioDuration);
-        if (!internal && mDemuxerService && mDemuxerService->getDemuxerHandle()) {
-            duration_c += mDemuxerService->getDemuxerHandle()->getBufferDuration(mCurrentAudioIndex);
-        }
-
-        if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)) {
-            int64_t audioPacketDuration = mBufferController->GetOnePacketDuration(BUFFER_TYPE_AUDIO);
-            if (audioPacketDuration <= 0) {
-                audioPacketDuration = 23 * 1000;
-            }
-            duration_c += mAVDeviceManager->getDecoder(SMPAVDeviceManager::DEVICE_TYPE_AUDIO)->getInputPaddingSize() * audioPacketDuration;
         }
     }
 
