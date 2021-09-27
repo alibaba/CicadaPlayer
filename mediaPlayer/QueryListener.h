@@ -24,6 +24,8 @@ namespace Cicada {
 
         std::string OnAnalyticsGetBufferInfo(int64_t from, int64_t to) override;
 
+        std::string OnAnalyticsGetRequestInfos(int64_t from, int64_t to) override;
+
         int64_t OnAnalyticsGetBufferedPosition() override;
 
         int64_t OnAnalyticsGetDuration() override;

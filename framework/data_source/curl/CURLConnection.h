@@ -69,6 +69,8 @@ namespace Cicada {
 
         void debugHeader(bool in, char *data, size_t size);
 
+        void notifyNetworkEvent(IDataSource::Listener::NetworkEvent event, CicadaJSONItem &params);
+
     private:
         std::string uri;
         char *pOverflowBuffer = nullptr;
@@ -90,6 +92,7 @@ namespace Cicada {
         RingBuffer *pRbuf = nullptr;
         int still_running = 0;
         char *response = nullptr;
+        int64_t mWriteSize{0};
     };
 };
 

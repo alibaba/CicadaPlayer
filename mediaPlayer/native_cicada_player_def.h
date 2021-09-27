@@ -167,6 +167,7 @@ typedef enum PropertyKey {
     PROPERTY_KEY_VIDEO_DROPPED_INFO,
     PROPERTY_KEY_NETWORK_SPEED,
     PROPERTY_KEY_BUFFER_INFO,
+    PROPERTY_KEY_NETWORK_REQUEST_LIST,
 } PropertyKey;
 
 typedef enum VideoTag {

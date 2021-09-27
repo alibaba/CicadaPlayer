@@ -134,6 +134,11 @@ void CURLConnection::setSSLBackEnd(curl_sslbackend sslbackend)
 
 Cicada::CURLConnection::~CURLConnection()
 {
+    {
+        CicadaJSONItem params{};
+        notifyNetworkEvent(IDataSource::Listener::NetworkEvent::networkEvent_disconnect, params);
+    }
+
     if (multi_handle && mHttp_handle) {
         curl_multi_remove_handle(multi_handle, mHttp_handle);
     }
@@ -165,11 +170,18 @@ Cicada::CURLConnection::~CURLConnection()
 
 void Cicada::CURLConnection::disconnect()
 {
+
+    {
+        CicadaJSONItem params{};
+        notifyNetworkEvent(IDataSource::Listener::NetworkEvent::networkEvent_disconnect, params);
+    }
+
     if (multi_handle && mHttp_handle) {
         curl_multi_remove_handle(multi_handle, mHttp_handle);
     }
 
     RingBufferClear(pRbuf);
+    mWriteSize = 0;
     responseSize = 0;
     overflowSize = 0;
 
@@ -228,7 +240,7 @@ size_t Cicada::CURLConnection::write_callback(char *buffer, size_t size, size_t 
         memcpy(pHandle->pOverflowBuffer + pHandle->overflowSize, buffer, amount);
         pHandle->overflowSize += amount;
     }
-
+    pHandle->mWriteSize += size * nitems;
     return size * nitems;
 }
 
@@ -417,6 +429,11 @@ void CURLConnection::SetResume(int64_t pos)
 void CURLConnection::start()
 {
     curl_multi_add_handle(multi_handle, mHttp_handle);
+
+    {
+        CicadaJSONItem params{};
+        notifyNetworkEvent(IDataSource::Listener::NetworkEvent::networkEvent_startConnect, params);
+    }
 }
 
 int CURLConnection::FillBuffer(uint32_t want)
@@ -431,6 +448,10 @@ int CURLConnection::FillBuffer(uint32_t want)
             RingBuffergetMaxWriteSize(pRbuf) > 0) {
         if (*(pInterrupted)) {
             AF_LOGW("FRAMEWORK_ERR_EXIT");
+            {
+                CicadaJSONItem params{};
+                notifyNetworkEvent(IDataSource::Listener::NetworkEvent::networkEvent_exit, params);
+            }
             return FRAMEWORK_ERR_EXIT;
         }
 
@@ -460,6 +481,11 @@ int CURLConnection::FillBuffer(uint32_t want)
         if (!still_running) {
             if (result != CURLM_OK) {
                 AF_LOGE("FRAMEWORK_NET_ERR_UNKNOWN");
+                {
+                    CicadaJSONItem params{};
+                    params.addValue("code", FRAMEWORK_NET_ERR_UNKNOWN);
+                    notifyNetworkEvent(IDataSource::Listener::NetworkEvent::networkEvent_error, params);
+                }
                 return FRAMEWORK_NET_ERR_UNKNOWN;
             }
 
@@ -506,23 +532,32 @@ int CURLConnection::FillBuffer(uint32_t want)
                     } else {
                         //TODO: return the right errno
                         //   AF_LOGE("url is %s\n", curlContext.location.c_str());
+                        error_type errorType = 0;
                         switch (msg->data.result) {
                             case CURLE_RANGE_ERROR:
-                                return gen_framework_errno(error_class_network, network_errno_http_range);
-
+                                errorType = gen_framework_errno(error_class_network, network_errno_http_range);
+                                break;
                             case CURLE_UNSUPPORTED_PROTOCOL:
-                                return gen_framework_errno(error_class_network, network_errno_unsupported);
-
+                                errorType = gen_framework_errno(error_class_network, network_errno_unsupported);
+                                break;
                             case CURLE_OUT_OF_MEMORY:
-                                return FRAMEWORK_ERR(ENOMEM);
-
+                                errorType = FRAMEWORK_ERR(ENOMEM);
+                                break;
                             case CURLE_URL_MALFORMAT:
-                                return gen_framework_errno(error_class_network, network_errno_url_malformat);
-
+                                errorType = gen_framework_errno(error_class_network, network_errno_url_malformat);
+                                break;
 
                             default:
-                                return FRAMEWORK_ERR(EIO);
+                                errorType = FRAMEWORK_ERR(EIO);
+                                break;
                         }
+
+                        {
+                            CicadaJSONItem params{};
+                            params.addValue("code", errorType);
+                            notifyNetworkEvent(IDataSource::Listener::NetworkEvent::networkEvent_error, params);
+                        }
+                        return errorType;
                     }
                 }
             }
@@ -545,6 +580,8 @@ int CURLConnection::FillBuffer(uint32_t want)
                     status = mPConfig->listener->onNetWorkRetry(getErrorCode(CURLResult));
 
                     if (*(pInterrupted)) {
+                        CicadaJSONItem params{};
+                        notifyNetworkEvent(IDataSource::Listener::NetworkEvent::networkEvent_exit, params);
                         return FRAMEWORK_ERR_EXIT;
                     }
 
@@ -560,6 +597,11 @@ int CURLConnection::FillBuffer(uint32_t want)
                 // m_fileSize = 0;
                 // m_bufferSize = 0;
                 //TODO: return the right errno
+                {
+                    CicadaJSONItem params{};
+                    params.addValue("code", getErrorCode(CURLResult));
+                    notifyNetworkEvent(IDataSource::Listener::NetworkEvent::networkEvent_error, params);
+                }
                 return getErrorCode(CURLResult);
             }
 
@@ -571,9 +613,16 @@ int CURLConnection::FillBuffer(uint32_t want)
 //            std::unique_lock<std::mutex> uMutex(curlContext.mSleepMutex);
 //            (curlContext.mSleepCondition).wait_for(uMutex, std::chrono::milliseconds(10),
 //                                                   [pConnection]() { return pInterrupted->load(); });
+
+            {
+                CicadaJSONItem params{};
+                params.addValue("code", getErrorCode(CURLResult));
+                notifyNetworkEvent(IDataSource::Listener::NetworkEvent::networkEvent_retry, params);
+            }
+
             // Connect + seek to current position (again)
             SetResume(mFilePos);
-            curl_multi_add_handle(multi_handle, mHttp_handle);
+            start();
             // Return to the beginning of the loop:
             continue;
         }
@@ -630,6 +679,11 @@ int CURLConnection::FillBuffer(uint32_t want)
 #ifndef WIN32
                     char const *str = strerror(errno);
                     AF_LOGE("Failed with socket error:%s", str);
+                    {
+                        CicadaJSONItem params{};
+                        params.addValue("code", FRAMEWORK_ERR(errno));
+                        notifyNetworkEvent(IDataSource::Listener::NetworkEvent::networkEvent_error, params);
+                    }
                     return FRAMEWORK_ERR(errno);
 #endif
                 }
@@ -645,6 +699,11 @@ int CURLConnection::FillBuffer(uint32_t want)
 
             default: {
                 AF_LOGE("FillBuffer - Multi perform failed with code %d, aborting", result);
+                {
+                    CicadaJSONItem params{};
+                    params.addValue("code", FRAMEWORK_NET_ERR_UNKNOWN);
+                    notifyNetworkEvent(IDataSource::Listener::NetworkEvent::networkEvent_error, params);
+                }
                 return FRAMEWORK_NET_ERR_UNKNOWN;
             }
         }
@@ -757,8 +816,8 @@ void CURLConnection::updateSource(const string &location)
 {
     curl_easy_setopt(mHttp_handle, CURLOPT_URL, location.c_str());
     mFileSize = -1;
-
     uri = location;
+
     if (reSolveList) {
         curl_slist_free_all(reSolveList);
     }
@@ -793,5 +852,21 @@ void CURLConnection::disableCallBack()
         curl_easy_setopt(mHttp_handle, CURLOPT_SOCKOPTDATA, nullptr);
         curl_easy_setopt(mHttp_handle, CURLOPT_DEBUGFUNCTION, nullptr);
         curl_easy_setopt(mHttp_handle, CURLOPT_DEBUGDATA, nullptr);
+    }
+}
+
+void CURLConnection::notifyNetworkEvent(IDataSource::Listener::NetworkEvent event, CicadaJSONItem &params)
+{
+    if (mPConfig && mPConfig->listener) {
+        params.addValue("t", (long) af_gettime_relative());
+        params.addValue("e", event);
+        if (event == IDataSource::Listener::networkEvent_error || event == IDataSource::Listener::networkEvent_exit ||
+            event == IDataSource::Listener::networkEvent_eos || event == IDataSource::Listener::networkEvent_disconnect) {
+
+            params.addValue("rs", (long) mWriteSize);
+            params.addValue("os", (long) mFileSize);
+        }
+
+        mPConfig->listener->onNetworkEvent(uri, params);
     }
 }

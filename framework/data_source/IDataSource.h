@@ -5,11 +5,12 @@
 #ifndef FRAMEWORK_DATASOUTCE_H
 #define FRAMEWORK_DATASOUTCE_H
 
-#include <string>
+#include <atomic>
 #include <base/OptionOwner.h>
+#include <string>
+#include <utils/CicadaJSON.h>
 #include <utils/CicadaType.h>
 #include <vector>
-#include <atomic>
 
 namespace Cicada {
 
@@ -49,6 +50,21 @@ namespace Cicada {
             enum bitStreamType {
                 bitStreamTypeMedia,
             };
+
+
+            enum NetworkEvent {
+                networkEvent_startConnect,
+                networkEvent_connected,
+                networkEvent_disconnect,
+                networkEvent_error,
+                networkEvent_eos,
+                networkEvent_retry,
+                networkEvent_resume,
+                networkEvent_exit,
+            };
+
+            virtual void onNetworkEvent(const std::string &url, const CicadaJSONItem &eventParams)
+            {}
 
             virtual NetWorkRetryStatus onNetWorkRetry(int error) = 0;
 

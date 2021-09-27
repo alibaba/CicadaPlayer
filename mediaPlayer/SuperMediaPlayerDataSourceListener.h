@@ -23,6 +23,8 @@ namespace Cicada {
 
         bool onNetWorkInPut(uint64_t size, bitStreamType type) override;
 
+        void onNetworkEvent(const std::string &url, const CicadaJSONItem &eventParams) override;
+
         void onNetWorkConnected() override;
 
         void enableRetry();

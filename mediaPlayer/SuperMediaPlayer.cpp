@@ -145,6 +145,8 @@ void SuperMediaPlayer::Prepare()
         Stop();
     }
 
+    mUtil->resetOncePlay();
+
 #if TARGET_OS_IPHONE
     AFAudioSessionWrapper::activeAudio();
 #endif
@@ -942,16 +944,9 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
             return dropInfo;
         }
         case PROPERTY_KEY_NETWORK_SPEED: {
-            if (!param.hasItem("from") || !param.hasItem("to")) {
-                return "";
-            }
-
-            //steady microseconds
             int64_t from = param.getInt64("from", -1);
             int64_t to = param.getInt64("to", -1);
-            if (from < 0 || to < 0 || from > to) {
-                return "";
-            }
+
             std::map<int64_t, int64_t> speeds = mUtil->getNetworkSpeed(from, to);
             CicadaJSONItem value{};
             for (auto &item : speeds) {
@@ -961,17 +956,8 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
             return value.printJSON();
         }
         case PROPERTY_KEY_BUFFER_INFO: {
-            if (!param.hasItem("from") || !param.hasItem("to")) {
-                return "";
-            }
-
-            //steady microseconds
             int64_t from = param.getInt64("from", -1);
             int64_t to = param.getInt64("to", -1);
-            if (from < 0 || to < 0 || from > to) {
-                return "";
-            }
-
             std::map<int64_t, std::string> bufferInfo = mUtil->getBufferInfo(from, to);
             CicadaJSONItem value{};
             for (auto &item : bufferInfo) {
@@ -979,6 +965,11 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
             }
 
             return value.printJSON();
+        }
+        case PROPERTY_KEY_NETWORK_REQUEST_LIST: {
+            int64_t from = param.getInt64("from", -1);
+            int64_t to = param.getInt64("to", -1);
+            return mUtil->getNetworkRequestInfos(from, to);
         }
         default:
             break;
@@ -1296,12 +1287,12 @@ void SuperMediaPlayer::updateBufferInfo(bool force)
                 packetBufferDuration =
                         mBufferController->GetPacketLastPTS(BUFFER_TYPE_VIDEO) - mBufferController->GetPacketPts(BUFFER_TYPE_VIDEO);
             }
-            bufferInfo.addValue("v", packetBufferDuration);
+            bufferInfo.addValue("v", (long) packetBufferDuration);
         }
 
         if (HAVE_AUDIO) {
             int64_t packetBufferDuration = mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO);
-            bufferInfo.addValue("a", packetBufferDuration);
+            bufferInfo.addValue("a", (long) packetBufferDuration);
         }
 
         mUtil->updateBufferInfo(bufferInfo);

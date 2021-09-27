@@ -6,6 +6,7 @@
 //  Copyright (c) 2019 Aliyun. All rights reserved.
 //
 #define LOG_TAG "MeidaPlayerUtil"
+
 #include "utils/frame_work_log.h"
 #include "MediaPlayerUtil.h"
 #include "utils/timer.h"
@@ -51,8 +52,7 @@ namespace Cicada {
             if (1000 <= diff) {
                 mVideoRenderFps = (float) (mTotalRenderCount - mLastRenderCount) * 1000 / diff;
                 AF_LOGD("KPI test total fps:%0.1f, Current FPS:%0.1f",
-                        (float) (mTotalRenderCount - 1) * 1000 / (af_getsteady_ms() - mFirstRenderTime),
-                        mVideoRenderFps);
+                        (float) (mTotalRenderCount - 1) * 1000 / (af_getsteady_ms() - mFirstRenderTime), mVideoRenderFps);
                 mLastRenderCount = mTotalRenderCount;
                 mLastRenderTime = af_getsteady_ms();
                 AF_LOGD("%llu dropped of %llu video frames\n", mDroppedRenderCount.load(), mTotalRenderCount.load());
@@ -78,12 +78,18 @@ namespace Cicada {
         mVideoRenderFps = 0;
         mReadGotSize = 0;
         mCurrentDownloadSpeed = 0;
+    }
+
+    void MediaPlayerUtil::resetOncePlay()
+    {
         mNetworkSpeed.clear();
         mBufferInfo.clear();
+        mNetworkUrls.clear();
+        mNetworkInfos.clear();
     }
 
     void MediaPlayerUtil::getPropertyJSONStr(const std::string &name, CicadaJSONArray &array, bool isArray,
-            std::deque<StreamInfo *> &streamInfoQueue, demuxer_service *service)
+                                             std::deque<StreamInfo *> &streamInfoQueue, demuxer_service *service)
     {
         if (nullptr == service) {
             return;
@@ -244,5 +250,63 @@ namespace Cicada {
             }
         }
         return result;
+    }
+
+    void MediaPlayerUtil::notifyNetworkEvent(const std::string &url, const CicadaJSONItem &eventParam)
+    {
+
+        std::lock_guard<std::mutex> lockGuard(utilMutex);
+
+        if (mNetworkInfos.count(url) > 0) {
+            CicadaJSONArray infos(mNetworkInfos[url]);
+            infos.addJSON(eventParam);
+            mNetworkInfos[url] = infos.printJSON();
+        } else {
+            CicadaJSONArray infos{};
+            infos.addJSON(eventParam);
+            mNetworkInfos[url] = infos.printJSON();
+            mNetworkUrls.push_back(url);
+        }
+
+        if (mNetworkUrls.size() > 3) {
+            std::string &targetUrl = mNetworkUrls.front();
+            mNetworkUrls.erase(mNetworkUrls.begin());
+            mNetworkInfos.erase(targetUrl);
+        }
+    }
+
+    std::string MediaPlayerUtil::getNetworkRequestInfos(int64_t timeFrom, int64_t timeTo)
+    {
+
+        CicadaJSONArray requestInfoArray{};
+        std::lock_guard<std::mutex> lockGuard(utilMutex);
+        for (auto &item : mNetworkUrls) {
+            std::string url = item;
+            CicadaJSONArray wantedInfos{};
+            CicadaJSONArray infos(mNetworkInfos[url]);
+            filterNetworkInfo(infos, timeFrom, timeTo, [&wantedInfos](CicadaJSONItem &event) -> void { wantedInfos.addJSON(event); });
+
+            CicadaJSONItem value{};
+            value.addValue("url", url);
+            value.addArray("events", wantedInfos);
+            requestInfoArray.addJSON(value);
+        }
+
+        return requestInfoArray.printJSON();
+    }
+
+    void MediaPlayerUtil::filterNetworkInfo(CicadaJSONArray &infos, int64_t timeFrom, int64_t timeTo,
+                                            const std::function<void(CicadaJSONItem &event)> &filter)
+    {
+        int size = infos.getSize();
+        for (int i = 0; i < size; i++) {
+            CicadaJSONItem &event = infos.getItem(i);
+            if (event.hasItem("t")) {
+                int64_t time = event.getInt64("t", -1);
+                if (time >= timeFrom && time <= timeTo) {
+                    filter(event);
+                }
+            }
+        }
     }
 }
