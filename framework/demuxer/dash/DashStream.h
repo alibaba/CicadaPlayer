@@ -88,6 +88,8 @@ namespace Cicada {
 
         void enableCache(bool enalbe);
 
+        void setPreferAudio(bool preferAudio);
+
     private:
 
         static int read_callback(void *arg, uint8_t *buffer, int size);
@@ -195,6 +197,7 @@ namespace Cicada {
         bool mEnableCache{false};
         bool mIsStartSegment{false};
         bool mIsPreload{false};
+        std::atomic<bool> mPreferAudio{false};
     };
 }
 

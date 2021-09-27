@@ -628,17 +628,25 @@ int DashStream::updateSegment()
     } else {
         seg = mPTracker->getNextSegment();
     }
+    if (seg == nullptr) {
+        seg = mPTracker->getNextSegment();
+    }
 
     // if current segment time > live delay, discard it
     if (isLive()) {
         int64_t liveDelay = mPTracker->getLiveDelay();
         int64_t segmentDuration = mPTracker->getSegmentDuration();
-        if (seg == nullptr) {
-            seg = mPTracker->getNextSegment();
+        int64_t discardBuffer = liveDelay;
+        if (mPreferAudio) {
+            discardBuffer -= segmentDuration;
         }
+        if (discardBuffer < 0) {
+            discardBuffer = 0;
+        }
+        
         int64_t utcTime = af_get_utc_time();
-        while (seg && ((utcTime - (seg->fixedStartTime + mStreamStartTime)) > liveDelay + segmentDuration)) {
-            AF_LOGD("discard segment %llu because it is too late", mPTracker->getCurSegNum());
+        while (seg && ((utcTime - (seg->fixedStartTime + mStreamStartTime)) > discardBuffer + segmentDuration)) {
+            AF_LOGD("DashStream %d, discard segment %llu because it is too late", mId, mPTracker->getCurSegNum());
             seg = mPTracker->getNextSegment();
         }
     }
@@ -1255,4 +1263,10 @@ bool DashStream::isRealTimeStream()
     } else {
         return false;
     }
+}
+
+void DashStream::setPreferAudio(bool preferAudio)
+{
+    mPreferAudio = preferAudio;
+    AF_LOGI("DashStream %d, setPreferAudio, %ld", mId, (int32_t)preferAudio);
 }

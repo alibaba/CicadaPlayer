@@ -43,6 +43,7 @@ int DashManager::init()
     std::list<Period *> &periodList = mPList->GetPeriods();
     int id = 0;
     int videoStreamCount = 0;
+    uint64_t lowestBandwidth = std::numeric_limits<uint64_t>::max();
 
     for (auto &pit : periodList) {
         std::list<AdaptationSet *> adaptSetList = FindSuitableAdaptationSets(pit);
@@ -55,6 +56,13 @@ int DashManager::init()
                 auto *pTracker = new DashSegmentTracker(ait, rit, mSourceConfig);
                 if (pTracker->getStreamType() == STREAM_TYPE_VIDEO) {
                     videoStreamCount++;
+                    uint64_t bandwidth = 0;
+                    std::string lang;
+                    pTracker->getStreamInfo(nullptr, nullptr, &bandwidth, lang);
+                    if (lowestBandwidth > bandwidth) {
+                        lowestBandwidth = bandwidth;
+                        mLowestBandwidthVideoId = id;
+                    }
                 }
                 pTracker->setOptions(mOpts);
                 auto *info = new DashStreamInfo();
@@ -305,6 +313,12 @@ int DashManager::OpenStream(int index)
                 }
                 i->selected = true;
                 i->mPStream->start();
+                if (index == mLowestBandwidthVideoId) {
+                    i->mPStream->setPreferAudio(mBufferLevel == client_buffer_level_low);
+                }
+                if (i->mPStream->getStreamType() == STREAM_TYPE_AUDIO) {
+                    mOpenAudioStreamCount++;
+                }
                 break;
             }
         }
@@ -352,6 +366,9 @@ void DashManager::CloseStream(int id)
             i->selected = false;
             i->mPStream->stop();
             i->mPFrame = nullptr;
+            if (i->mPStream->getStreamType() == STREAM_TYPE_AUDIO) {
+                mOpenAudioStreamCount--;
+            }
             break;
         }
     }
@@ -633,11 +650,22 @@ UTCTimer *DashManager::getUTCTimer()
 }
 void DashManager::setClientBufferLevel(client_buffer_level level)
 {
-    // TODO: tobe impl
-    PlaylistManager::setClientBufferLevel(level);
+    if (mPreferAudioEnabled) {
+        if (mBufferLevel == level) {
+            return;
+        }
+        mBufferLevel = level;
+        if (mOpenAudioStreamCount > 0) {
+            for (auto &i : mStreamInfoList) {
+                if (i->mPStream->getId() == mLowestBandwidthVideoId && i->mPStream->isOpened() && i->selected) {
+                    i->mPStream->setPreferAudio(level == client_buffer_level_low);
+                }
+            }
+        }
+    }
 }
+
 void DashManager::preferAudio(bool prefer)
 {
-    // TODO: tobe impl
-    PlaylistManager::preferAudio(prefer);
+    mPreferAudioEnabled = prefer;
 }

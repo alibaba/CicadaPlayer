@@ -78,6 +78,10 @@ namespace Cicada {
         DashStream *mMuxedStream = nullptr;
         bool mStarted = false;
         int64_t mFirstSeekPos = INT64_MIN;
+        bool mPreferAudioEnabled{false};
+        client_buffer_level mBufferLevel{client_buffer_level_unknown};
+        int32_t mOpenAudioStreamCount{0};
+        int32_t mLowestBandwidthVideoId{-1};
     };
 }// namespace Cicada
 
