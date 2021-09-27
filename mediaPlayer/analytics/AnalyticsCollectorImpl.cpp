@@ -344,6 +344,15 @@ namespace Cicada {
         }
     }
 
+    void AnalyticsCollectorImpl::ReportAutoSwitchBitrateStart(const std::string &changeInfo, const std::string &bufferInfo)
+    {
+        for (AnalyticsCollectorListener *iter : mListener) {
+            if (nullptr != iter) {
+                iter->OnAutoSwitchBitrateStart(changeInfo, bufferInfo);
+            }
+        }
+    }
+
     void AnalyticsCollectorImpl::ReportBlackInfo()
     {
         for (AnalyticsCollectorListener *iter : mListener) {

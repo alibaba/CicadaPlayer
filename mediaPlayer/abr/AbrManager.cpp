@@ -85,3 +85,10 @@ int AbrManager::AbrAdjustFun()
 
     return 0;
 }
+
+void AbrManager::GetOption(const std::string &key, std::string &value)
+{
+    if (mAlgoStrategy) {
+        mAlgoStrategy->GetOption(key, value);
+    }
+}

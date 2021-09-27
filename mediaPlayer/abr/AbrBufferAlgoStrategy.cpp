@@ -7,10 +7,11 @@
 #define LOG_TAG "AbrBufferAlgoStrategy"
 #include "AbrBufferAlgoStrategy.h"
 #include "AbrBufferRefererData.h"
-#include <utils/frame_work_log.h>
-#include <utils/timer.h>
 #include <cassert>
 #include <utility>
+#include <utils/CicadaJSON.h>
+#include <utils/frame_work_log.h>
+#include <utils/timer.h>
 #define LOWER_SWITCH_VALUE_MS (15 * 1000)
 #define UPPER_SWITCH_VALUE_MS (30 * 1000)
 #define MAX_BUFFER_STATICS_SIZE 10
@@ -205,6 +206,7 @@ void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpe
 
     if (bitrate != -1 && mCurrentBitrate != bitrate) {
         AF_LOGI("BA switch to bitrate:%d", bitrate);
+        mPreBitrate = mCurrentBitrate;
         mCurrentBitrate = bitrate;
         auto iter = mStreamIndexBitrateMap.find(mCurrentBitrate);
 
@@ -235,4 +237,28 @@ void AbrBufferAlgoStrategy::ProcessAbrAlgo()
         return;
     }
     ComputeBufferTrend(af_getsteady_ms());
+}
+
+void AbrBufferAlgoStrategy::GetOption(const std::string &key, std::string &value)
+{
+
+    if (key == "switchInfo") {
+        CicadaJSONItem result{};
+        result.addValue("fb", (int) mPreBitrate);
+        result.addValue("tb", (int) mCurrentBitrate);
+
+        CicadaJSONArray speedInfos{};
+        for (auto &speedItem : mDownloadSpeed) {
+            speedInfos.addInt64(speedItem);
+        }
+        result.addArray("spd", speedInfos);
+
+        CicadaJSONArray bufferInfos{};
+        for (auto &bufferItem : mBufferStatics) {
+            bufferInfos.addInt64(bufferItem);
+        }
+        result.addArray("buf", bufferInfos);
+
+        value = result.printJSON();
+    }
 }

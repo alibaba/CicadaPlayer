@@ -42,6 +42,8 @@ public:
     //set Abr Aglo strategy
     void SetAbrAlgoStrategy(AbrAlgoStrategy *abrAlgo);
 
+    void GetOption(const std::string &key, std::string &value);
+
 protected:
     int AbrAdjustFun();
 

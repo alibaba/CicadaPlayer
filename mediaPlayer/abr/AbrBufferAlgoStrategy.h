@@ -25,6 +25,8 @@ public:
 
     void SetCurrentBitrate(int bitrate) override;
 
+    void GetOption(const std::string &key, std::string &value) override;
+
 private:
     void ComputeBufferTrend(int64_t curTime);
     void SwitchBitrate(bool up, int64_t speed, int64_t maxSpeed);

@@ -381,6 +381,16 @@ void CicadaJSONArray::addJSON(const CicadaJSONItem &JSON)
     }
 }
 
+void CicadaJSONArray::addInt64(int64_t value)
+{
+    std::lock_guard<std::mutex> lock(mMutex);
+
+    if (mArray) {
+        cJSON *number_item = cJSON_CreateNumber((double) value);
+        cJSON_AddItemToArray(mArray, number_item);
+    }
+}
+
 cJSON *CicadaJSONArray::getJSONCopy() const
 {
     return cJSON_Duplicate(mArray, true);

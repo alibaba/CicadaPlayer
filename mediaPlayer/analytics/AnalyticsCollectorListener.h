@@ -81,6 +81,8 @@ namespace Cicada {
         virtual void OnSwitchToSoftDecode() {};
 
         virtual void OnBlackInfo() {};
+
+        virtual void OnAutoSwitchBitrateStart(const std::string &value, const std::string &bufferInfo){};
     };
 
 }// namespace Cicada

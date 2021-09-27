@@ -4,15 +4,16 @@
 //  Created by shiping.csp on 2018/11/12.
 //
 
-#include <muxer/ffmpegMuxer/FfmpegMuxer.h>
-#include <utils/frame_work_log.h>
-#include <utils/file/FileUtils.h>
-#include <utils/af_string.h>
-#include <utils/uuid.h>
 #include "MediaPlayer.h"
-#include "media_player_api.h"
-#include "abr/AbrManager.h"
 #include "abr/AbrBufferAlgoStrategy.h"
+#include "abr/AbrManager.h"
+#include "media_player_api.h"
+#include <muxer/ffmpegMuxer/FfmpegMuxer.h>
+#include <utils/af_string.h>
+#include <utils/file/FileUtils.h>
+#include <utils/frame_work_log.h>
+#include <utils/timer.h>
+#include <utils/uuid.h>
 
 #include "analytics/AnalyticsCollectorFactory.h"
 #include "analytics/AnalyticsQueryListener.h"
@@ -162,6 +163,19 @@ namespace Cicada {
         // return the selection if disable by selectTrack
         if (!mAbrManager->IsEnableAbr()) {
             return;
+        }
+        std::string value{};
+        mAbrManager->GetOption("switchInfo", value);
+
+        int64_t toTime = af_gettime_relative();
+        int64_t fromTime = toTime - 10 * 1000000;
+        CicadaJSONItem params{};
+        params.addValue("from", (long)fromTime);
+        params.addValue("to", (long)toTime);
+        std::string playerBuffer = GetPropertyString(PropertyKey::PROPERTY_KEY_BUFFER_INFO, params);
+
+        if (mCollector != nullptr) {
+            mCollector->ReportAutoSwitchBitrateStart(value, playerBuffer);
         }
 
         GET_PLAYER_HANDLE

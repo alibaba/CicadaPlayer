@@ -91,6 +91,8 @@ public:
     void addJSON(const CicadaJSONItem &JSON);
 
 
+    void addInt64(int64_t value);
+
     // add JSON object unsafely, better performance, but the JSON param will became invalid.
     //void addAssignJSON(CicadaJSONItem &JSON);
 

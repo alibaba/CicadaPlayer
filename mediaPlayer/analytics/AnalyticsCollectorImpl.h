@@ -109,6 +109,8 @@ namespace Cicada {
 
         void ReportSwitchToSoftDecode() override;
 
+        void ReportAutoSwitchBitrateStart(const std::string &changeInfo, const std::string &bufferInfo) override;
+
     protected:
         std::atomic <int64_t> mStartTimeMS {0};
         int64_t mPauseTimeMS = 0;

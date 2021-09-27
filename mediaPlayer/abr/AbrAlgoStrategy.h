@@ -42,6 +42,9 @@ public:
 
     virtual void ProcessAbrAlgo() = 0;
 
+    virtual void GetOption(const std::string &key, std::string &value)
+    {}
+
     virtual uint32_t GetBitRateCount()
     {
         return mBitRates.size();
@@ -52,6 +55,7 @@ protected:
     map<int, int> mStreamIndexBitrateMap;
     vector<int> mBitRates;
     int mCurrentBitrate = 0;
+    int mPreBitrate = 0;
     int64_t mDurationMS = -1;
     std::function<void(int)> mFunc;
     void *mUserData = nullptr;
