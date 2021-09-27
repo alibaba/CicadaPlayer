@@ -46,6 +46,10 @@ int DashStream::getStreamType() const
 
 int DashStream::GetRemainSegmentCount()
 {
+    if (mPreloadSucc) {
+        //AF_LOGI("GetRemainSegmentCount preload success");
+        return 1;
+    }
     return mPTracker->GetRemainSegmentCount();
 }
 
@@ -668,6 +672,7 @@ int DashStream::updateSegment()
                 resetSource();
                 if (!mPTracker->bufferingAvailable()) {
                     mIsPreload = true;
+                    mPreloadSucc = false;
                     return -EAGAIN;
                 }
                 seg = mPTracker->getNextSegment();
@@ -693,6 +698,10 @@ int DashStream::updateSegment()
 
             resetSource();
             return ret;
+        } else {
+            if (!mPTracker->bufferingAvailable()) {
+                mPreloadSucc = true;
+            }
         }
         return 0;
     } else {

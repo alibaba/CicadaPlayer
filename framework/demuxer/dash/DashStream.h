@@ -197,6 +197,7 @@ namespace Cicada {
         bool mEnableCache{false};
         bool mIsStartSegment{false};
         bool mIsPreload{false};
+        bool mPreloadSucc{false};
         std::atomic<bool> mPreferAudio{false};
     };
 }

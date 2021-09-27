@@ -62,7 +62,7 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
     int64_t bufferDuration = mRefererData->GetCurrentPacketBufferLength() / 1000;
     bool bufferFull = (bufferDuration >= (maxBufferDuration - 1000));
 
-    if (mDurationMS == 0) {
+    if (!bufferFull && mDurationMS == 0) {
         //        AF_LOGI("BA connect %d full:%d", connect, bufferFull);
         if (mRefererData->GetIsConnected()) {
             bufferFull = mRefererData->GetRemainSegmentCount() == 0;

@@ -269,7 +269,7 @@ namespace Cicada {
         }
 
         if (mNetworkUrls.size() > 3) {
-            std::string &targetUrl = mNetworkUrls.front();
+            std::string targetUrl = mNetworkUrls.front();
             mNetworkUrls.erase(mNetworkUrls.begin());
             mNetworkInfos.erase(targetUrl);
         }
