@@ -633,7 +633,11 @@ int DashStream::updateSegment()
     if (isLive()) {
         int64_t liveDelay = mPTracker->getLiveDelay();
         int64_t segmentDuration = mPTracker->getSegmentDuration();
-        while (mPTracker->getMinAheadTime() > liveDelay + segmentDuration) {
+        if (seg == nullptr) {
+            seg = mPTracker->getNextSegment();
+        }
+        int64_t utcTime = af_get_utc_time();
+        while (seg && ((utcTime - (seg->fixedStartTime + mStreamStartTime)) > liveDelay + segmentDuration)) {
             AF_LOGD("discard segment %llu because it is too late", mPTracker->getCurSegNum());
             seg = mPTracker->getNextSegment();
         }
@@ -646,6 +650,10 @@ int DashStream::updateSegment()
         do {
             mCurSeg = seg;
             std::string uri = mCurSeg->getUrlSegment().toString(mPTracker->getCurSegNum(), mPTracker->getCurrentRepresentation());
+
+            AF_LOGD("open segment %lld %lld, %lld", (af_get_utc_time() - (mCurSeg->fixedStartTime + mStreamStartTime)) / 1000,
+                    af_get_utc_time(), mCurSeg->fixedStartTime + mStreamStartTime);
+
             ret = tryOpenSegment(uri, seg->startByte, seg->endByte);
 
             if (isHttpError(ret) || isLocalFileError(ret)) {
