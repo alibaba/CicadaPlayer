@@ -34,6 +34,17 @@ public:
     //set current stream
     virtual void SetCurrentBitrate(int bitrate);
 
+    enum Status {
+        Switch,
+        Lowest_Already,
+        Highest_Already,
+    };
+
+    virtual void SetSwitchStatusCallback(const std::function<void(Status)> &statusCallback)
+    {
+        mStatusCallback = statusCallback;
+    }
+
     virtual void Clear();
     virtual void SetDuration(int64_t ms) {mDurationMS = ms;}
 
@@ -58,6 +69,7 @@ protected:
     int mPreBitrate = 0;
     int64_t mDurationMS = -1;
     std::function<void(int)> mFunc;
+    std::function<void(Status)> mStatusCallback;
     void *mUserData = nullptr;
 };
 

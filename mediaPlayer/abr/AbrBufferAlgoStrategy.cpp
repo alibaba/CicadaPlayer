@@ -165,6 +165,7 @@ void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpe
 
     if (up) {
         if (currentIndex >= (count - 1)) {
+            updateSwitchStatus(Status::Highest_Already, false);
             return;
         }
         bitrate = mBitRates[currentIndex + 1];
@@ -185,6 +186,7 @@ void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpe
     } else {
         if (currentIndex == 0) {
             // lowest already
+            updateSwitchStatus(Status::Lowest_Already, false);
             return;
         }
 
@@ -226,6 +228,7 @@ void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpe
                 mIsUpHistory.pop_front();
             }
 
+            updateSwitchStatus(Status::Switch, true);
             mFunc(index);
         }
     }
@@ -237,6 +240,19 @@ void AbrBufferAlgoStrategy::ProcessAbrAlgo()
         return;
     }
     ComputeBufferTrend(af_getsteady_ms());
+}
+
+void AbrBufferAlgoStrategy::updateSwitchStatus(Status newStatus, bool forceCb)
+{
+    AF_LOGD("BA switch status:%d", newStatus);
+
+    Status oldStatus = mSwitchStatus;
+    mSwitchStatus = newStatus;
+    if (oldStatus != newStatus || forceCb) {
+        if (mStatusCallback) {
+            mStatusCallback(newStatus);
+        }
+    }
 }
 
 void AbrBufferAlgoStrategy::GetOption(const std::string &key, std::string &value)

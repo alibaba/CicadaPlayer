@@ -31,6 +31,8 @@ private:
     void ComputeBufferTrend(int64_t curTime);
     void SwitchBitrate(bool up, int64_t speed, int64_t maxSpeed);
 
+    void updateSwitchStatus(Status newStatus, bool forceCb);
+
 private:
     bool mSwitching = false;
     int mUpSpan = 10 * 1000;
@@ -41,6 +43,7 @@ private:
     std::list<bool> mIsUpHistory;
     std::list<int> mBufferStatics;
     std::list<int64_t> mDownloadSpeed;
+    Status mSwitchStatus{Status::Switch};
 };
 
 #endif /* AbrBufferAlgoStrategy_h */

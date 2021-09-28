@@ -79,6 +79,11 @@ namespace Cicada {
         mAbrRefData = new AbrBufferRefererData(handle);
         mAbrAlgo->SetRefererData(mAbrRefData);
         mAbrManager->SetAbrAlgoStrategy(mAbrAlgo);
+        mAbrAlgo->SetSwitchStatusCallback([this](AbrAlgoStrategy::Status status) -> void {
+            if (mCollector != nullptr) {
+                mCollector->ReportAbrSwitchStatus((int) status);
+            }
+        });
 
         refreshPlayerSessionId();
     }

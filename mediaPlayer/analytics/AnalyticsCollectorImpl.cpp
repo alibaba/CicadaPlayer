@@ -353,6 +353,15 @@ namespace Cicada {
         }
     }
 
+    void AnalyticsCollectorImpl::ReportAbrSwitchStatus(int status)
+    {
+        for (AnalyticsCollectorListener *iter : mListener) {
+            if (nullptr != iter) {
+                iter->OnAbrSwitchStatus(status);
+            }
+        }
+    }
+
     void AnalyticsCollectorImpl::ReportBlackInfo()
     {
         for (AnalyticsCollectorListener *iter : mListener) {
