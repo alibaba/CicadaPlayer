@@ -186,7 +186,7 @@ public:
 
     void GetVideoRotation(int &rotation) override;
 
-    std::string GetPropertyString(PropertyKey key) override;
+    std::string GetPropertyString(PropertyKey key, const CicadaJSONItem &params) override;
 
     int64_t GetPropertyInt(PropertyKey key) override;
 

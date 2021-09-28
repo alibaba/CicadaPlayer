@@ -732,9 +732,10 @@ void JavaExternalPlayer::GetVideoRotation(int &rotation) {
     rotation = jCallRiPvD("GetVideoRotation", 0);
 }
 
-std::string JavaExternalPlayer::GetPropertyString(PropertyKey key) {
+std::string JavaExternalPlayer::GetPropertyString(PropertyKey key, const CicadaJSONItem &params)
+{
     //TODO
-    return ICicadaPlayer::GetPropertyString(key);
+    return ICicadaPlayer::GetPropertyString(key, params);
 }
 
 int64_t JavaExternalPlayer::GetPropertyInt(PropertyKey key) {
