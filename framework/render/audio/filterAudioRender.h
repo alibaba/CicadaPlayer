@@ -112,7 +112,6 @@ namespace Cicada {
         volatile std::atomic_bool mMute{false};
         std::unique_ptr<Cicada::IAudioFilter> mFilter{};
         std::mutex mFrameQueMutex;
-        std::condition_variable mFrameQueCondition;
         std::queue<std::unique_ptr<IAFFrame>> mFrameQue{};
         std::unique_ptr<IAFFrame> mRenderFrame{nullptr};
         bool mUseActiveFilter{false};
