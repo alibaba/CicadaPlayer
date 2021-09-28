@@ -1525,6 +1525,7 @@ bool SuperMediaPlayer::DoCheckBufferPass()
                 if (mDemuxerService->isWallclockTimeSyncStream(mCurrentVideoIndex)) {
                     mUtcTimer = mDemuxerService->getDemuxerHandle()->getUTCTimer();
                 }
+                mDemuxerService->getDemuxerHandle()->SetOption("preferAudio", mSet->preferAudio);
                 AF_LOGD("PLAYER_PREPARED");
                 AF_LOGD("prepare use %lld ms\n", (af_gettime_relative() - mPrepareStartTime) / 1000);
                 notifyPreparedCallback();

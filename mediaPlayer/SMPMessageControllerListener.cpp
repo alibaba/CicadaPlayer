@@ -148,7 +148,6 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
 
         mPlayer.mDcaManager->createObservers();
         mPlayer.sendDCAMessage();
-        mPlayer.mDemuxerService->getDemuxerHandle()->SetOption("preferAudio", mPlayer.mSet->preferAudio);
     }
 
 
