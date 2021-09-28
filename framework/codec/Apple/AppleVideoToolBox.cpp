@@ -122,19 +122,26 @@ namespace Cicada {
         }
 
         mPInMeta = unique_ptr<streamMeta>(new streamMeta(meta));
-        ((Stream_meta *) (*(mPInMeta)))->extradata = new uint8_t[meta->extradata_size];
-        memcpy(((Stream_meta *) (*(mPInMeta)))->extradata, meta->extradata, ((Stream_meta *) (*(mPInMeta)))->extradata_size);
-        ((Stream_meta *) (*(mPInMeta)))->lang = nullptr;
-        ((Stream_meta *) (*(mPInMeta)))->description = nullptr;
-        ((Stream_meta *) (*(mPInMeta)))->meta = nullptr;
-        ((Stream_meta *) (*(mPInMeta)))->keyUrl = nullptr;
-        ((Stream_meta *) (*(mPInMeta)))->keyFormat = nullptr;
+        Stream_meta *pInmeta = (Stream_meta *) (*(mPInMeta));
+        pInmeta->extradata = new uint8_t[meta->extradata_size];
+        memcpy(pInmeta->extradata, meta->extradata, pInmeta->extradata_size);
+        pInmeta->lang = nullptr;
+        pInmeta->description = nullptr;
+        pInmeta->meta = nullptr;
+        pInmeta->keyUrl = nullptr;
+        pInmeta->keyFormat = nullptr;
+
+        parserInfo info{0};
+        if (parser_extradata(pInmeta->extradata, pInmeta->extradata_size, &info, pInmeta->codec) >= 0) {
+            pInmeta->width = info.width;
+            pInmeta->height = info.height;
+        }
 
         mInputCount = 0;
 
         if (meta->codec == AF_CODEC_ID_H264 /*|| meta->codec == AF_CODEC_ID_HEVC*/) {
             mParser = unique_ptr<bitStreamParser>(new bitStreamParser());
-            int ret = mParser->init((Stream_meta *) (*(mPInMeta)));
+            int ret = mParser->init(pInmeta);
 
             if (ret < 0) {
                 mParser = nullptr;
