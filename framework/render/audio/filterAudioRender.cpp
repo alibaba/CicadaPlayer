@@ -25,9 +25,7 @@ namespace Cicada {
 
     filterAudioRender::~filterAudioRender()
     {
-        unique_lock<mutex> lock(mFrameQueMutex);
         mRunning = false;
-        mFrameQueCondition.notify_one();
 
         if (mRenderThread) {
             mRenderThread->stop();
@@ -157,7 +155,6 @@ namespace Cicada {
         }
 
         mFrameQue.push(move(frame));
-        mFrameQueCondition.notify_one();
         return 0;
     }
 
