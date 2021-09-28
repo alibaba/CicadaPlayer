@@ -255,11 +255,26 @@ int DashManager::ReadPacket(unique_ptr<IAFPacket> &packet, int index)
         }
     }
 
+    if (index == -1 && mPList->isLive() && mPreferAudioEnabled && mBufferLevel == client_buffer_level_low) {
+        bool lowestVideo = false;
+        for (auto &i : mStreamInfoList) {
+            if (i->mPStream->isOpened() && i->selected && i->mPStream->getStreamType() == STREAM_TYPE_AUDIO && i->mPFrame) {
+                index = i->mPFrame->getInfo().streamIndex;
+                break;
+            } else if (i->mPStream->isOpened() && i->selected && i->mPStream->getStreamType() == STREAM_TYPE_VIDEO) {
+                lowestVideo = (i->mPStream->getId() == mLowestBandwidthVideoId);
+            }
+        }
+        if (!lowestVideo) {
+            index = -1;
+        }
+    }
+
     if (index != -1) {
         pFrameOut = nullptr;
 
         for (auto &i : mStreamInfoList) {
-            if (i->mPStream->isOpened() && i->selected && i->mPFrame == nullptr && !i->eos) {
+            if (i->mPStream->isOpened() && i->selected && i->mPFrame != nullptr && !i->eos) {
                 if (i->mPFrame->getInfo().streamIndex == index) {
                     pFrameOut = i->mPFrame.get();
                     packet = move(i->mPFrame);
