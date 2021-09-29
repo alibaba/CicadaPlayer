@@ -134,10 +134,10 @@ void CURLConnection::setSSLBackEnd(curl_sslbackend sslbackend)
 
 Cicada::CURLConnection::~CURLConnection()
 {
-    {
-        CicadaJSONItem params{};
-        notifyNetworkEvent(IDataSource::Listener::NetworkEvent::networkEvent_disconnect, params);
-    }
+//    {
+//        CicadaJSONItem params{};
+//        notifyNetworkEvent(IDataSource::Listener::NetworkEvent::networkEvent_disconnect, params);
+//    }
 
     if (multi_handle && mHttp_handle) {
         curl_multi_remove_handle(multi_handle, mHttp_handle);
