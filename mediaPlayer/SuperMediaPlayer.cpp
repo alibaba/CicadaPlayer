@@ -1754,7 +1754,12 @@ void SuperMediaPlayer::LiveCatchUp(int64_t delayTime)
 
 void SuperMediaPlayer::LiveTimeSync(int64_t delayTime)
 {
-    AF_LOGD("delayTime is %lld rate is %f  buffer duration is %lld\n", delayTime, mSet->rate.load(), getPlayerBufferDuration(false, false));
+    static int64_t lastT = af_getsteady_ms();
+    if (af_getsteady_ms() - lastT > 1000) {
+        lastT = af_getsteady_ms();
+        AF_LOGD("delayTime is %lld rate is %f  buffer duration is %lld\n", delayTime, mSet->rate.load(),
+                getPlayerBufferDuration(false, false));
+    }
     int64_t maxGopTime = mDemuxerService->getDemuxerHandle()->getMaxGopTimeUs();
     if (maxGopTime <= 0) {
         maxGopTime = 2 * 1000 * 1000;
