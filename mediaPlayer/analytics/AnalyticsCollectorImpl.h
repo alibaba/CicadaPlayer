@@ -109,6 +109,9 @@ namespace Cicada {
 
         void ReportSwitchToSoftDecode() override;
 
+        void ReportLowMemory() override;
+
+
         void ReportAutoSwitchBitrateStart(const std::string &changeInfo, const std::string &bufferInfo) override;
 
         void ReportAbrSwitchStatus(int status) override;

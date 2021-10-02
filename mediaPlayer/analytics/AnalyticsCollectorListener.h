@@ -85,6 +85,8 @@ namespace Cicada {
         virtual void OnAutoSwitchBitrateStart(const std::string &value, const std::string &bufferInfo){};
 
         virtual void OnAbrSwitchStatus(int status){};
+
+        virtual void OnLowMemory(){};
     };
 
 }// namespace Cicada

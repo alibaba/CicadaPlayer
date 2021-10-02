@@ -805,6 +805,10 @@ namespace Cicada {
                 player->mCacheManager->complete();
             }
 #endif
+        } else if (code == MediaPlayerEventType::MEDIA_PLAYER_EVENT_SYSTEM_LOW_MEMORY) {
+            if (player->mCollector) {
+                player->mCollector->ReportLowMemory();
+            }
         }
 
         if (player->mListener.EventCallback) {
