@@ -753,7 +753,7 @@ int DashStream::read_internal(std::unique_ptr<IAFPacket> &packet)
         return 0;
     }
 
-    if (ret == gen_framework_errno(error_class_network, network_errno_http_range)) {
+    if (ret == gen_framework_errno(error_class_network, network_errno_http_range) || ret == -EIO) {
         ret = 0;
     }
 
