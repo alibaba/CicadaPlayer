@@ -1774,7 +1774,8 @@ void SuperMediaPlayer::LiveTimeSync(int64_t delayTime)
 
     int64_t catchUpBufferDelta = std::max(mSet->highLevelBufferDuration, maxGopTime);
 
-    if (delayTime > mSuggestedPresentationDelay + 1000 * 1000 * 5 && getPlayerBufferDuration(false, false) > catchUpBufferDelta) {
+    if (delayTime > (mSuggestedPresentationDelay + 1000 * 1000 * 5) &&
+        getPlayerBufferDuration(false, false) > (mSuggestedPresentationDelay + 1000 * 1000 * 5 + catchUpBufferDelta)) {
         //drop frame
         int64_t lateUTCTime = mUtcTimer->get() - (mSuggestedPresentationDelay + 1000 * 1000 * 5);
         int64_t lastKeyTimePos = INT64_MIN;
@@ -1783,6 +1784,8 @@ void SuperMediaPlayer::LiveTimeSync(int64_t delayTime)
         } else {
             lastKeyTimePos = mBufferController->GetKeyTimePositionBeforeUtcTime(BUFFER_TYPE_AUDIO, lateUTCTime);
         }
+
+        // TODO: get the buffer duration after lateUTCTime, if buffer duration is too small, do not clear the buffers
         if (lastKeyTimePos != INT64_MIN) {
             AF_LOGD("drop left lateUTCTime %lld, lastVideoKeyPts %lld", lateUTCTime, lastKeyTimePos);
             int64_t dropVideoCount = mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_VIDEO, lastKeyTimePos);
