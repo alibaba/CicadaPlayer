@@ -245,6 +245,9 @@ public:
     void SetVideoRenderingCallBack(videoRenderingFrameCB cb, void *userData) override
     {}
 
+    void SetUrlHashCB(UrlHashCB cb, void *userData) override
+    {}
+
 public:
     static bool is_supported(const Cicada::options *opts);
 
