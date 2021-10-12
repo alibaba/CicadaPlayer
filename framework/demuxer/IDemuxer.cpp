@@ -174,4 +174,34 @@ namespace Cicada {
         return pair<int64_t, int64_t>(rangeStart, rangeEnd);
     }
 
+    bool IDemuxer::isStreamsEncodedSeparately(const string &url)
+    {
+        const auto &infoList = getStreamIndexEntryInfo();
+        if (infoList.size() <= 1) {
+            return false;
+        }
+        const auto MAX_GAP_MIC_SEC = 100000L;   //100ms
+        int64_t duration = -1, lastDts = -1, lastPosition = -1;
+        int32_t lastSize = -1;
+        for (auto &info : infoList) {
+            if (info.mEntry.empty()) {
+                continue;
+            }
+
+            auto &back = info.mEntry.back();
+            if (duration < 0) {
+                duration = info.mDuration;
+                lastDts = back.mTimestamp;
+                lastPosition = back.mPos;
+                lastSize = back.mSize;
+            } else if (abs(info.mDuration - duration) < MAX_GAP_MIC_SEC
+            && abs(back.mTimestamp - lastDts) <= MAX_GAP_MIC_SEC
+            && abs(back.mPos - lastPosition) >= max(lastSize, back.mSize) * 10) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 }

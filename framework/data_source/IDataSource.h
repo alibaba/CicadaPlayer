@@ -31,6 +31,7 @@ namespace Cicada {
         virtual int64_t estimateExclusiveEndPositionBytes(const std::string &url, int64_t timeMicSec, int64_t totalLength) = 0;
         virtual int64_t estimatePlayTimeMicSec(const std::string &url, int64_t filePosition, int64_t totalLength) = 0;
         virtual std::pair<int64_t, int64_t> estimatePlayTimeMicSecRange(const std::pair<int64_t, int64_t> &fileRange) = 0;
+        virtual bool isStreamsEncodedSeparately(const std::string &url) = 0;
     };
 
     typedef std::string (*UrlHashCB)(const char *, void *userData);

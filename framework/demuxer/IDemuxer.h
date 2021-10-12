@@ -264,6 +264,8 @@ namespace Cicada {
 
         std::pair<int64_t, int64_t> estimatePlayTimeMicSecRange(const pair<int64_t, int64_t> &fileRange) override;
 
+        bool isStreamsEncodedSeparately(const string &url) override;
+
     protected:
         demuxer_callback_read mReadCb{nullptr};
         demuxer_callback_seek mSeekCb{nullptr};
