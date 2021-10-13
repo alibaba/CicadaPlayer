@@ -261,7 +261,9 @@ static int process_style(AssHeader &header, ParserState &state, char *str)
         FPVAL(Angle)
         INTVAL(BorderStyle)
         INTVAL(Alignment)
-        if (header.Type == SubtitleTypeAss) style.Alignment = numpad2align(style.Alignment);
+        if (header.Type == SubtitleTypeAss) {
+            // style.Alignment = numpad2align(style.Alignment);
+        }
         // VSFilter compatibility
         else if (style.Alignment == 8)
             style.Alignment = 3;
