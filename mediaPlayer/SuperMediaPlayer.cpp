@@ -1757,7 +1757,7 @@ void SuperMediaPlayer::LiveTimeSync(int64_t delayTime)
     static int64_t lastT = af_getsteady_ms();
     if (af_getsteady_ms() - lastT > 1000) {
         lastT = af_getsteady_ms();
-        AF_LOGD("delayTime is %lld rate is %f  buffer duration is %lld\n", delayTime, mSet->rate.load(),
+        AF_LOGD("delayTime is %lld rate is %f  buffer duration is %lld\n", delayTime, mBufferingFlag ? 0 : mSet->rate.load(),
                 getPlayerBufferDuration(false, false));
     }
     int64_t maxGopTime = mDemuxerService->getDemuxerHandle()->getMaxGopTimeUs();
