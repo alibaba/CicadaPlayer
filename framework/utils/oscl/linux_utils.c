@@ -116,6 +116,8 @@ int get_system_meminfo(mem_info *pInfo)
                 info.bufferram += val / 4;
             else if (strncmp("Cached:", name, 7) == 0)
                 info.bufferram += val / 4;
+            else if (strncmp("SReclaimable:", name, 13) == 0)
+                info.bufferram += val / 4;
             else if (strncmp("SwapTotal:", name, 10) == 0)
                 info.totalswap = val / 4;
             else if (strncmp("SwapFree:", name, 9) == 0)
