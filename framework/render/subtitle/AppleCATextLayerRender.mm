@@ -408,6 +408,20 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
             break;
     }
     switch (alignment / 4) {
+            //top
+        case 2:
+#if TARGET_OS_IPHONE
+            y = 0;
+            y += marginV;
+#else
+            y = h - textSize.height;
+            y -= marginV;
+#endif
+            break;
+            //Center
+        case 1:
+            y = (h - textSize.height) / 2;
+            break;
         //bottom
         case 0:
 #if TARGET_OS_IPHONE
@@ -418,21 +432,6 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
             y += marginV;
 #endif
             break;
-            //top
-        case 1:
-#if TARGET_OS_IPHONE
-            y = 0;
-            y += marginV;
-#else
-            y = h - textSize.height;
-            y -= marginV;
-#endif
-            break;
-            //Center
-        case 2:
-            y = (h - textSize.height) / 2;
-            break;
-
         default:
             break;
     }
