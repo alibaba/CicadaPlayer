@@ -307,7 +307,7 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
     //    CURL_LOGD("CurlDataSource::Seek position is %lld,when is %d", offset, whence);
     if (!mPConnection) {
         return -(ESPIPE);
-}
+    }
     if (whence == SEEK_SIZE) {
         return mFileSize;
     } else if ((whence == SEEK_CUR && offset == 0) ||
@@ -460,7 +460,7 @@ int CurlDataSource::Read(void *buf, size_t size)
         if (mNeedReconnect) {
             rangeStart = mPConnection->tell();
             Close();
-            Open(0);
+            Open(mLocation);
             mNeedReconnect = false;
         }
         ret = mPConnection->FillBuffer(1);
