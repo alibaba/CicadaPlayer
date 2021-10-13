@@ -596,6 +596,8 @@ int SuperMediaPlayer::SetOption(const char *key, const char *value)
         mBufferController->SetMaxBackwardDuration(BUFFER_TYPE_ALL, atoll(value) * 1000);
     } else if (theKey == "preferAudio") {
         mSet->preferAudio = (atoi(value) != 0);
+        AF_LOGI("preferAudio %d\n", mSet->preferAudio);
+        std::lock_guard<std::mutex> uMutex(mCreateMutex);
         if (mDemuxerService && mDemuxerService->getDemuxerHandle()) {
             mDemuxerService->getDemuxerHandle()->SetOption("preferAudio", mSet->preferAudio);
         }
@@ -1822,7 +1824,7 @@ void SuperMediaPlayer::LiveTimeSync(int64_t delayTime)
             break;
 
         case LiveTimeSyncType::LiveTimeSyncCatchUp:
-            AF_LOGD("CatchUp speed is %f\n", mSet->rate.load());
+            //   AF_LOGD("CatchUp speed is %f\n", mSet->rate.load());
             assert(mSet->rate == 1.2f);
             if ((delayTime < bufferDelay) || (getPlayerBufferDuration(false, false) < catchUpBufferDelta)) {
                 mMsgCtrlListener->ProcessSetSpeed(1.0);
