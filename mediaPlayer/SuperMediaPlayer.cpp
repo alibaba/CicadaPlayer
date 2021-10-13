@@ -1202,8 +1202,12 @@ void SuperMediaPlayer::doReadPacket()
                 //AF_LOGD("system_availableram is %" PRIu64 "",info.system_availableram);
                 if (info.system_availableram > 2 * mSet->lowMemSize) {
                     checkStep = (int) (info.system_availableram / (5 * 1024 * 1024));
+#ifdef ANDROID
+                } else if (0 && info.system_availableram < mSet->lowMemSize) {
+#else
                 } else if (info.system_availableram < mSet->lowMemSize) {
-                    AF_LOGW("low memery...");
+#endif
+                   AF_LOGW("low memory...");
 
                     if (!mLowMem) {
                         mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_SYSTEM_LOW_MEMORY, "App Low memory");
