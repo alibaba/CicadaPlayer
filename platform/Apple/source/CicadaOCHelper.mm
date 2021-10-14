@@ -419,6 +419,9 @@ void CicadaOCHelper::onSubtitleHeader(int64_t index, const void *header, void *u
         if (str.length>0) {
             helper->assHeader = AssUtils::parseAssHeader([str UTF8String]);
             if (helper->assHeader.Type == SubtitleTypeAss) {
+                if(helper->mSubtitleRender!=nullptr){
+                    helper->mSubtitleRender->clear();
+                }
                 helper->mSubtitleRender = unique_ptr<AppleCATextLayerRender>(new AppleCATextLayerRender());
                 int ret = helper->mSubtitleRender->intHeader((const char *) header);
                 if (ret < 0) {

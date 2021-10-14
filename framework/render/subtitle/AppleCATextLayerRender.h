@@ -30,6 +30,8 @@ namespace Cicada {
         ~AppleCATextLayerRender();
 
         void setView(void *view);
+        
+        void clear();
 
         int show(int64_t index,const std::string &data);
 
@@ -50,6 +52,7 @@ namespace Cicada {
 @property(nonatomic,strong)  NSMutableArray *dialogueArr;
 
 - (void)setup:(CALayer *)view;
+-(void)clear;
 
 - (void)showDialogue:(Cicada::AssDialogue)ret atIndex:(NSInteger)index;
 - (void)hideDialogue:(Cicada::AssDialogue)ret atIndex:(NSInteger)index;

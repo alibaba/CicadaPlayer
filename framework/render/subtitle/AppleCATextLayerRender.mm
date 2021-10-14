@@ -45,6 +45,11 @@ void AppleCATextLayerRender::setView(void *view)
     [(__bridge id) renderHandle setup:(__bridge CALayer *) view];
 }
 
+void AppleCATextLayerRender::clear()
+{
+    [(__bridge id) renderHandle clear];
+}
+
 @implementation DialogueObj
 
 @end
@@ -474,6 +479,13 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
     dispatch_async(dispatch_get_main_queue(), ^{
       [_mLayer addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:nil];
     });
+}
+
+-(void)clear{
+    for (DialogueObj* obj in _dialogueArr) {
+        [obj.layer removeFromSuperlayer];
+    }
+    [_dialogueArr removeAllObjects];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *, id> *)change context:(void *)context
