@@ -51,8 +51,8 @@ namespace Cicada {
 
     typedef struct AssHeader_ {
         SubtitleType Type = SubtitleTypeUnknown;
-        int PlayResX = 0;
-        int PlayResY = 0;
+        int PlayResX = 384;
+        int PlayResY = 288;
         double Timer = 0;
         int WrapStyle = 0;
         int ScaledBorderAndShadow = 0;
