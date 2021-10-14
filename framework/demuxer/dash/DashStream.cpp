@@ -433,7 +433,7 @@ int DashStream::tryOpenSegment(const string &uri, int64_t start, int64_t end)
         ret = openSegment(uri, start, end);
         retryTimes++;
 
-        if (retryTimes > 2) {
+        if (ret >= 0 || retryTimes > 2) {
             break;
         }
 
