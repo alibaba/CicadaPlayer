@@ -42,7 +42,7 @@ public class TextViewPool {
         if(parent != null) {
             parent.removeView(textView);
         }
-
+        textView.setText("");
         busyTextViewList.remove(textView);
         idelTextViewList.add(textView);
 
