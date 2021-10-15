@@ -1777,13 +1777,11 @@ void SuperMediaPlayer::LiveTimeSync(int64_t delayTime)
     int64_t catchUpBufferDelta = std::max(mSet->highLevelBufferDuration, maxGopTime);
 
     if (delayTime > (mSuggestedPresentationDelay + 1000 * 1000 * 5) &&
-        getPlayerBufferDuration(false, false) > (mSuggestedPresentationDelay + 1000 * 1000 * 5 + catchUpBufferDelta)) {
+        getPlayerBufferDuration(true, false) > (mSuggestedPresentationDelay + 1000 * 1000 * 5 + catchUpBufferDelta)) {
         //drop frame
         int64_t lateUTCTime = mUtcTimer->get() - (mSuggestedPresentationDelay + 1000 * 1000 * 5);
-        int64_t lastKeyTimePos = INT64_MIN;
-        if (HAVE_VIDEO) {
-            lastKeyTimePos = mBufferController->GetKeyTimePositionBeforeUtcTime(BUFFER_TYPE_VIDEO, lateUTCTime);
-        } else {
+        int64_t lastKeyTimePos = mBufferController->GetKeyTimePositionBeforeUtcTime(BUFFER_TYPE_VIDEO, lateUTCTime);
+        if (lastKeyTimePos == INT64_MIN) {
             lastKeyTimePos = mBufferController->GetKeyTimePositionBeforeUtcTime(BUFFER_TYPE_AUDIO, lateUTCTime);
         }
 
