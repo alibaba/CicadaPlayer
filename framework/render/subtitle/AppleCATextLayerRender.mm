@@ -158,14 +158,14 @@ CicadaColor *getSubTitleColor(bool isBGR, NSInteger value)
     [attrs setValue:color forKey:NSForegroundColorAttributeName];
     if (showOutline && defaultstyle.BorderStyle==1) {
         if (defaultstyle.Outline>0) {
-            NSObject *outlineColour = getSubTitleColor(true, defaultstyle.OutlineColour);
+            NSObject *outlineColour = getSubTitleColor(false, defaultstyle.OutlineColour);
             [attrs setValue:outlineColour forKey:NSStrokeColorAttributeName];
             [attrs setValue:@(defaultstyle.Outline) forKey:NSStrokeWidthAttributeName];
         }
         if (defaultstyle.Shadow>0) {
             NSShadow *shadow = [[NSShadow alloc]init];
             shadow.shadowOffset = CGSizeMake(defaultstyle.Shadow, defaultstyle.Shadow);
-            shadow.shadowColor = getSubTitleColor(true, defaultstyle.BackColour);
+            shadow.shadowColor = getSubTitleColor(false, defaultstyle.BackColour);
             shadow.shadowBlurRadius = defaultstyle.Shadow;
             [attrs setValue:shadow forKey:NSShadowAttributeName];
         }
