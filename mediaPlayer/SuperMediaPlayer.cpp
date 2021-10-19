@@ -1126,8 +1126,11 @@ int SuperMediaPlayer::updateLoopGap()
                     if (mVideoInterlaced == InterlacedType_YES) {
                         fps *= 2;
                     }
-                    if (mFilterManager != nullptr && !mFilterManager->isInvalid(IVideoFilter::Feature::Buffer, "vfi")) {
-                        fps *= 2;
+                    {
+                        std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
+                        if (mFilterManager != nullptr && !mFilterManager->isInvalid(IVideoFilter::Feature::Buffer, "vfi")) {
+                            fps *= 2;
+                        }
                     }
                     return 1000 / int((float) fps * mSet->rate * 1.5);
                 }
