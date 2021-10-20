@@ -8,8 +8,10 @@ function build_openssl_111(){
     local config_platform;
     local config_opt="no-tests";
     config_opt="${config_opt} no-afalgeng no-async no-autoalginit no-autoerrinit no-capieng
-     no-cms no-dgram no-dynamic-engine no-engine  no-ec2m no-filenames no-gost
-     no-hw-padlock no-nextprotoneg no-ocsp no-psk no-rfc3779 no-srp no-srtp no-ts" #ec is must for keyless server
+     no-cms no-dynamic-engine no-engine  no-ec2m no-filenames no-gost
+     no-hw-padlock no-nextprotoneg no-ocsp no-psk no-rfc3779 no-srp no-ts" #ec is must for keyless server
+     # no-dgram Don’t build support for datagram based BIOs. Selecting this option will also force the disabling of DTLS.
+     # no-srtp
      #  no-<prot>        Don't build support for negotiating the specified SSL/TLS
      #                   protocol (one of ssl, ssl3, tls, tls1, tls1_1, tls1_2,
      #                   tls1_3, dtls, dtls1 or dtls1_2). If "no-tls" is selected then

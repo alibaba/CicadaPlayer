@@ -17,18 +17,15 @@ if (MSVC)
           ${WINDOWS_INSTALL_DIR}/ffmpeg/win32/${ARCH}/bin)
   set(COMMON_INC_DIR ${COMMON_INC_DIR}
           ${WINDOWS_INSTALL_DIR}/ffmpeg/win32/${ARCH}/include
+          ${WINDOWS_INSTALL_DIR}/curl/win32/${ARCH}/include
+          ${WINDOWS_INSTALL_DIR}/openssl/win32/${ARCH}/include
           ${PROJECT_SOURCE_DIR}
           ${CMAKE_CURRENT_LIST_DIR}/../external/boost)
-  find_package(curl REQUIRED)
-  link_libraries(CURL::libcurl)
-          #find_package(FFMPEG REQUIRED)
   link_libraries(${FFMPEG_LIBRARIES})
   find_package(sdl2 REQUIRED)
   link_libraries(SDL2::SDL2)
   find_package(pthread REQUIRED)
   link_libraries(${PThreads4W_LIBRARY})
-  find_package(OpenSSL REQUIRED)
-  link_libraries(OpenSSL::SSL OpenSSL::Crypto)
   find_package(LibXml2 REQUIRED)
   link_libraries(${LIBXML2_LIBRARIES})
   include_directories(${LIBXML2_INCLUDE_DIR})

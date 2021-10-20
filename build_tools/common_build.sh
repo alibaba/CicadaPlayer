@@ -290,9 +290,9 @@ function link_shared_lib_win32(){
 
     local ldflags=""
 
-#    if [[ -d "${CURL_INSTALL_DIR}" ]];then
-#        ldflags="$ldflags -lcurl -L${CURL_INSTALL_DIR}/lib/"
-#    fi
+    if [[ -d "${CURL_INSTALL_DIR}" ]];then
+        ldflags="$ldflags -lcurl -L${CURL_INSTALL_DIR}/lib/"
+    fi
 #
 #    if [[ -d "${ARES_INSTALL_DIR}" ]];then
 #        ldflags="$ldflags -lcares -L${ARES_INSTALL_DIR}/lib/"
@@ -305,10 +305,8 @@ function link_shared_lib_win32(){
 #    if [[ -d "${FDK_AAC_INSTALL_DIR}" ]];then
 #        ldflags="$ldflags -lfdk-aac -L${FDK_AAC_INSTALL_DIR}/lib/"
 #    fi
-    if [[ "${FFMPEG_USE_OPENSSL}" = "TRUE" ]];then
-        if [[ -d "${OPENSSL_INSTALL_DIR}" ]];then
-            ldflags="$ldflags -lssl -lcrypto -L${OPENSSL_INSTALL_DIR}/lib/"
-        fi
+    if [[ -d "${OPENSSL_INSTALL_DIR}" ]];then
+        ldflags="$ldflags -lssl -lcrypto -L${OPENSSL_INSTALL_DIR}/lib/"
     fi
 #    if [[ -d "${DAV1D_INSTALL_DIR}" ]];then
 #        ldflags="$ldflags -ldav1d -L${DAV1D_INSTALL_DIR}/lib/"
@@ -322,6 +320,7 @@ function link_shared_lib_win32(){
 #        ldflags="$ldflags -lxml2 -L${LIBXML2_INSTALL_DIR}/lib/"
 #    fi
 
+    echo ldflags is ${ldflags}
     cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
     sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
 
@@ -330,7 +329,7 @@ function link_shared_lib_win32(){
     ${objs} \
     -o ${install_dir}/lib${LIB_NAME}.dll \
     -Wl,--kill-at,--out-implib=${install_dir}/lib${LIB_NAME}.lib   \
-    -Wl,--whole-archive   ${ldflags} -Wl,--no-whole-archive -Wl,--build-id=sha1 -lws2_32 -lbcrypt
+    -Wl,--whole-archive   ${ldflags} -Wl,--no-whole-archive -Wl,--build-id=sha1 -lws2_32 -lbcrypt -lcrypt32
 
     rm build_version.cpp version.h
 }
