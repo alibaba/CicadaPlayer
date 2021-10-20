@@ -506,6 +506,7 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
 
 - (void)dealloc
 {
+    [self clear];
     if (strcmp(dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL), dispatch_queue_get_label(dispatch_get_main_queue())) == 0) {
         if (self.mLayer) {
             [_mLayer removeObserver:self forKeyPath:@"bounds" context:nil];
