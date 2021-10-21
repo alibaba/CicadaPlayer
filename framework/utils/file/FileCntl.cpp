@@ -60,7 +60,7 @@ void FileCntl::truncateFile(int length)
 
 int64_t FileCntl::seekFile(int64_t offset, int whence)
 {
-    return lseek(mFd, offset, whence);
+    return lseek64(mFd, offset, whence);
 }
 
 int FileCntl::writeFile(uint8_t *buf, int size)
