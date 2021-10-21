@@ -60,7 +60,11 @@ void FileCntl::truncateFile(int length)
 
 int64_t FileCntl::seekFile(int64_t offset, int whence)
 {
+#ifdef __ANDROID__
+    //until NDKr15, _FILE_OFFSET_BITS=64 takes effect.
     return lseek64(mFd, offset, whence);
+#endif
+    return lseek(mFd, offset, whence);
 }
 
 int FileCntl::writeFile(uint8_t *buf, int size)
