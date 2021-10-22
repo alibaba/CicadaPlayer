@@ -8,7 +8,7 @@
 
 #include "IAFPacket.h"
 
-class TextureFrame : public IAFFrame {
+class CICADA_CPLUS_EXTERN TextureFrame : public IAFFrame {
 public:
     enum TextureType {
         TEXTURE_YUV,

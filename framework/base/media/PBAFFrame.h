@@ -11,7 +11,7 @@
 
 class AVAFFrame;
 
-class PBAFFrame : public IAFFrame {
+class CICADA_CPLUS_EXTERN PBAFFrame : public IAFFrame {
 public:
     PBAFFrame(CVPixelBufferRef pixelBuffer, int64_t pts, int64_t duration, const VideoColorInfo &info);
 

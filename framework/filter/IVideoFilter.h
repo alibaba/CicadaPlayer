@@ -10,7 +10,7 @@
 #include <utils/AFMediaType.h>
 
 namespace Cicada {
-    class IVideoFilter {
+    class CICADA_CPLUS_EXTERN IVideoFilter {
 
     public:
         enum Feature {
