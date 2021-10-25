@@ -77,6 +77,7 @@ namespace Cicada{
         std::string mLang = "";
         std::list<std::string> codecs;
         std::string mimeType;
+        bool mCanBlockReload{false};
 
     private:
         SegmentList *mPSegList = nullptr;

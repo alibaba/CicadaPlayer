@@ -84,6 +84,7 @@ namespace Cicada{
                 EXTXSTREAMINF,
                 EXTXPART,
                 EXTXPARTINF,
+                EXTX_SERVER_CONTROL,
             };
 
             AttributesTag(int, const std::string &);

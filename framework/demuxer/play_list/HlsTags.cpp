@@ -302,6 +302,7 @@ namespace Cicada {
                 {"",                             SingleValueTag::URI},
                 {"EXT-X-PART",                   AttributesTag::EXTXPART},
                 {"EXT-X-PART-INF",               AttributesTag::EXTXPARTINF},
+                {"EXT-X-SERVER-CONTROL",         AttributesTag::EXTX_SERVER_CONTROL},
                 // TODO: add other lhls tag
                 {NULL,                           0},
             };
@@ -336,6 +337,7 @@ namespace Cicada {
                     case AttributesTag::EXTXSTREAMINF:
                     case AttributesTag::EXTXPART:
                     case AttributesTag::EXTXPARTINF:
+                    case AttributesTag::EXTX_SERVER_CONTROL:
                         return new (std::nothrow) AttributesTag(exttagmapping[i].i, value);
                 }
             }

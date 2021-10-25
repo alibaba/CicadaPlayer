@@ -394,6 +394,17 @@ namespace Cicada {
                     break;
                 }
 
+                case AttributesTag::EXTX_SERVER_CONTROL: {
+                    const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
+                    if (keytag) {
+                        const Attribute *blockReloadAttr = keytag->getAttributeByName("CAN-BLOCK-RELOAD");
+                        if (blockReloadAttr) {
+                            rep->mCanBlockReload = (blockReloadAttr->value == "YES");
+                        }
+                    }
+                }
+                break;
+
                 case Tag::EXTXDISCONTINUITY:
                     discontinuityNum++;
                     break;
