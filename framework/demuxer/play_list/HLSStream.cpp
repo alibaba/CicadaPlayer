@@ -1099,6 +1099,29 @@ namespace Cicada {
 
         if (packet != nullptr) {
             //  AF_LOGD("read a frame \n");
+            if (mCurSegDuration == INT64_MIN && mCurSeg != nullptr) {
+                mCurSegDuration = mCurSeg->duration;
+            }
+
+            if (mDiscardPts != INT64_MIN) {
+                if (packet->getInfo().pts < mDiscardPts) {
+                    if (mCurSegDuration != INT64_MIN && mDiscardPts - packet->getInfo().pts > mCurSegDuration / 2) {
+                        AF_LOGW("skip segment , dis - pts = %lld , mCurSeg->duration /2 = %lld ", mDiscardPts - packet->getInfo().pts,
+                                mCurSegDuration / 2);
+                        //skip this segment, to void decode cost too long time
+                        mReopen = true;
+                        return -EAGAIN;
+                    } else {
+                        packet->setDiscard(true);
+                        discardCount++;
+                    }
+                } else {
+                    mDiscardPts = INT64_MIN;
+                    AF_LOGW("discard pkt count = %d", discardCount);
+                }
+            }
+
+            mLastPts = std::max(mLastPts, packet->getInfo().pts);
 
             if (mProtectedBuffer && !mDRMMagicKey.empty()) {
                 packet->setProtected();

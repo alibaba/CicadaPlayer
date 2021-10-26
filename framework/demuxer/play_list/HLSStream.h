@@ -183,6 +183,7 @@ namespace Cicada {
         bool mIsDataEOS = false;
         bool mReopen = false;
         atomic_bool mSwitchNeedBreak{false};
+        int64_t mCurSegDuration{INT64_MIN};
         std::shared_ptr<segment> mCurSeg = nullptr;
         std::shared_ptr<segment> mCurInitSeg{nullptr};
         uint8_t *mInitSegBuffer{nullptr};
@@ -238,6 +239,21 @@ namespace Cicada {
         SegmentEncryption mCurrentEncryption{};
 
         std::atomic_bool mIsFirstOpen{true};
+
+        int64_t mLastPts{INT64_MIN};
+        int64_t mDiscardPts{INT64_MIN};
+        int discardCount{0};
+
+    public:
+        int64_t getLastPts()
+        {
+            return mLastPts;
+        }
+
+        void setDiscardPts(int64_t pts)
+        {
+            mDiscardPts = pts;
+        }
     };
 }
 

@@ -197,6 +197,7 @@ namespace Cicada {
                     // TODO: don't block here
                     AF_LOGD("EOF %d\n", i->mPStream->getId());
 
+                    int64_t lastPts = i->mPStream->getLastPts();
                     if (i->stopOnSegEnd) {
                         i->mPStream->stop();
                         i->selected = false;
@@ -211,6 +212,7 @@ namespace Cicada {
                                     uint64_t targetPosition = i->mPStream->getCurSegPosition() + 1;
                                     AF_LOGE("set SegPosition to %llu\n", targetPosition);
                                     j->mPStream->setCurSegPosition(targetPosition);
+                                    j->mPStream->setDiscardPts(lastPts);
                                 } else {
                                     AF_LOGE("set SegNum to %llu\n",
                                             i->mPStream->getCurSegNum() + 1);
