@@ -194,7 +194,7 @@ void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpe
             bitrate = mBitRates[currentIndex - 1];
         } else {
             for (int i = currentIndex - 1; i >= 0; --i) {
-                if (maxSpeed >= mBitRates[i]) {
+                if (speed >= mBitRates[i]) {
                     bitrate = mBitRates[i];
                     break;
                 }
