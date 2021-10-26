@@ -52,13 +52,12 @@ const ISegmentBase *SegmentInformation::inheritSegmentProfile() const
 int64_t SegmentInformation::getMediaSegmentStartTime(uint64_t i_pos) const
 {
     int64_t startTime = 0;
+    int64_t duration = 0;
     const ISegmentBase *profile = inheritSegmentProfile();
     if (profile == nullptr) {
         return startTime;
     }
-    const Timescale timescale = profile->inheritTimescale();
-    const int64_t segmentduration = profile->inheritDuration();
-    startTime = (i_pos - profile->getStartSegmentNumber()) * timescale.ToTime(segmentduration);
+    profile->getPlaybackTimeDurationBySegmentNumber(i_pos, &startTime, &duration);
     return startTime;
 }
 
