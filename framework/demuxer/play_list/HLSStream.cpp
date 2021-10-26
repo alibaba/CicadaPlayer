@@ -1110,6 +1110,7 @@ namespace Cicada {
                                 mCurSegDuration / 2);
                         //skip this segment, to void decode cost too long time
                         mReopen = true;
+                        packet = nullptr;
                         return -EAGAIN;
                     } else {
                         packet->setDiscard(true);
