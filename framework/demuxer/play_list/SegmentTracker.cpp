@@ -27,6 +27,10 @@ namespace Cicada {
     SegmentTracker::SegmentTracker(Representation *rep, const IDataSource::SourceConfig &sourceConfig)
         : mRep(rep), mSourceConfig(sourceConfig)
     {
+        mCanBlockReload = mRep->mCanBlockReload;
+        if (mCanBlockReload && mTargetDuration > 0) {
+            mSourceConfig.connect_time_out_ms = 3 * mTargetDuration;
+        }
         mThread = NEW_AF_THREAD(threadFunction);
     }
 
@@ -180,18 +184,35 @@ namespace Cicada {
             return -EINVAL;
         }
 
-        if (mLocation.empty()) {
+        if (mCanBlockReload) {
             std::unique_lock<std::recursive_mutex> locker(mMutex);
-            uri = Helper::combinePaths(mRep->getPlaylist()->getPlaylistUrl(),
-                                       mRep->getPlaylistUrl());
+            uri = Helper::combinePaths(mRep->getPlaylist()->getPlaylistUrl(), mRep->getPlaylistUrl());
+            if (mCurrentMsn >= 0) {
+                if (uri.find('?') == std::string::npos) {
+                    uri += "?";
+                } else {
+                    uri += "&";
+                }
+                uri += "_HLS_msn=";
+                uri += std::to_string(mCurrentMsn);
+                uri += "&_HLS_part=";
+                uri += std::to_string(mCurrentPart);
+            }
             pUri = &uri;
         } else {
-            pUri = &mLocation;
+            if (mLocation.empty()) {
+                std::unique_lock<std::recursive_mutex> locker(mMutex);
+                uri = Helper::combinePaths(mRep->getPlaylist()->getPlaylistUrl(), mRep->getPlaylistUrl());
+                pUri = &uri;
+            } else {
+                pUri = &mLocation;
+            }
         }
 
-        AF_LOGD("uri is [%s]\n", pUri->c_str());
+        AF_LOGD("loadPlayList uri is [%s]\n", pUri->c_str());
 
         if (mRep->mPlayListType == playList_demuxer::playList_type_hls) {
+            mLoadingPlaylist = true;
             if (mPDataSource == nullptr) {
                 {
                     std::unique_lock<std::recursive_mutex> locker(mMutex);
@@ -203,8 +224,9 @@ namespace Cicada {
             } else {
                 ret = mPDataSource->Open(*pUri);
             }
+            mLoadingPlaylist = false;
 
-            AF_LOGD("ret is %d\n", ret);
+            AF_LOGD("loadPlayList ret is %d\n", ret);
 
             if (ret < 0) {
                 AF_LOGE("open url error %s\n", framework_err2_string(ret));
@@ -247,6 +269,18 @@ namespace Cicada {
                     pList->merge(sList);
                 } else {
                     mRep->SetSegmentList(sList);
+                }
+
+                if (mCanBlockReload) {
+                    auto lastSeg = mRep->GetSegmentList()->getSegmentByNumber(mRep->GetSegmentList()->getLastSeqNum(), false);
+                    bool bHasUnusedParts;
+                    mCurrentMsn = lastSeg->getSequenceNumber();
+                    if (lastSeg->isDownloadComplete(bHasUnusedParts)) {
+                        mCurrentMsn++;
+                        mCurrentPart = 0;
+                    } else {
+                        mCurrentPart = lastSeg->getSegmentParts().size();
+                    }
                 }
 
                 rep->SetSegmentList(nullptr);
@@ -388,22 +422,31 @@ namespace Cicada {
     {
         //   AF_TRACE;
         if (IS_LIVE) {
-            int64_t time = af_gettime_relative();
 
-            //   AF_LOGD("mTargetDuration is %lld", (int64_t)mTargetDuration);
-            int64_t reloadInterval = 0;
-            if (mPartTargetDuration > 0) {
-                // lhls reload interval is 2 times part target duration
-                reloadInterval = mPartTargetDuration * 2;
-            } else {
-                // hls reload interval is half target dutaion
-                reloadInterval = mTargetDuration / 2;
-            }
-            if (time - mLastLoadTime > reloadInterval) {
+            if (mCanBlockReload) {
                 std::unique_lock<std::mutex> locker(mSegMutex);
-                mNeedUpdate = true;
-                mSegCondition.notify_all();
-                mLastLoadTime = time;
+                if (!mLoadingPlaylist) {
+                    mNeedUpdate = true;
+                    mSegCondition.notify_all();
+                }
+            } else {
+                int64_t time = af_gettime_relative();
+
+                //   AF_LOGD("mTargetDuration is %lld", (int64_t)mTargetDuration);
+                int64_t reloadInterval = 0;
+                if (mPartTargetDuration > 0) {
+                    // lhls reload interval is 2 times part target duration
+                    reloadInterval = mPartTargetDuration * 2;
+                } else {
+                    // hls reload interval is half target dutaion
+                    reloadInterval = mTargetDuration / 2;
+                }
+                if (time - mLastLoadTime > reloadInterval) {
+                    std::unique_lock<std::mutex> locker(mSegMutex);
+                    mNeedUpdate = true;
+                    mSegCondition.notify_all();
+                    mLastLoadTime = time;
+                }
             }
 
             return mPlayListStatus;
