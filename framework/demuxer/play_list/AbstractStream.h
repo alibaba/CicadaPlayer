@@ -42,6 +42,17 @@ namespace Cicada {
 
         virtual int stopOnSegEnd(bool stop) = 0;
 
+        class CurSegInfo {
+        public:
+            uint64_t segNum{0};
+            uint64_t position{0};
+        };
+
+        virtual int setCurSegInfo(CurSegInfo &curSegInfo)
+        {
+            return 0;
+        };
+
         virtual int SetCurSegNum(uint64_t num) = 0;
 
         virtual uint64_t getCurSegPosition() = 0;

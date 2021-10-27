@@ -210,8 +210,12 @@ namespace Cicada {
 
                                 if (i->mPStream->isLive()) {
                                     uint64_t targetPosition = i->mPStream->getCurSegPosition() + 1;
-                                    AF_LOGE("set SegPosition to %llu\n", targetPosition);
-                                    j->mPStream->setCurSegPosition(targetPosition);
+                                    int64_t targetSegNo = i->mPStream->getCurSegNum() + 1;
+                                    AF_LOGE("set SegPosition to %llu ,targetSegNo  = %llu \n", targetPosition, targetSegNo);
+                                    AbstractStream::CurSegInfo curSegInfo{};
+                                    curSegInfo.segNum = targetSegNo;
+                                    curSegInfo.position = targetPosition;
+                                    j->mPStream->setCurSegInfo(curSegInfo);
                                     j->mPStream->setDiscardPts(lastPts);
                                 } else {
                                     AF_LOGE("set SegNum to %llu\n",

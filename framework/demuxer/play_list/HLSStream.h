@@ -87,6 +87,8 @@ namespace Cicada {
 
         int setCurSegPosition(uint64_t position) override;
 
+        int setCurSegInfo(CurSegInfo &curSegInfo) override;
+
         bool isLive() override;
 
         int64_t getDuration() override;
@@ -163,7 +165,7 @@ namespace Cicada {
             SegNum, SegPosition
         };
 
-        int reopenSegment(uint64_t num, OpenType openType);
+        int reopenSegment(std::map<OpenType, uint64_t> &params);
 
         int64_t getPackedStreamPTS();
 

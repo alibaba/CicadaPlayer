@@ -272,11 +272,46 @@ namespace Cicada {
         int ret;
         AF_LOGD("mPTracker type is %d\n", mPTracker->getStreamType());
         //  mPTracker->setCurSegNum(0);
+        uint64_t targetPosition = mPTracker->getCurSegPosition();
+        uint64_t targetSegNum = mPTracker->getCurSegNum();
+
         ret = mPTracker->init();
 
         if (ret < 0) {
             AF_TRACE;
             return ret;
+        }
+
+        if (mPTracker->isLive()) {
+            uint64_t firstSegNum = mPTracker->getFirstSegNum();
+            uint64_t lastSegNum = mPTracker->getLastSegNum();
+            uint64_t segSize = mPTracker->getSegSize();
+            AF_LOGD("targetNum = %llu , firstSegNum = %llu , lastSegNum = %lld", targetSegNum, firstSegNum, lastSegNum);
+
+            uint64_t useSegNumMin = 0;
+            if (firstSegNum > (segSize + 1) / 2 - 1) {
+                // we always request the next fragment, so enlarge the max segnum by minus 1
+                useSegNumMin = firstSegNum - (segSize + 1) / 2 - 1;
+            }
+            uint64_t useSegNumMax = lastSegNum + (segSize + 1) / 2;
+
+            if (targetSegNum >= useSegNumMin && targetSegNum <= useSegNumMax) {
+
+                if (targetSegNum >= firstSegNum && targetSegNum <= lastSegNum) {
+                    AF_LOGD("match seg no , curSegNum  = %llu", targetSegNum);
+                } else if (targetSegNum >= useSegNumMin && targetSegNum < firstSegNum) {
+                    AF_LOGW("tracker newer than target num");
+                } else if (targetSegNum > lastSegNum && targetSegNum <= useSegNumMax) {
+                    AF_LOGW("tracker older than target num, refresh playlist may catch up , curSegNum  = %llu", targetSegNum);
+                }
+
+                mPTracker->setCurSegPosition(0);
+                mPTracker->setCurSegNum(targetSegNum);
+            } else {
+                // segNo may not be aligned, try use position to open
+                mPTracker->setCurSegPosition(targetPosition);
+                AF_LOGW("segNo may not be aligned, try use position to open, setCurSegPosition = %llu", targetPosition);
+            }
         }
 
         //      mPTracker->print();
@@ -1471,10 +1506,12 @@ namespace Cicada {
 
     int HLSStream::SetCurSegNum(uint64_t num)
     {
-        return reopenSegment(num, OpenType::SegNum);
+        std::map<OpenType, uint64_t> params{};
+        params[OpenType::SegNum] = num;
+        return reopenSegment(params);
     }
 
-    int HLSStream::reopenSegment(uint64_t num, OpenType openType)
+    int HLSStream::reopenSegment(std::map<OpenType, uint64_t> &params)
     {
         {
             std::unique_lock<std::mutex> waitLock(mDataMutex);
@@ -1493,18 +1530,27 @@ namespace Cicada {
 
         if (mIsOpened_internal) {
             mReopen = true;
-            num--;
         }
 
-        if (openType == OpenType::SegNum) {
-            mPTracker->setCurSegNum(num);
-            AF_LOGD("setCurSegNum %llu\n", num);
-        } else if (openType == OpenType::SegPosition) {
-            mPTracker->setCurSegPosition(num);
-            AF_LOGD("setCurSegPosition %llu\n", num);
+        if (params.count(OpenType::SegPosition) > 0) {
+            uint64_t value = params[OpenType::SegPosition];
+            if (mIsOpened_internal && value > 0) {
+                value--;
+            }
+            AF_LOGD("setCurSegPosition %llu\n", value);
+            mPTracker->setCurSegPosition(value);
         }
 
-        seek_internal(num, 0);
+        if (params.count(OpenType::SegNum) > 0) {
+            uint64_t value = params[OpenType::SegNum];
+            if (mIsOpened_internal && value > 0) {
+                value--;
+            }
+            AF_LOGD("setCurSegNum %llu\n", value);
+            mPTracker->setCurSegNum(value);
+        }
+
+        seek_internal(0, 0);
         mIsEOS = false;
         mIsDataEOS = false;
         mError = 0;
@@ -1523,7 +1569,17 @@ namespace Cicada {
 
     int HLSStream::setCurSegPosition(uint64_t position)
     {
-        return reopenSegment(position, OpenType::SegPosition);
+        std::map<OpenType, uint64_t> params{};
+        params[OpenType::SegPosition] = position;
+        return reopenSegment(params);
+    }
+
+    int HLSStream::setCurSegInfo(CurSegInfo &curSegInfo)
+    {
+        std::map<OpenType, uint64_t> params{};
+        params[OpenType::SegPosition] = curSegInfo.position;
+        params[OpenType::SegNum] = curSegInfo.segNum;
+        return reopenSegment(params);
     }
 
     bool HLSStream::isLive()
