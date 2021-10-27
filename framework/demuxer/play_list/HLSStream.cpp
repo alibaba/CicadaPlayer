@@ -1035,7 +1035,6 @@ namespace Cicada {
         if (ret == 0 || mReopen) {
             if (mReopen) {
                 AF_LOGD("reopen");
-                mReopen = false;
             }
 
             ret = updateSegment();
@@ -1075,6 +1074,7 @@ namespace Cicada {
 
                     mPacketFirstPts = getPackedStreamPTS();
                 }
+                mReopen = false;
             }
 
             packet = nullptr;
@@ -1099,15 +1099,12 @@ namespace Cicada {
 
         if (packet != nullptr) {
             //  AF_LOGD("read a frame \n");
-            if (mCurSegDuration == INT64_MIN && mCurSeg != nullptr) {
-                mCurSegDuration = mCurSeg->duration;
-            }
 
             if (mDiscardPts != INT64_MIN) {
                 if (packet->getInfo().pts < mDiscardPts) {
-                    if (mCurSegDuration != INT64_MIN && mDiscardPts - packet->getInfo().pts > mCurSegDuration / 2) {
+                    if (mDiscardPts - packet->getInfo().pts > mPTracker->getTargetDuration() / 2) {
                         AF_LOGW("skip segment , dis - pts = %lld , mCurSeg->duration /2 = %lld ", mDiscardPts - packet->getInfo().pts,
-                                mCurSegDuration / 2);
+                                mPTracker->getTargetDuration() / 2);
                         //skip this segment, to void decode cost too long time
                         mReopen = true;
                         packet = nullptr;

@@ -183,7 +183,6 @@ namespace Cicada {
         bool mIsDataEOS = false;
         bool mReopen = false;
         atomic_bool mSwitchNeedBreak{false};
-        int64_t mCurSegDuration{INT64_MIN};
         std::shared_ptr<segment> mCurSeg = nullptr;
         std::shared_ptr<segment> mCurInitSeg{nullptr};
         uint8_t *mInitSegBuffer{nullptr};
