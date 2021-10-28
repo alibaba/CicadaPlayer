@@ -57,6 +57,7 @@ SuperMediaPlayer::SuperMediaPlayer()
     mSet = static_cast<unique_ptr<player_type_set>>(new player_type_set());
     mBufferController = static_cast<unique_ptr<BufferController>>(new BufferController());
     mUtil = static_cast<unique_ptr<MediaPlayerUtil>>(new MediaPlayerUtil());
+    mMPAUtil = static_cast<unique_ptr<MediaPlayerAnalyticsUtil>>(new MediaPlayerAnalyticsUtil());
     mMsgCtrlListener = static_cast<unique_ptr<SMPMessageControllerListener>>(new SMPMessageControllerListener(*this));
     mMessageControl = static_cast<unique_ptr<PlayerMessageControl>>(new PlayerMessageControl(*mMsgCtrlListener));
     mAudioRenderCB = static_cast<unique_ptr<ApsaraAudioRenderCallback>>(new ApsaraAudioRenderCallback(*this));
@@ -146,7 +147,7 @@ void SuperMediaPlayer::Prepare()
         Stop();
     }
 
-    mUtil->resetOncePlay();
+    mMPAUtil->reset();
 
 #if TARGET_OS_IPHONE
     AFAudioSessionWrapper::activeAudio();
@@ -824,11 +825,11 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
         case PROPERTY_KEY_RESPONSE_INFO: {
             CicadaJSONArray array;
             std::lock_guard<std::mutex> uMutex(mCreateMutex);
-            MediaPlayerUtil::addURLProperty("responseInfo", array, mDataSource);
+            MediaPlayerAnalyticsUtil::addURLProperty("responseInfo", array, mDataSource);
             //if (mDemuxerService->isPlayList())
             {
                 std::deque<StreamInfo *> &streamInfoQueue = mMediaInfo.mStreamInfoQueue;
-                MediaPlayerUtil::getPropertyJSONStr("responseInfo", array, false, streamInfoQueue, mDemuxerService.get());
+                MediaPlayerAnalyticsUtil::getPropertyJSONStr("responseInfo", array, false, streamInfoQueue, mDemuxerService.get());
             }
             return array.printJSON();
         }
@@ -849,11 +850,11 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
             item.addValue("readpacketMS", (double) mFirstReadPacketSucMS);
             array.addJSON(item);
             std::lock_guard<std::mutex> uMutex(mCreateMutex);
-            MediaPlayerUtil::addURLProperty("connectInfo", array, mDataSource);
+            MediaPlayerAnalyticsUtil::addURLProperty("connectInfo", array, mDataSource);
             //if (mDemuxerService->isPlayList())
             {
                 std::deque<StreamInfo *> &streamInfoQueue = mMediaInfo.mStreamInfoQueue;
-                MediaPlayerUtil::getPropertyJSONStr("openJsonInfo", array, true, streamInfoQueue, mDemuxerService.get());
+                MediaPlayerAnalyticsUtil::getPropertyJSONStr("openJsonInfo", array, true, streamInfoQueue, mDemuxerService.get());
             }
             return array.printJSON();
         }
@@ -861,13 +862,13 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
         case PROPERTY_KEY_PROBE_STR: {
             CicadaJSONArray array;
             std::lock_guard<std::mutex> uMutex(mCreateMutex);
-            MediaPlayerUtil::addURLProperty("probeInfo", array, mDataSource);
+            MediaPlayerAnalyticsUtil::addURLProperty("probeInfo", array, mDataSource);
 
             if (nullptr == mDemuxerService) {
                 return array.printJSON();
             } else if (mDemuxerService->isPlayList()) {
                 std::deque<StreamInfo *> &streamInfoQueue = mMediaInfo.mStreamInfoQueue;
-                MediaPlayerUtil::getPropertyJSONStr("probeInfo", array, false, streamInfoQueue, mDemuxerService.get());
+                MediaPlayerAnalyticsUtil::getPropertyJSONStr("probeInfo", array, false, streamInfoQueue, mDemuxerService.get());
             } else {
                 CicadaJSONItem item(mDemuxerService->GetProperty(0, "probeInfo"));
                 item.addValue("type", "video");
@@ -937,7 +938,7 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
             int64_t from = param.getInt64("from", -1);
             int64_t to = param.getInt64("to", -1);
 
-            std::map<int64_t, int64_t> speeds = mUtil->getNetworkSpeed(from, to);
+            std::map<int64_t, int64_t> speeds = mMPAUtil->getNetworkSpeed(from, to);
             CicadaJSONItem value{};
             for (auto &item : speeds) {
                 value.addValue(AfString::to_string(item.first), AfString::to_string((int) (item.second / 1024)));
@@ -948,7 +949,7 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
         case PROPERTY_KEY_BUFFER_INFO: {
             int64_t from = param.getInt64("from", -1);
             int64_t to = param.getInt64("to", -1);
-            std::map<int64_t, std::string> bufferInfo = mUtil->getBufferInfo(from, to);
+            std::map<int64_t, std::string> bufferInfo = mMPAUtil->getBufferInfo(from, to);
             CicadaJSONItem value{};
             for (auto &item : bufferInfo) {
                 value.addValue(AfString::to_string(item.first), item.second);
@@ -959,7 +960,7 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
         case PROPERTY_KEY_NETWORK_REQUEST_LIST: {
             int64_t from = param.getInt64("from", -1);
             int64_t to = param.getInt64("to", -1);
-            return mUtil->getNetworkRequestInfos(from, to);
+            return mMPAUtil->getNetworkRequestInfos(from, to);
         }
         default:
             break;
@@ -1268,31 +1269,22 @@ void SuperMediaPlayer::ProcessVideoLoop()
 
 void SuperMediaPlayer::updateBufferInfo(bool force)
 {
-    int64_t time = af_getsteady_ms();
-    if (updateBufferInfoLastTimeMs < 0) {
-        updateBufferInfoLastTimeMs = time;
+    int64_t videoBufferDuration = INT64_MIN;
+    int64_t audioBufferDuration = INT64_MIN;
+
+    if (HAVE_VIDEO) {
+        videoBufferDuration = mBufferController->GetPacketDuration(BUFFER_TYPE_VIDEO);
+        if (videoBufferDuration < 0) {
+            videoBufferDuration =
+                    mBufferController->GetPacketLastPTS(BUFFER_TYPE_VIDEO) - mBufferController->GetPacketPts(BUFFER_TYPE_VIDEO);
+        }
     }
 
-    if (force || time - updateBufferInfoLastTimeMs >= 1000) {
-        updateBufferInfoLastTimeMs = time;
-
-        CicadaJSONItem bufferInfo{};
-        if (HAVE_VIDEO) {
-            int64_t packetBufferDuration = mBufferController->GetPacketDuration(BUFFER_TYPE_VIDEO);
-            if (packetBufferDuration < 0) {
-                packetBufferDuration =
-                        mBufferController->GetPacketLastPTS(BUFFER_TYPE_VIDEO) - mBufferController->GetPacketPts(BUFFER_TYPE_VIDEO);
-            }
-            bufferInfo.addValue("v", (long) packetBufferDuration);
-        }
-
-        if (HAVE_AUDIO) {
-            int64_t packetBufferDuration = mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO);
-            bufferInfo.addValue("a", (long) packetBufferDuration);
-        }
-
-        mUtil->updateBufferInfo(bufferInfo);
+    if (HAVE_AUDIO) {
+        audioBufferDuration = mBufferController->GetPacketDuration(BUFFER_TYPE_AUDIO);
     }
+
+    mMPAUtil->updateBufferInfo(force, videoBufferDuration, audioBufferDuration);
 }
 
 void SuperMediaPlayer::doReadPacket()
@@ -2986,7 +2978,9 @@ int SuperMediaPlayer::ReadPacket()
     }
 
     pFrame = pMedia_Frame.get();
-    mUtil->notifyRead(MediaPlayerUtil::readEvent_Got, mCalculateSpeedUsePacket ? pFrame->getSize() : 0);
+    uint64_t size = mCalculateSpeedUsePacket ? pFrame->getSize() : 0;
+    mUtil->notifyRead(MediaPlayerUtil::readEvent_Got, size);
+    mMPAUtil->updateNetworkReadSize(size);
 
     // TODO: get the min first stream pts
     if (pFrame->getInfo().timePosition >= 0 && mMediaStartPts == INT64_MIN && pFrame->getInfo().streamIndex != mCurrentSubtitleIndex &&
@@ -3997,7 +3991,6 @@ void SuperMediaPlayer::Reset()
     mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncNormal;
     mCalculateSpeedUsePacket = true;
     mUtcTimer = nullptr;
-    updateBufferInfoLastTimeMs = INT64_MIN;
 }
 
 int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)

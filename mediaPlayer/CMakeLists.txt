@@ -62,6 +62,8 @@ set(SOURCE_FILES
         analytics/AnalyticsUtils.cpp
         MediaPlayerUtil.h
         MediaPlayerUtil.cpp
+        MediaPlayerAnalyticsUtil.h
+        MediaPlayerAnalyticsUtil.cpp
         MediaPlayer.h
         media_player_error_def.h
         media_player_api.h

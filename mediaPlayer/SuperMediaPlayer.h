@@ -40,8 +40,9 @@ using namespace std;
 
 #endif
 
-#include "mediaPlayerSubTitleListener.h"
+#include "MediaPlayerAnalyticsUtil.h"
 #include "SMPRecorderSet.h"
+#include "mediaPlayerSubTitleListener.h"
 
 namespace Cicada {
     typedef struct streamTime_t {
@@ -554,6 +555,7 @@ namespace Cicada {
         bitStreamParser *mVideoParser = nullptr;
         int64_t mPtsDiscontinueDelta{INT64_MIN};
         std::unique_ptr<MediaPlayerUtil> mUtil{};
+        std::unique_ptr<MediaPlayerAnalyticsUtil> mMPAUtil{};
         std::unique_ptr<SuperMediaPlayerDataSourceListener> mSourceListener{nullptr};
         std::unique_ptr<SMP_DCAManager> mDcaManager{nullptr};
         std::unique_ptr<SMPAVDeviceManager> mAVDeviceManager{nullptr};
@@ -598,7 +600,6 @@ namespace Cicada {
         bool mCalculateSpeedUsePacket{true};
         std::unique_ptr<CicadaJSONArray> mFilterConfig;
         UTCTimer *mUtcTimer{nullptr};
-        int64_t updateBufferInfoLastTimeMs{INT64_MIN};
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H

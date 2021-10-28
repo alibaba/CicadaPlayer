@@ -83,11 +83,12 @@ namespace Cicada {
     bool SuperMediaPlayerDataSourceListener::onNetWorkInPut(uint64_t size, IDataSource::Listener::bitStreamType type)
     {
         mPlayer.mUtil->notifyRead(MediaPlayerUtil::readEvent_Network, size);
+        mPlayer.mMPAUtil->updateNetworkReadSize(size);
         return Listener::onNetWorkInPut(size, type);
     }
 
     void SuperMediaPlayerDataSourceListener::onNetworkEvent(const std::string &url, const CicadaJSONItem &eventParams)
     {
-        mPlayer.mUtil->notifyNetworkEvent(url, eventParams);
+        mPlayer.mMPAUtil->notifyNetworkEvent(url, eventParams);
     }
 }

@@ -80,80 +80,6 @@ namespace Cicada {
         mCurrentDownloadSpeed = 0;
     }
 
-    void MediaPlayerUtil::resetOncePlay()
-    {
-        mNetworkSpeed.clear();
-        mBufferInfo.clear();
-        mNetworkUrls.clear();
-        mNetworkInfos.clear();
-    }
-
-    void MediaPlayerUtil::getPropertyJSONStr(const std::string &name, CicadaJSONArray &array, bool isArray,
-                                             std::deque<StreamInfo *> &streamInfoQueue, demuxer_service *service)
-    {
-        if (nullptr == service) {
-            return;
-        }
-
-        for (auto &it : streamInfoQueue) {
-            std::string str = service->GetProperty(it->streamIndex, name);
-
-            if (str.empty()) {
-                continue;
-            }
-
-            if (isArray) {
-                CicadaJSONArray subArray(str);
-
-                for (int i = 0; i < subArray.getSize(); ++i) {
-                    CicadaJSONItem &tempItem = subArray.getItem(i);
-                    addPropertyType(tempItem, it->type);
-                    array.addJSON(tempItem);
-                }
-            } else {
-                CicadaJSONItem loopItem(str);
-                addPropertyType(loopItem, it->type);
-                array.addJSON(loopItem);
-            }
-        }
-    }
-
-    void MediaPlayerUtil::addPropertyType(CicadaJSONItem &item, StreamType type)
-    {
-        switch (type) {
-            case ST_TYPE_VIDEO:
-                item.addValue("type", "video");
-                break;
-
-            case ST_TYPE_AUDIO:
-                item.addValue("type", "audio");
-                break;
-
-            case ST_TYPE_SUB:
-                item.addValue("type", "subtitle");
-                break;
-
-            default:
-                item.addValue("type", "unknown");
-                break;
-        }
-    }
-
-    void MediaPlayerUtil::addURLProperty(const std::string &name, CicadaJSONArray &array, IDataSource *dataSource)
-    {
-        if (dataSource) {
-            string str = dataSource->GetOption(name);
-
-            if (str.empty()) {
-                return;
-            }
-
-            CicadaJSONItem item(str);
-            item.addValue("type", "url");
-            array.addJSON(item);
-        }
-    }
-
     void MediaPlayerUtil::notifyRead(enum readEvent event, uint64_t size)
     {
         switch (event) {
@@ -191,15 +117,6 @@ namespace Cicada {
             if (timeS > 1.0) {
                 mCurrentDownloadSpeed = (float) mReadGotSize * 8 / timeS;
 
-                {
-                    std::lock_guard<std::mutex> lockGuard(utilMutex);
-                    if (mNetworkSpeed.size() >= MAX_COUNT) {
-                        mNetworkSpeed.erase(mNetworkSpeed.begin());
-                    }
-
-                    mNetworkSpeed[time] = mCurrentDownloadSpeed;
-                }
-
                 AF_LOGD("mReadLoopIndex is \t %f\n", (float) mReadLoopIndex / timeS);
                 AF_LOGD("mReadAgainIndex is\t %f\n", (float) mReadAgainIndex / timeS);
                 AF_LOGD("mReadGotIndex is\t %f\n", (float) mReadGotIndex / timeS);
@@ -208,104 +125,6 @@ namespace Cicada {
                 AF_LOGD("\n");
                 mLastReadTime = time;
                 mReadLoopIndex = mReadAgainIndex = mReadGotIndex = mReadTimeOutIndex = mReadGotSize = 0;
-            }
-        }
-    }
-
-    std::map<int64_t, int64_t> MediaPlayerUtil::getNetworkSpeed(int64_t timeFrom, int64_t timeTo)
-    {
-
-        std::map<int64_t, int64_t> result{};
-        {
-            std::lock_guard<std::mutex> lockGuard(utilMutex);
-            for (auto &item : mNetworkSpeed) {
-                if (item.first >= timeFrom && item.first < timeTo) {
-                    result.insert(item);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    void MediaPlayerUtil::updateBufferInfo(const CicadaJSONItem &info)
-    {
-        std::lock_guard<std::mutex> lockGuard(utilMutex);
-        if (mBufferInfo.size() >= MAX_COUNT) {
-            mBufferInfo.erase(mBufferInfo.begin());
-        }
-        int64_t time = af_gettime_relative();
-        mBufferInfo[time] = info.printJSON();
-    }
-
-    std::map<int64_t, std::string> MediaPlayerUtil::getBufferInfo(int64_t timeFrom, int64_t timeTo)
-    {
-        std::map<int64_t, std::string> result{};
-        {
-            std::lock_guard<std::mutex> lockGuard(utilMutex);
-            for (auto &item : mBufferInfo) {
-                if (item.first >= timeFrom && item.first < timeTo) {
-                    result.insert(item);
-                }
-            }
-        }
-        return result;
-    }
-
-    void MediaPlayerUtil::notifyNetworkEvent(const std::string &url, const CicadaJSONItem &eventParam)
-    {
-
-        std::lock_guard<std::mutex> lockGuard(utilMutex);
-
-        if (mNetworkInfos.count(url) > 0) {
-            CicadaJSONArray infos(mNetworkInfos[url]);
-            infos.addJSON(eventParam);
-            mNetworkInfos[url] = infos.printJSON();
-        } else {
-            CicadaJSONArray infos{};
-            infos.addJSON(eventParam);
-            mNetworkInfos[url] = infos.printJSON();
-            mNetworkUrls.push_back(url);
-        }
-
-        if (mNetworkUrls.size() > 3) {
-            std::string targetUrl = mNetworkUrls.front();
-            mNetworkUrls.erase(mNetworkUrls.begin());
-            mNetworkInfos.erase(targetUrl);
-        }
-    }
-
-    std::string MediaPlayerUtil::getNetworkRequestInfos(int64_t timeFrom, int64_t timeTo)
-    {
-
-        CicadaJSONArray requestInfoArray{};
-        std::lock_guard<std::mutex> lockGuard(utilMutex);
-        for (auto &item : mNetworkUrls) {
-            std::string url = item;
-            CicadaJSONArray wantedInfos{};
-            CicadaJSONArray infos(mNetworkInfos[url]);
-            filterNetworkInfo(infos, timeFrom, timeTo, [&wantedInfos](CicadaJSONItem &event) -> void { wantedInfos.addJSON(event); });
-
-            CicadaJSONItem value{};
-            value.addValue("url", url);
-            value.addArray("events", wantedInfos);
-            requestInfoArray.addJSON(value);
-        }
-
-        return requestInfoArray.printJSON();
-    }
-
-    void MediaPlayerUtil::filterNetworkInfo(CicadaJSONArray &infos, int64_t timeFrom, int64_t timeTo,
-                                            const std::function<void(CicadaJSONItem &event)> &filter)
-    {
-        int size = infos.getSize();
-        for (int i = 0; i < size; i++) {
-            CicadaJSONItem &event = infos.getItem(i);
-            if (event.hasItem("t")) {
-                int64_t time = event.getInt64("t", -1);
-                if (time >= timeFrom && time <= timeTo) {
-                    filter(event);
-                }
             }
         }
     }

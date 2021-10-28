@@ -9,14 +9,8 @@
 #ifndef ApsaraPlayerUtil_h
 #define ApsaraPlayerUtil_h
 
-#include "demuxer/demuxer_service.h"
-#include "native_cicada_player_def.h"
-#include "utils/AFMediaType.h"
-#include <deque>
 #include <string>
 //#include "render_engine/math/geometry.h"
-
-using namespace Cicada;
 
 class CicadaJSONItem;
 
@@ -31,7 +25,6 @@ namespace Cicada {
             readEvent_timeOut,
             readEvent_Loop,
             readEvent_Network,
-
         };
 
         MediaPlayerUtil() = default;
@@ -42,13 +35,9 @@ namespace Cicada {
 
         void notifyRead(enum readEvent event, uint64_t size);
 
-        void notifyNetworkEvent(const std::string &url, const CicadaJSONItem &eventParam);
-
         void videoRendered(bool rendered);
 
         void reset();
-
-        void resetOncePlay();
 
         void getVideoDroppedInfo(uint64_t &total, uint64_t &dropped)
         {
@@ -65,24 +54,6 @@ namespace Cicada {
         {
             return mCurrentDownloadSpeed;
         }
-
-        void updateBufferInfo(const CicadaJSONItem &info);
-
-        std::map<int64_t, int64_t> getNetworkSpeed(int64_t timeFrom, int64_t timeTo);
-
-        std::map<int64_t, std::string> getBufferInfo(int64_t timeFrom, int64_t timeTo);
-
-        std::string getNetworkRequestInfos(int64_t timeFrom, int64_t timeTo);
-
-        static void getPropertyJSONStr(const std::string &name, CicadaJSONArray &array, bool isArray,
-                                       std::deque<StreamInfo *> &streamInfoQueue, demuxer_service *service);
-
-        static void addPropertyType(CicadaJSONItem &item, StreamType type);
-
-        static void addURLProperty(const std::string &name, CicadaJSONArray &array, IDataSource *dataSource);
-
-        static void filterNetworkInfo(CicadaJSONArray &info, int64_t timeFrom, int64_t timeTo,
-                                      const std::function<void(CicadaJSONItem &event)> &callback);
 
     private:
         std::atomic<uint64_t> mTotalRenderCount{0};
@@ -103,13 +74,6 @@ namespace Cicada {
         float mCurrentDownloadSpeed{0};
         float mVideoRenderFps = 0;
 
-        std::mutex utilMutex{};
-        const int MAX_COUNT = 600;
-        std::map<int64_t, int64_t> mNetworkSpeed{};
-        std::map<int64_t, std::string> mBufferInfo{};
-
-        std::list<std::string> mNetworkUrls{};
-        std::map<std::string, std::string> mNetworkInfos{};
     };
 }// namespace Cicada
 
