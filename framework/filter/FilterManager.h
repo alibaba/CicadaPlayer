@@ -49,6 +49,7 @@ namespace Cicada {
 
         IAFFrame::videoInfo mVideoInfo{};
         std::string mFilterConfig{};
+        std::map<std::string, bool> mInvalidMap{};
         bool mFilterInited{false};
         bool mNeedFilter{true};
     };

@@ -84,6 +84,12 @@ void FilterManager::setupFilterChains()
     if (!bufferFilterChain->empty()) {
         mFilterChains[IVideoFilter::Feature::Buffer] = move(bufferFilterChain);
     }
+
+    for (auto &iter : mFilterChains) {
+        for (auto &filter : mInvalidMap) {
+            iter.second->setInvalid(filter.first, filter.second);
+        }
+    }
 }
 
 bool FilterManager::push(std::unique_ptr<IAFFrame> &frame)
@@ -132,6 +138,7 @@ void FilterManager::setNeedFilter(bool needFilter)
 
 void FilterManager::setInvalid(const std::string &target, bool invalid)
 {
+    mInvalidMap[target] = invalid;
     for (auto &iter : mFilterChains) {
         iter.second->setInvalid(target, invalid);
     }
