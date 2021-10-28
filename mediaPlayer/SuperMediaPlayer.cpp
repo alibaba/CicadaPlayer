@@ -4279,7 +4279,11 @@ void SuperMediaPlayer::ProcessUpdateView()
         videoTag |= VideoTag::VIDEO_TAG_WIDEVINE_L1;
     }
     if (mUpdateViewCB != nullptr) {
-        mUpdateViewCB(videoTag, mUpdateViewCBUserData);
+        bool update = mUpdateViewCB(videoTag, mUpdateViewCBUserData);
+        if (update) {
+            //do not use old view to create decoder
+            mSet->mView = nullptr;
+        }
     }
 #endif
 }
