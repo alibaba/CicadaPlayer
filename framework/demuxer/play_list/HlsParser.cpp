@@ -405,6 +405,32 @@ namespace Cicada {
                 }
                 break;
 
+                case AttributesTag::EXTX_PRELOAD_HINT: {
+                    if (!rep->mPreloadHint.isPartialSegment) {
+                        const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
+                        if (keytag) {
+                            PreloadHint preloadHit;
+                            const Attribute *typeAttr = keytag->getAttributeByName("TYPE");
+                            if (typeAttr) {
+                                preloadHit.isPartialSegment = (typeAttr->value == "PART");
+                            }
+                            const Attribute *uriAttr = keytag->getAttributeByName("URI");
+                            if (uriAttr) {
+                                preloadHit.uri = uriAttr->quotedString();
+                            }
+                            const Attribute *byteStartAttr = keytag->getAttributeByName("BYTERANGE-START");
+                            if (byteStartAttr) {
+                                preloadHit.rangeStart = byteStartAttr->decimal();
+                            }
+                            const Attribute *lengthAttr = keytag->getAttributeByName("BYTERANGE-LENGTH");
+                            if (lengthAttr) {
+                                preloadHit.rangeEnd = preloadHit.rangeStart + lengthAttr->decimal() - 1;
+                            }
+                            rep->mPreloadHint = preloadHit;
+                        }
+                    }
+                } break;
+
                 case Tag::EXTXDISCONTINUITY:
                     discontinuityNum++;
                     break;
@@ -429,6 +455,9 @@ namespace Cicada {
 
             pSegment->duration = duration;
             pSegment->startTime = static_cast<uint64_t>(nzStartTime);
+            if (absReferenceTime >= 0) {
+                pSegment->utcTime = absReferenceTime;
+            }
             pSegment->updateParts(segmentParts);
             totalduration += duration;
 

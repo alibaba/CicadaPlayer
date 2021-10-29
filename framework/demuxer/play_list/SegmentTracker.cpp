@@ -17,6 +17,7 @@
 #include "utils/frame_work_log.h"
 #include "utils/timer.h"
 #include <algorithm>
+#include <cassert>
 #include <utility>
 
 #define IS_LIVE (mRep && mRep->b_live)
@@ -271,8 +272,9 @@ namespace Cicada {
                     mRep->SetSegmentList(sList);
                 }
 
+                SegmentList *currentSegList = mRep->GetSegmentList();
                 if (mCanBlockReload) {
-                    auto lastSeg = mRep->GetSegmentList()->getSegmentByNumber(mRep->GetSegmentList()->getLastSeqNum(), false);
+                    auto lastSeg = currentSegList->getSegmentByNumber(currentSegList->getLastSeqNum(), false);
                     bool bHasUnusedParts;
                     mCurrentMsn = lastSeg->getSequenceNumber();
                     if (lastSeg->isDownloadComplete(bHasUnusedParts)) {
@@ -281,6 +283,25 @@ namespace Cicada {
                     } else {
                         mCurrentPart = lastSeg->getSegmentParts().size();
                     }
+                }
+                if (mRep->mPreloadHint.used && !mRep->mPreloadHint.uri.empty()) {
+                    if (rep->mPreloadHint.uri != mRep->mPreloadHint.uri && !currentSegList->containPartialSegment(mRep->mPreloadHint.uri)) {
+                        // TODO: cancel preload
+                    }
+                    uint64_t preloadSegNum;
+                    if (currentSegList->findPartialSegment(mRep->mPreloadHint.uri, preloadSegNum)) {
+                        if (mCurSegNum < preloadSegNum) {
+                            mCurSegNum = preloadSegNum;
+                            AF_LOGD("[lhls] move to preload segment, segNum=%llu, uri=%s", mCurSegNum, mRep->mPreloadHint.uri.c_str());
+                        }
+                    }
+                    auto curSeg = getCurSegment(false);
+                    if (curSeg) {
+                        curSeg->moveToPreloadSegment(mRep->mPreloadHint.uri);
+                    }
+                }
+                if (!mRep->mPreloadHint.uri.empty() && mRep->mPreloadHint.uri != rep->mPreloadHint.uri) {
+                    mRep->mPreloadHint = rep->mPreloadHint;
                 }
 
                 rep->SetSegmentList(nullptr);
@@ -573,6 +594,45 @@ namespace Cicada {
                 ret.push_back(mediaSegmentListEntry(uri, (*it)->duration));
             }
         }
+        return ret;
+    }
+
+    bool SegmentTracker::hasPreloadSegment()
+    {
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
+        if (mRep && mRep->mPreloadHint.isPartialSegment && !mRep->mPreloadHint.uri.empty() && !mRep->mPreloadHint.used) {
+            return true;
+        }
+        return false;
+    }
+
+    void SegmentTracker::usePreloadSegment(std::string &uri, int64_t &rangeStart, int64_t &rangeEnd)
+    {
+        assert(mRep);
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
+        mRep->mPreloadHint.used = true;
+        uri = mRep->mPreloadHint.uri;
+        rangeStart = mRep->mPreloadHint.rangeStart;
+        rangeEnd = mRep->mPreloadHint.rangeEnd;
+    }
+
+    std::shared_ptr<segment> SegmentTracker::usePreloadSegment()
+    {
+        assert(mRep);
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
+        mRep->mPreloadHint.used = true;
+        std::shared_ptr<segment> ret = std::make_shared<segment>(0);
+        ret->setSourceUrl("");
+        auto lastSeg = mRep->GetSegmentList()->getSegments().back();
+        if (lastSeg->startTime >= 0) {
+            ret->startTime = lastSeg->startTime + lastSeg->duration;
+        }
+        if (lastSeg->utcTime >= 0) {
+            ret->utcTime = lastSeg->utcTime + lastSeg->duration;
+        }
+        SegmentPart part;
+        part.uri = mRep->mPreloadHint.uri;
+        ret->updateParts({part});
         return ret;
     }
 }

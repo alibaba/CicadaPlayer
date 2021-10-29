@@ -91,6 +91,10 @@ namespace Cicada {
 
         vector<mediaSegmentListEntry> getSegmentList();
 
+        bool hasPreloadSegment();
+        void usePreloadSegment(std::string &uri, int64_t &rangeStart, int64_t &rangeEnd);
+        std::shared_ptr<segment> usePreloadSegment();
+
     private:
         int loadPlayList();
 

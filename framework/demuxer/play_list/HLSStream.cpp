@@ -157,11 +157,27 @@ namespace Cicada {
             if (bHasUnusedParts) {
                 curSeg->moveToNextPart();
                 string uri = Helper::combinePaths(mPTracker->getBaseUri(), curSeg->getDownloadUrl());
-                tryOpenSegment(uri, curSeg->rangeStart, curSeg->rangeEnd);
+                AF_LOGD("[hls][lhls] moveToNextPart, uri=%s", uri.c_str());
+                int ret = tryOpenSegment(uri, curSeg->rangeStart, curSeg->rangeEnd);
+                if (ret < 0) {
+                    return MoveToNextPart::segmentEnd;
+                }
                 return MoveToNextPart::moveSuccess;
             } else {
                 if (downloadComplete) {
                     return MoveToNextPart::segmentEnd;
+                } else if (mPTracker->hasPreloadSegment()) {
+                    std::string segmentUri;
+                    int64_t rangeStart, rangeEnd;
+                    mPTracker->usePreloadSegment(segmentUri, rangeStart, rangeEnd);
+                    AF_LOGD("[lhls] use partial segment of preload hint, uri=%s", segmentUri.c_str());
+                    std::string uri = Helper::combinePaths(mPTracker->getBaseUri(), segmentUri);
+                    int ret = tryOpenSegment(uri, rangeStart, rangeEnd);
+                    AF_LOGD("[lhls] use partial segment of preload hint, ret=%d", ret);
+                    if (ret < 0) {
+                        return MoveToNextPart::tryAgain;
+                    }
+                    return MoveToNextPart::moveSuccess;
                 } else {
                     return MoveToNextPart::tryAgain;
                 }
@@ -983,8 +999,7 @@ namespace Cicada {
         if (seg) {
             do {
                 mCurSeg = seg;
-                string uri = Helper::combinePaths(mPTracker->getBaseUri(),
-                                                  seg->getDownloadUrl());
+                string uri = Helper::combinePaths(mPTracker->getBaseUri(), seg->getDownloadUrl());
                 ret = tryOpenSegment(uri, seg->rangeStart, seg->rangeEnd);
 
                 if (isHttpError(ret) || isLocalFileError(ret)) {
@@ -1018,8 +1033,8 @@ namespace Cicada {
                 return ret;
             }
 
-            AF_LOGD("stream(%p) read seg %s seqno is %llu\n", this, seg->getDownloadUrl().c_str(),
-                    seg->getSequenceNumber());
+            AF_LOGD("[hls][lhls] updateSegment");
+            AF_LOGD("stream(%p) read seg %s seqno is %llu\n", this, seg->getDownloadUrl().c_str(), seg->getSequenceNumber());
             ret = updateDecrypter();
 
             if (ret < 0) {
@@ -1031,6 +1046,16 @@ namespace Cicada {
             AF_LOGE("EOS");
             mIsDataEOS = true;
             return -EAGAIN;
+        } else if (mPTracker->hasPreloadSegment()) {
+            mCurSeg = mPTracker->usePreloadSegment();
+            AF_LOGD("[lhls] use virtual segment of preload hint, uri=%s", mCurSeg->getDownloadUrl().c_str());
+            std::string uri = Helper::combinePaths(mPTracker->getBaseUri(), mCurSeg->getDownloadUrl());
+            int ret = tryOpenSegment(uri, mCurSeg->rangeStart, mCurSeg->rangeEnd);
+            AF_LOGD("[lhls] use virtual segment of preload hint, ret=%d", ret);
+            if (ret < 0) {
+                return -EAGAIN;
+            }
+            return 0;
         }
 
         return -EAGAIN;
@@ -1176,11 +1201,9 @@ namespace Cicada {
 
             if (mCurSeg) {
                 // mark the seg start time to first seg frame
-                AF_LOGD("stream (%d) mark startTime %llu\n", mPTracker->getStreamType(),
-                        mCurSeg->startTime);
-                AF_LOGD("stream (%d)pFrame->pts is %lld pos is %lld flags is %d streamIndex is %d\n",
-                        mPTracker->getStreamType(), packet->getInfo().pts, packet->getInfo().pos,
-                        packet->getInfo().flags, packet->getInfo().streamIndex);
+                AF_LOGD("stream (%d) mark startTime %llu\n", mPTracker->getStreamType(), mCurSeg->startTime);
+                AF_LOGD("stream (%d)pFrame->pts is %lld pos is %lld flags is %d streamIndex is %d\n", mPTracker->getStreamType(),
+                        packet->getInfo().pts, packet->getInfo().pos, packet->getInfo().flags, packet->getInfo().streamIndex);
 
                 if (packet->getInfo().flags == 0) {
                     AF_LOGE("not a key frame\n");
@@ -1780,4 +1803,4 @@ namespace Cicada {
         bFinished = false;
     }
 
-}
+}// namespace Cicada

@@ -172,4 +172,16 @@ namespace Cicada {
         bHasUnusedParts = (mPartsNextIndex < mParts.size());
         return isComplete;
     }
+
+    void segment::moveToPreloadSegment(const std::string &segmentUri)
+    {
+        std::lock_guard<std::recursive_mutex> lck(mMutex);
+        for (int i = mPartsNextIndex; i < mParts.size(); i++) {
+            if (mParts[i].uri == segmentUri) {
+                AF_LOGD("[lhls] move to preload partial segment, index=%d, uri=%s", i, mParts[i].uri.c_str());
+                moveToPart(i);
+                break;
+            }
+        }
+    }
 }// namespace Cicada

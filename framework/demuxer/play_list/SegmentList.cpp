@@ -201,4 +201,30 @@ namespace Cicada {
         }
         return mRep->targetDuration;
     }
+
+    bool SegmentList::containPartialSegment(const std::string &segmentUri)
+    {
+        for (auto seg : segments) {
+            for (auto part : seg->getSegmentParts()) {
+                if (part.uri == segmentUri) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    bool SegmentList::findPartialSegment(const std::string &segmentUri, uint64_t &segNum)
+    {
+        for (auto seg : segments) {
+            for (auto part : seg->getSegmentParts()) {
+                if (part.uri == segmentUri) {
+                    segNum = seg->sequence;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 }// namespace Cicada

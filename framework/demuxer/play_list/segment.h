@@ -47,6 +47,7 @@ namespace Cicada{
         void moveToPart(int partIndex);
         void moveToNearestIndependentPart(int partIndex);
         bool isDownloadComplete(bool &bHasUnusedParts);
+        void moveToPreloadSegment(const std::string &segmentUri);
         
     public:
         std::string mUri = "";

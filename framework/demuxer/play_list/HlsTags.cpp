@@ -303,6 +303,7 @@ namespace Cicada {
                 {"EXT-X-PART",                   AttributesTag::EXTXPART},
                 {"EXT-X-PART-INF",               AttributesTag::EXTXPARTINF},
                 {"EXT-X-SERVER-CONTROL",         AttributesTag::EXTX_SERVER_CONTROL},
+                {"EXT-X-PRELOAD-HINT",           AttributesTag::EXTX_PRELOAD_HINT},
                 // TODO: add other lhls tag
                 {NULL,                           0},
             };
@@ -338,6 +339,7 @@ namespace Cicada {
                     case AttributesTag::EXTXPART:
                     case AttributesTag::EXTXPARTINF:
                     case AttributesTag::EXTX_SERVER_CONTROL:
+                    case AttributesTag::EXTX_PRELOAD_HINT:
                         return new (std::nothrow) AttributesTag(exttagmapping[i].i, value);
                 }
             }
