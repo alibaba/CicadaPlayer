@@ -17,6 +17,8 @@ namespace Cicada {
 
         bool parse(const char *buffer, int size);
 
+        bool parseFile(const char *filePath, int size);
+
         xml::Node *getRootNode();
 
         void print();
