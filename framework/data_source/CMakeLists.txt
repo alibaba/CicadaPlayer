@@ -38,6 +38,12 @@ if (ENABLE_CURL_SOURCE)
             curl/curlShare.h
             curl/CURLConnection.cpp
             curl/CURLConnection.h
+            curl/curl_data_source2.cpp
+            curl/curl_data_source2.h
+            curl/CURLConnection2.cpp
+            curl/CURLConnection2.h
+            curl/CurlMulti.cpp
+            curl/CurlMulti.h
             )
 endif ()
 

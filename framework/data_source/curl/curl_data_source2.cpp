@@ -1,9 +1,9 @@
 //
 // Created by moqi on 2018/1/25.
 //
-#define LOG_TAG "CurlDataSource"
+#define LOG_TAG "CurlDataSource2"
 
-#include "curl_data_source.h"
+#include "curl_data_source2.h"
 #include <pthread.h>
 
 #include "CURLShareInstance.h"
@@ -17,7 +17,7 @@
 #include <utils/timer.h>
 
 #ifdef WIN32
-    #include <winsock2.h>
+#include <winsock2.h>
 #endif
 
 #include <cerrno>
@@ -29,13 +29,13 @@
 
 // TODO: move to another file
 #if defined(WIN32) || defined(WIN64)
-    #define strcasecmp _stricmp
-    #define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
 #endif /* Def WIN32 or Def WIN64 */
 
 #define SOCKET_ERROR (-1)
 
-#define MIN_SO_RCVBUF_SIZE 1024*64
+#define MIN_SO_RCVBUF_SIZE 1024 * 64
 
 #define CURL_LOGD(...)                                                                                                                     \
     do {                                                                                                                                   \
@@ -48,19 +48,22 @@
 static pthread_once_t once = PTHREAD_ONCE_INIT;
 using namespace Cicada;
 
-CurlDataSource CurlDataSource::se(0);
+CurlDataSource2 CurlDataSource2::se(0);
 using std::string;
 
-CURLConnection *CurlDataSource::initConnection()
+#define USE_MULTI 0
+#define SEEK_USE_NEW_CONNECTION 0
+
+CURLConnection2 *CurlDataSource2::initConnection()
 {
-    auto *pHandle = new CURLConnection(&mConfig);
+    auto *pHandle = new CURLConnection2(&mConfig, mMulti, this);
     pHandle->setSSLBackEnd(CURLShareInstance::Instance()->getSslbakcend());
     pHandle->setSource(mLocation, headerList);
     pHandle->setPost(mBPost, mPostSize, mPostData);
     return pHandle;
 }
 
-int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
+int CurlDataSource2::curl_connect(CURLConnection2 *pConnection, int64_t filePos)
 {
     int ret;
     char *location = nullptr;
@@ -69,17 +72,16 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
     long response;
     CURL_LOGD("start connect %lld\n", filePos);
     pConnection->SetResume(filePos);
-    pConnection->start();
+    mMulti->addHandle(pConnection->getCurlHandle());
 
-    if ((ret = pConnection->FillBuffer(1)) < 0) {
+    if ((ret = pConnection->FillBuffer(1, *mMulti)) < 0) {
         AF_LOGE("Connect, didn't get any data from stream.");
         return ret;
     }
 
     CURL_LOGD("connected\n");
 
-    if (CURLE_OK ==
-            curl_easy_getinfo(pConnection->getCurlHandle(), CURLINFO_CONTENT_LENGTH_DOWNLOAD, &length)) {
+    if (CURLE_OK == curl_easy_getinfo(pConnection->getCurlHandle(), CURLINFO_CONTENT_LENGTH_DOWNLOAD, &length)) {
         if (length < 0) {
             length = 0.0;
         }
@@ -91,12 +93,11 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
             mFileSize = 0;
         }
 
-//        if (curlContext.fileSize == 0)
-//            curlContext.hd->is_streamed = 1;
+        //        if (curlContext.fileSize == 0)
+        //            curlContext.hd->is_streamed = 1;
     }
 
-    if (CURLE_OK ==
-            curl_easy_getinfo(pConnection->getCurlHandle(), CURLINFO_EFFECTIVE_URL, &location)) {
+    if (CURLE_OK == curl_easy_getinfo(pConnection->getCurlHandle(), CURLINFO_EFFECTIVE_URL, &location)) {
         if (location) {
             mLocation = location;
         }
@@ -110,28 +111,31 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
         }
     }
 
-    if (CURLE_OK ==
-            curl_easy_getinfo(pConnection->getCurlHandle(), CURLINFO_RESPONSE_CODE, &response)) {
+    if (CURLE_OK == curl_easy_getinfo(pConnection->getCurlHandle(), CURLINFO_RESPONSE_CODE, &response)) {
         AF_LOGI("CURLINFO_RESPONSE_CODE is %d", response);
 
         if (response >= 400) {
             return gen_framework_http_errno((int) response);
         }
     }
+    if (CURLE_OK == curl_easy_getinfo(pConnection->getCurlHandle(), CURLINFO_HTTP_VERSION, &mCurrentHttpVersion)) {
+        AF_LOGD("current http version is %d\n", mCurrentHttpVersion);
+    }
 
     return 0;
 }
 
-CurlDataSource::CurlDataSource(const string &url) : IDataSource(url)
+CurlDataSource2::CurlDataSource2(const string &url) : IDataSource(url)
 {
     globalNetWorkManager::getGlobalNetWorkManager()->addListener(this);
     mFileSize = -1;
-    mConnections = new std::vector<CURLConnection *>();
+    mConnections = new std::vector<CURLConnection2 *>();
+    mMulti = CurlMultiManager::getCurlMulti();
 }
 
-CurlDataSource::~CurlDataSource()
+CurlDataSource2::~CurlDataSource2()
 {
-    AF_LOGI("~CurlDataSource");
+    AF_LOGI("CurlDataSource2");
     if (mBDummy) {
         return;
     }
@@ -144,10 +148,10 @@ CurlDataSource::~CurlDataSource()
         curl_slist_free_all(headerList);
         headerList = nullptr;
     }
-    AF_LOGI("~!CurlDataSource");
+    AF_LOGI("~!CurlDataSource2");
 }
 
-int CurlDataSource::Open(int flags)
+int CurlDataSource2::Open(int flags)
 {
     // TODO: deal with ret
     mOpenTimeMS = af_gettime_relative() / 1000;
@@ -195,13 +199,13 @@ int CurlDataSource::Open(int flags)
     }
 
     if (nullptr == mConnections) {
-        mConnections = new std::vector<CURLConnection *>();
+        mConnections = new std::vector<CURLConnection2 *>();
     }
 
     return ret;
 }
 
-int CurlDataSource::Open(const string &url)
+int CurlDataSource2::Open(const string &url)
 {
     if (mNeedReconnect) {
         Close();
@@ -220,7 +224,9 @@ int CurlDataSource::Open(const string &url)
     }
 
     mOpenTimeMS = af_gettime_relative() / 1000;
-    mPConnection->disconnect();
+
+    mMulti->removeHandle(mPConnection->getCurlHandle());
+    mPConnection->reset();
     bool isRTMP = url.compare(0, 7, "rtmp://") == 0;
     mLocation = (isRTMP ? (url + " live=1").c_str() : url.c_str());
     // only change url, don,t change share and resolve
@@ -249,69 +255,72 @@ int CurlDataSource::Open(const string &url)
         fillConnectInfo();
     }
 
-    closeConnections(false);
-    mConnections = new std::vector<CURLConnection *>();
+    closeConnections(false, false);
+    mConnections = new std::vector<CURLConnection2 *>();
     return ret;
 }
 
-void CurlDataSource::Close()
+void CurlDataSource2::Close()
 {
-    closeConnections(true);
+    closeConnections(true, true);
 }
 
-void CurlDataSource::closeConnections(bool current)
+void CurlDataSource2::closeConnections(bool current, bool bMulti)
 {
     lock_guard<mutex> lock(mMutex);
-    CURLConnection *deleteConnection = nullptr;
-    vector<CURLConnection *> *pConnections = mConnections;
+    CURLConnection2 *deleteConnection = nullptr;
+    vector<CURLConnection2 *> *pConnections = mConnections;
     mConnections = nullptr;
 
     if (current) {
         deleteConnection = mPConnection;
         mPConnection = nullptr;
     }
-
+    bool needAsync = true;
     if (deleteConnection) {
-        deleteConnection->disableCallBack();
-        if (AsyncJob::Instance()) {
-            AsyncJob::Instance()->addJob([deleteConnection] { delete deleteConnection; });
+        if (deleteConnection->isDNSResolved() || (mDNSResolved && mCurrentHttpVersion >= CURL_HTTP_VERSION_2_0) || !AsyncJob::Instance()) {
+            needAsync = false;
+        }
+        if (needAsync) {
+            CurlMulti *multi = mMulti;
+            deleteConnection->disableCallBack();
+            AsyncJob::Instance()->addJob([deleteConnection, multi] {
+                multi->removeHandle(deleteConnection->getCurlHandle());
+                delete deleteConnection;
+            });
         } else {
+            mMulti->removeHandle(deleteConnection->getCurlHandle());
             delete deleteConnection;
         }
     }
 
     if (pConnections) {
-        if (AsyncJob::Instance()) {
-            for (auto &pConnection : *pConnections) {
-                pConnection->disableCallBack();
-            }
-            AsyncJob::Instance()->addJob([pConnections] {
-                for (auto item = pConnections->begin(); item != pConnections->end();) {
-                    delete *item;
-                    item = pConnections->erase(item);
-                }
-                delete pConnections;
-            });
-        } else {
-            for (auto item = pConnections->begin(); item != pConnections->end();) {
-                delete *item;
-                item = pConnections->erase(item);
-            }
-            delete pConnections;
+        for (auto item = pConnections->begin(); item != pConnections->end();) {
+            mMulti->removeHandle((*item)->getCurlHandle());
+            delete *item;
+            item = pConnections->erase(item);
         }
+        delete pConnections;
     }
+    //    if (bMulti) {
+    //        if (AsyncJob::Instance() && needAsync) {
+    //            CurlMulti *multi = mMulti.release();
+    //            AsyncJob::Instance()->addJob([multi] { delete multi; });
+    //        } else {
+    //            mMulti = nullptr;
+    //        }
+    //    }
 }
 
-int64_t CurlDataSource::Seek(int64_t offset, int whence)
+int64_t CurlDataSource2::Seek(int64_t offset, int whence)
 {
-    //    CURL_LOGD("CurlDataSource::Seek position is %lld,when is %d", offset, whence);
+    //    CURL_LOGD("CurlDataSource2::Seek position is %lld,when is %d", offset, whence);
     if (!mPConnection) {
         return -(ESPIPE);
     }
     if (whence == SEEK_SIZE) {
         return mFileSize;
-    } else if ((whence == SEEK_CUR && offset == 0) ||
-               (whence == SEEK_SET && offset == mPConnection->tell())) {
+    } else if ((whence == SEEK_CUR && offset == 0) || (whence == SEEK_SET && offset == mPConnection->tell())) {
         return mPConnection->tell();
     } else if ((mFileSize <= 0 && whence == SEEK_END) /*|| h->is_streamed*/) {
         return FRAMEWORK_ERR(ENOSYS);
@@ -353,9 +362,6 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
         AF_LOGI("short seek failed\n");
     }
 
-    CURLConnection *con = nullptr;
-
-
     if (mNeedReconnect) {
         rangeStart = offset;
         Close();
@@ -367,7 +373,8 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
         }
         return ret;
     }
-
+#if USE_MULTI
+    CURLConnection *con = nullptr;
     for (auto item = mConnections->begin(); item != mConnections->end();) {
         if ((*(item))->short_seek(offset) >= 0) {
             con = *item;
@@ -379,30 +386,37 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
     }
 
     if (con) {
+        mPConnection->pause(true);
+        mMulti->removeHandle(mPConnection->getCurlHandle());
         mConnections->push_back(mPConnection);
 
         if (mConnections->size() > max_connection) {
             CURLConnection *connection = mConnections->front();
             mConnections->erase(mConnections->begin());
-            AsyncJob::Instance()->addJob([connection] {
-                delete connection;
-            });
+            mMulti->removeHandle(connection->getCurlHandle());
+            delete connection;
         }
         mPConnection = con;
+        mMulti->addHandle(mPConnection->getCurlHandle());
+        mPConnection->pause(false);
         AF_LOGW("short seek ok\n");
         return offset;
     } else {
         AF_LOGW("short seek failed\n");
     }
-
+#endif
     int64_t ret = TrySeekByNewConnection(offset);
     return ret;
 }
 
-int64_t CurlDataSource::TrySeekByNewConnection(int64_t offset)
+int64_t CurlDataSource2::TrySeekByNewConnection(int64_t offset)
 {
+#if USE_MULTI
     // try seek use a new connection
+    mMulti->removeHandle(mPConnection->getCurlHandle());
+    mPConnection->pause(true);
     CURLConnection *pConnection_s = initConnection();
+    curl_easy_setopt(pConnection_s->getCurlHandle(), CURLOPT_FRESH_CONNECT, SEEK_USE_NEW_CONNECTION);
     pConnection_s->setInterrupt(&mInterrupt);
     int ret = curl_connect(pConnection_s, offset);
 
@@ -414,23 +428,33 @@ int64_t CurlDataSource::TrySeekByNewConnection(int64_t offset)
         if (mConnections->size() > max_connection) {
             CURLConnection *connection = mConnections->front();
             mConnections->erase(mConnections->begin());
-            AsyncJob::Instance()->addJob([connection] {
-                delete connection;
-            });
+            mMulti->removeHandle(connection->getCurlHandle());
+            delete connection;
         }
 
         mPConnection = pConnection_s;
         return offset;
     }
 
+    mPConnection->pause(false);
+
     // try seek faild, use the old connection
-    AsyncJob::Instance()->addJob([pConnection_s] {
-        delete pConnection_s;
-    });
+    mMulti->removeHandle(pConnection_s->getCurlHandle());
+    delete pConnection_s;
     return ret;
+#else
+    mMulti->removeHandle(mPConnection->getCurlHandle());
+    delete mPConnection;
+    CURLConnection2 *pConnection_s = initConnection();
+    pConnection_s->setInterrupt(&mInterrupt);
+    curl_easy_setopt(pConnection_s->getCurlHandle(), CURLOPT_FRESH_CONNECT, SEEK_USE_NEW_CONNECTION);
+    int ret = curl_connect(pConnection_s, offset);
+    mPConnection = pConnection_s;
+    return offset;
+#endif
 }
 
-int CurlDataSource::Read(void *buf, size_t size)
+int CurlDataSource2::Read(void *buf, size_t size)
 {
     int ret = 0;
 
@@ -446,7 +470,7 @@ int CurlDataSource::Read(void *buf, size_t size)
         end = std::min(mFileSize, end);
 
         if (end > 0) {
-            size = std::min(size, (size_t)(end - mPConnection->tell()));
+            size = std::min(size, (size_t) (end - mPConnection->tell()));
 
             if (size <= 0) {
                 return 0;
@@ -463,7 +487,7 @@ int CurlDataSource::Read(void *buf, size_t size)
             Open(mLocation);
             mNeedReconnect = false;
         }
-        ret = mPConnection->FillBuffer(1);
+        ret = mPConnection->FillBuffer(1, *mMulti);
 
         if (ret < 0) {
             return ret;
@@ -473,7 +497,7 @@ int CurlDataSource::Read(void *buf, size_t size)
     return mPConnection->readBuffer(buf, size);
 }
 
-string CurlDataSource::GetOption(const string &key)
+string CurlDataSource2::GetOption(const string &key)
 {
     std::lock_guard<std::mutex> lock(mMutex);
 
@@ -494,7 +518,7 @@ string CurlDataSource::GetOption(const string &key)
     return IDataSource::GetOption(key);
 }
 
-void CurlDataSource::fillConnectInfo()
+void CurlDataSource2::fillConnectInfo()
 {
     CicadaJSONItem Json;
     Json.addValue("time", (double) af_getsteady_ms());
@@ -536,12 +560,10 @@ void CurlDataSource::fillConnectInfo()
         int scale;
         int value;
     } printInfo;
-    printInfo infos[] {
-        {"dnsCost",       CURLINFO_NAMELOOKUP_TIME, 1000, 0},
-        {"connectCost",   CURLINFO_CONNECT_TIME,    1000, 0},
-        {"redirectCount", CURLINFO_REDIRECT_COUNT,  1,    0},
-        {nullptr,         0,                        0,    0}
-    };
+    printInfo infos[]{{"dnsCost", CURLINFO_NAMELOOKUP_TIME, 1000, 0},
+                      {"connectCost", CURLINFO_CONNECT_TIME, 1000, 0},
+                      {"redirectCount", CURLINFO_REDIRECT_COUNT, 1, 0},
+                      {nullptr, 0, 0, 0}};
 
     for (auto info : infos) {
         double val = info.value;
@@ -561,15 +583,15 @@ void CurlDataSource::fillConnectInfo()
     CURL_LOGD("connectInfo is %s\n", mConnectInfo.c_str());
 }
 
-bool CurlDataSource::probe(const string &path)
+bool CurlDataSource2::probe(const string &path)
 {
-    if (globalSettings::getSetting().getProperty("protected.network.http.http2") == "ON") {
+    if (globalSettings::getSetting().getProperty("protected.network.http.http2") != "ON") {
         return false;
     }
     return CicadaUtils::startWith(path, {"http://", "https://"});
 }
 
-void CurlDataSource::Interrupt(bool interrupt)
+void CurlDataSource2::Interrupt(bool interrupt)
 {
     IDataSource::Interrupt(interrupt);
 
@@ -578,18 +600,22 @@ void CurlDataSource::Interrupt(bool interrupt)
     }
 }
 
-CurlDataSource::CurlDataSource(int dummy) : IDataSource("")
+CurlDataSource2::CurlDataSource2(int dummy) : IDataSource("")
 {
     mBDummy = true;
     addPrototype(this);
 }
 
-std::string CurlDataSource::GetUri()
+std::string CurlDataSource2::GetUri()
 {
     return mLocation;
 }
 
-void CurlDataSource::OnReconnect()
+void CurlDataSource2::OnReconnect()
 {
     mNeedReconnect = true;
+}
+void CurlDataSource2::onDNSResolved()
+{
+    mDNSResolved = true;
 }

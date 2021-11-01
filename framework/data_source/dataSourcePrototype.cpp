@@ -3,7 +3,9 @@
 //
 
 #include "dataSourcePrototype.h"
+#include <utils/globalSettings.h>
 #ifdef ENABLE_CURL_SOURCE
+#include "curl/curl_data_source2.h"
 #include "data_source/curl/curl_data_source.h"
 #endif
 #include "../../plugin/BiDataSource.h"
@@ -42,7 +44,9 @@ Cicada::IDataSource *dataSourcePrototype::create(const std::string &uri, const C
         source = dataSource->clone(uri);
     }
 #ifdef ENABLE_CURL_SOURCE
-    else if (CurlDataSource::probe(uri)) {
+    else if (globalSettings::getSetting().getProperty("protected.network.http.http2") == "ON" && CurlDataSource2::probe(uri)) {
+        source = new CurlDataSource2(uri);
+    } else if (globalSettings::getSetting().getProperty("protected.network.http.http2") != "ON" && CurlDataSource::probe(uri)) {
         source = new CurlDataSource(uri);
     }
 #endif
