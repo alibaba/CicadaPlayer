@@ -69,8 +69,8 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         AF_LOGD("ProcessPrepareMsg status is %d", mPlayer.mPlayStatus.load());
         return;
     }
-
-    mPlayer.mPlayStatus = PLAYER_PREPARINIT;
+    mPlayer.ChangePlayerStatus(PLAYER_PREPARINIT);
+    //   mPlayer.mPlayStatus = PLAYER_PREPARINIT;
     bool noFile = false;
 
     if (!(mPlayer.mBSReadCb != nullptr && mPlayer.mBSSeekCb != nullptr && mPlayer.mBSCbArg != nullptr)) {
