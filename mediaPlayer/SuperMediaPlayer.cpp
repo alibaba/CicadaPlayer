@@ -962,6 +962,9 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
             int64_t to = param.getInt64("to", -1);
             return mMPAUtil->getNetworkRequestInfos(from, to);
         }
+        case PROPERTY_KEY_RENDER_INFO: {
+            return mMPAUtil->getRenderInfoAndReset();
+        }
         default:
             break;
     }
@@ -2610,6 +2613,7 @@ bool SuperMediaPlayer::RenderVideo(bool force_render)
         AF_LOGW("drop frame,master played time is %lld,video pts is %lld\n", masterPlayedTime, videoPts);
         videoFrame->setDiscard(true);
         mUtil->videoRendered(false);
+        mMPAUtil->videoRendered(false);
         mVideoCatchingUp = true;
 
         if (mFrameCb && (!mSecretPlayBack || mDrmKeyValid)) {

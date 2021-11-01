@@ -3,6 +3,7 @@
 //
 
 #include "MediaPlayerAnalyticsUtil.h"
+#include <utils/af_string.h>
 #include <utils/timer.h>
 
 using namespace Cicada;
@@ -171,6 +172,19 @@ void MediaPlayerAnalyticsUtil::updateBufferInfo(bool force, int64_t videoDuratio
     }
 }
 
+void MediaPlayerAnalyticsUtil::videoRendered(bool rendered)
+{
+    std::lock_guard<std::mutex> lockGuard(renderInfoMutex);
+    mRenderInfo.videoRendered(rendered);
+}
+
+std::string MediaPlayerAnalyticsUtil::getRenderInfoAndReset()
+{
+    std::lock_guard<std::mutex> lockGuard(renderInfoMutex);
+    const string &value = mRenderInfo.toString();
+    mRenderInfo.reset();
+    return value;
+}
 
 void MediaPlayerAnalyticsUtil::getPropertyJSONStr(const std::string &name, CicadaJSONArray &array, bool isArray,
                                                   std::deque<StreamInfo *> &streamInfoQueue, demuxer_service *service)
@@ -236,4 +250,94 @@ void MediaPlayerAnalyticsUtil::addURLProperty(const std::string &name, CicadaJSO
         item.addValue("type", "url");
         array.addJSON(item);
     }
+}
+
+RenderInfo::RenderInfo()
+{}
+
+RenderInfo::~RenderInfo()
+{
+    reset();
+}
+
+void RenderInfo::reset()
+{
+    totalCount = 0;
+    droppedCount = 0;
+    jankTimesMap.clear();
+    jankCostMap.clear();
+    lastRenderedTimeMs = INT64_MIN;
+}
+
+void RenderInfo::videoRendered(bool rendered)
+{
+    totalCount++;
+    if (!rendered) {
+        droppedCount++;
+    } else {
+        int64_t time = af_getsteady_ms();
+        if (lastRenderedTimeMs == INT64_MIN) {
+            lastRenderedTimeMs = time;
+        }
+
+        int64_t deltaTime = time - lastRenderedTimeMs;
+        int64_t jankGrade = deltaTime / JANK_GAP;
+
+        if (jankGrade < 0 || jankGrade > MAX_GRADE_NUM) {
+            jankGrade = MAX_GRADE_NUM;
+        }
+
+        int finalJankGrade = (int) jankGrade;
+        if (jankTimesMap.count(finalJankGrade) > 0) {
+            jankTimesMap[finalJankGrade] += 1;
+        } else {
+            jankTimesMap[finalJankGrade] = 1;
+        }
+
+        if (jankCostMap.count(finalJankGrade) > 0) {
+            jankCostMap[finalJankGrade] += deltaTime;
+        } else {
+            jankCostMap[finalJankGrade] = deltaTime;
+        }
+
+        lastRenderedTimeMs = time;
+    }
+}
+
+std::string RenderInfo::toString()
+{
+    CicadaJSONItem item{};
+    item.addValue("totalCount", totalCount);
+    item.addValue("droppedCount", droppedCount);
+    item.addValue("jankGap", JANK_GAP);
+    item.addValue("gradeNum", MAX_GRADE_NUM);
+    {
+        CicadaJSONItem jankTimes{};
+
+        for (int i = 0; i <= MAX_GRADE_NUM; i++) {
+            if (jankTimesMap.count(i) > 0) {
+                jankTimes.addValue(AfString::to_string(i), jankTimesMap[i]);
+            } else {
+                jankTimes.addValue(AfString::to_string(i), 0);
+            }
+        }
+
+        item.addValue("jankTimes", jankTimes.printJSON());
+    }
+
+    {
+        CicadaJSONItem jankCostGrade{};
+
+        for (int i = 0; i <= MAX_GRADE_NUM; i++) {
+
+            if (jankCostMap.count(i) > 0) {
+                jankCostGrade.addValue(AfString::to_string(i), (double) jankCostMap[i]);
+            } else {
+                jankCostGrade.addValue(AfString::to_string(i), 0);
+            }
+        }
+
+        item.addValue("jankCost", jankCostGrade.printJSON());
+    }
+    return item.printJSON();
 }

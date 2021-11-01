@@ -649,6 +649,7 @@ void SMPMessageControllerListener::ProcessRenderedMsg(StreamType type, IAFFrame:
          */
         if (!mPlayer.mSeekFlag || rendered) {
             mPlayer.mUtil->videoRendered(rendered);
+            mPlayer.mMPAUtil->videoRendered(rendered);
         }
         if (rendered) {
             mPlayer.checkFirstRender();

@@ -15,6 +15,31 @@
 #include "utils/AFMediaType.h"
 
 namespace Cicada {
+    class RenderInfo {
+
+    public:
+        RenderInfo();
+
+        ~RenderInfo();
+
+        void reset();
+
+        void videoRendered(bool rendered);
+
+        std::string toString();
+
+    public:
+        int JANK_GAP = 200;
+        int MAX_GRADE_NUM = 5;//0~200,...,800~1s,1s~
+        int totalCount{0};
+        int droppedCount{0};
+        std::map<int, int> jankTimesMap{};
+        std::map<int, int64_t> jankCostMap{};
+
+    private:
+        int64_t lastRenderedTimeMs{INT64_MIN};
+    };
+
     class MediaPlayerAnalyticsUtil {
     public:
         MediaPlayerAnalyticsUtil();
@@ -29,11 +54,15 @@ namespace Cicada {
 
         std::string getNetworkRequestInfos(int64_t timeFrom, int64_t timeTo);
 
+        std::string getRenderInfoAndReset();
+
         void updateNetworkReadSize(uint64_t size);
 
         void updateBufferInfo(bool force, int64_t videoDuration, int64_t audioDuration);
 
         void notifyNetworkEvent(const std::string &url, const CicadaJSONItem &eventParam);
+
+        void videoRendered(bool rendered);
 
     public:
         static void getPropertyJSONStr(const std::string &name, CicadaJSONArray &array, bool isArray,
@@ -61,6 +90,9 @@ namespace Cicada {
 
         uint64_t mLastReadTime{0};
         std::atomic<uint64_t> mReadGotSize{0};
+
+        std::mutex renderInfoMutex{};
+        RenderInfo mRenderInfo{};
     };
 }// namespace Cicada
 
