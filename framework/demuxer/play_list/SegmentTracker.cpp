@@ -179,16 +179,19 @@ namespace Cicada {
     {
         int ret;
         string uri;
-        string *pUri;
 
         if (!mRep) {
             return -EINVAL;
         }
 
-        if (mCanBlockReload) {
+        {
             std::unique_lock<std::recursive_mutex> locker(mMutex);
-            uri = Helper::combinePaths(mRep->getPlaylist()->getPlaylistUrl(), mRep->getPlaylistUrl());
-            if (mCurrentMsn >= 0) {
+            if (mLocation.empty()) {
+                uri = Helper::combinePaths(mRep->getPlaylist()->getPlaylistUrl(), mRep->getPlaylistUrl());
+            } else {
+                uri = mLocation;
+            }
+            if (mCanBlockReload && mCurrentMsn >= 0) {
                 if (uri.find('?') == std::string::npos) {
                     uri += "?";
                 } else {
@@ -199,31 +202,22 @@ namespace Cicada {
                 uri += "&_HLS_part=";
                 uri += std::to_string(mCurrentPart);
             }
-            pUri = &uri;
-        } else {
-            if (mLocation.empty()) {
-                std::unique_lock<std::recursive_mutex> locker(mMutex);
-                uri = Helper::combinePaths(mRep->getPlaylist()->getPlaylistUrl(), mRep->getPlaylistUrl());
-                pUri = &uri;
-            } else {
-                pUri = &mLocation;
-            }
         }
 
-        AF_LOGD("loadPlayList uri is [%s]\n", pUri->c_str());
+        AF_LOGD("loadPlayList uri is [%s]\n", uri.c_str());
 
         if (mRep->mPlayListType == playList_demuxer::playList_type_hls) {
             mLoadingPlaylist = true;
             if (mPDataSource == nullptr) {
                 {
                     std::unique_lock<std::recursive_mutex> locker(mMutex);
-                    mPDataSource = dataSourcePrototype::create(*pUri, mOpts);
+                    mPDataSource = dataSourcePrototype::create(uri, mOpts);
                     mPDataSource->Set_config(mSourceConfig);
                     mPDataSource->Interrupt(mInterrupted);
                 }
                 ret = mPDataSource->Open(0);
             } else {
-                ret = mPDataSource->Open(*pUri);
+                ret = mPDataSource->Open(uri);
             }
             mLoadingPlaylist = false;
 
@@ -250,9 +244,9 @@ namespace Cicada {
                 mLocation = mPDataSource->GetOption(location);
             }
 
-            auto *parser = new HlsParser(pUri->c_str());
+            auto *parser = new HlsParser(uri.c_str());
             parser->setDataSourceIO(new dataSourceIO(mPDataSource));
-            playList *pPlayList = parser->parse(*pUri);
+            playList *pPlayList = parser->parse(uri);
 
             //  mPPlayList->dump();
             // mediaPlayList only have one Representation
