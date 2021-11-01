@@ -19,6 +19,7 @@ add_subdirectory(seekTest)
 add_subdirectory(apiTest)
 add_subdirectory(switch_stream)
 add_subdirectory(cache)
+add_subdirectory(performance)
 
 enable_testing()
 
@@ -45,4 +46,8 @@ add_test(
 add_test(
         NAME mediaPlayerCacheTest
         COMMAND $<TARGET_FILE:mediaPlayerCacheTest>
+)
+add_test(
+        NAME mediaPlayerPerformanceTest
+        COMMAND $<TARGET_FILE:mediaPlayerPerformanceTest>
 )
