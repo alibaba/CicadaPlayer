@@ -67,31 +67,31 @@ static int64_t prepareOnce()
 
 TEST(performance, prepare)
 {
-    int64_t timeCost[20];
-    int64_t timeCost1[20];
-    globalSettings::getSetting().setProperty("protected.network.http.http2", "ON");
-    for (int64_t &i : timeCost) {
-        i = prepareOnce();
-        assert(i > 0);
+    const static int size = 20;
+    int64_t timeCost[size];
+    int64_t timeCost2[size];
+    bool h2;
+    for (int i = 0; i < size * 2; ++i) {
+        h2 = (i % 2 == 0);
+        if (!h2) {
+            globalSettings::getSetting().setProperty("protected.network.http.http2", "OFF");
+            timeCost[i / 2] = prepareOnce();
+        } else {
+            globalSettings::getSetting().setProperty("protected.network.http.http2", "ON");
+            timeCost2[i / 2] = prepareOnce();
+        }
     }
-    globalSettings::getSetting().setProperty("protected.network.http.http2", "OFF");
-    for (int64_t &i : timeCost1) {
-        i = prepareOnce();
-        assert(i > 0);
-    }
-
-
     int64_t sum = 0;
     for (int64_t i : timeCost) {
         sum += i;
         AF_LOGI("time cost is %lld\n", i);
     }
-    AF_LOGI("avg time cost is %lld\n", sum / 20);
+    AF_LOGI("avg time cost is %lld\n", sum / size);
 
     sum = 0;
-    for (int64_t i : timeCost1) {
+    for (int64_t i : timeCost2) {
         sum += i;
-        AF_LOGI("time cost is %lld\n", i);
+        AF_LOGI("time cost2 is %lld\n", i);
     }
-    AF_LOGI("avg time cost is %lld\n", sum / 20);
+    AF_LOGI("avg time cost2 is %lld\n", sum / size);
 }
