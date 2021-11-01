@@ -465,8 +465,8 @@ int AFAudioQueueRender::audioQueueLoop()
             mQueueDuration = mInPut.size() * mInPut.front()->getInfo().duration;
     }
     if (_audioQueueRef) {
-        AudioQueueStop(_audioQueueRef, true);
-        AudioQueueDispose(_audioQueueRef, true);
+        AudioQueueStop(_audioQueueRef, false);
+        AudioQueueDispose(_audioQueueRef, false);
     }
     return -1;
 }
