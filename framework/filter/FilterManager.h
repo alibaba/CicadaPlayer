@@ -6,15 +6,16 @@
 #define CMDLINE_FILTERMANAGER_H
 
 #include "VideoFilterChain.h"
+#include <base/IDCA.h>
 #include <base/media/IAFPacket.h>
 #include <utils/CicadaJSON.h>
 
 namespace Cicada {
-    class FilterManager {
+    class FilterManager : public IDCA {
     public:
         FilterManager(const IAFFrame::videoInfo &videoInfo, const CicadaJSONArray &config);
 
-        ~FilterManager();
+        ~FilterManager() override;
 
         void setStreamMeta(const Stream_meta* meta);
 
@@ -37,6 +38,11 @@ namespace Cicada {
         void setSpeed(float speed);
 
         void clearBuffer();
+
+        int invoke(int cmd, const std::string &content) override
+        {
+            return 0;
+        };
 
     private:
         void setupFilterChains();

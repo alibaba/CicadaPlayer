@@ -4138,7 +4138,8 @@ void SuperMediaPlayer::SetFilterConfig(const std::string &filterConfig)
     }
 
     //TODO videoInfo is useless now.
-    mFilterManager = std::unique_ptr<FilterManager>(new FilterManager(IAFFrame::videoInfo(), *(mFilterConfig.get())));
+    mFilterManager = std::unique_ptr<FilterManager>(new FilterManager(IAFFrame::videoInfo(), *mFilterConfig.get()));
+    mDcaManager->createObservers();
 }
 
 void SuperMediaPlayer::UpdateFilterConfig(const std::string &target, const std::string &options)

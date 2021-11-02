@@ -40,6 +40,12 @@ void SMP_DCAManager::createObservers()
         mDemuxerObserver->hello();
         mPlayer.mDemuxerService->getDemuxerHandle()->setDCAObserver(mDemuxerObserver.get());
     }
+    if (mFilterObserver == nullptr && mPlayer.mFilterManager) {
+        mFilterObserver = static_cast<unique_ptr<SMP_DCAObserver>>(new SMP_DCAObserver("vFilter", "", mPlayer.mFilterManager.get()));
+        mFilterObserver->setListener(this);
+        //    mFilterObserver->hello();
+        mPlayer.mFilterManager->setDCAObserver(mDemuxerObserver.get());
+    }
 }
 int SMP_DCAManager::invoke(const string &content)
 {
