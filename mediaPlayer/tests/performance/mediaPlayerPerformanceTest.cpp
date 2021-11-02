@@ -67,6 +67,7 @@ static int64_t prepareOnce()
 
 TEST(performance, prepare)
 {
+    globalSettings::getSetting().addResolve("alivc-demo-vod.aliyuncs.com:443", "27.128.214.222");
     const static int size = 20;
     int64_t timeCost[size];
     int64_t timeCost2[size];
