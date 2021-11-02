@@ -43,7 +43,6 @@ int CurlMulti::loop()
 
             while ((msg = curl_multi_info_read(multi_handle, &msgs))) {
                 status.curl_handle = msg->easy_handle;
-                CURL *handler = msg->easy_handle;
                 status.status = msg->data.result;
                 if (msg->msg == CURLMSG_DONE) {
                     if (msg->data.result == CURLE_OK) {
@@ -95,49 +94,6 @@ CURLcode CurlMulti::performHandle(CURL *curl_handle, bool &eof, CURLMcode &mCode
     }
     eof = false;
     return CURLE_OK;
-#if 0
-    //    int still_running;
-    //    do {
-    //        mCode = curl_multi_perform(multi_handle, &still_running);
-    //    } while (mCode == CURLM_CALL_MULTI_PERFORM);
-    //
-    //    if (mCode != CURLM_OK) {
-    //        // TODO: return what??
-    //        return CURLE_OK;
-    //    }
-
-    int msgs;
-    //    CURLcode CURLResult = CURLE_OK;
-    CURLMsg *msg;
-    eof = false;
-    mCode = CURLM_OK;
-
-    while ((msg = curl_multi_info_read(multi_handle, &msgs))) {
-        CURL *handler = msg->easy_handle;
-        if (handler != curl_handle) {
-            continue;
-        }
-
-        if (msg->msg == CURLMSG_DONE) {
-            if (msg->data.result == CURLE_OK) {
-                eof = true;
-            }
-            return msg->data.result;
-        } else {
-            if (!mStillRunning && msg->data.result == CURLE_OK) {
-                // we assume eof
-                assert(0);
-                eof = true;
-                AF_LOGW("assume a abnormal eos\n");
-                return CURLE_OK;
-            }
-        }
-        break;
-    }
-
-    // TODO: return what??
-    return CURLE_OK;
-#endif
 }
 CURLMcode CurlMulti::removeHandle(CURL *curl_handle)
 {

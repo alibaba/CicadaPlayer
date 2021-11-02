@@ -160,6 +160,9 @@ void Cicada::CURLConnection2::reset()
 }
 int CURLConnection2::xferinfo(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
 {
+    if (!clientp) {
+        return 0;
+    }
     auto *pHandle = (CURLConnection2 *) clientp;
     if (pHandle->mPaused && RingBuffergetMaxWriteSize(pHandle->pRbuf) > READ_BUFFER_SIZE) {
         pHandle->mPaused = false;
@@ -293,6 +296,9 @@ void CURLConnection2::setPost(bool post, int64_t size, const uint8_t *data)
 
 int CURLConnection2::my_trace(CURL *handle, curl_infotype type, char *data, size_t size, void *userp)
 {
+    if (!userp) {
+        return 0;
+    }
     const char *text;
     //  int num = hnd2num(handle);
     CURLConnection2 *pHandle = (CURLConnection2 *) userp;
@@ -696,9 +702,9 @@ void CURLConnection2::disableCallBack()
         //   curl_easy_setopt(mHttp_handle, CURLOPT_WRITEFUNCTION, nullptr);
         //    curl_easy_setopt(mHttp_handle, CURLOPT_HEADERFUNCTION, nullptr);
         curl_easy_setopt(mHttp_handle, CURLOPT_HEADERDATA, nullptr);
-        curl_easy_setopt(mHttp_handle, CURLOPT_SOCKOPTFUNCTION, nullptr);
+        //  curl_easy_setopt(mHttp_handle, CURLOPT_SOCKOPTFUNCTION, nullptr);
         curl_easy_setopt(mHttp_handle, CURLOPT_SOCKOPTDATA, nullptr);
-        curl_easy_setopt(mHttp_handle, CURLOPT_DEBUGFUNCTION, nullptr);
+        // curl_easy_setopt(mHttp_handle, CURLOPT_DEBUGFUNCTION, nullptr);
         curl_easy_setopt(mHttp_handle, CURLOPT_DEBUGDATA, nullptr);
     }
 }

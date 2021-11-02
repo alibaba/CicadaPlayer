@@ -51,7 +51,7 @@ using namespace Cicada;
 CurlDataSource2 CurlDataSource2::se(0);
 using std::string;
 
-#define USE_MULTI 0
+#define USE_MULTI 1
 #define SEEK_USE_NEW_CONNECTION 0
 
 CURLConnection2 *CurlDataSource2::initConnection()
@@ -255,17 +255,17 @@ int CurlDataSource2::Open(const string &url)
         fillConnectInfo();
     }
 
-    closeConnections(false, false);
+    closeConnections(false);
     mConnections = new std::vector<CURLConnection2 *>();
     return ret;
 }
 
 void CurlDataSource2::Close()
 {
-    closeConnections(true, true);
+    closeConnections(true);
 }
 
-void CurlDataSource2::closeConnections(bool current, bool bMulti)
+void CurlDataSource2::closeConnections(bool current)
 {
     lock_guard<mutex> lock(mMutex);
     CURLConnection2 *deleteConnection = nullptr;
@@ -302,14 +302,6 @@ void CurlDataSource2::closeConnections(bool current, bool bMulti)
         }
         delete pConnections;
     }
-    //    if (bMulti) {
-    //        if (AsyncJob::Instance() && needAsync) {
-    //            CurlMulti *multi = mMulti.release();
-    //            AsyncJob::Instance()->addJob([multi] { delete multi; });
-    //        } else {
-    //            mMulti = nullptr;
-    //        }
-    //    }
 }
 
 int64_t CurlDataSource2::Seek(int64_t offset, int whence)
@@ -374,7 +366,7 @@ int64_t CurlDataSource2::Seek(int64_t offset, int whence)
         return ret;
     }
 #if USE_MULTI
-    CURLConnection *con = nullptr;
+    CURLConnection2 *con = nullptr;
     for (auto item = mConnections->begin(); item != mConnections->end();) {
         if ((*(item))->short_seek(offset) >= 0) {
             con = *item;
@@ -391,7 +383,7 @@ int64_t CurlDataSource2::Seek(int64_t offset, int whence)
         mConnections->push_back(mPConnection);
 
         if (mConnections->size() > max_connection) {
-            CURLConnection *connection = mConnections->front();
+            CURLConnection2 *connection = mConnections->front();
             mConnections->erase(mConnections->begin());
             mMulti->removeHandle(connection->getCurlHandle());
             delete connection;
@@ -414,8 +406,7 @@ int64_t CurlDataSource2::TrySeekByNewConnection(int64_t offset)
 #if USE_MULTI
     // try seek use a new connection
     mMulti->removeHandle(mPConnection->getCurlHandle());
-    mPConnection->pause(true);
-    CURLConnection *pConnection_s = initConnection();
+    CURLConnection2 *pConnection_s = initConnection();
     curl_easy_setopt(pConnection_s->getCurlHandle(), CURLOPT_FRESH_CONNECT, SEEK_USE_NEW_CONNECTION);
     pConnection_s->setInterrupt(&mInterrupt);
     int ret = curl_connect(pConnection_s, offset);
@@ -426,7 +417,7 @@ int64_t CurlDataSource2::TrySeekByNewConnection(int64_t offset)
         mConnections->push_back(mPConnection);
 
         if (mConnections->size() > max_connection) {
-            CURLConnection *connection = mConnections->front();
+            CURLConnection2 *connection = mConnections->front();
             mConnections->erase(mConnections->begin());
             mMulti->removeHandle(connection->getCurlHandle());
             delete connection;
@@ -435,8 +426,6 @@ int64_t CurlDataSource2::TrySeekByNewConnection(int64_t offset)
         mPConnection = pConnection_s;
         return offset;
     }
-
-    mPConnection->pause(false);
 
     // try seek faild, use the old connection
     mMulti->removeHandle(pConnection_s->getCurlHandle());

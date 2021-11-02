@@ -32,7 +32,7 @@ namespace Cicada {
 
         int Open(const std::string &url) override;
 
-        void Close() override;
+        void Close() final;
 
         int64_t Seek(int64_t offset, int whence) override;
 
@@ -40,7 +40,7 @@ namespace Cicada {
 
         std::string GetOption(const std::string &key) override;
 
-        void Interrupt(bool interrupt) override;
+        void Interrupt(bool interrupt) final;
 
         std::string GetUri() override;
         uint64_t getFlags() override
@@ -75,7 +75,7 @@ namespace Cicada {
 
         static CurlDataSource2 se;
 
-        void closeConnections(bool current, bool bMulti);
+        void closeConnections(bool current);
 
         void OnReconnect() override;
 
