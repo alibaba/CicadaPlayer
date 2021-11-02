@@ -80,6 +80,7 @@ namespace Cicada{
         std::string mimeType;
         bool mCanBlockReload{false};
         PreloadHint mPreloadHint;
+        double mCanSkipUntil{0.0};
 
     private:
         SegmentList *mPSegList = nullptr;

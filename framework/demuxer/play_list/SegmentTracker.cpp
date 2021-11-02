@@ -32,6 +32,7 @@ namespace Cicada {
         if (mCanBlockReload && mTargetDuration > 0) {
             mSourceConfig.connect_time_out_ms = 3 * mTargetDuration;
         }
+        mCanSkipUntil = mRep->mCanSkipUntil;
         mThread = NEW_AF_THREAD(threadFunction);
     }
 
@@ -175,10 +176,11 @@ namespace Cicada {
         }
     }
 
-    int SegmentTracker::loadPlayList()
+    int SegmentTracker::loadPlayList(bool noSkip)
     {
         int ret;
         string uri;
+        bool useSkip = false;
 
         if (!mRep) {
             return -EINVAL;
@@ -201,6 +203,15 @@ namespace Cicada {
                 uri += std::to_string(mCurrentMsn);
                 uri += "&_HLS_part=";
                 uri += std::to_string(mCurrentPart);
+            }
+            if (!noSkip && mCanSkipUntil > 0.0 && af_getsteady_ms() - mLastPlaylistUpdateTime < mCanSkipUntil * 0.5 * 1000) {
+                if (uri.find('?') == std::string::npos) {
+                    uri += "?";
+                } else {
+                    uri += "&";
+                }
+                uri += "_HLS_skip=YES";
+                useSkip = true;
             }
         }
 
@@ -261,6 +272,16 @@ namespace Cicada {
                 //  sList->print();
                 //live stream should always keeps the new lists.
                 if (pList) {
+                    if (useSkip) {
+                        uint64_t oldLastSegNum = pList->getLastSeqNum();
+                        uint64_t newFirstSegNum = sList->getFirstSeqNum();
+                        if (newFirstSegNum > oldLastSegNum + 1) {
+                            mNeedReloadWithoutSkip = true;
+                            delete pPlayList;
+                            delete parser;
+                            return 0;
+                        }
+                    }
                     pList->merge(sList);
                 } else {
                     mRep->SetSegmentList(sList);
@@ -315,6 +336,7 @@ namespace Cicada {
                 } else {
                     delete pPlayList;
                 }
+                mLastPlaylistUpdateTime = af_getsteady_ms();
             }
 
             // mRep->mStreamType = rep->mStreamType;
@@ -489,6 +511,10 @@ namespace Cicada {
 
             if (!mStopLoading) {
                 mPlayListStatus = loadPlayList();
+                if (mNeedReloadWithoutSkip) {
+                    mPlayListStatus = loadPlayList(true);
+                    mNeedReloadWithoutSkip = false;
+                }
                 if (!mRealtime && mRep != nullptr && mRep->GetSegmentList() != nullptr)
                 {
                     mRealtime = mRep->GetSegmentList()->hasLHLSSegments();

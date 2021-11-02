@@ -96,7 +96,7 @@ namespace Cicada {
         std::shared_ptr<segment> usePreloadSegment();
 
     private:
-        int loadPlayList();
+        int loadPlayList(bool noSkip = false);
 
         int threadFunction();
 
@@ -140,6 +140,9 @@ namespace Cicada {
         std::atomic_bool mLoadingPlaylist{false};
         int64_t mCurrentMsn{-1};
         int64_t mCurrentPart{-1};
+        double mCanSkipUntil{0.0};
+        int64_t mLastPlaylistUpdateTime{0};
+        bool mNeedReloadWithoutSkip{false};
     };
 }
 

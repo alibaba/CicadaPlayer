@@ -401,6 +401,10 @@ namespace Cicada {
                         if (blockReloadAttr) {
                             rep->mCanBlockReload = (blockReloadAttr->value == "YES");
                         }
+                        const Attribute *skipAttr = keytag->getAttributeByName("CAN-SKIP-UNTIL");
+                        if (skipAttr) {
+                            rep->mCanSkipUntil = skipAttr->floatingPoint();
+                        }
                     }
                 }
                 break;
@@ -429,7 +433,19 @@ namespace Cicada {
                             rep->mPreloadHint = preloadHit;
                         }
                     }
-                } break;
+                }
+                break;
+
+                case AttributesTag::EXTX_SKIP: {
+                    const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
+                    if (keytag) {
+                        const Attribute *skippedAttr = keytag->getAttributeByName("SKIPPED-SEGMENTS");
+                        if (skippedAttr) {
+                            sequenceNumber += skippedAttr->decimal();
+                        }
+                    }
+                }
+                break;
 
                 case Tag::EXTXDISCONTINUITY:
                     discontinuityNum++;

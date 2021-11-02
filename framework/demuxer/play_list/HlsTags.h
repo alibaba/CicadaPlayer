@@ -86,6 +86,7 @@ namespace Cicada{
                 EXTXPARTINF,
                 EXTX_SERVER_CONTROL,
                 EXTX_PRELOAD_HINT,
+                EXTX_SKIP,
             };
 
             AttributesTag(int, const std::string &);
