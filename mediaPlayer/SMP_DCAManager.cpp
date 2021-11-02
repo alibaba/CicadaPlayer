@@ -44,7 +44,7 @@ void SMP_DCAManager::createObservers()
         mFilterObserver = static_cast<unique_ptr<SMP_DCAObserver>>(new SMP_DCAObserver("vFilter", "", mPlayer.mFilterManager.get()));
         mFilterObserver->setListener(this);
         //    mFilterObserver->hello();
-        mPlayer.mFilterManager->setDCAObserver(mDemuxerObserver.get());
+        mPlayer.mFilterManager->setDCAObserver(mFilterObserver.get());
     }
 }
 int SMP_DCAManager::invoke(const string &content)

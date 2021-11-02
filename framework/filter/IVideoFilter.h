@@ -10,6 +10,8 @@
 #include <utils/AFMediaType.h>
 
 namespace Cicada {
+    typedef void (*DCAFunc)(int level, const std::string &content, void *userData);
+
     class CICADA_CPLUS_EXTERN IVideoFilter {
 
     public:
@@ -88,6 +90,11 @@ namespace Cicada {
             flush();
         }
 
+        virtual void setDCACb(const std::function<void(int level, const std::string &content)> &func)
+        {
+            sendEvent = func;
+        }
+
     protected:
         IAFFrame::videoInfo mSrcFormat{};
         IAFFrame::videoInfo mDstFormat{};
@@ -95,6 +102,7 @@ namespace Cicada {
         bool mActive{false};
         float mSpeed = 1.0;
         bool mClearFlag{false};
+        std::function<void(int level, const std::string &content)> sendEvent{nullptr};
     };
 }// namespace Cicada
 

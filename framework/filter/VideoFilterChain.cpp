@@ -236,3 +236,12 @@ bool VideoFilterChain::hasFilter(const std::string &target)
 {
     return mVideoFiltersMap.find(target) != mVideoFiltersMap.end();
 }
+
+void VideoFilterChain::setDCACb(const std::function<void(int level, const std::string &content)> &func)
+{
+    auto iter = mVideoFiltersMap.begin();
+    while (iter != mVideoFiltersMap.end()) {
+        iter->second->setDCACb(func);
+        ++iter;
+    }
+}

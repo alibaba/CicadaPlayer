@@ -44,6 +44,8 @@ namespace Cicada {
             return 0;
         };
 
+        void setDCACb();
+
     private:
         void setupFilterChains();
 
