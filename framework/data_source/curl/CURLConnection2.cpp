@@ -301,7 +301,7 @@ int CURLConnection2::my_trace(CURL *handle, curl_infotype type, char *data, size
     }
     const char *text;
     //  int num = hnd2num(handle);
-    CURLConnection2 *pHandle = (CURLConnection2 *) userp;
+    auto *pHandle = (CURLConnection2 *) userp;
     (void) pHandle; /* prevent compiler warning */
 
     switch (type) {

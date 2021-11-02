@@ -3,6 +3,7 @@
 //
 #define LOG_TAG "CurlMulti"
 #include "CurlMulti.h"
+#include "CURLConnection2.h"
 #include <cassert>
 #include <cerrno>
 #include <utils/frame_work_log.h>
@@ -28,44 +29,59 @@ int CurlMulti::loop()
     int numfds;
     CURLMcode mc = CURLM_OK;
     {
-        std::lock_guard<std::mutex> lockGuard(mMutex);
-        do {
-            mCode = curl_multi_perform(multi_handle, &mStillRunning);
-        } while (mCode == CURLM_CALL_MULTI_PERFORM);
-
-        int msgs;
-        CURLMsg *msg;
-        {
-            std::lock_guard<std::mutex> lock_guard(mStatusListMutex);
-            mStatusList.clear();
-
-            curl_handle_status status{};
-
-            while ((msg = curl_multi_info_read(multi_handle, &msgs))) {
-                status.curl_handle = msg->easy_handle;
-                status.status = msg->data.result;
-                if (msg->msg == CURLMSG_DONE) {
-                    if (msg->data.result == CURLE_OK) {
-                        status.eof = true;
-                    }
-                    status.status = msg->data.result;
-                } else {
-                    if (!mStillRunning && msg->data.result == CURLE_OK) {
-                        // we assume eof
-                        assert(0);
-                        status.eof = true;
-                        AF_LOGW("assume a abnormal eos\n");
-                        status.status = CURLE_OK;
-                    }
-                }
-                mStatusList.push_back(status);
-            }
+        std::lock_guard<std::mutex> lockGuard(mListMutex);
+        for (auto item : mRemoveList) {
+            curl_multi_remove_handle(multi_handle, item);
         }
+        mRemoveList.clear();
+        for (auto item : mAddList) {
+            curl_multi_add_handle(multi_handle, item);
+        }
+        mAddList.clear();
 
-        if (mStillRunning) {
-            mc = curl_multi_poll(multi_handle, nullptr, 0, 10, &numfds);
+        for (auto item : mDeleteList) {
+            curl_multi_add_handle(multi_handle, item->getCurlHandle());
+            item->disableCallBack();
+            delete item;
+        }
+        mDeleteList.clear();
+    }
+
+    do {
+        mCode = curl_multi_perform(multi_handle, &mStillRunning);
+    } while (mCode == CURLM_CALL_MULTI_PERFORM);
+
+    int msgs;
+    CURLMsg *msg;
+    {
+        std::lock_guard<std::mutex> lock_guard(mStatusListMutex);
+        mStatusList.clear();
+        curl_handle_status status{};
+        while ((msg = curl_multi_info_read(multi_handle, &msgs))) {
+            status.curl_handle = msg->easy_handle;
+            status.status = msg->data.result;
+            if (msg->msg == CURLMSG_DONE) {
+                if (msg->data.result == CURLE_OK) {
+                    status.eof = true;
+                }
+                status.status = msg->data.result;
+            } else {
+                if (!mStillRunning && msg->data.result == CURLE_OK) {
+                    // we assume eof
+                    assert(0);
+                    status.eof = true;
+                    AF_LOGW("assume a abnormal eos\n");
+                    status.status = CURLE_OK;
+                }
+            }
+            mStatusList.push_back(status);
         }
     }
+
+    if (mStillRunning) {
+        mc = curl_multi_poll(multi_handle, nullptr, 0, 10, &numfds);
+    }
+
     if (!mStillRunning) {
         af_msleep(10);
     }
@@ -79,8 +95,16 @@ CURLMcode CurlMulti::addHandle(CURL *curl_handle)
     if (mLoopThread->getStatus() == afThread::THREAD_STATUS_IDLE) {
         mLoopThread->start();
     }
-    std::lock_guard<std::mutex> lockGuard(mMutex);
-    return curl_multi_add_handle(multi_handle, curl_handle);
+    std::lock_guard<std::mutex> lockGuard(mListMutex);
+    for (auto &item : mRemoveList) {
+        if (item == curl_handle) {
+            mRemoveList.remove(item);
+            break;
+        }
+    }
+    mAddList.push_back(curl_handle);
+    return CURLM_OK;
+    //   return curl_multi_add_handle(multi_handle, curl_handle);
 }
 CURLcode CurlMulti::performHandle(CURL *curl_handle, bool &eof, CURLMcode &mCode)
 {
@@ -97,8 +121,27 @@ CURLcode CurlMulti::performHandle(CURL *curl_handle, bool &eof, CURLMcode &mCode
 }
 CURLMcode CurlMulti::removeHandle(CURL *curl_handle)
 {
-    std::lock_guard<std::mutex> lockGuard(mMutex);
-    return curl_multi_remove_handle(multi_handle, curl_handle);
+    std::lock_guard<std::mutex> lockGuard(mListMutex);
+    for (auto &item : mAddList) {
+        if (item == curl_handle) {
+            mAddList.remove(item);
+            break;
+        }
+    }
+    mRemoveList.push_back(curl_handle);
+    return CURLM_OK;
+    //    return curl_multi_remove_handle(multi_handle, curl_handle);
+}
+void CurlMulti::deleteHandle(CURLConnection2 *curl_connection)
+{
+    std::lock_guard<std::mutex> lockGuard(mListMutex);
+    for (auto &item : mAddList) {
+        if (item == curl_connection->getCurlHandle()) {
+            mAddList.remove(item);
+            break;
+        }
+    }
+    mDeleteList.push_back(curl_connection);
 }
 int CurlMulti::poll(int time_ms)
 {

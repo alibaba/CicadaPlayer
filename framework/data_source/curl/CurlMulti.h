@@ -13,6 +13,7 @@
 #define SOCKET_ERROR (-1)
 
 namespace Cicada {
+    class CURLConnection2;
     class CurlMulti {
     public:
         CurlMulti();
@@ -21,6 +22,7 @@ namespace Cicada {
         CURLMcode addHandle(CURL *curl_handle);
         CURLcode performHandle(CURL *curl_handle, bool &eof, CURLMcode &mCode);
         CURLMcode removeHandle(CURL *curl_handle);
+        void deleteHandle(CURLConnection2 *curl_connection);
         int poll(int time_ms);
         int wakeUp();
 
@@ -32,8 +34,11 @@ namespace Cicada {
         std::mutex mMutex;
         afThread *mLoopThread{};
         int mStillRunning{0};
-        //        std::list<CURL*> mAddList;
-        //        std::list<CURL*> mRemoveList;
+
+        std::mutex mListMutex;
+        std::list<CURL *> mAddList;
+        std::list<CURL *> mRemoveList;
+        std::list<CURLConnection2 *> mDeleteList;
 
         class curl_handle_status {
         public:
