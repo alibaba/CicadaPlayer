@@ -298,7 +298,7 @@ namespace Cicada {
             return ret;
         }
 
-        if (mPTracker->isLive()) {
+        if (mPTracker->isLive() && mPTracker->isSeeked()) {
             uint64_t firstSegNum = mPTracker->getFirstSegNum();
             uint64_t lastSegNum = mPTracker->getLastSegNum();
             uint64_t segSize = mPTracker->getSegSize();
