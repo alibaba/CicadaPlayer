@@ -10,7 +10,17 @@
 #include <utils/AFMediaType.h>
 
 namespace Cicada {
-    typedef void (*DCAFunc)(int level, const std::string &content, void *userData);
+
+    const static std::string FILTER_INVALID_PERFORMANCE = "filter stop due to poor device performance";
+    class DCACallback {
+    protected:
+        void *mUserData;
+
+    public:
+        explicit DCACallback(void *userData) : mUserData(userData){};
+
+        virtual void send(std::string target, int level, std::string content) = 0;
+    };
 
     class CICADA_CPLUS_EXTERN IVideoFilter {
 
@@ -90,9 +100,14 @@ namespace Cicada {
             flush();
         }
 
-        virtual void setDCACb(const std::function<void(int level, const std::string &content)> &func)
+        virtual void setDCACb(DCACallback *dcaCallback)
         {
-            sendEvent = func;
+            this->mDcaCallback = dcaCallback;
+        }
+
+        virtual void setCurrentTarget(const std::string &target)
+        {
+            currentTarget = target;
         }
 
     protected:
@@ -102,7 +117,8 @@ namespace Cicada {
         bool mActive{false};
         float mSpeed = 1.0;
         bool mClearFlag{false};
-        std::function<void(int level, const std::string &content)> sendEvent{nullptr};
+        std::string currentTarget;
+        DCACallback *mDcaCallback;
     };
 }// namespace Cicada
 

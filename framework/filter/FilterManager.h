@@ -44,14 +44,14 @@ namespace Cicada {
             return 0;
         };
 
-        void setDCACb();
-
     private:
         void setupFilterChains();
 
 
     private:
         std::map<IVideoFilter::Feature, std::unique_ptr<VideoFilterChain>> mFilterChains{};
+
+        void setDCA();
 
         const Stream_meta * streamMeta{nullptr};
 

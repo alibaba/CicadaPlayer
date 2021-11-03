@@ -90,7 +90,7 @@ void FilterManager::setupFilterChains()
             iter.second->setInvalid(filter.first, filter.second);
         }
     }
-    setDCACb();
+    setDCA();
 }
 
 bool FilterManager::push(std::unique_ptr<IAFFrame> &frame)
@@ -208,7 +208,7 @@ void FilterManager::setStreamMeta(const Stream_meta* meta) {
     }
 }
 
-void FilterManager::setDCACb()
+void FilterManager::setDCA()
 {
     for (auto &iter : mFilterChains) {
         iter.second->setDCACb([this](int level, const std::string &content) -> void { sendEvent(level, content); });

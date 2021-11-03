@@ -60,6 +60,7 @@ namespace Cicada {
         std::map<std::string, std::unique_ptr<IVideoFilter>> mVideoFiltersMap{};
         SpscQueue<IAFFrame *> mInPutFrames{10};
         SpscQueue<IAFFrame *> mOutPutFrames{10};
+        std::function<void(int level, const std::string &content)> sendEvent;
     };
 }// namespace Cicada
 #endif//SOURCE_VIDEOFILTERCHAIN_H
