@@ -101,7 +101,7 @@ namespace Cicada {
                 return pHandle->readSegment(buffer, size);
             } else if (move_ret == MoveToNextPart::tryAgain) {
                 int tryTimes = 150;
-                while (tryTimes > 0) {
+                while (tryTimes > 0 && !pHandle->mInterrupted) {
                     af_msleep(20);
                     pHandle->mPTracker->reLoadPlayList();
                     MoveToNextPart move_ret = pHandle->moveToNextPartialSegment();
