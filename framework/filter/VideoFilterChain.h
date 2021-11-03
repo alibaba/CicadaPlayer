@@ -8,6 +8,7 @@
 #include "IVideoFilter.h"
 #include <base/media/TextureFrame.h>
 #include <base/media/spsc_queue.h>
+#include <functional>
 #include <map>
 #include <memory>
 
