@@ -9,6 +9,7 @@
 #ifndef ApsaraPlayerUtil_h
 #define ApsaraPlayerUtil_h
 
+#include <atomic>
 #include <string>
 //#include "render_engine/math/geometry.h"
 
