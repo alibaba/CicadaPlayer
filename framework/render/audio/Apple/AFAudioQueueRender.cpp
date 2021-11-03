@@ -458,7 +458,7 @@ int AFAudioQueueRender::audioQueueLoop()
                 mBufferAllocatedCount++;
             }
         }
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.2, 1);
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, mPlaying ? 0.2 : 0.01, 1);
         if (mInPut.empty())
             mQueueDuration = 0;
         else
