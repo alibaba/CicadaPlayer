@@ -146,6 +146,9 @@ AFAudioQueueRender::~AFAudioQueueRender()
     AFAudioSessionWrapper::removeObserver(this);
 #endif
     mRunning = false;
+    if (_audioQueueRef) {
+        AudioQueueDispose(_audioQueueRef, false);
+    }
     if (mAudioQueueThread) {
         mAudioQueueThread->stop();
     }
@@ -458,15 +461,19 @@ int AFAudioQueueRender::audioQueueLoop()
                 mBufferAllocatedCount++;
             }
         }
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, mPlaying ? 0.2 : 0.01, 1);
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.01, 1);
         if (mInPut.empty())
             mQueueDuration = 0;
         else
             mQueueDuration = mInPut.size() * mInPut.front()->getInfo().duration;
     }
+    AF_TRACE;
     if (_audioQueueRef) {
-        AudioQueueStop(_audioQueueRef, false);
-        AudioQueueDispose(_audioQueueRef, false);
+        //        AF_TRACE;
+        //    //    AudioQueueStop(_audioQueueRef, true);
+        //        AF_TRACE;
+        //     //   AudioQueueDispose(_audioQueueRef, false);
+        //        AF_TRACE;
     }
     return -1;
 }
