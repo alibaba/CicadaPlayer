@@ -87,7 +87,7 @@ namespace Cicada {
         int64_t ret = stat(filePath, &fileStat);
 
         if (ret == 0) {
-#if defined _WIN32 || defined __ANDROID__
+#if defined _WIN32 || defined __ANDROID__ || defined(__linux)
             mtimeSec = fileStat.st_mtime;
             atimeSec = fileStat.st_atime;
 #else

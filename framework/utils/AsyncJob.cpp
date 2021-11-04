@@ -7,6 +7,7 @@
 //
 
 #include "AsyncJob.h"
+#include <algorithm>
 
 #define LOG_TAG "AsyncJob"
 #include "timer.h"

@@ -65,11 +65,11 @@ target_link_libraries(cicadaPlayer PRIVATE
         swresample
         swscale
         avutil
-        nghttp2
         ${FRAMEWORK_LIBS})
 if (NOT MSVC)
 	target_link_libraries(cicadaPlayer PRIVATE
         curl
+        nghttp2
         xml2)
 endif()
 if (ENABLE_SDL AND NOT MSVC)
