@@ -123,6 +123,9 @@ namespace Cicada {
     void segment::moveToPart(int partIndex)
     {
         lock_guard<recursive_mutex> lck(mMutex);
+        if (mParts.empty()) {
+            return;
+        }
         int fixedPartIndex = partIndex;
         if (fixedPartIndex < 0) {
             fixedPartIndex = 0;
@@ -145,6 +148,9 @@ namespace Cicada {
     void segment::moveToNearestIndependentPart(int partIndex)
     {
         lock_guard<recursive_mutex> lck(mMutex);
+        if (mParts.empty()) {
+            return;
+        }
         int fixedIndex = partIndex;
         if (fixedIndex < 0) {
             fixedIndex = 0;

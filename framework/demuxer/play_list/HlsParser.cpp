@@ -405,6 +405,14 @@ namespace Cicada {
                         if (skipAttr) {
                             rep->mCanSkipUntil = skipAttr->floatingPoint();
                         }
+                        const Attribute *holdBackAttr = keytag->getAttributeByName("HOLD-BACK");
+                        if (holdBackAttr) {
+                            rep->mHoldBack = holdBackAttr->floatingPoint();
+                        }
+                        const Attribute *partHoldBackAttr = keytag->getAttributeByName("PART-HOLD-BACK");
+                        if (partHoldBackAttr) {
+                            rep->mPartHoldBack = partHoldBackAttr->floatingPoint();
+                        }
                     }
                 }
                 break;

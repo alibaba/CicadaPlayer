@@ -112,47 +112,37 @@ namespace Cicada {
             AF_LOGW("SegmentTracker::MoveToLiveStartSegment, segmentList is empty");
             return;
         }
+        auto segments = segList->getSegments();
         if (segList->hasLHLSSegments()) {
-            // lhls stream, liveStartIndex is partial segment index
-            auto segments = segList->getSegments();
-            if (liveStartIndex >= 0) {
-                int offset = liveStartIndex;
-                bool isFindPart = false;
-                for (auto iter = segments.begin(); iter != segments.end(); iter++) {
-                    const vector<SegmentPart> &segmentParts = (*iter)->getSegmentParts();
-                    if (offset >= segmentParts.size()) {
-                        offset -= segmentParts.size();
-                    } else {
-                        (*iter)->moveToNearestIndependentPart(offset);
-                        isFindPart = true;
-                        setCurSegNum((*iter)->getSequenceNumber());
-                        std::string segUrl = (*iter)->getDownloadUrl();
-                        AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
-                        break;
-                    }
-                }
-                if (!isFindPart) {
-                    // use last independent part
-                    auto iter = segments.back();
-                    iter->moveToNearestIndependentPart(iter->getSegmentParts().size() - 1);
-                    setCurSegNum(iter->getSequenceNumber());
-                    std::string segUrl = iter->getDownloadUrl();
-                    AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
-                }
-            } else {
-                int offset = -liveStartIndex - 1;
+            if (mRep->mPartHoldBack > 0.0) {
+                double duration = 0.0;
                 bool isFindPart = false;
                 for (auto iter = segments.rbegin(); iter != segments.rend(); iter++) {
                     const vector<SegmentPart> &segmentParts = (*iter)->getSegmentParts();
-                    if (offset >= segmentParts.size()) {
-                        offset -= segmentParts.size();
+                    if (segmentParts.size() > 0) {
+                        for (int i = segmentParts.size() - 1; i >= 0; i--) {
+                            duration += segmentParts[i].duration / 1000000.0f;
+                            if (duration >= mRep->mPartHoldBack) {
+                                (*iter)->moveToNearestIndependentPart(i);
+                                isFindPart = true;
+                                setCurSegNum((*iter)->getSequenceNumber());
+                                std::string segUrl = (*iter)->getDownloadUrl();
+                                AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
+                                break;
+                            }
+                        }
+                        if (isFindPart) {
+                            break;
+                        }
                     } else {
-                        (*iter)->moveToNearestIndependentPart(segmentParts.size() - 1 - offset);
-                        isFindPart = true;
-                        setCurSegNum((*iter)->getSequenceNumber());
-                        std::string segUrl = (*iter)->getDownloadUrl();
-                        AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
-                        break;
+                        duration += (*iter)->duration / 1000000.0f;
+                        if (duration >= mRep->mPartHoldBack) {
+                            isFindPart = true;
+                            setCurSegNum((*iter)->getSequenceNumber());
+                            std::string segUrl = (*iter)->getDownloadUrl();
+                            AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
+                            break;
+                        }
                     }
                 }
                 if (!isFindPart) {
@@ -163,16 +153,90 @@ namespace Cicada {
                     std::string segUrl = iter->getDownloadUrl();
                     AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
                 }
+            } else {
+                // playlist has no PART-HOLD-BACK, use liveStartIndex , liveStartIndex is partial segment index
+                if (liveStartIndex >= 0) {
+                    int offset = liveStartIndex;
+                    bool isFindPart = false;
+                    for (auto iter = segments.begin(); iter != segments.end(); iter++) {
+                        const vector<SegmentPart> &segmentParts = (*iter)->getSegmentParts();
+                        if (offset >= segmentParts.size()) {
+                            offset -= segmentParts.size();
+                        } else {
+                            (*iter)->moveToNearestIndependentPart(offset);
+                            isFindPart = true;
+                            setCurSegNum((*iter)->getSequenceNumber());
+                            std::string segUrl = (*iter)->getDownloadUrl();
+                            AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
+                            break;
+                        }
+                    }
+                    if (!isFindPart) {
+                        // use last independent part
+                        auto iter = segments.back();
+                        iter->moveToNearestIndependentPart(iter->getSegmentParts().size() - 1);
+                        setCurSegNum(iter->getSequenceNumber());
+                        std::string segUrl = iter->getDownloadUrl();
+                        AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
+                    }
+                } else {
+                    int offset = -liveStartIndex - 1;
+                    bool isFindPart = false;
+                    for (auto iter = segments.rbegin(); iter != segments.rend(); iter++) {
+                        const vector<SegmentPart> &segmentParts = (*iter)->getSegmentParts();
+                        if (offset >= segmentParts.size()) {
+                            offset -= segmentParts.size();
+                        } else {
+                            (*iter)->moveToNearestIndependentPart(segmentParts.size() - 1 - offset);
+                            isFindPart = true;
+                            setCurSegNum((*iter)->getSequenceNumber());
+                            std::string segUrl = (*iter)->getDownloadUrl();
+                            AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
+                            break;
+                        }
+                    }
+                    if (!isFindPart) {
+                        // use first independent part
+                        auto iter = segments.front();
+                        iter->moveToNearestIndependentPart(0);
+                        setCurSegNum(iter->getSequenceNumber());
+                        std::string segUrl = iter->getDownloadUrl();
+                        AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
+                    }
+                }
             }
         } else {
-            // hls stream, liveStartIndex is segment index
-            uint64_t curNum;
-            if (liveStartIndex >= 0) {
-                curNum = std::min(getFirstSegNum() + liveStartIndex, getLastSegNum());
+            uint64_t curNum = 0;
+            if (mRep->mHoldBack > 0.0) {
+                double duration = 0.0;
+                bool isFind = false;
+                for (auto iter = segments.rbegin(); iter != segments.rend(); iter++) {
+                    duration += (*iter)->duration / 1000000.0f;
+                    if (duration >= mRep->mHoldBack) {
+                        isFind = true;
+                        curNum = (*iter)->getSequenceNumber();
+                        setCurSegNum(curNum);
+                        AF_LOGI("SegmentTracker::MoveToLiveStartSegment, seg num=%llu", curNum);
+                        break;
+                    }
+                }
+                if (!isFind) {
+                    // use first segment
+                    auto iter = segments.front();
+                    curNum = iter->getSequenceNumber();
+                    setCurSegNum(curNum);
+                    AF_LOGI("SegmentTracker::MoveToLiveStartSegment, seg num=%llu", curNum);
+                }
             } else {
-                curNum = std::max(getLastSegNum() + liveStartIndex + 1, getFirstSegNum());
+                // playlist has no HOLD-BACK, use liveStartIndex , liveStartIndex is segment index
+                if (liveStartIndex >= 0) {
+                    curNum = std::min(getFirstSegNum() + liveStartIndex, getLastSegNum());
+                } else {
+                    curNum = std::max(getLastSegNum() + liveStartIndex + 1, getFirstSegNum());
+                }
+                setCurSegNum(curNum);
+                AF_LOGI("SegmentTracker::MoveToLiveStartSegment, seg num=%llu", curNum);
             }
-            setCurSegNum(curNum);
         }
     }
 

@@ -81,6 +81,8 @@ namespace Cicada{
         bool mCanBlockReload{false};
         PreloadHint mPreloadHint;
         double mCanSkipUntil{0.0};
+        double mHoldBack{0.0};
+        double mPartHoldBack{0.0};
 
     private:
         SegmentList *mPSegList = nullptr;
