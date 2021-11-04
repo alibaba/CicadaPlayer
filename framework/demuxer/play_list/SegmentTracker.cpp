@@ -708,7 +708,7 @@ namespace Cicada {
         std::shared_ptr<segment> ret = std::make_shared<segment>(0);
         ret->setSourceUrl("");
         auto lastSeg = mRep->GetSegmentList()->getSegments().back();
-        if (lastSeg->startTime >= 0) {
+        if (lastSeg->startTime != UINT64_MAX) {
             ret->startTime = lastSeg->startTime + lastSeg->duration;
         }
         if (lastSeg->utcTime >= 0) {
