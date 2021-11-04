@@ -19,6 +19,19 @@ CurlMulti::CurlMulti()
 CurlMulti::~CurlMulti()
 {
     delete mLoopThread;
+    {
+        std::lock_guard<std::mutex> lockGuard(mListMutex);
+        for (auto item : mRemoveList) {
+            curl_multi_remove_handle(multi_handle, item);
+        }
+        mRemoveList.clear();
+        for (auto item : mDeleteList) {
+            item->disableCallBack();
+            curl_multi_remove_handle(multi_handle, item->getCurlHandle());
+            delete item;
+        }
+        mDeleteList.clear();
+    }
     if (multi_handle) {
         curl_multi_cleanup(multi_handle);
     }
@@ -40,8 +53,8 @@ int CurlMulti::loop()
         mAddList.clear();
 
         for (auto item : mDeleteList) {
-            curl_multi_add_handle(multi_handle, item->getCurlHandle());
             item->disableCallBack();
+            curl_multi_remove_handle(multi_handle, item->getCurlHandle());
             delete item;
         }
         mDeleteList.clear();
