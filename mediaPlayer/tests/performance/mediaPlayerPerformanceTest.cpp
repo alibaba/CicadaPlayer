@@ -4,6 +4,7 @@
 #include "tests/mediaPlayerTest.h"
 #include "tests/player_command.h"
 #include "gtest/gtest.h"
+#include <media_player_error_def.h>
 #include <utils/frame_work_log.h>
 #include <utils/globalSettings.h>
 #include <utils/timer.h>
@@ -28,6 +29,7 @@ typedef struct prepareContent {
     int64_t prepareStart;
     bool prepared;
     int64_t prepareUse;
+    Cicada::MediaPlayer *player;
 
 } prepareContent;
 
@@ -50,11 +52,59 @@ static void onPlayerPrepared(void *userData)
 static int onCallback(Cicada::MediaPlayer *player, void *arg)
 {
     auto *content = static_cast<prepareContent *>(arg);
+    if (!content->player) {
+        content->player = player;
+        MediaPlayerConfig config = *player->GetConfig();
+        config.networkRetryCount = 0;
+        player->SetConfig(&config);
+    }
     if (content->prepared) {
         return -1;
     }
     return 0;
 }
+
+static void onEvent(int64_t errorCode, const void *errorMsg, void *userData)
+{
+    auto *cont = static_cast<prepareContent *>(userData);
+
+    if (errorMsg == nullptr) {
+        return;
+    }
+
+    AF_LOGD("%s\n", errorMsg);
+
+    switch (errorCode) {
+        case MediaPlayerEventType::MEDIA_PLAYER_EVENT_NETWORK_RETRY:
+            cont->player->Reload();
+            break;
+
+        case MediaPlayerEventType::MEDIA_PLAYER_EVENT_DIRECT_COMPONENT_MSG: {
+            AF_LOGI("get a dca message %s\n", errorMsg);
+            CicadaJSONItem msg((char *) errorMsg);
+            if (msg.getString("content", "") == "hello") {
+                msg.deleteItem("content");
+                msg.addValue("content", "hi");
+                msg.addValue("cmd", 0);
+                cont->player->InvokeComponent(msg.printJSON().c_str());
+            }
+            break;
+        }
+
+        default:
+            break;
+    }
+}
+
+static void onError(int64_t errorCode, const void *errorMsg, void *userData)
+{
+    auto *cont = static_cast<prepareContent *>(userData);
+
+    if (errorMsg) {
+        AF_LOGE("%s\n", errorMsg);
+    }
+}
+
 
 static int64_t prepareOnce()
 {
@@ -62,9 +112,12 @@ static int64_t prepareOnce()
     content.prepareStart = -1;
     content.prepared = false;
     content.prepareUse = -1;
+    content.player = nullptr;
     playerListener listener{nullptr};
     listener.Prepared = onPlayerPrepared;
     listener.StatusChanged = prepareOnStatusChanged;
+    listener.EventCallback = onEvent;
+    listener.ErrorCallback = onError;
     listener.userData = &content;
     test_simple("https://alivc-demo-vod.aliyuncs.com/sv/34988cb9-17c9d023e6d/34988cb9-17c9d023e6d.mp4", nullptr, onCallback, &content,
                 &listener);
