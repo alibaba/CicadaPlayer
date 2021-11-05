@@ -3821,9 +3821,6 @@ bool SuperMediaPlayer::CreateVideoRender(uint64_t flags)
     if (mAVDeviceManager->isVideoRenderValid() && mAVDeviceManager->getVideoRender()->getFlags() == flags) {
         return true;
     }
-
-    // lock mAppStatusMutex before mCreateMutex
-    std::lock_guard<std::mutex> uMutex(mCreateMutex);
     mAVDeviceManager->createVideoRender(flags);
     if (!mAVDeviceManager->getVideoRender()) {
         return false;
