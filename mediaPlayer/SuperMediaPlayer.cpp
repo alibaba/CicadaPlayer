@@ -332,8 +332,6 @@ int SuperMediaPlayer::Stop()
     mCanceled = true;
     mPNotifier->Clean();
     mPNotifier->Enable(false);
-    Interrupt(true);
-    mPlayerCondition.notify_one();
 
     // video render use a dispatch_sync to main thread, to avoid dead lock,release the thread to deal dispatch_sync job
     // FIXME: create render in setView api in main thread on apple platform
@@ -347,6 +345,8 @@ int SuperMediaPlayer::Stop()
         }
     }
 #endif
+    Interrupt(true);
+    mPlayerCondition.notify_one();
     mApsaraThread->pause();
     mAVDeviceManager->invalidDevices(SMPAVDeviceManager::DEVICE_TYPE_AUDIO | SMPAVDeviceManager::DEVICE_TYPE_VIDEO);
     mPlayStatus = PLAYER_STOPPED;
