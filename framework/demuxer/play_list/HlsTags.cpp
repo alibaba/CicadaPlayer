@@ -60,10 +60,10 @@ namespace Cicada {
             return ret;
         }
 
-        std::pair<std::size_t, std::size_t> Attribute::getByteRange() const
+        std::pair<int64_t, int64_t> Attribute::getByteRange() const
         {
-            std::size_t length = 0;
-            std::size_t offset = 0;
+            int64_t length = 0;
+            int64_t offset = -1;
             std::istringstream is(value);
             is.imbue(std::locale("C"));
 

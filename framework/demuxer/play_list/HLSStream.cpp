@@ -156,9 +156,8 @@ namespace Cicada {
             bool downloadComplete = curSeg->isDownloadComplete(bHasUnusedParts);
             if (bHasUnusedParts) {
                 curSeg->moveToNextPart();
-                string uri = Helper::combinePaths(mPTracker->getBaseUri(), curSeg->getDownloadUrl());
-                AF_LOGD("[hls][lhls] moveToNextPart, uri=%s", uri.c_str());
-                int ret = tryOpenSegment(uri, curSeg->rangeStart, curSeg->rangeEnd);
+                AF_LOGD("[hls][lhls] moveToNextPart, uri=%s", curSeg->getDownloadUrl().c_str());
+                int ret = tryOpenSegment(curSeg);
                 if (ret < 0) {
                     return MoveToNextPart::segmentEnd;
                 }
@@ -226,7 +225,6 @@ namespace Cicada {
 
     int HLSStream::upDateInitSection()
     {
-        string uri;
         int ret;
         mInitSegPtr = 0;
 
@@ -234,8 +232,7 @@ namespace Cicada {
             return 0;
         }
 
-        uri = Helper::combinePaths(mPTracker->getBaseUri(), mCurSeg->init_section->getDownloadUrl());
-        ret = tryOpenSegment(uri, mCurSeg->init_section->rangeStart, mCurSeg->init_section->rangeEnd);
+        ret = tryOpenSegment(mCurSeg->init_section);
 
         if (ret < 0) {
             return ret;
@@ -399,11 +396,8 @@ namespace Cicada {
                 return ret;
             }
 
-            string uri;
-            uri = Helper::combinePaths(mPTracker->getBaseUri(),
-                                       mCurSeg->getDownloadUrl());
-            AF_LOGD("open uri is %s seq is %llu\n", uri.c_str(), mCurSeg->sequence);
-            ret = tryOpenSegment(uri, mCurSeg->rangeStart, mCurSeg->rangeEnd);
+            AF_LOGD("open uri is %s seq is %llu\n", mCurSeg->getDownloadUrl().c_str(), mCurSeg->sequence);
+            ret = tryOpenSegment(mCurSeg);
 
             if (isHttpError(ret)) {
                 resetSource();
@@ -582,7 +576,7 @@ namespace Cicada {
 
     int HLSStream::tryOpenSegment(const string &uri, int64_t start, int64_t end)
     {
-        AF_LOGD("tryOpenSegment: %s\n", uri.c_str());
+        AF_LOGD("tryOpenSegment: %s(%lld,%lld)\n", uri.c_str(), start, end);
         int retryTimes = 0;
         int ret;
 
@@ -599,6 +593,14 @@ namespace Cicada {
         } while (isHttpError(ret) && !mInterrupted);
 
         return ret;
+    }
+
+    int HLSStream::tryOpenSegment(std::shared_ptr<segment> seg)
+    {
+        std::string uri = Helper::combinePaths(mPTracker->getBaseUri(), seg->getDownloadUrl());
+        int64_t rangeStart, rangeEnd;
+        seg->getDownloadRange(rangeStart, rangeEnd);
+        return tryOpenSegment(uri, rangeStart, rangeEnd);
     }
 
     int HLSStream::openSegment(const string &uri, int64_t start, int64_t end)
@@ -999,8 +1001,7 @@ namespace Cicada {
         if (seg) {
             do {
                 mCurSeg = seg;
-                string uri = Helper::combinePaths(mPTracker->getBaseUri(), seg->getDownloadUrl());
-                ret = tryOpenSegment(uri, seg->rangeStart, seg->rangeEnd);
+                ret = tryOpenSegment(seg);
 
                 if (isHttpError(ret) || isLocalFileError(ret)) {
                     resetSource();
@@ -1049,8 +1050,7 @@ namespace Cicada {
         } else if (mPTracker->hasPreloadSegment()) {
             mCurSeg = mPTracker->usePreloadSegment();
             AF_LOGD("[lhls] use virtual segment of preload hint, uri=%s", mCurSeg->getDownloadUrl().c_str());
-            std::string uri = Helper::combinePaths(mPTracker->getBaseUri(), mCurSeg->getDownloadUrl());
-            int ret = tryOpenSegment(uri, mCurSeg->rangeStart, mCurSeg->rangeEnd);
+            int ret = tryOpenSegment(mCurSeg);
             AF_LOGD("[lhls] use virtual segment of preload hint, ret=%d", ret);
             if (ret < 0) {
                 return -EAGAIN;
@@ -1109,8 +1109,7 @@ namespace Cicada {
                 if (ret > 0) {
                     //got new initSection, need reopen curSeg.
                     //because use same data source pointer for read init section and segment.
-                    string uri = Helper::combinePaths(mPTracker->getBaseUri(), mCurSeg->getDownloadUrl());
-                    tryOpenSegment(uri, mCurSeg->rangeStart, mCurSeg->rangeEnd);
+                    tryOpenSegment(mCurSeg);
                 }
 
                 ret = createDemuxer();

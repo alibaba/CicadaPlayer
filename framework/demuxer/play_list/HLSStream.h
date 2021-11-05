@@ -147,6 +147,8 @@ namespace Cicada {
 
         int tryOpenSegment(const string &uri, int64_t start, int64_t end);
 
+        int tryOpenSegment(std::shared_ptr<segment> seg);
+
         int createDemuxer();
 
         int readSegment(const uint8_t *buffer, int size);

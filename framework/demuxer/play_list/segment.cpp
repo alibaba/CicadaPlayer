@@ -59,11 +59,24 @@ namespace Cicada {
         if (mSegType == SEG_NORMAL) {
             return mUri;
         } else if (mSegType == SEG_LHLS) {
-            std::lock_guard<std::recursive_mutex> lck(mMutex);
             return mDownloadUri;
         } else {
             assert(0);
             return "";
+        }
+    }
+
+    void segment::getDownloadRange(int64_t &start, int64_t &end)
+    {
+        std::lock_guard<std::recursive_mutex> lck(mMutex);
+        if (mSegType == SEG_NORMAL) {
+            start = rangeStart;
+            end = rangeEnd;
+        } else if (mSegType == SEG_LHLS) {
+            start = downloadRangeStart;
+            end = downloadRangeEnd;
+        } else {
+            assert(0);
         }
     }
 
@@ -90,12 +103,13 @@ namespace Cicada {
     void segment::moveToNextPart()
     {
         lock_guard<recursive_mutex> lck(mMutex);
-        std::string uri = "";
 
         if (mUri.empty()) {
             // dose not have complete segment, use part
             if (!mParts.empty() && mPartsNextIndex >= 0 && mPartsNextIndex < mParts.size()) {
-                uri = mParts[mPartsNextIndex].uri;
+                mDownloadUri = mParts[mPartsNextIndex].uri;
+                downloadRangeStart = mParts[mPartsNextIndex].rangeStart;
+                downloadRangeEnd = mParts[mPartsNextIndex].rangeEnd;
                 ++mPartsNextIndex;
             } else {
                 AF_LOGD("Not have enough segment parts [%d] [%d]", mPartsNextIndex, (int) mParts.size());
@@ -105,19 +119,22 @@ namespace Cicada {
             if (mPartsNextIndex > 0) {
                 // has played part, use next part
                 if (!mParts.empty() && mPartsNextIndex >= 0 && mPartsNextIndex < mParts.size()) {
-                    uri = mParts[mPartsNextIndex].uri;
+                    mDownloadUri = mParts[mPartsNextIndex].uri;
+                    downloadRangeStart = mParts[mPartsNextIndex].rangeStart;
+                    downloadRangeEnd = mParts[mPartsNextIndex].rangeEnd;
                     ++mPartsNextIndex;
                 } else {
                     AF_LOGD("Not have enough segment parts [%d] [%d]", mPartsNextIndex, (int) mParts.size());
                 }
             } else {
                 // has not been played, use complete segment
-                uri = mUri;
+                mDownloadUri = mUri;
+                downloadRangeStart = rangeStart;
+                downloadRangeEnd = rangeEnd;
                 mPartsNextIndex = -1;
             }
         }
 
-        mDownloadUri = uri;
     }
 
     void segment::moveToPart(int partIndex)
@@ -133,16 +150,17 @@ namespace Cicada {
         if (fixedPartIndex >= mParts.size()) {
             fixedPartIndex = mParts.size() - 1;
         }
-        std::string uri;
         if (!mUri.empty() && fixedPartIndex == 0) {
-            uri = mUri;
+            mDownloadUri = mUri;
+            downloadRangeStart = rangeStart;
+            downloadRangeEnd = rangeEnd;
             mPartsNextIndex = -1;
         } else {
-            uri = mParts[fixedPartIndex].uri;
+            mDownloadUri = mParts[fixedPartIndex].uri;
+            downloadRangeStart = mParts[fixedPartIndex].rangeStart;
+            downloadRangeEnd = mParts[fixedPartIndex].rangeEnd;
             mPartsNextIndex = fixedPartIndex + 1;
         }
-        
-        mDownloadUri = uri;
     }
 
     void segment::moveToNearestIndependentPart(int partIndex)

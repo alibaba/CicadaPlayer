@@ -163,13 +163,14 @@ namespace Cicada {
         mtime_t absReferenceTime = INT64_MIN;
         uint64_t sequenceNumber = 0;
         uint64_t discontinuityNum = 0;
-        std::size_t prevbyterangeoffset = 0;
+        int64_t prevbyterangeoffset = 0;
         const SingleValueTag *ctx_byterange = nullptr;
         std::vector<SegmentEncryption> encryptionArray;
         const ValuesListTag *ctx_extinf = nullptr;
         std::list<Tag *>::const_iterator it;
         std::shared_ptr<segment> curInitSegment = nullptr;
         std::vector<SegmentPart> segmentParts;
+        int64_t prePartRangeOffset = 0;
         bool clearKeyArray = true;
 
         for (it = tagslist.begin(); it != tagslist.end(); ++it) {
@@ -202,6 +203,7 @@ namespace Cicada {
                         pSegment->updateParts(segmentParts);
                         segmentParts.clear();
                     }
+                    prePartRangeOffset = 0;
 
                     //if ((unsigned) rep->getStreamFormat() == StreamFormat::UNKNOWN)
                     //    setFormatFromExtension(rep, uritag->getValue().value);
@@ -231,9 +233,9 @@ namespace Cicada {
                     segmentList->addSegment(pSegment);
 
                     if (ctx_byterange) {
-                        std::pair<std::size_t, std::size_t> range = ctx_byterange->getValue().getByteRange();
+                        std::pair<int64_t, int64_t> range = ctx_byterange->getValue().getByteRange();
 
-                        if (range.first == 0) { /* first == size, second = offset */
+                        if (range.first < 0) { /* first == size, second = offset */
                             range.first = prevbyterangeoffset;
                         }
 
@@ -346,7 +348,7 @@ namespace Cicada {
                             const Attribute *byterangeAttr = keytag->getAttributeByName("BYTERANGE");
 
                             if (byterangeAttr) {
-                                const std::pair<std::size_t, std::size_t> range = byterangeAttr->unescapeQuotes().getByteRange();
+                                const std::pair<int64_t, int64_t> range = byterangeAttr->unescapeQuotes().getByteRange();
                                 //   initSegment->setByteRange(range.first, range.first + range.second - 1);
                             }
 
@@ -358,28 +360,43 @@ namespace Cicada {
 
                 case AttributesTag::EXTXPART: {
                     const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
-                    SegmentPart part;
-                    part.sequence = segmentParts.size();
+                    if (keytag) {
+                        SegmentPart part;
+                        part.sequence = segmentParts.size();
 
-                    if (keytag->getAttributeByName("DURATION")) {
-                        double duration = keytag->getAttributeByName("DURATION")->floatingPoint();
-                        const auto nzDuration = static_cast<const mtime_t>(CLOCK_FREQ * duration);
-                        part.duration = nzDuration;
+                        const Attribute *durationAttr = keytag->getAttributeByName("DURATION");
+                        if (durationAttr) {
+                            double duration = durationAttr->floatingPoint();
+                            const auto nzDuration = static_cast<const mtime_t>(CLOCK_FREQ * duration);
+                            part.duration = nzDuration;
+                        }
+                        if (part.duration > rep->partTargetDuration) {
+                            rep->partTargetDuration = part.duration;
+                        }
+
+                        const Attribute *uriAttr = keytag->getAttributeByName("URI");
+                        if (uriAttr) {
+                            part.uri = uriAttr->quotedString();
+                        }
+
+                        const Attribute *independentAttr = keytag->getAttributeByName("INDEPENDENT");
+                        if (independentAttr) {
+                            part.independent = (independentAttr->value == "YES");
+                        }
+
+                        const Attribute *rangeAttr = keytag->getAttributeByName("BYTERANGE");
+                        if (rangeAttr) {
+                            std::pair<int64_t, int64_t> range = rangeAttr->getByteRange();
+                            if (range.first < 0) {
+                                range.first = prePartRangeOffset;
+                            }
+                            prePartRangeOffset = range.first + range.second;
+                            part.rangeStart = range.first;
+                            part.rangeEnd = range.first + range.second - 1;
+                        }
+
+                        segmentParts.push_back(part);
                     }
-
-                    if (part.duration > rep->partTargetDuration) {
-                        rep->partTargetDuration = part.duration;
-                    }
-
-                    if (keytag->getAttributeByName("URI")) {
-                        part.uri = keytag->getAttributeByName("URI")->quotedString();
-                    }
-
-                    if (keytag->getAttributeByName("INDEPENDENT")) {
-                        part.independent = (keytag->getAttributeByName("INDEPENDENT")->value == "YES");
-                    }
-
-                    segmentParts.push_back(part);
                     break;
                 }
 
@@ -486,9 +503,9 @@ namespace Cicada {
             totalduration += duration;
 
             if (ctx_byterange) {
-                std::pair<std::size_t, std::size_t> range = ctx_byterange->getValue().getByteRange();
+                std::pair<int64_t, int64_t> range = ctx_byterange->getValue().getByteRange();
                 
-                if (range.first == 0) {
+                if (range.first < 0) {
                     range.first = prevbyterangeoffset;
                 }
             

@@ -13,18 +13,12 @@ using namespace std;
 
 namespace Cicada {
     typedef struct SegmentPart {
-        int64_t duration;
-        string uri;
-        bool independent;
-        uint64_t sequence;
-
-        SegmentPart()
-        {
-            duration = 0;
-            uri = "";
-            independent = false;
-            sequence = 0;
-        }
+        bool independent{false};
+        int64_t duration{0};
+        uint64_t sequence{0};
+        int64_t rangeStart{INT64_MIN};
+        int64_t rangeEnd{INT64_MIN};
+        std::string uri;
     } SegmentPart;
 
     struct PreloadHint {

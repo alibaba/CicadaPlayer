@@ -26,7 +26,7 @@ namespace Cicada{
 
             std::vector<uint8_t> hexSequence() const;
 
-            std::pair<std::size_t, std::size_t> getByteRange() const;
+            std::pair<int64_t, int64_t> getByteRange() const;
 
             std::pair<int, int> getResolution() const;
 
