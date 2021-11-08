@@ -323,9 +323,9 @@ int SuperMediaPlayer::Stop()
         ((mPlayStatus == PLAYER_IDLE) || (mPlayStatus == PLAYER_STOPPED))) {
         return 0;
     }
-    AF_LOGI("Player ReadPacket Stop");
 
     std::unique_lock<std::mutex> uMutex(mPlayerMutex);
+    AF_LOGI("Player ReadPacket Stop");
     int64_t t1 = af_getsteady_ms();
     AF_TRACE;
     waitingForStart = false;
@@ -334,6 +334,19 @@ int SuperMediaPlayer::Stop()
     mPNotifier->Enable(false);
     Interrupt(true);
     mPlayerCondition.notify_one();
+
+    // video render use a dispatch_sync to main thread, to avoid dead lock,release the thread to deal dispatch_sync job
+    // FIXME: create render in setView api in main thread on apple platform
+#ifdef __APPLE__
+    if (strcmp(dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL), dispatch_queue_get_label(dispatch_get_main_queue())) == 0) {
+        if (!mAVDeviceManager->isVideoRenderValid()) {
+            while (!mMainServiceCanceled) {
+                CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.01, 1);
+                AF_LOGI("Waiting for main service canceled\n");
+            }
+        }
+    }
+#endif
     mApsaraThread->pause();
     mAVDeviceManager->invalidDevices(SMPAVDeviceManager::DEVICE_TYPE_AUDIO | SMPAVDeviceManager::DEVICE_TYPE_VIDEO);
     mPlayStatus = PLAYER_STOPPED;

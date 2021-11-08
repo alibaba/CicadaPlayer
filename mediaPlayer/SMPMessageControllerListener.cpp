@@ -401,15 +401,6 @@ void SMPMessageControllerListener::ProcessSetViewMsg(void *view)
 {
     mPlayer.mSet->mView = view;
     std::unique_lock<std::mutex> uMutex(mPlayer.mCreateMutex);
-#ifdef __APPLE__
-    if (strcmp(dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL), dispatch_queue_get_label(dispatch_get_main_queue())) != 0) {
-        AF_LOGE("setView must be called in main thread\n");
-        return;
-    }
-    if (!mPlayer.mAVDeviceManager->getVideoRender()) {
-        mPlayer.mAVDeviceManager->createVideoRender(0);
-    }
-#endif
 
     if (mPlayer.mAVDeviceManager->getVideoRender() != nullptr) {
         mPlayer.mAVDeviceManager->getVideoRender()->setDisPlay(view);
