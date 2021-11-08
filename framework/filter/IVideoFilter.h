@@ -79,7 +79,7 @@ namespace Cicada {
 
         virtual bool isFeatureSupported(Feature feature) = 0;
 
-        void setInvalid(bool invalid)
+        virtual void setInvalid(bool invalid)
         {
             mInvalid = invalid;
         }
@@ -111,6 +111,11 @@ namespace Cicada {
         }
 
     protected:
+        virtual bool isOverFps(IAFFrame *frame)
+        {
+            return false;
+        };
+
         IAFFrame::videoInfo mSrcFormat{};
         IAFFrame::videoInfo mDstFormat{};
         bool mInvalid{false};
