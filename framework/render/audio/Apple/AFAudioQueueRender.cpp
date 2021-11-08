@@ -146,8 +146,8 @@ AFAudioQueueRender::~AFAudioQueueRender()
     AFAudioSessionWrapper::removeObserver(this);
 #endif
     mRunning = false;
-    if (_audioQueueRef) {
-        AudioQueueDispose(_audioQueueRef, false);
+    if (mAQLoop) {
+        CFRunLoopStop(mAQLoop);
     }
     if (mAudioQueueThread) {
         mAudioQueueThread->stop();
@@ -390,6 +390,7 @@ int AFAudioQueueRender::audioQueueLoop()
         mInitStatus = -1;
         return -1;
     }
+    mAQLoop = CFRunLoopGetCurrent();
     UInt32 propValue = 1;
     AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_EnableTimePitch, &propValue, sizeof(propValue));
     propValue = 1;
@@ -429,7 +430,6 @@ int AFAudioQueueRender::audioQueueLoop()
             layout.mChannelLayoutTag = kAudioChannelLayoutTag_Stereo;
             break;
     }
-
     AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_ChannelLayout, &layout, sizeof(AudioChannelLayout));
     mInitStatus = 1;
 
@@ -470,10 +470,8 @@ int AFAudioQueueRender::audioQueueLoop()
     AF_TRACE;
     if (_audioQueueRef) {
         //        AF_TRACE;
-        //    //    AudioQueueStop(_audioQueueRef, true);
-        //        AF_TRACE;
-        //     //   AudioQueueDispose(_audioQueueRef, false);
-        //        AF_TRACE;
+        //  AudioQueueStop(_audioQueueRef, true);
+        AudioQueueDispose(_audioQueueRef, false);
     }
     return -1;
 }

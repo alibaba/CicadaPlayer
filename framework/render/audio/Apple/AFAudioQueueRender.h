@@ -115,6 +115,7 @@ namespace Cicada {
         float mVolume{1.0};
         bool mMute{false};
         std::atomic<uint64_t> mQueueDuration{0};
+        CFRunLoopRef mAQLoop{nullptr};
     };
 }// namespace Cicada
 
