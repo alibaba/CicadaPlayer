@@ -9,7 +9,6 @@
 #include "CURLShareInstance.h"
 #include "CurlMulti.h"
 #include "data_source/DataSourceUtils.h"
-#include "utils/AsyncJob.h"
 #include "utils/CicadaJSON.h"
 #include <thread>
 #include <utils/errors/framework_error.h>
@@ -269,34 +268,18 @@ void CurlDataSource2::Close()
 void CurlDataSource2::closeConnections(bool current)
 {
     lock_guard<mutex> lock(mMutex);
-    CURLConnection2 *deleteConnection = nullptr;
-    vector<CURLConnection2 *> *pConnections = mConnections;
-    mConnections = nullptr;
-
-    if (current) {
-        deleteConnection = mPConnection;
+    if (current && mPConnection) {
+        mPConnection->deleteFormMulti();
         mPConnection = nullptr;
     }
-    bool needAsync = true;
-    if (deleteConnection) {
-        if (deleteConnection->isDNSResolved() || (mDNSResolved && mCurrentHttpVersion >= CURL_HTTP_VERSION_2_0) || !AsyncJob::Instance()) {
-            needAsync = false;
-        }
-        if (needAsync) {
-            CurlMulti *multi = mMulti;
-            deleteConnection->disableCallBack();
-            AsyncJob::Instance()->addJob([deleteConnection] { deleteConnection->deleteFormMulti(); });
-        } else {
-            deleteConnection->deleteFormMulti();
-        }
-    }
 
-    if (pConnections) {
-        for (auto item = pConnections->begin(); item != pConnections->end();) {
+    if (mConnections) {
+        for (auto item = mConnections->begin(); item != mConnections->end();) {
             (*item)->deleteFormMulti();
-            item = pConnections->erase(item);
+            item = mConnections->erase(item);
         }
-        delete pConnections;
+        delete mConnections;
+        mConnections = nullptr;
     }
 }
 
