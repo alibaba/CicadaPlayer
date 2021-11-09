@@ -506,6 +506,7 @@ int CURLConnection2::FillBuffer(uint32_t want, CurlMulti &multi)
             //sleep 10ms ， then retry connect..
             af_msleep(10);
             SetResume(mFilePos);
+            applyReconnect(true);
             addToMulti();
             // Return to the beginning of the loop:
             continue;
