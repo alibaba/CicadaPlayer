@@ -48,24 +48,38 @@ int CurlMulti::loop()
     CURLMcode mCode;
     int numfds;
     CURLMcode mc = CURLM_OK;
+    std::list<CURLConnection2 *> tempList;
     {
         std::lock_guard<std::mutex> lockGuard(mListMutex);
         for (auto item : mRemoveList) {
-            curl_multi_remove_handle(multi_handle, item->getCurlHandle());
+            tempList.push_back(item);
         }
         mRemoveList.clear();
+    }
+    for (auto item : tempList) {
+        curl_multi_remove_handle(multi_handle, item->getCurlHandle());
+    }
+    tempList.clear();
+    {
+        std::lock_guard<std::mutex> lockGuard(mListMutex);
         for (auto item : mAddList) {
             curl_multi_add_handle(multi_handle, item->getCurlHandle());
         }
         mAddList.clear();
-
+    }
+    {
+        std::lock_guard<std::mutex> lockGuard(mListMutex);
         for (auto item : mDeleteList) {
             item->disableCallBack();
-            curl_multi_remove_handle(multi_handle, item->getCurlHandle());
-            delete item;
+            tempList.push_back(item);
         }
         mDeleteList.clear();
     }
+    for (auto item : tempList) {
+        curl_multi_remove_handle(multi_handle, item->getCurlHandle());
+        delete item;
+    }
+
 
     do {
         mCode = curl_multi_perform(multi_handle, &mStillRunning);
