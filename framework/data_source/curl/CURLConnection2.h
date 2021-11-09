@@ -5,7 +5,6 @@
 #ifndef CICADAMEDIA_CURLCONNECTION2_H
 #define CICADAMEDIA_CURLCONNECTION2_H
 
-#include "CurlMulti.h"
 #include <atomic>
 #include <curl/curl.h>
 #include <data_source/IDataSource.h>
@@ -13,6 +12,7 @@
 #include <utils/ringBuffer.h>
 
 namespace Cicada {
+    class CurlMulti;
     class CURLConnection2 {
     public:
         class CURLConnectionListener {
@@ -44,6 +44,12 @@ namespace Cicada {
 
         void SetResume(int64_t pos);
 
+        void addToMulti();
+
+        void removeFormMulti();
+
+        void deleteFormMulti();
+
         int FillBuffer(uint32_t want, CurlMulti &multi);
 
         int short_seek(int64_t off);
@@ -71,6 +77,15 @@ namespace Cicada {
             return mDNSResolved;
         }
         void pause(bool pause);
+        /*
+        *  for multi handle call back, the easy handle will be removed after this callback
+        */
+        void onStatus(bool eos, CURLcode status)
+        {
+            mEOS = eos;
+            mStatus = status;
+            still_running = 0;
+        }
 
     private:
         int esayHandle_set_common_opt();
@@ -114,6 +129,8 @@ namespace Cicada {
         CURLConnectionListener *mListener{};
         bool mPaused{false};
         std::mutex mCurlCbMutex;
+        bool mEOS{false};
+        CURLcode mStatus{CURLE_OK};
     };
 };// namespace Cicada
 

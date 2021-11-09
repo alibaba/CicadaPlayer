@@ -7,6 +7,7 @@
 #include <pthread.h>
 
 #include "CURLShareInstance.h"
+#include "CurlMulti.h"
 #include "data_source/DataSourceUtils.h"
 #include "utils/AsyncJob.h"
 #include "utils/CicadaJSON.h"
@@ -72,7 +73,7 @@ int CurlDataSource2::curl_connect(CURLConnection2 *pConnection, int64_t filePos)
     long response;
     CURL_LOGD("start connect %lld\n", filePos);
     pConnection->SetResume(filePos);
-    mMulti->addHandle(pConnection->getCurlHandle());
+    pConnection->addToMulti();
 
     if ((ret = pConnection->FillBuffer(1, *mMulti)) < 0) {
         AF_LOGE("Connect, didn't get any data from stream.");
@@ -225,7 +226,7 @@ int CurlDataSource2::Open(const string &url)
 
     mOpenTimeMS = af_gettime_relative() / 1000;
 
-    mMulti->removeHandle(mPConnection->getCurlHandle());
+    mPConnection->removeFormMulti();
     mPConnection->reset();
     bool isRTMP = url.compare(0, 7, "rtmp://") == 0;
     mLocation = (isRTMP ? (url + " live=1").c_str() : url.c_str());
@@ -284,15 +285,15 @@ void CurlDataSource2::closeConnections(bool current)
         if (needAsync) {
             CurlMulti *multi = mMulti;
             deleteConnection->disableCallBack();
-            AsyncJob::Instance()->addJob([deleteConnection, multi] { multi->deleteHandle(deleteConnection); });
+            AsyncJob::Instance()->addJob([deleteConnection] { deleteConnection->deleteFormMulti(); });
         } else {
-            mMulti->deleteHandle(deleteConnection);
+            deleteConnection->deleteFormMulti();
         }
     }
 
     if (pConnections) {
         for (auto item = pConnections->begin(); item != pConnections->end();) {
-            mMulti->deleteHandle((*item));
+            (*item)->deleteFormMulti();
             item = pConnections->erase(item);
         }
         delete pConnections;
@@ -374,16 +375,17 @@ int64_t CurlDataSource2::Seek(int64_t offset, int whence)
 
     if (con) {
         mPConnection->pause(true);
-        mMulti->removeHandle(mPConnection->getCurlHandle());
+        mPConnection->removeFormMulti();
         mConnections->push_back(mPConnection);
 
         if (mConnections->size() > max_connection) {
             CURLConnection2 *connection = mConnections->front();
             mConnections->erase(mConnections->begin());
             mMulti->deleteHandle(connection);
+            connection->deleteFormMulti();
         }
         mPConnection = con;
-        mMulti->addHandle(mPConnection->getCurlHandle());
+        mPConnection->addToMulti();
         mPConnection->pause(false);
         AF_LOGW("short seek ok\n");
         return offset;
@@ -399,7 +401,7 @@ int64_t CurlDataSource2::TrySeekByNewConnection(int64_t offset)
 {
 #if USE_MULTI
     // try seek use a new connection
-    mMulti->removeHandle(mPConnection->getCurlHandle());
+    mPConnection->removeFormMulti();
     CURLConnection2 *pConnection_s = initConnection();
     curl_easy_setopt(pConnection_s->getCurlHandle(), CURLOPT_FRESH_CONNECT, SEEK_USE_NEW_CONNECTION);
     pConnection_s->setInterrupt(&mInterrupt);
@@ -413,7 +415,7 @@ int64_t CurlDataSource2::TrySeekByNewConnection(int64_t offset)
         if (mConnections->size() > max_connection) {
             CURLConnection2 *connection = mConnections->front();
             mConnections->erase(mConnections->begin());
-            mMulti->deleteHandle(connection);
+            connection->deleteFormMulti();
         }
 
         mPConnection = pConnection_s;
@@ -421,10 +423,10 @@ int64_t CurlDataSource2::TrySeekByNewConnection(int64_t offset)
     }
 
     // try seek faild, use the old connection
-    mMulti->deleteHandle(pConnection_s);
+    pConnection_s->deleteFormMulti();
     return ret;
 #else
-    mMulti->deleteHandle(mPConnection);
+    mPConnection->deleteFormMulti();
     CURLConnection2 *pConnection_s = initConnection();
     pConnection_s->setInterrupt(&mInterrupt);
     curl_easy_setopt(pConnection_s->getCurlHandle(), CURLOPT_FRESH_CONNECT, SEEK_USE_NEW_CONNECTION);

@@ -6,12 +6,10 @@
 #define FRAMEWORK_DATASOURCE_CURLSOURCE2_H
 
 #include "CURLConnection2.h"
-#include "CurlMulti.h"
 #include "data_source/IDataSource.h"
 #include "data_source/dataSourcePrototype.h"
 #include "utils/ringBuffer.h"
 #include <condition_variable>
-#include <curl/multi.h>
 #include <mutex>
 #include <utils/globalNetWorkManager.h>
 

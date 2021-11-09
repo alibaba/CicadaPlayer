@@ -19,9 +19,8 @@ namespace Cicada {
         CurlMulti();
         ~CurlMulti();
 
-        CURLMcode addHandle(CURL *curl_handle);
-        CURLcode performHandle(CURL *curl_handle, bool &eof, CURLMcode &mCode);
-        CURLMcode removeHandle(CURL *curl_handle);
+        CURLMcode addHandle(CURLConnection2 *curl_connection);
+        CURLMcode removeHandle(CURLConnection2 *curl_connection);
         void deleteHandle(CURLConnection2 *curl_connection);
         int poll(int time_ms);
         int wakeUp();
@@ -36,18 +35,9 @@ namespace Cicada {
         int mStillRunning{0};
 
         std::mutex mListMutex;
-        std::list<CURL *> mAddList;
-        std::list<CURL *> mRemoveList;
+        std::list<CURLConnection2 *> mAddList;
+        std::list<CURLConnection2 *> mRemoveList;
         std::list<CURLConnection2 *> mDeleteList;
-
-        class curl_handle_status {
-        public:
-            CURL *curl_handle{nullptr};
-            bool eof{false};
-            CURLcode status{CURLE_OK};
-        };
-        std::mutex mStatusListMutex;
-        std::list<curl_handle_status> mStatusList;
     };
 
     class CurlMultiManager {

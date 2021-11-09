@@ -5,6 +5,7 @@
 
 #include "CURLConnection2.h"
 #include "CURLShareInstance.h"
+#include "CurlMulti.h"
 #include <algorithm>
 #include <cassert>
 #include <cerrno>
@@ -153,6 +154,8 @@ void Cicada::CURLConnection2::reset()
     RingBufferClear(pRbuf);
     responseSize = 0;
     mDNSResolved = false;
+    mEOS = false;
+    mStatus = CURLE_OK;
 
     if (response) {
         response[0] = 0;
@@ -396,21 +399,9 @@ int CURLConnection2::FillBuffer(uint32_t want, CurlMulti &multi)
             AF_LOGW("FRAMEWORK_ERR_EXIT");
             return FRAMEWORK_ERR_EXIT;
         }
-        //        if (mPaused) {
-        //            /*
-        //             * curl_easy_pause(mHttp_handle, CURLPAUSE_CONT) will sync to flush the data to write_callback, so we set mPaused to false first.
-        //             */
-        //            mPaused = false;
-        //            curl_easy_pause(mHttp_handle, CURLPAUSE_CONT);
-        //            CURL_LOGD("resume form paused\n");
-        //            assert(!mPaused);
-        //        }
-
-        CURLMcode result;
-        bool eof = false;
-
-        CURLcode CURLResult = multi.performHandle(mHttp_handle, eof, result);
-        if (eof) {
+        CURLMcode result = CURLM_OK;
+        CURLcode CURLResult = mStatus;
+        if (mEOS) {
             return 0;
         }
 
@@ -470,13 +461,9 @@ int CURLConnection2::FillBuffer(uint32_t want, CurlMulti &multi)
         }
 
         if (CURLResult != CURLE_OK) {
-            //            if (result != CURLM_OK) {
-            //                AF_LOGE("FRAMEWORK_NET_ERR_UNKNOWN");
-            //                return FRAMEWORK_NET_ERR_UNKNOWN;
-            //            }
-
             // Close handle
-            multi.removeHandle(mHttp_handle);
+
+            // multi handle will sync remove the connection after error or eof
             reset();
 
             // If we got here something is wrong
@@ -510,12 +497,8 @@ int CURLConnection2::FillBuffer(uint32_t want, CurlMulti &multi)
             //TODO need change this solution: report to user.
             //sleep 10ms ， then retry connect..
             af_msleep(10);
-            //            std::unique_lock<std::mutex> uMutex(curlContext.mSleepMutex);
-            //            (curlContext.mSleepCondition).wait_for(uMutex, std::chrono::milliseconds(10),
-            //                                                   [pConnection]() { return pInterrupted->load(); });
-            // Connect + seek to current position (again)
             SetResume(mFilePos);
-            multi.addHandle(mHttp_handle);
+            addToMulti();
             // Return to the beginning of the loop:
             continue;
         }
@@ -541,7 +524,7 @@ int CURLConnection2::FillBuffer(uint32_t want, CurlMulti &multi)
 
         switch (result) {
             case CURLM_OK: {
-                // TODO: poll ringbufer
+                // TODO: poll ringbuffer
                 int rc = multi.poll(10);
                 if (rc == SOCKET_ERROR) {
 #ifndef WIN32
@@ -662,7 +645,6 @@ int CURLConnection2::readBuffer(void *buf, size_t size)
         AF_LOGE("%s - Transfer ended before entire file was retrieved pos %lld, size %lld", __FUNCTION__, mFilePos, mFileSize);
         //   return -1;
     }
-
     return 0;
 }
 
@@ -711,4 +693,19 @@ void CURLConnection2::disableCallBack()
 void CURLConnection2::pause(bool pause)
 {
     //   mNeedPause = pause;
+}
+void CURLConnection2::addToMulti()
+{
+    mMulti->addHandle(this);
+    still_running = 1;
+}
+void CURLConnection2::removeFormMulti()
+{
+    if (still_running) {
+        mMulti->removeHandle(this);
+    }
+}
+void CURLConnection2::deleteFormMulti()
+{
+    mMulti->deleteHandle(this);
 }

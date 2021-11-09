@@ -10,6 +10,13 @@
 #include <utils/timer.h>
 using namespace Cicada;
 
+class curl_handle_status {
+public:
+    CURL *curl_handle{nullptr};
+    bool eof{false};
+    CURLcode status{CURLE_OK};
+};
+
 CurlMulti::CurlMulti()
 {
     multi_handle = curl_multi_init();
@@ -44,11 +51,11 @@ int CurlMulti::loop()
     {
         std::lock_guard<std::mutex> lockGuard(mListMutex);
         for (auto item : mRemoveList) {
-            curl_multi_remove_handle(multi_handle, item);
+            curl_multi_remove_handle(multi_handle, item->getCurlHandle());
         }
         mRemoveList.clear();
         for (auto item : mAddList) {
-            curl_multi_add_handle(multi_handle, item);
+            curl_multi_add_handle(multi_handle, item->getCurlHandle());
         }
         mAddList.clear();
 
@@ -66,28 +73,28 @@ int CurlMulti::loop()
 
     int msgs;
     CURLMsg *msg;
-    {
-        std::lock_guard<std::mutex> lock_guard(mStatusListMutex);
-        mStatusList.clear();
-        curl_handle_status status{};
-        while ((msg = curl_multi_info_read(multi_handle, &msgs))) {
-            status.curl_handle = msg->easy_handle;
-            status.status = msg->data.result;
-            if (msg->msg == CURLMSG_DONE) {
-                if (msg->data.result == CURLE_OK) {
-                    status.eof = true;
-                }
-                status.status = msg->data.result;
-            } else {
-                if (!mStillRunning && msg->data.result == CURLE_OK) {
-                    // we assume eof
-                    assert(0);
-                    status.eof = true;
-                    AF_LOGW("assume a abnormal eos\n");
-                    status.status = CURLE_OK;
-                }
+    curl_handle_status status{};
+    while ((msg = curl_multi_info_read(multi_handle, &msgs))) {
+        CURLConnection2 *curl_connection = nullptr;
+        curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &curl_connection);
+        assert(curl_connection != nullptr);
+        if (msg->msg == CURLMSG_DONE) {
+            if (msg->data.result == CURLE_OK) {
+                status.eof = true;
             }
-            mStatusList.push_back(status);
+            status.status = msg->data.result;
+        } else {
+            if (!mStillRunning && msg->data.result == CURLE_OK) {
+                // we assume eof
+                assert(0);
+                status.eof = true;
+                AF_LOGW("assume a abnormal eos\n");
+                status.status = CURLE_OK;
+            }
+        }
+        if (status.eof || status.status != CURLE_OK) {
+            curl_connection->onStatus(status.eof, status.status);
+            curl_multi_remove_handle(multi_handle, curl_connection->getCurlHandle());
         }
     }
 
@@ -103,45 +110,33 @@ int CurlMulti::loop()
     }
     return 0;
 }
-CURLMcode CurlMulti::addHandle(CURL *curl_handle)
+CURLMcode CurlMulti::addHandle(CURLConnection2 *curl_connection)
 {
     if (mLoopThread->getStatus() == afThread::THREAD_STATUS_IDLE) {
         mLoopThread->start();
     }
     std::lock_guard<std::mutex> lockGuard(mListMutex);
     for (auto &item : mRemoveList) {
-        if (item == curl_handle) {
+        if (item == curl_connection) {
             mRemoveList.remove(item);
             break;
         }
     }
-    mAddList.push_back(curl_handle);
+    curl_easy_setopt(curl_connection->getCurlHandle(), CURLOPT_PRIVATE, curl_connection);
+    mAddList.push_back(curl_connection);
     return CURLM_OK;
     //   return curl_multi_add_handle(multi_handle, curl_handle);
 }
-CURLcode CurlMulti::performHandle(CURL *curl_handle, bool &eof, CURLMcode &mCode)
-{
-    mCode = CURLM_OK;
-    std::lock_guard<std::mutex> lock_guard(mStatusListMutex);
-    for (auto &item : mStatusList) {
-        if (item.curl_handle == curl_handle) {
-            eof = item.eof;
-            return item.status;
-        }
-    }
-    eof = false;
-    return CURLE_OK;
-}
-CURLMcode CurlMulti::removeHandle(CURL *curl_handle)
+CURLMcode CurlMulti::removeHandle(CURLConnection2 *curl_connection)
 {
     std::lock_guard<std::mutex> lockGuard(mListMutex);
     for (auto &item : mAddList) {
-        if (item == curl_handle) {
+        if (item == curl_connection) {
             mAddList.remove(item);
             break;
         }
     }
-    mRemoveList.push_back(curl_handle);
+    mRemoveList.push_back(curl_connection);
     return CURLM_OK;
     //    return curl_multi_remove_handle(multi_handle, curl_handle);
 }
