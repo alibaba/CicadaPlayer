@@ -12,6 +12,8 @@
 namespace Cicada {
 
     const static std::string FILTER_INVALID_PERFORMANCE = "filter stop due to poor device performance";
+    const static std::string FILTER_INVALID_OVER_FPS = "filter stop due to fps is too big";
+    const static std::string FILTER_VALID_RECOVERY = "filter recovery";
     class DCACallback {
     protected:
         void *mUserData;
