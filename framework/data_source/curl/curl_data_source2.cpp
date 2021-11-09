@@ -56,7 +56,7 @@ using std::string;
 
 CURLConnection2 *CurlDataSource2::initConnection()
 {
-    auto *pHandle = new CURLConnection2(&mConfig, mMulti, this);
+    auto *pHandle = new CURLConnection2(&mConfig, mMulti, nullptr);
     pHandle->setSSLBackEnd(CURLShareInstance::Instance()->getSslbakcend());
     pHandle->setSource(mLocation, headerList);
     pHandle->setPost(mBPost, mPostSize, mPostData);
@@ -262,6 +262,14 @@ int CurlDataSource2::Open(const string &url)
 
 void CurlDataSource2::Close()
 {
+    if (mPConnection) {
+        mPConnection->disableListener();
+    }
+    if (mConnections) {
+        for (auto item : *mConnections) {
+            item->disableListener();
+        }
+    }
     closeConnections(true);
 }
 

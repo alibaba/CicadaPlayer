@@ -50,6 +50,8 @@ namespace Cicada {
 
         void deleteFormMulti();
 
+        void disableListener();
+
         int FillBuffer(uint32_t want, CurlMulti &multi);
 
         int short_seek(int64_t off);
@@ -144,6 +146,7 @@ namespace Cicada {
         bool mEOS{false};
         CURLcode mStatus{CURLE_OK};
         bool mNeedReconnect{false};
+        bool enableLog{true};
     };
 };// namespace Cicada
 

@@ -33,7 +33,7 @@ using namespace Cicada;
 
 #define CURL_LOGD(...)                                                                                                                     \
     do {                                                                                                                                   \
-        if (mPConfig == nullptr || mPConfig->enableLog) __log_print(AF_LOG_LEVEL_DEBUG, LOG_TAG, __VA_ARGS__);                             \
+        if (enableLog) __log_print(AF_LOG_LEVEL_DEBUG, LOG_TAG, __VA_ARGS__);                                                              \
     } while (0)
 
 static int getErrorCode(const CURLcode &CURLResult)
@@ -60,6 +60,7 @@ Cicada::CURLConnection2::CURLConnection2(Cicada::IDataSource::SourceConfig *pCon
     mPConfig = pConfig;
     mMulti = multi;
     mListener = listener;
+    enableLog = pConfig->enableLog;
 
     if (mPConfig) {
         so_rcv_size = pConfig->so_rcv_size;
@@ -180,7 +181,6 @@ size_t Cicada::CURLConnection2::write_callback(char *buffer, size_t size, size_t
         return CURL_WRITEFUNC_PAUSE;
     }
     auto *pHandle = (CURLConnection2 *) userp;
-    //    std::lock_guard<std::mutex>lockGuard(pHandle->mCurlCbMutex);
     assert(!pHandle->mPaused);
     auto amount = (uint32_t) (size * nitems);
 
@@ -194,9 +194,12 @@ size_t Cicada::CURLConnection2::write_callback(char *buffer, size_t size, size_t
         AF_LOGE("write ring buffer error\n");
         assert(0);
     }
-    if (pHandle->mPConfig && pHandle->mPConfig->listener) {
-        // TODO: get file type form content type
-        pHandle->mPConfig->listener->onNetWorkInPut(amount, IDataSource::Listener::bitStreamTypeMedia);
+    {
+        std::lock_guard<std::mutex> lock(pHandle->mCurlCbMutex);
+        if (pHandle->mPConfig && pHandle->mPConfig->listener) {
+            // TODO: get file type form content type
+            pHandle->mPConfig->listener->onNetWorkInPut(amount, IDataSource::Listener::bitStreamTypeMedia);
+        }
     }
     return amount;
 }
@@ -309,7 +312,7 @@ int CURLConnection2::my_trace(CURL *handle, curl_infotype type, char *data, size
 
     switch (type) {
         case CURLINFO_TEXT:
-            if (pHandle->mPConfig->enableLog) {
+            if (pHandle->enableLog) {
                 AF_LOGD("== Info: %s", data);
             }
         default: /* in case a new one is introduced to shock us */
@@ -713,4 +716,10 @@ void CURLConnection2::removeFormMulti()
 void CURLConnection2::deleteFormMulti()
 {
     mMulti->deleteHandle(this);
+}
+void CURLConnection2::disableListener()
+{
+    std::lock_guard<std::mutex> lock(mCurlCbMutex);
+    mPConfig = nullptr;
+    mListener = nullptr;
 }
