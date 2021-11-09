@@ -99,6 +99,9 @@ void SDLEventReceiver::poll(bool &exit) {
                     case SDLK_p:
                         mListener.onPrePare();
                         break;
+                    case SDLK_r:
+                        mListener.onReconnect();
+                        break;
 
                     default:
                         if (event.key.keysym.sym >= SDLK_0 && event.key.keysym.sym <= SDLK_9) {

@@ -64,6 +64,9 @@ void NetWorkEventReceiver::poll(bool &exit)
             case 'v':
                 mListener.onChangeVolume(c == 'V');
                 break;
+            case 'r':
+                mListener.onReconnect();
+                break;
 
             default:
                 if (c >= '0' && c <= '9') {

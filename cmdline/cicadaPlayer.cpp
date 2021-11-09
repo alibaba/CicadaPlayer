@@ -136,11 +136,12 @@ static void changeAudioFormat()
 int main(int argc, char *argv[])
 {
     string url;
+    setProperty("protected.network.http.http2", "ON");
 
     if (argc > 1) {
         url = argv[1];
     } else {
-        url = "http://player.alicdn.com/video/aliyunmedia.mp4";
+        url = "https://player.alicdn.com/video/aliyunmedia.mp4";
     }
 
     log_enable_color(1);

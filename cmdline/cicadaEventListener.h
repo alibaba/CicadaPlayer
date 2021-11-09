@@ -44,6 +44,7 @@ public:
     void onFullScreen(bool full) override;
 
     void onSpeedReset() override;
+    void onReconnect() override;
 
 protected:
     Cicada::MediaPlayer *mediaPlayer;

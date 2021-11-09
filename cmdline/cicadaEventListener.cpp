@@ -4,8 +4,10 @@
 
 #define MAX_SPEED 5
 #define MIN_SPEED 0.5
+#include <utils/globalNetWorkManager.h>
 
 #include "cicadaEventListener.h"
+using namespace Cicada;
 
 void cicadaEventListener::onExit()
 {
@@ -81,4 +83,8 @@ void cicadaEventListener::onFullScreen(bool full)
 void cicadaEventListener::onSpeedReset()
 {
     mediaPlayer->SetSpeed(1.0f);
+}
+void cicadaEventListener::onReconnect()
+{
+    globalNetWorkManager::getGlobalNetWorkManager()->reConnect();
 }
