@@ -87,6 +87,18 @@ namespace Cicada {
             still_running = 0;
         }
 
+        void setReconnect(bool reconnect)
+        {
+            mNeedReconnect = reconnect;
+        }
+
+        bool needReconnect() const
+        {
+            return mNeedReconnect;
+        }
+
+        void applyReconnect(bool reconnect);
+
     private:
         int esayHandle_set_common_opt();
 
@@ -131,6 +143,7 @@ namespace Cicada {
         std::mutex mCurlCbMutex;
         bool mEOS{false};
         CURLcode mStatus{CURLE_OK};
+        bool mNeedReconnect{false};
     };
 };// namespace Cicada
 

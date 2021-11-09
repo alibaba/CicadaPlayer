@@ -144,6 +144,7 @@ CurlDataSource2::~CurlDataSource2()
     }
     Interrupt(true);
     Close();
+    delete mConnections;
     if (headerList) {
         curl_slist_free_all(headerList);
         headerList = nullptr;
@@ -208,7 +209,7 @@ int CurlDataSource2::Open(int flags)
 int CurlDataSource2::Open(const string &url)
 {
     if (mNeedReconnect) {
-        Close();
+        closeConnections(false);
         mNeedReconnect = false;
     }
     if (mPConnection == nullptr) {
@@ -256,7 +257,6 @@ int CurlDataSource2::Open(const string &url)
     }
 
     closeConnections(false);
-    mConnections = new std::vector<CURLConnection2 *>();
     return ret;
 }
 
@@ -278,8 +278,6 @@ void CurlDataSource2::closeConnections(bool current)
             (*item)->deleteFormMulti();
             item = mConnections->erase(item);
         }
-        delete mConnections;
-        mConnections = nullptr;
     }
 }
 
@@ -291,7 +289,8 @@ int64_t CurlDataSource2::Seek(int64_t offset, int whence)
     }
     if (whence == SEEK_SIZE) {
         return mFileSize;
-    } else if ((whence == SEEK_CUR && offset == 0) || (whence == SEEK_SET && offset == mPConnection->tell())) {
+    } else if (((whence == SEEK_CUR && offset == 0) || (whence == SEEK_SET && offset == mPConnection->tell())) &&
+               !mPConnection->needReconnect()) {
         return mPConnection->tell();
     } else if ((mFileSize <= 0 && whence == SEEK_END) /*|| h->is_streamed*/) {
         return FRAMEWORK_ERR(ENOSYS);
@@ -309,7 +308,7 @@ int64_t CurlDataSource2::Seek(int64_t offset, int whence)
         return -(ESPIPE);
     }
 
-    if (offset == mPConnection->tell()) {
+    if (offset == mPConnection->tell() && !mPConnection->needReconnect()) {
         return offset;
     }
 
@@ -332,17 +331,8 @@ int64_t CurlDataSource2::Seek(int64_t offset, int whence)
     } else {
         AF_LOGI("short seek failed\n");
     }
-
     if (mNeedReconnect) {
-        rangeStart = offset;
-        Close();
-        int ret = Open(0);
-        if (ret < 0) {
-            AF_LOGE("reConnect error on seek %s\n", framework_err2_string(ret));
-        } else {
-            mNeedReconnect = false;
-        }
-        return ret;
+        closeConnections(true);
     }
 #if USE_MULTI
     CURLConnection2 *con = nullptr;
@@ -377,6 +367,7 @@ int64_t CurlDataSource2::Seek(int64_t offset, int whence)
     }
 #endif
     int64_t ret = TrySeekByNewConnection(offset);
+    mNeedReconnect = false;
     return ret;
 }
 
@@ -384,9 +375,13 @@ int64_t CurlDataSource2::TrySeekByNewConnection(int64_t offset)
 {
 #if USE_MULTI
     // try seek use a new connection
-    mPConnection->removeFormMulti();
+    if (mPConnection) {
+        mPConnection->removeFormMulti();
+    }
     CURLConnection2 *pConnection_s = initConnection();
-    curl_easy_setopt(pConnection_s->getCurlHandle(), CURLOPT_FRESH_CONNECT, SEEK_USE_NEW_CONNECTION);
+    if (mNeedReconnect || SEEK_USE_NEW_CONNECTION) {
+        pConnection_s->applyReconnect(true);
+    }
     pConnection_s->setInterrupt(&mInterrupt);
     int ret = curl_connect(pConnection_s, offset);
 
@@ -409,10 +404,14 @@ int64_t CurlDataSource2::TrySeekByNewConnection(int64_t offset)
     pConnection_s->deleteFormMulti();
     return ret;
 #else
-    mPConnection->deleteFormMulti();
+    if (mPConnection) {
+        mPConnection->deleteFormMulti();
+    }
     CURLConnection2 *pConnection_s = initConnection();
     pConnection_s->setInterrupt(&mInterrupt);
-    curl_easy_setopt(pConnection_s->getCurlHandle(), CURLOPT_FRESH_CONNECT, SEEK_USE_NEW_CONNECTION);
+    if (mNeedReconnect || SEEK_USE_NEW_CONNECTION) {
+        pConnection_s->applyReconnect(true);
+    }
     int ret = curl_connect(pConnection_s, offset);
     mPConnection = pConnection_s;
     return offset;
@@ -445,12 +444,13 @@ int CurlDataSource2::Read(void *buf, size_t size)
 
     /* only request 1 byte, for truncated reads (only if not eof) */
     if (mFileSize <= 0 || mPConnection->tell() < mFileSize) {
-
+        // TODO: deal reconnect in mPConnection->FillBuffer
         if (mNeedReconnect) {
-            rangeStart = mPConnection->tell();
-            Close();
-            Open(mLocation);
-            mNeedReconnect = false;
+            closeConnections(false);
+            mPConnection->setReconnect(true);
+            int64_t seek = mPConnection->tell();
+            int64_t seekRet = Seek(seek, SEEK_SET);
+            assert(seekRet == seek);
         }
         ret = mPConnection->FillBuffer(1, *mMulti);
 

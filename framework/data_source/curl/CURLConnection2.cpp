@@ -370,6 +370,11 @@ int Cicada::CURLConnection2::esayHandle_set_common_opt()
     return 0;
 }
 
+void CURLConnection2::applyReconnect(bool reconnect)
+{
+    curl_easy_setopt(mHttp_handle, CURLOPT_FRESH_CONNECT, reconnect);
+}
+
 void CURLConnection2::setInterrupt(std::atomic_bool *inter)
 {
     pInterrupted = inter;
