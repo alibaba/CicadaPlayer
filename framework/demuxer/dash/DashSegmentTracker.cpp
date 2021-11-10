@@ -727,7 +727,12 @@ int64_t DashSegmentTracker::getBufferingOffset(const playList *p) const
 
 int64_t DashSegmentTracker::getLiveDelay(const playList *p) const
 {
-    int64_t delay = std::strtoll(mOpts->get("RTMaxDelayTime").c_str(), nullptr, 0);
+    int64_t delay = getMinBuffering(p);
+
+    if (mOpts != nullptr) {
+        delay = std::strtoll(mOpts->get("RTMaxDelayTime").c_str(), nullptr, 0);
+    }
+
     if (p == nullptr) {
         return delay;
     }
@@ -749,7 +754,12 @@ int64_t DashSegmentTracker::getMaxBuffering(const playList *p) const
         return getMinBuffering(p);
     }
 
-    int64_t buffering = std::strtoll(mOpts->get("maxBufferDuration").c_str(), nullptr, 0);
+    int64_t buffering = getMinBuffering(p);
+
+    if (mOpts != nullptr) {
+        buffering = std::strtoll(mOpts->get("maxBufferDuration").c_str(), nullptr, 0);
+    }
+
     if (p->isLive()) {
         buffering = std::min(buffering, getLiveDelay(p));
     }
@@ -765,7 +775,11 @@ int64_t DashSegmentTracker::getMinBuffering(const playList *p) const
         return BUFFERING_LOWEST_LIMIT;
     }
 
-    int64_t buffering = std::strtoll(mOpts->get("highLevelBufferDuration").c_str(), nullptr, 0);
+    int64_t buffering = BUFFERING_LOWEST_LIMIT;
+    if (mOpts != nullptr) {
+        buffering = std::strtoll(mOpts->get("highLevelBufferDuration").c_str(), nullptr, 0);
+    }
+
     if (p->minBufferTime > 0) {
         buffering = std::max(buffering, p->minBufferTime);
     }
