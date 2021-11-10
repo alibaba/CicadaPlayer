@@ -25,6 +25,7 @@ CurlMulti::CurlMulti()
 }
 CurlMulti::~CurlMulti()
 {
+    curl_multi_wakeup(multi_handle);
     delete mLoopThread;
     {
         std::lock_guard<std::mutex> lockGuard(mListMutex);
@@ -113,7 +114,7 @@ int CurlMulti::loop()
     }
 
     if (mStillRunning) {
-        mc = curl_multi_poll(multi_handle, nullptr, 0, 10, &numfds);
+        mc = curl_multi_poll(multi_handle, nullptr, 0, 2, &numfds);
     }
 
     if (!mStillRunning) {
@@ -138,6 +139,7 @@ CURLMcode CurlMulti::addHandle(CURLConnection2 *curl_connection)
     }
     curl_easy_setopt(curl_connection->getCurlHandle(), CURLOPT_PRIVATE, curl_connection);
     mAddList.push_back(curl_connection);
+    curl_multi_wakeup(multi_handle);
     return CURLM_OK;
     //   return curl_multi_add_handle(multi_handle, curl_handle);
 }
@@ -151,6 +153,7 @@ CURLMcode CurlMulti::removeHandle(CURLConnection2 *curl_connection)
         }
     }
     mRemoveList.push_back(curl_connection);
+    curl_multi_wakeup(multi_handle);
     return CURLM_OK;
     //    return curl_multi_remove_handle(multi_handle, curl_handle);
 }
@@ -164,6 +167,7 @@ void CurlMulti::deleteHandle(CURLConnection2 *curl_connection)
         }
     }
     mDeleteList.push_back(curl_connection);
+    curl_multi_wakeup(multi_handle);
 }
 int CurlMulti::poll(int time_ms)
 {
