@@ -179,6 +179,10 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         mPlayer.mDemuxerService->GetStreamMeta(pMeta, i, false);
         auto *meta = (Stream_meta *) (pMeta.get());
 
+        if (mPlayer.mDuration < 0) {
+            mPlayer.mDuration = meta->duration;
+        }
+
         if (meta->type == STREAM_TYPE_MIXED) {
             mPlayer.mMixMode = true;
         }
@@ -194,13 +198,20 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         }
     }
 
-    if (mPlayer.mDemuxerService->isPlayList() || videoStreamCount > 1) {
+    if (mPlayer.mDuration == 0) {
+        //live should not be cached
         if (mPlayer.mDataSource) {
             mPlayer.mDataSource->enableCache(mPlayer.mSet->url, false);
         }
     } else {
-        if (mPlayer.mDataSource) {
-            mPlayer.mDataSource->enableCache(mPlayer.mSet->url, true);
+        if (mPlayer.mDemuxerService->isPlayList() || videoStreamCount > 1) {
+            if (mPlayer.mDataSource) {
+                mPlayer.mDataSource->enableCache(mPlayer.mSet->url, false);
+            }
+        } else {
+            if (mPlayer.mDataSource) {
+                mPlayer.mDataSource->enableCache(mPlayer.mSet->url, true);
+            }
         }
     }
 
@@ -209,9 +220,6 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         mPlayer.mDemuxerService->GetStreamMeta(pMeta, i, false);
         auto *meta = (Stream_meta *) (pMeta.get());
 
-        if (mPlayer.mDuration < 0) {
-            mPlayer.mDuration = meta->duration;
-        }
         mPlayer.mSuggestedPresentationDelay = meta->suggestedPresentationDelay;
         AF_LOGD("mSuggestedPresentationDelay %lld\n", meta->suggestedPresentationDelay);
 
