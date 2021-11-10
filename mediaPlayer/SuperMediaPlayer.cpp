@@ -337,7 +337,7 @@ int SuperMediaPlayer::Stop()
     // FIXME: create render in setView api in main thread on apple platform
 #ifdef __APPLE__
     if (strcmp(dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL), dispatch_queue_get_label(dispatch_get_main_queue())) == 0) {
-        if (!mAVDeviceManager->isVideoRenderValid()) {
+        if (!mVideoRenderInited) {
             while (!mMainServiceCanceled) {
                 CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.01, 1);
                 AF_LOGI("Waiting for main service canceled\n");
@@ -3853,6 +3853,7 @@ bool SuperMediaPlayer::CreateVideoRender(uint64_t flags)
         mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_VIDEO_RENDER_INIT_ERROR, "init video render failed");
     }
     mAVDeviceManager->setSpeed(mSet->rate);
+    mVideoRenderInited = true;
     return true;
 }
 

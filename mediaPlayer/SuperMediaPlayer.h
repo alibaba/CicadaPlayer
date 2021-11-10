@@ -464,6 +464,7 @@ namespace Cicada {
         IDataSource *mDataSource{nullptr};
         std::atomic_bool mCanceled{false};
         std::atomic_bool mMainServiceCanceled{true};
+        std::atomic_bool mVideoRenderInited{false};
         std::unique_ptr<demuxer_service> mDemuxerService{nullptr};
         std::queue<unique_ptr<IAFFrame>> mVideoFrameQue{};
         std::deque<unique_ptr<IAFFrame>> mAudioFrameQue{};
