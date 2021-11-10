@@ -161,6 +161,9 @@ namespace Cicada {
         virtual void setUrlToUniqueIdCallback(UrlHashCB onUrlHash, void *userData)
         {}
 
+        virtual void clearCache()
+        {}
+
     protected:
         std::atomic_bool mInterrupt{false};
         SourceConfig mConfig{};
