@@ -204,7 +204,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
             mPlayer.mDataSource->enableCache(mPlayer.mSet->url, false);
         }
     } else {
-        if (mPlayer.mDemuxerService->isPlayList() || videoStreamCount > 1) {
+        if (mPlayer.mDemuxerService->isPlayList() && videoStreamCount > 1) {
             if (mPlayer.mDataSource) {
                 mPlayer.mDataSource->enableCache(mPlayer.mSet->url, false);
             }
