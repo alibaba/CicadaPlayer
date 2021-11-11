@@ -983,14 +983,21 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
             CicadaJSONItem containerInfo{};
 
             containerInfo.addValue("protocol", UrlUtils::getProtocol(mSet->url));
+
+            int videoStreamCount = 0;
+            for (StreamInfo *item : mMediaInfo.mStreamInfoQueue) {
+                if (item->type == StreamType::ST_TYPE_VIDEO) {
+                    videoStreamCount++;
+                }
+            }
+            containerInfo.addValue("isMultiBitrate", videoStreamCount > 1 ? "1" : "0");
+
             {
                 std::lock_guard<std::mutex> uMutex(mCreateMutex);
                 if (nullptr != mDemuxerService) {
                     IDemuxer *demuxer = mDemuxerService->getDemuxerHandle();
                     std::string containerName = demuxer->GetProperty(-1, "containerName");
-                    std::string multiBitrate = demuxer->GetProperty(-1, "isMultiBitrate");
                     containerInfo.addValue("containerName", containerName);
-                    containerInfo.addValue("isMultiBitrate", multiBitrate);
                 }
             }
 

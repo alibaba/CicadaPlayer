@@ -751,8 +751,6 @@ namespace Cicada {
             } else {
                 return mCtx->iformat->name;
             }
-        } else if (key == "isMultiBitrate") {
-            return "0";
         }
 
         return "";
