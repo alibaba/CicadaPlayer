@@ -3,6 +3,7 @@
 //
 
 #include "UrlUtils.h"
+#include <algorithm>
 #include <utils/file/FileUtils.h>
 
 using namespace std;

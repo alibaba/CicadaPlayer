@@ -20,6 +20,7 @@
 #include <winsock2.h>
 #endif
 
+#include <algorithm>
 #include <cerrno>
 #include <utils/CicadaUtils.h>
 //#include <openssl/opensslv.h>
