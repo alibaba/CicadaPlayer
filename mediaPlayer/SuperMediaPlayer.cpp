@@ -5,6 +5,7 @@
 #include "media_player_error_map.h"
 #include "utils/CicadaJSON.h"
 #include "utils/CicadaUtils.h"
+#include "utils/UrlUtils.h"
 #include <cassert>
 #include <cinttypes>
 #include <codec/avcodecDecoder.h>
@@ -977,6 +978,23 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
         }
         case PROPERTY_KEY_RENDER_INFO: {
             return mMPAUtil->getRenderInfoAndReset();
+        }
+        case PROPERTY_KEY_CONTAINER_INFO: {
+            CicadaJSONItem containerInfo{};
+
+            containerInfo.addValue("protocol", UrlUtils::getProtocol(mSet->url));
+            {
+                std::lock_guard<std::mutex> uMutex(mCreateMutex);
+                if (nullptr != mDemuxerService) {
+                    IDemuxer *demuxer = mDemuxerService->getDemuxerHandle();
+                    std::string containerName = demuxer->GetProperty(-1, "containerName");
+                    std::string multiBitrate = demuxer->GetProperty(-1, "isMultiBitrate");
+                    containerInfo.addValue("containerName", containerName);
+                    containerInfo.addValue("isMultiBitrate", multiBitrate);
+                }
+            }
+
+            return containerInfo.printJSON();
         }
         default:
             break;
