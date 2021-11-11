@@ -601,6 +601,8 @@ namespace Cicada {
         bool mCalculateSpeedUsePacket{true};
         std::unique_ptr<CicadaJSONArray> mFilterConfig;
         UTCTimer *mUtcTimer{nullptr};
+
+        std::string mContainerInfo{};
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H

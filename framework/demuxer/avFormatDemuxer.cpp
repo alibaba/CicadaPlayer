@@ -749,7 +749,12 @@ namespace Cicada {
             if (mCtx == nullptr) {
                 return "N/A";
             } else {
-                return mCtx->iformat->name;
+                string formatName = mCtx->iformat->name;
+                if (formatName.find("mp4") != string::npos) {
+                    return "mp4";
+                } else {
+                    return formatName;
+                }
             }
         }
 

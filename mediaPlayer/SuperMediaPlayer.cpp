@@ -980,39 +980,7 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
             return mMPAUtil->getRenderInfoAndReset();
         }
         case PROPERTY_KEY_CONTAINER_INFO: {
-            CicadaJSONItem containerInfo{};
-
-            URLComponents urlComponents{};
-            UrlUtils::parseUrl(urlComponents, mSet->url);
-
-            std::string finalProto = urlComponents.proto;
-            if (urlComponents.proto.empty()) {
-                if (FileUtils::isFileExist(mSet->url.c_str())) {
-                    finalProto = "file";
-                } else {
-                    finalProto = "N/A";
-                }
-            }
-            containerInfo.addValue("protocol", finalProto);
-
-            int videoStreamCount = 0;
-            for (StreamInfo *item : mMediaInfo.mStreamInfoQueue) {
-                if (item->type == StreamType::ST_TYPE_VIDEO) {
-                    videoStreamCount++;
-                }
-            }
-            containerInfo.addValue("isMultiBitrate", videoStreamCount > 1 ? "1" : "0");
-
-            {
-                std::lock_guard<std::mutex> uMutex(mCreateMutex);
-                if (nullptr != mDemuxerService) {
-                    IDemuxer *demuxer = mDemuxerService->getDemuxerHandle();
-                    std::string containerName = demuxer->GetProperty(-1, "containerName");
-                    containerInfo.addValue("containerName", containerName);
-                }
-            }
-
-            return containerInfo.printJSON();
+            return mContainerInfo;
         }
         default:
             break;
@@ -4042,6 +4010,7 @@ void SuperMediaPlayer::Reset()
     mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncNormal;
     mCalculateSpeedUsePacket = true;
     mUtcTimer = nullptr;
+    mContainerInfo = {};
 }
 
 int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)

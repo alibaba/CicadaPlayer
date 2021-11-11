@@ -10,7 +10,9 @@
 #include <climits>
 #include <data_source/dataSourcePrototype.h>
 #include <utils/CicadaUtils.h>
+#include <utils/UrlUtils.h>
 #include <utils/af_string.h>
+#include <utils/file/FileUtils.h>
 #include <utils/timer.h>
 
 #define HAVE_VIDEO (mPlayer.mCurrentVideoIndex >= 0)
@@ -337,6 +339,8 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
     mPlayer.mDemuxerService->GetMediaMeta(&pMediaMeta);
     mPlayer.mMediaInfo.totalBitrate = pMediaMeta.totalBitrate;
 
+    buildContainerInfo();
+
     // TODO: why ?
     /*
     if (!HAVE_VIDEO) {
@@ -349,6 +353,40 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
     mPlayer.ChangePlayerStatus(PLAYER_PREPARING);
     mPlayer.mTimeoutStartTime = INT64_MIN;
 }
+
+void SMPMessageControllerListener::buildContainerInfo()
+{
+
+    CicadaJSONItem containerInfo{};
+
+    URLComponents urlComponents{};
+    UrlUtils::parseUrl(urlComponents, mPlayer.mSet->url);
+
+    std::string finalProto = urlComponents.proto;
+    if (urlComponents.proto.empty()) {
+        if (FileUtils::isFileExist(mPlayer.mSet->url.c_str())) {
+            finalProto = "file";
+        } else {
+            finalProto = "N/A";
+        }
+    }
+    containerInfo.addValue("protocol", finalProto);
+
+    int videoStreamCount = 0;
+    for (StreamInfo *item : mPlayer.mMediaInfo.mStreamInfoQueue) {
+        if (item->type == StreamType::ST_TYPE_VIDEO) {
+            videoStreamCount++;
+        }
+    }
+    containerInfo.addValue("isMultiBitrate", videoStreamCount > 1 ? "1" : "0");
+
+    IDemuxer *demuxer = mPlayer.mDemuxerService->getDemuxerHandle();
+    std::string containerName = demuxer->GetProperty(-1, "containerName");
+    containerInfo.addValue("containerName", containerName);
+
+    mPlayer.mContainerInfo = containerInfo.printJSON();
+}
+
 void SMPMessageControllerListener::ProcessStartMsg()
 {
     if (mPlayer.mPlayStatus == PLAYER_PAUSED || mPlayer.mPlayStatus == PLAYER_PREPARED || mPlayer.mPlayStatus == PLAYER_COMPLETION) {
