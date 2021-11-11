@@ -744,6 +744,15 @@ namespace Cicada {
     {
         if (key == "probeInfo") {
             return mProbeString;
+        } else if (key == "containerName") {
+            std::lock_guard<std::mutex> uLock(mCtxMutex);
+            if (mCtx == nullptr) {
+                return "N/A";
+            } else {
+                return mCtx->iformat->name;
+            }
+        } else if (key == "isMultiBitrate") {
+            return "0";
         }
 
         return "";

@@ -342,6 +342,10 @@ namespace Cicada {
 
     const std::string HLSManager::GetProperty(int index, const string &key)
     {
+        if (key == "isMultiBitrate") {
+            return mStreamInfoList.size() > 1 ? "1" : "0";
+        }
+
         for (auto &i : mStreamInfoList) {
             if (i->mPStream->getId() == index) {
                 return i->mPStream->GetProperty(key);

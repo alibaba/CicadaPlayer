@@ -174,6 +174,16 @@ namespace Cicada {
 
     const std::string playList_demuxer::GetProperty(int index, const string &key) const
     {
+        if (key == "containerName") {
+            if (mType == playList_type_hls) {
+                return "hls";
+            } else if (mType == playList_type_dash) {
+                return "dash";
+            } else {
+                return "N/A";
+            }
+        }
+
         if (mPPlaylistManager) {
             return mPPlaylistManager->GetProperty(index, key);
         }
