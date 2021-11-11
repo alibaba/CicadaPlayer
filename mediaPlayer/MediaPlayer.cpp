@@ -288,6 +288,11 @@ namespace Cicada {
         }
     }
 
+    bool MediaPlayer::IsEnableAbr()
+    {
+        return mAbrManager->IsEnableAbr();
+    }
+
     void MediaPlayer::Prepare()
     {
         if(mFirstPrepared) {

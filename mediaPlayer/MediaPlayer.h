@@ -381,6 +381,8 @@ namespace Cicada {
 
         string GetPlayerSessionId();
 
+        bool IsEnableAbr();
+
     private:
         static void preparedCallback(void *userData);
 
