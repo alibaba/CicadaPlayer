@@ -96,12 +96,6 @@ namespace Cicada {
             mSpeed = speed;
         }
 
-        virtual void clearBuffer()
-        {
-            mClearFlag = true;
-            flush();
-        }
-
         virtual void setDCACb(DCACallback *dcaCallback)
         {
             this->mDcaCallback = dcaCallback;
@@ -113,17 +107,11 @@ namespace Cicada {
         }
 
     protected:
-        virtual bool isOverFps(IAFFrame *frame)
-        {
-            return false;
-        };
-
         IAFFrame::videoInfo mSrcFormat{};
         IAFFrame::videoInfo mDstFormat{};
         bool mInvalid{false};
         bool mActive{false};
         float mSpeed = 1.0;
-        bool mClearFlag{false};
         std::string currentTarget;
         DCACallback *mDcaCallback;
     };

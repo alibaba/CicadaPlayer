@@ -229,7 +229,7 @@ void VideoFilterChain::clearBuffer()
         mOutPutFrames.pop();
     }
     for (auto &iter : mVideoFiltersMap) {
-        iter.second->clearBuffer();
+        iter.second->flush();
     }
 }
 
