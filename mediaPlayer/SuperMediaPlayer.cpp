@@ -982,7 +982,18 @@ std::string SuperMediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSO
         case PROPERTY_KEY_CONTAINER_INFO: {
             CicadaJSONItem containerInfo{};
 
-            containerInfo.addValue("protocol", UrlUtils::getProtocol(mSet->url));
+            URLComponents urlComponents{};
+            UrlUtils::parseUrl(urlComponents, mSet->url);
+
+            std::string finalProto = urlComponents.proto;
+            if (urlComponents.proto.empty()) {
+                if (FileUtils::isFileExist(mSet->url.c_str())) {
+                    finalProto = "file";
+                } else {
+                    finalProto = "N/A";
+                }
+            }
+            containerInfo.addValue("protocol", finalProto);
 
             int videoStreamCount = 0;
             for (StreamInfo *item : mMediaInfo.mStreamInfoQueue) {

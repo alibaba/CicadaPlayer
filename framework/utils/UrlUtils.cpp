@@ -50,21 +50,6 @@ std::map<std::string, std::string> UrlUtils::getArgs(const std::string &url)
     return result;
 }
 
-std::string UrlUtils::getProtocol(const std::string &url)
-{
-    size_t paramPos = url.find(':');
-
-    if (paramPos == string::npos) {
-        if (FileUtils::isFileExist(url.c_str())) {
-            return "file";
-        } else {
-            return "N/A";
-        }
-    }
-
-    return url.substr(0, paramPos);
-}
-
 std::string UrlUtils::getBaseUrl(const string &url)
 {
     size_t paramPos = url.find('?');
@@ -114,4 +99,72 @@ std::string  UrlUtils::urlEncode( const std::string &c )
     }
 
     return escaped;
+}
+
+void UrlUtils::parseUrl(URLComponents &urlComponents, const std::string &url)
+{
+
+    char proto[64] = {0};
+    char auth[1024] = {0};
+    char host[1024] = {0};
+    char path[1024] = {0};
+    int port = -1;
+
+    url_split(proto, sizeof(proto), auth, sizeof(auth), host, sizeof(host), &port, path, sizeof(path), url.c_str());
+
+    urlComponents.proto = proto;
+    urlComponents.auth = auth;
+    urlComponents.host = host;
+    urlComponents.path = path;
+    urlComponents.port = port;
+}
+
+
+//from ffmpeg/utils.c av_url_split
+void UrlUtils::url_split(char *proto, int proto_size, char *authorization, int authorization_size, char *hostname, int hostname_size,
+                         int *port_ptr, char *path, int path_size, const char *url)
+{
+    const char *p, *ls, *at, *at2, *col, *brk;
+
+    if (port_ptr) *port_ptr = -1;
+    if (proto_size > 0) proto[0] = 0;
+    if (authorization_size > 0) authorization[0] = 0;
+    if (hostname_size > 0) hostname[0] = 0;
+    if (path_size > 0) path[0] = 0;
+
+    /* parse protocol */
+    if ((p = strchr(url, ':'))) {
+        strncpy(proto, url, std::min(proto_size, (int) (p + 1 - url)));
+        p++; /* skip ':' */
+        if (*p == '/') p++;
+        if (*p == '/') p++;
+    } else {
+        /* no protocol means plain filename */
+        strncpy(path, url, path_size);
+        return;
+    }
+
+    /* separate path from hostname */
+    ls = p + strcspn(p, "/?#");
+    strncpy(path, ls, path_size);
+
+    /* the rest is hostname, use that to parse auth/port */
+    if (ls != p) {
+        /* authorization (user[:pass]@hostname) */
+        at2 = p;
+        while ((at = strchr(p, '@')) && at < ls) {
+            strncpy(authorization, at2, std::min(authorization_size, (int) (at + 1 - at2)));
+            p = at + 1; /* skip '@' */
+        }
+
+        if (*p == '[' && (brk = strchr(p, ']')) && brk < ls) {
+            /* [host]:port */
+            strncpy(hostname, p + 1, std::min(hostname_size, (int) (brk - p)));
+            if (brk[1] == ':' && port_ptr) *port_ptr = atoi(brk + 2);
+        } else if ((col = strchr(p, ':')) && col < ls) {
+            strncpy(hostname, p, std::min((int) (col + 1 - p), hostname_size));
+            if (port_ptr) *port_ptr = atoi(col + 1);
+        } else
+            strncpy(hostname, p, std::min((int) (ls + 1 - p), hostname_size));
+    }
 }
