@@ -3,6 +3,7 @@
 //
 
 #include "UrlUtils.h"
+#include <utils/file/FileUtils.h>
 
 using namespace std;
 using namespace Cicada;
@@ -47,6 +48,21 @@ std::map<std::string, std::string> UrlUtils::getArgs(const std::string &url)
     }
 
     return result;
+}
+
+std::string UrlUtils::getProtocol(const std::string &url)
+{
+    size_t paramPos = url.find(':');
+
+    if (paramPos == string::npos) {
+        if (FileUtils::isFileExist(url.c_str())) {
+            return "file";
+        } else {
+            return "N/A";
+        }
+    }
+
+    return url.substr(0, paramPos);
 }
 
 std::string UrlUtils::getBaseUrl(const string &url)

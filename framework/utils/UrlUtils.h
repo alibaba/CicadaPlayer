@@ -14,6 +14,8 @@ namespace Cicada {
         static std::map<std::string, std::string> getArgs(const std::string &url);
         static std::string getBaseUrl(const std::string& url);
 
+        static std::string getProtocol(const std::string &url);
+
         static std::string urlEncode( const std::string &c);
 
     private:
