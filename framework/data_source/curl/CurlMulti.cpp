@@ -30,7 +30,7 @@ CurlMulti::~CurlMulti()
     {
         std::lock_guard<std::mutex> lockGuard(mListMutex);
         for (auto item : mRemoveList) {
-            curl_multi_remove_handle(multi_handle, item);
+            curl_multi_remove_handle(multi_handle, item->getCurlHandle());
         }
         mRemoveList.clear();
         for (auto item : mDeleteList) {
@@ -161,7 +161,7 @@ void CurlMulti::deleteHandle(CURLConnection2 *curl_connection)
 {
     std::lock_guard<std::mutex> lockGuard(mListMutex);
     for (auto &item : mAddList) {
-        if (item == curl_connection->getCurlHandle()) {
+        if (item == curl_connection) {
             mAddList.remove(item);
             break;
         }
