@@ -60,6 +60,7 @@ namespace Cicada {
         std::map<std::string, bool> mInvalidMap{};
         bool mFilterInited{false};
         bool mNeedFilter{true};
+        float mSpeed = 1.0;
     };
 }// namespace Cicada
 #endif//CMDLINE_FILTERMANAGER_H

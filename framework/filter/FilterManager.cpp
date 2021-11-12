@@ -87,6 +87,7 @@ void FilterManager::setupFilterChains()
 
     for (auto &iter : mFilterChains) {
         for (auto &filter : mInvalidMap) {
+            iter.second->setSpeed(mSpeed);
             iter.second->setInvalid(filter.first, filter.second);
         }
     }
@@ -186,6 +187,7 @@ void FilterManager::updateFilter(const std::string &target, const std::string &o
 
 void FilterManager::setSpeed(float speed)
 {
+    mSpeed = speed;
     for (auto &iter : mFilterChains) {
         iter.second->setSpeed(speed);
     }
