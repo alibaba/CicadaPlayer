@@ -2333,7 +2333,7 @@ bool SuperMediaPlayer::render()
     }
 
     if (HAVE_VIDEO) {
-        videoRendered = RenderVideo(false);
+        videoRendered = RenderVideo(!mFirstRendered);
     }
 
     if (HAVE_VIDEO && HAVE_AUDIO) {
