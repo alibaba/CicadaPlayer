@@ -5,6 +5,7 @@
 #include "IDemuxer.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <utility>
 
 namespace Cicada {

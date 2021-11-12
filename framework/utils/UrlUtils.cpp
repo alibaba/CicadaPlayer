@@ -4,6 +4,7 @@
 
 #include "UrlUtils.h"
 #include <algorithm>
+#include <cstdlib>
 #include <utils/file/FileUtils.h>
 
 using namespace std;
