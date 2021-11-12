@@ -71,6 +71,7 @@ namespace Cicada {
             if (ret >= 0) {
                 mMuxedStream = (*mStreamInfoList.begin())->mPStream;
                 mMuxedStream->setExtDataSource(mExtDataSource);
+                mExtDataSource = nullptr;
             }
 
             //      mMuxedStream->start();
@@ -310,6 +311,12 @@ namespace Cicada {
             // TODO: select stream
             // mediaPlayList
             if (!(*mStreamInfoList.begin())->mPStream->isOpened()) {
+
+                if (mExtDataSource) {
+                    mMuxedStream->setExtDataSource(mExtDataSource);
+                    mExtDataSource = nullptr;
+                }
+
                 ret = (*mStreamInfoList.begin())->mPStream->open();
 
                 if (ret >= 0) {
@@ -325,7 +332,10 @@ namespace Cicada {
                         if (mFirstSeekPos != INT64_MIN) {
                             i->mPStream->seek(mFirstSeekPos, 0);
                         }
-
+                        if (mExtDataSource) {
+                            i->mPStream->setExtDataSource(mExtDataSource);
+                            mExtDataSource = nullptr;
+                        }
                         ret = i->mPStream->open();
                     }
 
