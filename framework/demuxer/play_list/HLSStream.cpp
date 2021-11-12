@@ -287,8 +287,11 @@ namespace Cicada {
         //  mPTracker->setCurSegNum(0);
         uint64_t targetPosition = mPTracker->getCurSegPosition();
         uint64_t targetSegNum = mPTracker->getCurSegNum();
-
+        if (mExtDataSource && !mPTracker->isInited()) {
+            mPTracker->setExtDataSource(mExtDataSource);
+        }
         ret = mPTracker->init();
+        mPTracker->setExtDataSource(nullptr);
 
         if (ret < 0) {
             AF_TRACE;

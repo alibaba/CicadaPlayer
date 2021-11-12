@@ -249,7 +249,7 @@ namespace Cicada {
         if (!mRep) {
             return -EINVAL;
         }
-
+        lock_guard<mutex> lock(mExtDataSourceMutex);
         {
             std::unique_lock<std::recursive_mutex> locker(mMutex);
             if (mLocation.empty()) {
@@ -283,16 +283,20 @@ namespace Cicada {
 
         if (mRep->mPlayListType == playList_demuxer::playList_type_hls) {
             mLoadingPlaylist = true;
-            if (mPDataSource == nullptr) {
-                {
-                    std::unique_lock<std::recursive_mutex> locker(mMutex);
-                    mPDataSource = dataSourcePrototype::create(uri, mOpts);
-                    mPDataSource->Set_config(mSourceConfig);
-                    mPDataSource->Interrupt(mInterrupted);
-                }
-                ret = mPDataSource->Open(0);
+            if (mExtDataSource) {
+                ret = mExtDataSource->Open(uri);
             } else {
-                ret = mPDataSource->Open(uri);
+                if (mPDataSource == nullptr) {
+                    {
+                        std::unique_lock<std::recursive_mutex> locker(mMutex);
+                        mPDataSource = dataSourcePrototype::create(uri, mOpts);
+                        mPDataSource->Set_config(mSourceConfig);
+                        mPDataSource->Interrupt(mInterrupted);
+                    }
+                    ret = mPDataSource->Open(0);
+                } else {
+                    ret = mPDataSource->Open(uri);
+                }
             }
             mLoadingPlaylist = false;
 
@@ -316,11 +320,20 @@ namespace Cicada {
 
             if (mLocation.empty()) {
                 std::string location("location");
-                mLocation = mPDataSource->GetOption(location);
+                if (mExtDataSource) {
+                    mLocation = mExtDataSource->GetOption(location);
+                } else {
+                    assert(mPDataSource);
+                    mLocation = mPDataSource->GetOption(location);
+                }
             }
 
             auto *parser = new HlsParser(uri.c_str());
-            parser->setDataSourceIO(new dataSourceIO(mPDataSource));
+            if (mExtDataSource) {
+                parser->setDataSourceIO(new dataSourceIO(mExtDataSource));
+            } else {
+                parser->setDataSourceIO(new dataSourceIO(mPDataSource));
+            }
             playList *pPlayList = parser->parse(uri);
 
             //  mPPlayList->dump();
@@ -388,7 +401,7 @@ namespace Cicada {
                 // update is live
                 mRep->b_live = rep->b_live;
 
-                if (pPlayList->getDuration() > 0) {
+                if (pPlayList->getDuration() > 0 && mPDataSource) {
                     mPDataSource->Close();
                     delete mPDataSource;
                     mPDataSource = nullptr;
@@ -595,6 +608,12 @@ namespace Cicada {
     {
         std::unique_lock<std::recursive_mutex> locker(mMutex);
         mInterrupted = inter;
+        {
+            lock_guard<mutex> lock(mExtDataSourceMutex);
+            if (mExtDataSource) {
+                mExtDataSource->Interrupt(inter);
+            }
+        }
 
         if (mPDataSource) {
             mPDataSource->Interrupt(inter);
@@ -718,5 +737,10 @@ namespace Cicada {
         part.uri = mRep->mPreloadHint.uri;
         ret->updateParts({part});
         return ret;
+    }
+    void SegmentTracker::setExtDataSource(IDataSource *source)
+    {
+        lock_guard<mutex> lock(mExtDataSourceMutex);
+        mExtDataSource = source;
     }
 }

@@ -82,7 +82,9 @@ namespace Cicada {
         {
             return mSeeked.load();
         }
-        
+
+        void setExtDataSource(IDataSource *source);
+
         bool isRealTimeStream() { return mRealtime; }
 
         void MoveToLiveStartSegment(const int64_t liveStartIndex);
@@ -143,6 +145,8 @@ namespace Cicada {
         double mCanSkipUntil{0.0};
         int64_t mLastPlaylistUpdateTime{0};
         bool mNeedReloadWithoutSkip{false};
+        std::mutex mExtDataSourceMutex;
+        IDataSource *mExtDataSource{nullptr};
     };
 }
 
