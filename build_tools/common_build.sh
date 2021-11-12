@@ -94,7 +94,7 @@ function build_static_lib(){
 
         build_nghttp2  $1 ${arch}
         if [[ $? -ne 0 ]]; then
-            echo "build_librtmp build failed"
+            echo "build_nghttp2 build failed"
             exit -1
         fi
 
@@ -319,6 +319,9 @@ function link_shared_lib_win32(){
 #    if [[ -d "${LIBXML2_INSTALL_DIR}" ]];then
 #        ldflags="$ldflags -lxml2 -L${LIBXML2_INSTALL_DIR}/lib/"
 #    fi
+    if [[ -d "${NGHTTP2_INSTALL_DIR}" ]];then
+        ldflags="$ldflags -lnghttp2 -L${NGHTTP2_INSTALL_DIR}/lib/"
+    fi
 
     echo ldflags is ${ldflags}
     cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./

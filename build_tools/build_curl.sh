@@ -42,6 +42,7 @@ function build_curl(){
         fi
     elif [[ "$1" == "win32" ]];then
         cross_compile_set_platform_win32 $2
+        export CFLAGS="-DNGHTTP2_STATICLIB"
     elif [[ "$1" == "Darwin" ]];then
         LIBSDEPEND="LIBS=-lresolv"
         if [[ "${SSL_USE_NATIVE}" == "TRUE" ]];then
