@@ -755,7 +755,7 @@ namespace Cicada {
 
         while (!stream->isEOF()) {
             stream->get_line(mBuffer, MAX_LINE_SIZE);
-            AF_LOGD("HLS: %s", mBuffer);
+            //  AF_LOGD("HLS: %s", mBuffer);
             if (*mBuffer == '#') {
                 if (!strncmp(mBuffer, "#EXT", 4)) { //tag
                     std::string key;
