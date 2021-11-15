@@ -1013,6 +1013,12 @@ namespace Cicada {
 
         //when seek, reset and open abrmanager
         player->mAbrManager->Reset();
+
+        StreamInfo *streamInfo = player->GetCurrentStreamInfo(ST_TYPE_VIDEO);
+        if (streamInfo != nullptr && streamInfo->videoBandwidth > 0) {
+            player->mAbrAlgo->SetCurrentBitrate(streamInfo->videoBandwidth);
+        }
+
         player->mAbrManager->Start();
         if (player->mCollector) {
             player->mCollector->ReportSeekEnd();
