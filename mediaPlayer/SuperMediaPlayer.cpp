@@ -92,7 +92,9 @@ SuperMediaPlayer::~SuperMediaPlayer()
     mPNotifier = nullptr;
     mMessageControl = nullptr;
     mAVDeviceManager = nullptr;
+#ifdef ENABLE_VIDEO_FILTER
     mFilterManager = nullptr;
+#endif
 }
 
 void SuperMediaPlayer::putMsg(PlayMsgType type, const MsgParam &param, bool trigger)
@@ -1135,10 +1137,12 @@ int SuperMediaPlayer::updateLoopGap()
                         fps *= 2;
                     }
                     {
+#ifdef ENABLE_VIDEO_FILTER
                         std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
                         if (mFilterManager != nullptr && !mFilterManager->isInvalid(IVideoFilter::Feature::Buffer, "vfi")) {
                             fps *= 2;
                         }
+#endif
                     }
                     return 1000 / int((float) fps * mSet->rate * 1.5);
                 }
@@ -2298,21 +2302,25 @@ int SuperMediaPlayer::FillVideoFrame()
 
 bool SuperMediaPlayer::push(unique_ptr<IAFFrame> &frame)
 {
+#ifdef ENABLE_VIDEO_FILTER
     std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
     if (mFilterManager != nullptr) {
         bool success = mFilterManager->push(frame);
         return success;
     }
+#endif
     return false;
 }
 
 bool SuperMediaPlayer::pull(int format, unique_ptr<IAFFrame> &frame)
 {
+#ifdef ENABLE_VIDEO_FILTER
     std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
     if (mFilterManager != nullptr) {
         bool success = mFilterManager->pull(format, frame);
         return success;
     }
+#endif
     return false;
 }
 
@@ -3075,10 +3083,12 @@ int SuperMediaPlayer::ReadPacket()
                 mVideoParser->init(meta);
 
                 {
+#ifdef ENABLE_VIDEO_FILTER
                     std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
                     if (mFilterManager != nullptr) {
                         mFilterManager->setStreamMeta(meta);
                     }
+#endif
                 }
             }
 
@@ -3817,10 +3827,12 @@ void SuperMediaPlayer::updateVideoMeta()
     mDemuxerService->GetStreamMeta(mCurrentVideoMeta, mCurrentVideoIndex, false);
     auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
     {
+#ifdef ENABLE_VIDEO_FILTER
         std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
         if (mFilterManager != nullptr) {
             mFilterManager->setStreamMeta(meta);
         }
+#endif
     }
 
     int with = meta->displayWidth == 0 ? meta->width : meta->displayWidth;
@@ -4138,6 +4150,7 @@ bool SuperMediaPlayer::IsAutoPlay()
 
 void SuperMediaPlayer::SetFilterConfig(const std::string &filterConfig)
 {
+#ifdef ENABLE_VIDEO_FILTER
     std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
     if (mFilterManager != nullptr) {
         AF_LOGW("not support change filterConfig after be set");
@@ -4153,22 +4166,27 @@ void SuperMediaPlayer::SetFilterConfig(const std::string &filterConfig)
     //TODO videoInfo is useless now.
     mFilterManager = std::unique_ptr<FilterManager>(new FilterManager(IAFFrame::videoInfo(), *mFilterConfig.get()));
     mDcaManager->createObservers();
+#endif
 }
 
 void SuperMediaPlayer::UpdateFilterConfig(const std::string &target, const std::string &options)
 {
+#ifdef ENABLE_VIDEO_FILTER
     std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
     if (mFilterManager != nullptr) {
         mFilterManager->updateFilter(target, options);
     }
+#endif
 }
 
 void SuperMediaPlayer::SetFilterInvalid(const std::string &target, bool invalid)
 {
+#ifdef ENABLE_VIDEO_FILTER
     std::lock_guard<std::mutex> filterLock(mFilterManagerMutex);
     if (mFilterManager != nullptr) {
         mFilterManager->setInvalid(target, invalid);
     }
+#endif
 }
 
 void SuperMediaPlayer::addExtSubtitle(const char *uri)
@@ -4336,22 +4354,26 @@ void SuperMediaPlayer::ApsaraVideoRenderListener::onFrameInfoUpdate(IAFFrame::AF
 
 bool SuperMediaPlayer::ApsaraVideoProcessTextureCallback::init(int type)
 {
+#ifdef ENABLE_VIDEO_FILTER
     std::lock_guard<std::mutex> filterLock(mPlayer.mFilterManagerMutex);
     if (mPlayer.mFilterManager) {
         return mPlayer.mFilterManager->initFilter(IVideoFilter::Texture, type);
-    } else {
-        return false;
     }
+#endif
+        return false;
+
 }
 
 bool SuperMediaPlayer::ApsaraVideoProcessTextureCallback::needProcess()
 {
+#ifdef ENABLE_VIDEO_FILTER
     std::lock_guard<std::mutex> filterLock(mPlayer.mFilterManagerMutex);
     if (mPlayer.mFilterManager) {
         return mPlayer.mFilterManager->hasFilter(IVideoFilter::Texture, "");
-    } else {
-        return false;
     }
+#endif
+        return false;
+
 }
 
 bool SuperMediaPlayer::ApsaraVideoProcessTextureCallback::push(std::unique_ptr<IAFFrame> &textureFrame)

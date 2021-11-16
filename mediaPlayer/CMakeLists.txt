@@ -45,6 +45,10 @@ if (ENABLE_MUXER)
     add_definitions(-DENABLE_MUXER)
 endif ()
 
+if(ENABLE_VIDEO_FILTER)
+    add_definitions(-DENABLE_VIDEO_FILTER)
+endif()
+
 set(SOURCE_FILES
         analytics/IAnalyticsCollector.h
         analytics/IAnalyticsPlayer.h

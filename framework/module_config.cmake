@@ -10,3 +10,5 @@ option(ENABLE_VTB_DECODER "enable apple video tool box decoder" ON)
 option(ENABLE_MUXER "enable muxer" ON)
 option(ENABLE_CACHE_MODULE "enable cache module" ON)
 option(ENABLE_CODEC_HEVC "enable hevc codec" ON)
+
+option(ENABLE_VIDEO_FILTER "enable video filter" ON)

@@ -32,7 +32,9 @@ using namespace std;
 #include <cacheModule/CacheModule.h>
 #include <cacheModule/cache/CacheConfig.h>
 #include <codec/IDecoder.h>
+#ifdef ENABLE_VIDEO_FILTER
 #include <filter/FilterManager.h>
+#endif
 
 #ifdef __APPLE__
 
@@ -564,8 +566,10 @@ namespace Cicada {
         std::unique_ptr<IAFPacket> mAudioPacket{};
         std::unique_ptr<mediaPlayerSubTitleListener> mSubListener;
         std::unique_ptr<subTitlePlayer> mSubPlayer;
+#ifdef ENABLE_VIDEO_FILTER
         std::mutex mFilterManagerMutex{};
         std::unique_ptr<FilterManager> mFilterManager;
+#endif
         bool dropLateVideoFrames = false;
         bool waitingForStart = false;
         bool mBRendingStart {false};
