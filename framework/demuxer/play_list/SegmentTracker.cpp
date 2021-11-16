@@ -249,7 +249,7 @@ namespace Cicada {
         if (!mRep) {
             return -EINVAL;
         }
-        lock_guard<mutex> lock(mExtDataSourceMutex);
+
         {
             std::unique_lock<std::recursive_mutex> locker(mMutex);
             if (mLocation.empty()) {
@@ -608,11 +608,8 @@ namespace Cicada {
     {
         std::unique_lock<std::recursive_mutex> locker(mMutex);
         mInterrupted = inter;
-        {
-            lock_guard<mutex> lock(mExtDataSourceMutex);
-            if (mExtDataSource) {
-                mExtDataSource->Interrupt(inter);
-            }
+        if (mExtDataSource) {
+            mExtDataSource->Interrupt(inter);
         }
 
         if (mPDataSource) {
@@ -740,7 +737,7 @@ namespace Cicada {
     }
     void SegmentTracker::setExtDataSource(IDataSource *source)
     {
-        lock_guard<mutex> lock(mExtDataSourceMutex);
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
         mExtDataSource = source;
     }
 }

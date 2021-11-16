@@ -145,7 +145,6 @@ namespace Cicada {
         double mCanSkipUntil{0.0};
         int64_t mLastPlaylistUpdateTime{0};
         bool mNeedReloadWithoutSkip{false};
-        std::mutex mExtDataSourceMutex;
         IDataSource *mExtDataSource{nullptr};
     };
 }
