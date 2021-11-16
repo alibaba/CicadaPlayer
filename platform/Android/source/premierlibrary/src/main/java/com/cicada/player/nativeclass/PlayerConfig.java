@@ -128,7 +128,7 @@ public class PlayerConfig {
     public boolean mDisableVideo = false;
 
     /**
-     * 进度跟新的频率。包括当前位置和缓冲位置。
+     * 进度更新的频率。包括当前位置和缓冲位置。
      */
     /****
      * Set the frequencies of Progress. Includes the current position and the buffer position.
