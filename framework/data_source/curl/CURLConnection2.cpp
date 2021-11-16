@@ -183,23 +183,21 @@ size_t Cicada::CURLConnection2::write_callback(char *buffer, size_t size, size_t
     auto *pHandle = (CURLConnection2 *) userp;
     assert(!pHandle->mPaused);
     auto amount = (uint32_t) (size * nitems);
-
+    std::lock_guard<std::mutex> lock(pHandle->mCurlCbMutex);
+    //    AF_LOGD("RingBuffergetMaxWriteSize(pHandle->pRbuf) is %u\n",RingBuffergetMaxWriteSize(pHandle->pRbuf));
     if (RingBuffergetMaxWriteSize(pHandle->pRbuf) < amount) {
         pHandle->mPaused = true;
         AF_LOGD("write_callback %p paused\n", pHandle);
         return CURL_WRITEFUNC_PAUSE;
     }
-
     if (RingBufferWriteData(pHandle->pRbuf, buffer, amount) != amount) {
-        AF_LOGE("write ring buffer error\n");
+        AF_LOGE("write ring buffer error %u %u\n", amount, RingBuffergetMaxWriteSize(pHandle->pRbuf));
         assert(0);
     }
-    {
-        std::lock_guard<std::mutex> lock(pHandle->mCurlCbMutex);
-        if (pHandle->mPConfig && pHandle->mPConfig->listener) {
-            // TODO: get file type form content type
-            pHandle->mPConfig->listener->onNetWorkInPut(amount, IDataSource::Listener::bitStreamTypeMedia);
-        }
+
+    if (pHandle->mPConfig && pHandle->mPConfig->listener) {
+        // TODO: get file type form content type
+        pHandle->mPConfig->listener->onNetWorkInPut(amount, IDataSource::Listener::bitStreamTypeMedia);
     }
     return amount;
 }
@@ -582,7 +580,7 @@ int CURLConnection2::short_seek(int64_t off)
     uint32_t m_bufferSize = 1024 * 64;
     int ret;
     int64_t delta = off - mFilePos;
-
+    std::lock_guard<std::mutex> lock(mCurlCbMutex);
     if (delta < 0) {
         if (RingBufferSkipBytes(pRbuf, (int) delta)) {
             mFilePos = off;
@@ -642,6 +640,7 @@ int CURLConnection2::readBuffer(void *buf, size_t size)
     //   CURLcode re = curl_easy_getinfo(pEasyHandle->http_handle, CURLINFO_SPEED_DOWNLOAD, &downloadSpeed);
     /*if (re == CURLE_OK)
         av_log(mCurlhttpContext.hd,AV_LOG_DEBUG,"download speed is %f\n",downloadSpeed);*/
+    std::lock_guard<std::mutex> lock(mCurlCbMutex);
     uint32_t want = std::min(RingBuffergetMaxReadSize(pRbuf), (uint32_t) size);
 
     if (want > 0 && RingBufferReadData(pRbuf, (char *) buf, want) == want) {
