@@ -105,7 +105,7 @@ OBJC_EXPORT
 @property(nonatomic, assign) int liveStartIndex;
 
 /**
-@brief  进度跟新的频率。包括当前位置和缓冲位置。
+@brief  进度更新的频率。包括当前位置和缓冲位置。
  */
 /****
 @brief Set the frequencies of Progress. Includes the current position and the buffer position.
