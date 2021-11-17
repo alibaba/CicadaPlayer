@@ -97,6 +97,8 @@ namespace Cicada {
          */
         void SetView(void *view);
 
+        void ClearScreen();
+
         /*
          * set player url source
          */
