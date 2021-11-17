@@ -171,6 +171,7 @@ int CURLConnection2::xferinfo(void *clientp, curl_off_t dltotal, curl_off_t dlno
     if (pHandle->mPaused && RingBuffergetMaxWriteSize(pHandle->pRbuf) > READ_BUFFER_SIZE) {
         pHandle->mPaused = false;
         curl_easy_pause(pHandle->mHttp_handle, CURLPAUSE_CONT);
+        //        AF_LOGD("resume %p\n",pHandle->mHttp_handle);
     }
     return 0;
 }
@@ -409,6 +410,10 @@ int CURLConnection2::FillBuffer(uint32_t want, CurlMulti &multi)
         CURLcode CURLResult = mStatus;
         if (mEOS) {
             return 0;
+        }
+        if (mPaused && RingBuffergetMaxWriteSize(pRbuf) > READ_BUFFER_SIZE) {
+            mPaused = false;
+            multi.resumeHandle(this);
         }
 
         if (CURLResult != CURLE_OK) {
