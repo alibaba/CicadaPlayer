@@ -33,13 +33,13 @@ clone_git $OPENSSL_GIT $OPENSSL_BRANCH
 if [ -z "${NGHTTP2_GIT}" ];then
     NGHTTP2_GIT="https://github.com/nghttp2/nghttp2.git"
 fi
-NGHTTP2_BRANCH="v1.44.0"
+NGHTTP2_BRANCH="v1.41.0"
 clone_git ${NGHTTP2_GIT} "${NGHTTP2_BRANCH}"
 
 if [ -z "${CURL_GIT}" ];then
     CURL_GIT="https://github.com/curl/curl.git"
 fi
-CURL_BRANCH="curl-7_76_1"
+CURL_BRANCH="curl-7_68_0"
 clone_git $CURL_GIT "$CURL_BRANCH"
 
 if [[ -z "${LIBXML2_GIT}" ]];then
