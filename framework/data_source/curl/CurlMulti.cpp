@@ -9,6 +9,7 @@
 #include <utils/frame_work_log.h>
 #include <utils/timer.h>
 using namespace Cicada;
+#define USE_SELECT 0
 
 class curl_handle_status {
 public:
@@ -49,38 +50,7 @@ int CurlMulti::loop()
     CURLMcode mCode;
     int numfds;
     CURLMcode mc = CURLM_OK;
-    std::list<CURLConnection2 *> tempList;
-    {
-        std::lock_guard<std::mutex> lockGuard(mListMutex);
-        for (auto item : mRemoveList) {
-            tempList.push_back(item);
-        }
-        mRemoveList.clear();
-    }
-    for (auto item : tempList) {
-        curl_multi_remove_handle(multi_handle, item->getCurlHandle());
-    }
-    tempList.clear();
-    {
-        std::lock_guard<std::mutex> lockGuard(mListMutex);
-        for (auto item : mAddList) {
-            curl_multi_add_handle(multi_handle, item->getCurlHandle());
-        }
-        mAddList.clear();
-    }
-    {
-        std::lock_guard<std::mutex> lockGuard(mListMutex);
-        for (auto item : mDeleteList) {
-            item->disableCallBack();
-            tempList.push_back(item);
-        }
-        mDeleteList.clear();
-    }
-    for (auto item : tempList) {
-        curl_multi_remove_handle(multi_handle, item->getCurlHandle());
-        delete item;
-    }
-
+    applyPending();
 
     do {
         mCode = curl_multi_perform(multi_handle, &mStillRunning);
@@ -112,18 +82,135 @@ int CurlMulti::loop()
             curl_multi_remove_handle(multi_handle, curl_connection->getCurlHandle());
         }
     }
-
+#if USE_SELECT
     if (mStillRunning) {
-        mc = curl_multi_poll(multi_handle, nullptr, 0, 2, &numfds);
-    }
+        struct timeval timeout {
+        };
+        int rc; /* select() return code */
+        fd_set fdread;
+        fd_set fdwrite;
+        fd_set fdexcep;
+        int maxfd = -1;
 
-    if (!mStillRunning) {
-        af_msleep(10);
+        long curl_timeo = -1;
+
+        FD_ZERO(&fdread);
+        FD_ZERO(&fdwrite);
+        FD_ZERO(&fdexcep);
+
+        /* set a suitable timeout to play around with */
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 10000;
+
+        curl_multi_timeout(multi_handle, &curl_timeo);
+        if (curl_timeo >= 0) {
+            timeout.tv_sec = curl_timeo / 1000;
+            if (timeout.tv_sec > 1)
+                timeout.tv_sec = 1;
+            else
+                timeout.tv_usec = (curl_timeo % 1000) * 1000;
+        }
+
+        /* get file descriptors from the transfers */
+        mc = curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
+        if (mc != CURLM_OK) {
+            AF_LOGE("curl_multi_fdset() failed, code %d.\n", mc);
+            //    break;
+        }
+
+        /* On success the value of maxfd is guaranteed to be >= -1. We call
+       select(maxfd + 1, ...); specially in case of (maxfd == -1) there are
+       no fds ready yet so we call select(0, ...) --or Sleep() on Windows--
+       to sleep 100ms, which is the minimum suggested value in the
+       curl_multi_fdset() doc. */
+
+        if (maxfd == -1) {
+            /* Portable sleep for platforms other than Windows. */
+            struct timeval wait = {0, 100 * 1000}; /* 100ms */
+            rc = select(0, NULL, NULL, NULL, &wait);
+            //            int count = 10;
+            //
+            //            while (count-- >= 0){
+            //                af_msleep(10);
+            //                if (!mAddList.empty() ||!mRemoveList.empty()||!mDeleteList.empty() ||!mResumeList.empty()){
+            //                //    applyPending();
+            //                    //break;
+            //                }
+            //            }
+            //            rc = 0;
+        } else {
+            /* Note that on some platforms 'timeout' may be modified by select().
+         If you need access to the original value save a copy beforehand. */
+            rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
+        }
+
+        switch (rc) {
+            case -1:
+                /* select error */
+                AF_LOGE("select error\n");
+                break;
+            case 0:
+            default:
+                /* timeout or readable/writable sockets */
+                //      curl_multi_perform(multi_handle, &still_running);
+                break;
+        }
+    }
+#else
+    if (mStillRunning) {
+        mc = curl_multi_poll(multi_handle, nullptr, 0, 1000, &numfds);
     }
     if (mc) {
         AF_LOGE("curl_multi_poll error %d\n", mc);
     }
+#endif
+    if (!mStillRunning) {
+        af_msleep(10);
+    }
     return 0;
+}
+void CurlMulti::applyPending()
+{
+    std::list<CURLConnection2 *> tempList;
+    {
+        std::lock_guard<std::mutex> lockGuard(mListMutex);
+        for (auto item : mRemoveList) {
+            tempList.push_back(item);
+        }
+        mRemoveList.clear();
+    }
+    for (auto item : tempList) {
+        curl_multi_remove_handle(multi_handle, item->getCurlHandle());
+    }
+    tempList.clear();
+    {
+        std::lock_guard<std::mutex> lockGuard(mListMutex);
+        for (auto item : mAddList) {
+            curl_multi_add_handle(multi_handle, item->getCurlHandle());
+        }
+        mAddList.clear();
+    }
+
+    {
+        std::lock_guard<std::mutex> lockGuard(mListMutex);
+        for (auto item : mResumeList) {
+            curl_multi_add_handle(multi_handle, item->getCurlHandle());
+            curl_easy_pause(item->getCurlHandle(), CURLPAUSE_CONT);
+        }
+        mResumeList.clear();
+    }
+    {
+        std::lock_guard<std::mutex> lockGuard(mListMutex);
+        for (auto item : mDeleteList) {
+            item->disableCallBack();
+            tempList.push_back(item);
+        }
+        mDeleteList.clear();
+    }
+    for (auto item : tempList) {
+        curl_multi_remove_handle(multi_handle, item->getCurlHandle());
+        delete item;
+    }
 }
 CURLMcode CurlMulti::addHandle(CURLConnection2 *curl_connection)
 {
@@ -141,7 +228,6 @@ CURLMcode CurlMulti::addHandle(CURLConnection2 *curl_connection)
     mAddList.push_back(curl_connection);
     curl_multi_wakeup(multi_handle);
     return CURLM_OK;
-    //   return curl_multi_add_handle(multi_handle, curl_handle);
 }
 CURLMcode CurlMulti::removeHandle(CURLConnection2 *curl_connection)
 {
@@ -155,7 +241,6 @@ CURLMcode CurlMulti::removeHandle(CURLConnection2 *curl_connection)
     mRemoveList.push_back(curl_connection);
     curl_multi_wakeup(multi_handle);
     return CURLM_OK;
-    //    return curl_multi_remove_handle(multi_handle, curl_handle);
 }
 void CurlMulti::deleteHandle(CURLConnection2 *curl_connection)
 {
@@ -169,6 +254,13 @@ void CurlMulti::deleteHandle(CURLConnection2 *curl_connection)
     mDeleteList.push_back(curl_connection);
     curl_multi_wakeup(multi_handle);
 }
+
+void CurlMulti::resumeHandle(CURLConnection2 *curl_connection)
+{
+    std::lock_guard<std::mutex> lockGuard(mListMutex);
+    mResumeList.push_back(curl_connection);
+    curl_multi_wakeup(multi_handle);
+}
 int CurlMulti::poll(int time_ms)
 {
     //    int numfds;
@@ -177,10 +269,5 @@ int CurlMulti::poll(int time_ms)
     //
     //    return mc;
     af_msleep(time_ms);
-    return 0;
-}
-int CurlMulti::wakeUp()
-{
-    curl_multi_wakeup(multi_handle);
     return 0;
 }

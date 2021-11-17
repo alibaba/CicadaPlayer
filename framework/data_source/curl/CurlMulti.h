@@ -22,11 +22,12 @@ namespace Cicada {
         CURLMcode addHandle(CURLConnection2 *curl_connection);
         CURLMcode removeHandle(CURLConnection2 *curl_connection);
         void deleteHandle(CURLConnection2 *curl_connection);
+        void resumeHandle(CURLConnection2 *curl_connection);
         int poll(int time_ms);
-        int wakeUp();
 
     private:
         int loop();
+        void applyPending();
 
     private:
         CURLM *multi_handle{nullptr};
@@ -38,6 +39,7 @@ namespace Cicada {
         std::list<CURLConnection2 *> mAddList;
         std::list<CURLConnection2 *> mRemoveList;
         std::list<CURLConnection2 *> mDeleteList;
+        std::list<CURLConnection2 *> mResumeList;
     };
 
     class CurlMultiManager {
