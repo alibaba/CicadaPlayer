@@ -35,6 +35,10 @@ int Cicada::CheaterVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
     if (mListener) {
         mListener->onFrameInfoUpdate(mLastVideoFrame->getInfo(), false);
     }
+    if (mRenderingCb) {
+        CicadaJSONItem params{};
+        rendered = mRenderingCb(mRenderingCbUserData, mLastVideoFrame.get(), params);
+    }
     mLastVideoFrame = std::move(frame);
     return 0;
 }
@@ -66,6 +70,10 @@ int Cicada::CheaterVideoRender::onVSync(int64_t tick)
         return 0;
     if (mListener) {
         mListener->onFrameInfoUpdate(mLastVideoFrame->getInfo(), true);
+    }
+    if (mRenderingCb) {
+        CicadaJSONItem params{};
+        rendered = mRenderingCb(mRenderingCbUserData, frame.get(), params);
     }
     mLastVideoFrame = nullptr;
     return 0;
