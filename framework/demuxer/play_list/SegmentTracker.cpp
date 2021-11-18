@@ -160,7 +160,11 @@ namespace Cicada {
             if (liveStartIndex >= 0) {
                 curNum = std::min(getFirstSegNum() + liveStartIndex, getLastSegNum());
             } else {
-                curNum = std::max(getLastSegNum() + liveStartIndex + 1, getFirstSegNum());
+                int64_t targetSegNum = ((int64_t) getLastSegNum()) + liveStartIndex + 1;
+                if (targetSegNum < 0) {
+                    targetSegNum = 0;
+                }
+                curNum = std::max((uint64_t) targetSegNum, getFirstSegNum());
             }
             setCurSegNum(curNum);
         }
