@@ -296,6 +296,9 @@ namespace Cicada {
         if (useExt) {
             mPTracker->setExtDataSource(nullptr);
         }
+        if (mPTracker->isLive() && useExt) {
+            mExtDataSource->enableCache(mExtDataSource->GetOriginUri(), false);
+        }
 
         if (ret < 0) {
             AF_TRACE;

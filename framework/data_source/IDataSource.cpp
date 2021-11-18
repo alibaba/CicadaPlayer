@@ -33,6 +33,11 @@ namespace Cicada {
         return mUri;
     }
 
+    std::string IDataSource::GetOriginUri()
+    {
+        return mUri;
+    }
+
     void IDataSource::Set_config(SourceConfig &config)
     {
         mConfig = config;

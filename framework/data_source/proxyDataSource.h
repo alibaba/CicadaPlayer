@@ -49,6 +49,10 @@ namespace Cicada{
 
         int64_t getBufferDuration() override;
 
+        void setUri(const std::string& uri) {
+            mUri = uri;
+        }
+
         //
         //        virtual string Get_error_info(int error);
         //

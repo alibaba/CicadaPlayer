@@ -142,6 +142,8 @@ namespace Cicada {
 
         virtual std::string GetUri();
 
+        virtual std::string GetOriginUri();
+
         virtual speedLevel getSpeedLevel();
 
         virtual void setSegmentList(const std::vector<mediaSegmentListEntry> &segments)

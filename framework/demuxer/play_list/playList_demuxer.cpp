@@ -41,6 +41,7 @@ namespace Cicada {
         }
 
         mProxySource = new proxyDataSource();
+        mProxySource->setUri(mPath);
         mProxySource->setImpl(mReadCb, mSeekCb, mOpenCb, mInterruptCb, mSetSegmentList, mGetBufferDuration, mEnableCache, mUserArg);
         mProxySource->setOptions(mOpts);
         PlaylistManager *playlistManager = nullptr;
