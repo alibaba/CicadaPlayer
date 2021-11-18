@@ -212,10 +212,6 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
             if (mPlayer.mDataSource) {
                 mPlayer.mDataSource->enableCache(mPlayer.mSet->url, false);
             }
-        } else {
-            if (mPlayer.mDataSource) {
-                mPlayer.mDataSource->enableCache(mPlayer.mSet->url, true);
-            }
         }
     }
 
