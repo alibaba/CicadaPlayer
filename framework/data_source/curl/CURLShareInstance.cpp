@@ -9,10 +9,7 @@
 #include "CURLShareInstance.h"
 #include <cassert>
 #include <mutex>
-
-extern "C" {
-#include <libavformat/avformat.h>
-};
+#include <utils/UrlUtils.h>
 
 using namespace Cicada;
 
@@ -55,21 +52,20 @@ curl_slist *CURLShareInstance::getHosts(const string &url, CURLSH **sh)
     std::unique_lock<std::mutex> uMutex(globalSettings::getSetting().getMutex());
     const globalSettings::type_resolve &resolve = globalSettings::getSetting().getResolve();
     curl_slist *host = nullptr;
-    char proto[256];
-    char hostname[256];
-    int port = 0;
-    av_url_split(proto, sizeof(proto), nullptr, 0, hostname, sizeof(hostname), &port, nullptr, 0, url.c_str());
 
+    URLComponents urlComponents{};
+    UrlUtils::parseUrl(urlComponents, url);
+    int port = urlComponents.port;
     if (port <= 0) {
-        if (strcmp(proto, "http") == 0) {
+        if (strcmp(urlComponents.proto.c_str(), "http") == 0) {
             port = 80;
-        } else if (strcmp(proto, "https") == 0) {
+        } else if (strcmp(urlComponents.proto.c_str(), "https") == 0) {
             port = 443;
         }
     }
 
     assert(port > 0);
-    string hostName = hostname;
+    string hostName = urlComponents.host;
     hostName += ":" + to_string(port);
     auto resolveItem = resolve.find(hostName);
     *sh = (CURLSH *) (*mShare);
