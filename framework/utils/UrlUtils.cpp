@@ -122,6 +122,16 @@ void UrlUtils::parseUrl(URLComponents &urlComponents, const std::string &url)
     urlComponents.port = port;
 }
 
+#ifdef WIN32
+// from ffmpeg/avstring.c
+static size_t strlcpy(char *dst, const char *src, size_t size)
+{
+    size_t len = 0;
+    while (++len < size && *src) *dst++ = *src++;
+    if (len <= size) *dst = 0;
+    return len + strlen(src) - 1;
+}
+#endif
 
 //from ffmpeg/utils.c av_url_split
 void UrlUtils::url_split(char *proto, int proto_size, char *authorization, int authorization_size, char *hostname, int hostname_size,
