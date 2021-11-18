@@ -4075,6 +4075,16 @@ StreamInfo *SuperMediaPlayer::GetCurrentStreamInfo(StreamType type)
 
 void SuperMediaPlayer::RenderCallback(StreamType type, bool rendered, IAFFrame::AFFrameInfo &info)
 {
+#if 0
+    static int64_t audioPts = INT64_MIN;
+    if (type == ST_TYPE_AUDIO){
+        audioPts = info.pts;
+    } else if (type == ST_TYPE_VIDEO){
+        if (audioPts != INT64_MIN){
+            AF_LOGD("avsync video late %lld (%lld - %lld) clock is %lld\n",audioPts - info.pts,audioPts, info.pts,mMasterClock.GetTime());
+        }
+    }
+#endif
     //   AF_LOGD("video stream render pts is %lld", pts);
     if (mCanceled) {
         return;
