@@ -153,9 +153,9 @@ int SdlAFVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
                 }
             }
             mLastVideoFrame = std::move(frame);
-        }
-        if (mLastVideoFrame && mVideoRotate != getRotate(mLastVideoFrame->getInfo().video.rotate)) {
-            mVideoRotate = getRotate(mLastVideoFrame->getInfo().video.rotate);
+            if (mLastVideoFrame && mVideoRotate != getRotate(mLastVideoFrame->getInfo().video.rotate)) {
+                mVideoRotate = getRotate(mLastVideoFrame->getInfo().video.rotate);
+            }
         }
         if (paused) {
             mVSync->start();
