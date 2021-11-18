@@ -137,37 +137,37 @@ void UrlUtils::url_split(char *proto, int proto_size, char *authorization, int a
 
     /* parse protocol */
     if ((p = strchr(url, ':'))) {
-        strncpy(proto, url, std::min(proto_size, (int) (p + 1 - url)));
+        strlcpy(proto, url, std::min(proto_size, (int) (p + 1 - url)));
         p++; /* skip ':' */
         if (*p == '/') p++;
         if (*p == '/') p++;
     } else {
         /* no protocol means plain filename */
-        strncpy(path, url, path_size);
+        strlcpy(path, url, path_size);
         return;
     }
 
     /* separate path from hostname */
     ls = p + strcspn(p, "/?#");
-    strncpy(path, ls, path_size);
+    strlcpy(path, ls, path_size);
 
     /* the rest is hostname, use that to parse auth/port */
     if (ls != p) {
         /* authorization (user[:pass]@hostname) */
         at2 = p;
         while ((at = strchr(p, '@')) && at < ls) {
-            strncpy(authorization, at2, std::min(authorization_size, (int) (at + 1 - at2)));
+            strlcpy(authorization, at2, std::min(authorization_size, (int) (at + 1 - at2)));
             p = at + 1; /* skip '@' */
         }
 
         if (*p == '[' && (brk = strchr(p, ']')) && brk < ls) {
             /* [host]:port */
-            strncpy(hostname, p + 1, std::min(hostname_size, (int) (brk - p)));
+            strlcpy(hostname, p + 1, std::min(hostname_size, (int) (brk - p)));
             if (brk[1] == ':' && port_ptr) *port_ptr = atoi(brk + 2);
         } else if ((col = strchr(p, ':')) && col < ls) {
-            strncpy(hostname, p, std::min((int) (col + 1 - p), hostname_size));
+            strlcpy(hostname, p, std::min((int) (col + 1 - p), hostname_size));
             if (port_ptr) *port_ptr = atoi(col + 1);
         } else
-            strncpy(hostname, p, std::min((int) (ls + 1 - p), hostname_size));
+            strlcpy(hostname, p, std::min((int) (ls + 1 - p), hostname_size));
     }
 }
