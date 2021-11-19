@@ -217,8 +217,9 @@ bool VideoFilterChain::removeFilter(const std::string &target)
 
 void VideoFilterChain::setSpeed(float speed)
 {
+    AF_LOGD("set option speed is : %3.2f\n", speed);
     for (auto &iter : mVideoFiltersMap) {
-        iter.second->setSpeed(speed);
+        iter.second->setOption(PLAYER_SPEED_OPTION, std::to_string(speed), "");
     }
 }
 

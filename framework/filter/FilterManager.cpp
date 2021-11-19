@@ -52,6 +52,9 @@ void FilterManager::setupFilterChains()
             continue;
         }
 
+        filter->setOption(VIDEO_FPS_OPTION, to_string(std::max(25, (int) streamMeta->avg_fps)), "");
+        filter->setOption(PLAYER_SPEED_OPTION, to_string(mSpeed), "");
+
         std::unique_ptr<IVideoFilter> targetFilter = std::unique_ptr<IVideoFilter>(filter);
         std::string options;
         if (configItem.hasItem(filterPrototype::FILTER_CONFIG_KEY_OPTIONS)) {
@@ -87,7 +90,6 @@ void FilterManager::setupFilterChains()
 
     for (auto &iter : mFilterChains) {
         for (auto &filter : mInvalidMap) {
-            iter.second->setSpeed(mSpeed);
             iter.second->setInvalid(filter.first, filter.second);
         }
     }

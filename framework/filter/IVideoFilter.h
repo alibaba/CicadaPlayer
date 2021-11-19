@@ -14,6 +14,12 @@ namespace Cicada {
     const static std::string FILTER_INVALID_PERFORMANCE = "filter stop due to poor device performance";
     const static std::string FILTER_INVALID_OVER_FPS = "filter stop due to fps is too big";
     const static std::string FILTER_VALID_RECOVERY = "filter recovery";
+
+    const static std::string FILTER_OPTION = "options";
+    const static std::string USEFEATURE_OPTION = "userFeature";
+    const static std::string VIDEO_FPS_OPTION = "video_fps";
+    const static std::string PLAYER_SPEED_OPTION = "player_speed";
+
     class DCACallback {
     protected:
         void *mUserData;
@@ -34,6 +40,7 @@ namespace Cicada {
             Texture = 1 << 2,// texture before render
             HDR = 1 << 3 , // HDR viedeo buffer
         };
+
 
     public:
         IVideoFilter(const IAFFrame::videoInfo &srcFormat, const IAFFrame::videoInfo &dstFormat, bool active)
@@ -91,11 +98,6 @@ namespace Cicada {
             return mInvalid;
         }
 
-        void setSpeed(float speed)
-        {
-            mSpeed = speed;
-        }
-
         virtual void setDCACb(DCACallback *dcaCallback)
         {
             this->mDcaCallback = dcaCallback;
@@ -112,6 +114,7 @@ namespace Cicada {
         bool mInvalid{false};
         bool mActive{false};
         float mSpeed = 1.0;
+        double mVideoFps{25};
         std::string currentTarget;
         DCACallback *mDcaCallback;
     };
