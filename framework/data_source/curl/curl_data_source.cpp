@@ -53,9 +53,10 @@ using std::string;
 
 CURLConnection *CurlDataSource::initConnection()
 {
-    auto *pHandle = new CURLConnection(&mConfig);
+    auto *pHandle = new CURLConnection(mLocation);
     pHandle->setSSLBackEnd(CURLShareInstance::Instance()->getSslbakcend());
-    pHandle->setSource(mLocation, headerList);
+    pHandle->setSourceConfig(&mConfig);
+    pHandle->setHeaderList(headerList);
     pHandle->setPost(mBPost, mPostSize, mPostData);
     return pHandle;
 }

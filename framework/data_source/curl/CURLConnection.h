@@ -14,7 +14,7 @@
 namespace Cicada {
     class CURLConnection {
     public:
-        explicit CURLConnection(Cicada::IDataSource::SourceConfig *pConfig);
+        explicit CURLConnection(const std::string &location);
 
         void setSSLBackEnd(curl_sslbackend sslbackend);
 
@@ -22,7 +22,9 @@ namespace Cicada {
 
         void disconnect();
 
-        void setSource(const std::string &location, struct curl_slist *headerList);
+        void setSourceConfig(Cicada::IDataSource::SourceConfig *pConfig);
+
+        void setHeaderList(struct curl_slist *headerList);
 
         void setPost(bool post, int64_t size, const uint8_t *data);
 

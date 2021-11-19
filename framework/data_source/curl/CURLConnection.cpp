@@ -53,12 +53,8 @@ static int getErrorCode(const CURLcode &CURLResult)
     return FRAMEWORK_ERR(EIO);
 }
 
-Cicada::CURLConnection::CURLConnection(Cicada::IDataSource::SourceConfig *pConfig)
+void Cicada::CURLConnection::setSourceConfig(Cicada::IDataSource::SourceConfig *pConfig)
 {
-    mHttp_handle = curl_easy_init();
-    pRbuf = RingBufferCreate(RINGBUFFER_SIZE + RINGBUFFER_BACK_SIZE);
-    RingBufferSetBackSize(pRbuf, RINGBUFFER_BACK_SIZE);
-    m_bFirstLoop = 1;
     mPConfig = pConfig;
 
     if (mPConfig) {
@@ -112,6 +108,30 @@ Cicada::CURLConnection::CURLConnection(Cicada::IDataSource::SourceConfig *pConfi
             default:
                 break;
         }
+    }
+}
+
+Cicada::CURLConnection::CURLConnection(const std::string &url)
+{
+    mHttp_handle = curl_easy_init();
+    pRbuf = RingBufferCreate(RINGBUFFER_SIZE + RINGBUFFER_BACK_SIZE);
+    RingBufferSetBackSize(pRbuf, RINGBUFFER_BACK_SIZE);
+    m_bFirstLoop = 1;
+
+    uri = url;
+    curl_easy_setopt(mHttp_handle, CURLOPT_URL, uri.c_str());
+    CURLSH *sh = nullptr;
+
+    if (reSolveList) {
+        curl_slist_free_all(reSolveList);
+    }
+
+    reSolveList = CURLShareInstance::Instance()->getHosts(uri, &sh);
+    assert(sh != nullptr);
+    curl_easy_setopt(mHttp_handle, CURLOPT_SHARE, sh);
+
+    if (reSolveList != nullptr) {
+        curl_easy_setopt(mHttp_handle, CURLOPT_RESOLVE, reSolveList);
     }
 
     // TODO: move to conncet
@@ -302,28 +322,12 @@ int Cicada::CURLConnection::sockopt_callback(void *clientp, curl_socket_t curlfd
     return 0;//CURL_SOCKOPT_ALREADY_CONNECTED;
 }
 
-void Cicada::CURLConnection::setSource(const string &location, struct curl_slist *headerList)
+void Cicada::CURLConnection::setHeaderList(struct curl_slist *headerList)
 {
     if (headerList) {
         curl_easy_setopt(mHttp_handle, CURLOPT_HTTPHEADER, headerList);
     } else {
         curl_easy_setopt(mHttp_handle, CURLOPT_HTTPHEADER, NULL);
-    }
-
-    uri = location;
-    curl_easy_setopt(mHttp_handle, CURLOPT_URL, uri.c_str());
-    CURLSH *sh = nullptr;
-
-    if (reSolveList) {
-        curl_slist_free_all(reSolveList);
-    }
-
-    reSolveList = CURLShareInstance::Instance()->getHosts(uri, &sh);
-    assert(sh != nullptr);
-    curl_easy_setopt(mHttp_handle, CURLOPT_SHARE, sh);
-
-    if (reSolveList != nullptr) {
-        curl_easy_setopt(mHttp_handle, CURLOPT_RESOLVE, reSolveList);
     }
 }
 void CURLConnection::setPost(bool post, int64_t size, const uint8_t *data)
