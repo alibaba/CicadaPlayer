@@ -453,7 +453,9 @@ int DashStream::openSegment(const string &uri, int64_t start, int64_t end)
     if (mExtDataSource) {
         if (mIsFirstOpen) {
             mIsFirstOpen = false;
-            mExtDataSource->setSegmentList(getSegmentList());
+            if (!mPTracker->isLive()) {
+                mExtDataSource->setSegmentList(getSegmentList());
+            }
         }
         mExtDataSource->setRange(start, fixEnd);
         int ret = mExtDataSource->Open(uri);
@@ -497,7 +499,9 @@ void DashStream::recreateSource(const string &url)
     mPdataSource = dataSourcePrototype::create(url, mOpts, DS_NEED_CACHE);
     mPdataSource->Set_config(mSourceConfig);
     mPdataSource->Interrupt(mInterrupted);
-    mPdataSource->setSegmentList(getSegmentList());
+    if (!mPTracker->isLive()) {
+        mPdataSource->setSegmentList(getSegmentList());
+    }
     mPdataSource->setUrlToUniqueIdCallback(mUrlHashCb, mUrlHashCbUserData);
     mPdataSource->enableCache(url, mEnableCache);
 }

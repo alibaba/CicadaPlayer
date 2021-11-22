@@ -624,7 +624,9 @@ namespace Cicada {
         if (mExtDataSource) {
             if (mIsFirstOpen) {
                 mIsFirstOpen = false;
-                mExtDataSource->setSegmentList(getSegmentList());
+                if (!mPTracker->isLive()) {
+                    mExtDataSource->setSegmentList(getSegmentList());
+                }
             }
             mExtDataSource->setRange(start, end);
             int ret = mExtDataSource->Open(uri);
@@ -676,7 +678,9 @@ namespace Cicada {
         mPdataSource = dataSourcePrototype::create(url, mOpts, DS_NEED_CACHE);
         mPdataSource->Set_config(mSourceConfig);
         mPdataSource->Interrupt(mInterrupted);
-        mPdataSource->setSegmentList(getSegmentList());
+        if (!mPTracker->isLive()) {
+            mPdataSource->setSegmentList(getSegmentList());
+        }
         mPdataSource->setUrlToUniqueIdCallback(mUrlHashCb, mUrlHashCbUserData);
         if (mPTracker->getStreamType() == STREAM_TYPE_MIXED && !mPTracker->isLive()) {
             mPdataSource->enableCache(url, true);
