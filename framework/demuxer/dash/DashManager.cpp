@@ -77,6 +77,9 @@ int DashManager::init()
     }
 
     bool bEnableCache = videoStreamCount > 1 ? false : true;
+    if (mPList->isLive()) {
+        bEnableCache = false;
+    }
     for (auto &i : mStreamInfoList) {
         i->mPStream->enableCache(bEnableCache);
     }

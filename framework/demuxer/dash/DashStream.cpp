@@ -457,9 +457,7 @@ int DashStream::openSegment(const string &uri, int64_t start, int64_t end)
         }
         mExtDataSource->setRange(start, fixEnd);
         int ret = mExtDataSource->Open(uri);
-        if (!mEnableCache) {
-            mExtDataSource->enableCache(uri, mEnableCache);
-        }
+        mExtDataSource->enableCache(uri, mEnableCache);
         return ret;
     }
 
@@ -470,9 +468,7 @@ int DashStream::openSegment(const string &uri, int64_t start, int64_t end)
     } else {
         mPdataSource->setRange(start, fixEnd);
         ret = mPdataSource->Open(uri);
-        if (!mEnableCache) {
-            mPdataSource->enableCache(uri, mEnableCache);
-        }
+        mPdataSource->enableCache(uri, mEnableCache);
     }
 
     return ret;
@@ -503,9 +499,7 @@ void DashStream::recreateSource(const string &url)
     mPdataSource->Interrupt(mInterrupted);
     mPdataSource->setSegmentList(getSegmentList());
     mPdataSource->setUrlToUniqueIdCallback(mUrlHashCb, mUrlHashCbUserData);
-    if (!mEnableCache) {
-        mPdataSource->enableCache(url, mEnableCache);
-    }
+    mPdataSource->enableCache(url, mEnableCache);
 }
 
 void DashStream::clearDataFrames()

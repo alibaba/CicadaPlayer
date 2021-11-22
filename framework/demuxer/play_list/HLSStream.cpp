@@ -296,8 +296,12 @@ namespace Cicada {
         if (useExt) {
             mPTracker->setExtDataSource(nullptr);
         }
-        if (mPTracker->isLive() && useExt) {
-            mExtDataSource->enableCache(mExtDataSource->GetOriginUri(), false);
+        if (useExt) {
+            if (mPTracker->isLive()) {
+                mExtDataSource->enableCache(mExtDataSource->GetOriginUri(), false);
+            } else {
+                mExtDataSource->enableCache(mExtDataSource->GetOriginUri(), true);
+            }
         }
 
         if (ret < 0) {
@@ -624,7 +628,9 @@ namespace Cicada {
             }
             mExtDataSource->setRange(start, end);
             int ret = mExtDataSource->Open(uri);
-            if (mPTracker->getStreamType() != STREAM_TYPE_MIXED) {
+            if (mPTracker->getStreamType() == STREAM_TYPE_MIXED && !mPTracker->isLive()) {
+                mExtDataSource->enableCache(uri, true);
+            } else {
                 mExtDataSource->enableCache(uri, false);
             }
             return ret;
@@ -637,7 +643,9 @@ namespace Cicada {
         } else {
             mPdataSource->setRange(start, end);
             ret = mPdataSource->Open(uri);
-            if (mPTracker->getStreamType() != STREAM_TYPE_MIXED) {
+            if (mPTracker->getStreamType() == STREAM_TYPE_MIXED && !mPTracker->isLive()) {
+                mPdataSource->enableCache(uri, true);
+            } else {
                 mPdataSource->enableCache(uri, false);
             }
         }
@@ -670,7 +678,9 @@ namespace Cicada {
         mPdataSource->Interrupt(mInterrupted);
         mPdataSource->setSegmentList(getSegmentList());
         mPdataSource->setUrlToUniqueIdCallback(mUrlHashCb, mUrlHashCbUserData);
-        if (mPTracker->getStreamType() != STREAM_TYPE_MIXED) {
+        if (mPTracker->getStreamType() == STREAM_TYPE_MIXED && !mPTracker->isLive()) {
+            mPdataSource->enableCache(url, true);
+        } else {
             mPdataSource->enableCache(url, false);
         }
     }
