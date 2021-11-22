@@ -3,15 +3,16 @@
 //
 #define LOG_TAG "CURLConnection"
 
-#include <algorithm>
-#include <utils/frame_work_log.h>
-#include <cerrno>
-#include <utils/errors/framework_error.h>
-#include <utils/timer.h>
 #include "CURLConnection.h"
 #include "CURLShareInstance.h"
+#include "CurlEasyManager.h"
+#include <algorithm>
 #include <cassert>
+#include <cerrno>
 #include <cstring>
+#include <utils/errors/framework_error.h>
+#include <utils/frame_work_log.h>
+#include <utils/timer.h>
 
 using namespace std;
 using namespace Cicada;
@@ -113,7 +114,7 @@ void Cicada::CURLConnection::setSourceConfig(Cicada::IDataSource::SourceConfig *
 
 Cicada::CURLConnection::CURLConnection(const std::string &url)
 {
-    mHttp_handle = curl_easy_init();
+    CurlEasyManager::getInstance().acquireEasy(url, &mHttp_handle, &multi_handle);
     pRbuf = RingBufferCreate(RINGBUFFER_SIZE + RINGBUFFER_BACK_SIZE);
     RingBufferSetBackSize(pRbuf, RINGBUFFER_BACK_SIZE);
     m_bFirstLoop = 1;
@@ -138,7 +139,6 @@ Cicada::CURLConnection::CURLConnection(const std::string &url)
     curl_easy_setopt(mHttp_handle, CURLOPT_SOCKOPTFUNCTION, sockopt_callback);
     curl_easy_setopt(mHttp_handle, CURLOPT_SOCKOPTDATA, this);
     esayHandle_set_common_opt();
-    multi_handle = curl_multi_init();
 }
 
 void CURLConnection::setSSLBackEnd(curl_sslbackend sslbackend)
@@ -163,9 +163,7 @@ Cicada::CURLConnection::~CURLConnection()
         curl_multi_remove_handle(multi_handle, mHttp_handle);
     }
 
-    if (mHttp_handle) {
-        curl_easy_cleanup(mHttp_handle);
-    }
+    CurlEasyManager::getInstance().releaseEasy(&mHttp_handle, &multi_handle);
 
     if (pRbuf) {
         RingBufferDestroy(pRbuf);
@@ -177,10 +175,6 @@ Cicada::CURLConnection::~CURLConnection()
 
     if (response) {
         free(response);
-    }
-
-    if (multi_handle) {
-        curl_multi_cleanup(multi_handle);
     }
 
     if (reSolveList) {

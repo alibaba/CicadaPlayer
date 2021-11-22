@@ -32,6 +32,8 @@ if (ENABLE_CURL_SOURCE)
     target_sources(data_source PRIVATE
             curl/curl_data_source.cpp
             curl/curl_data_source.h
+            curl/CurlEasyManager.cpp
+            curl/CurlEasyManager.h
             curl/CURLShareInstance.cpp
             curl/CURLShareInstance.h
             curl/curlShare.cpp
