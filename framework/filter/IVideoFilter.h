@@ -16,7 +16,7 @@ namespace Cicada {
     const static std::string FILTER_VALID_RECOVERY = "filter recovery";
 
     const static std::string FILTER_OPTION = "options";
-    const static std::string USEFEATURE_OPTION = "userFeature";
+    const static std::string USEFEATURE_OPTION = "useFeature";
     const static std::string VIDEO_FPS_OPTION = "video_fps";
     const static std::string PLAYER_SPEED_OPTION = "player_speed";
 
