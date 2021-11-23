@@ -47,6 +47,15 @@ namespace Cicada {
         void setDCACb(const std::function<void(int level, const std::string &content)> &func);
 
     private:
+        class Callback : public DCACallback {
+            void send(std::string target, int level, std::string content);
+
+        public:
+            Callback(void *userData) : DCACallback(userData)
+            {}
+        };
+
+    private:
         void filterLoop();
 
         static void pullFrames(std::unique_ptr<IVideoFilter> &filter, SpscQueue<IAFFrame *> &outFrames);
@@ -62,6 +71,7 @@ namespace Cicada {
         SpscQueue<IAFFrame *> mInPutFrames{10};
         SpscQueue<IAFFrame *> mOutPutFrames{10};
         std::function<void(int level, const std::string &content)> sendEvent;
+        std::unique_ptr<Callback> mDCACallback{nullptr};
     };
 }// namespace Cicada
 #endif//SOURCE_VIDEOFILTERCHAIN_H

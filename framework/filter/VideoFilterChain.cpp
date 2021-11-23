@@ -11,7 +11,9 @@
 using namespace Cicada;
 
 VideoFilterChain::VideoFilterChain()
-{}
+{
+    mDCACallback = std::unique_ptr<Callback>(new Callback(this));
+}
 
 VideoFilterChain::~VideoFilterChain()
 {
@@ -242,23 +244,16 @@ bool VideoFilterChain::hasFilter(const std::string &target)
 void VideoFilterChain::setDCACb(const std::function<void(int level, const std::string &content)> &func)
 {
     sendEvent = func;
-    class Callback : public DCACallback {
-        void send(std::string target, int level, std::string content)
-        {
-            auto *chain = (VideoFilterChain *) mUserData;
-            if (chain->mVideoFiltersMap.find(target) != chain->mVideoFiltersMap.end()) {
-                std::string name = chain->mVideoFiltersMap.find(target)->second->getName();
-                chain->sendEvent(level, name + " : " + content);
-            }
-        }
+    for (auto &iter : mVideoFiltersMap) {
+        iter.second->setDCACb(mDCACallback.get());
+    }
+}
 
-    public:
-        Callback(void *userData) : DCACallback(userData)
-        {}
-    };
-    auto iter = mVideoFiltersMap.begin();
-    while (iter != mVideoFiltersMap.end()) {
-        iter->second->setDCACb(new Callback(this));
-        ++iter;
+void VideoFilterChain::Callback::send(std::string target, int level, std::string content)
+{
+    auto *chain = (VideoFilterChain *) mUserData;
+    if (chain->mVideoFiltersMap.find(target) != chain->mVideoFiltersMap.end()) {
+        std::string name = chain->mVideoFiltersMap.find(target)->second->getName();
+        chain->sendEvent(level, name + " : " + content);
     }
 }
