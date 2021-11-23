@@ -1478,8 +1478,10 @@ bool SuperMediaPlayer::DoCheckBufferPass()
         //clean late audio data
         if (cur_buffer_duration > HighBufferDur && HAVE_VIDEO && HAVE_AUDIO) {
             if (mSoughtVideoPos > 0) {
-                AF_LOGW("clean late audio data before %lld", mSoughtVideoPos);
-                mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_AUDIO, mSoughtVideoPos);
+                int64_t count = mBufferController->ClearPacketBeforeTimePos(BUFFER_TYPE_AUDIO, mSoughtVideoPos);
+                if (count > 0) {
+                    AF_LOGW("clean late audio data %lld before %lld", count, mSoughtVideoPos);
+                }
                 int64_t pts = mBufferController->GetPacketPts(BUFFER_TYPE_AUDIO);
 
                 if (mRemovedFirstAudioPts == INT64_MIN) {

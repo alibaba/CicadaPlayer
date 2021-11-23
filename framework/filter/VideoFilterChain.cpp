@@ -42,10 +42,10 @@ int VideoFilterChain::push(std::unique_ptr<IAFFrame> &frame)
 
 void VideoFilterChain::filterLoop()
 {
-    AF_LOGD("filterLoop in....");
+    //   AF_LOGD("filterLoop in....");
 
     if (mVideoFiltersMap.empty()) {
-        AF_LOGD("mVideoFiltersMap empty");
+        //     AF_LOGD("mVideoFiltersMap empty");
         swapFrames(mOutPutFrames, mInPutFrames);
     } else {
         SpscQueue<IAFFrame *> inputFrames{10};
@@ -60,21 +60,21 @@ void VideoFilterChain::filterLoop()
             std::unique_ptr<IAFFrame> frame = nullptr;
             std::unique_ptr<IVideoFilter> &filter = iter.second;
 
-            AF_LOGD("before filter %s , input frame size = %d , out frames size = %d", filter->getName().c_str(), inputFrames.size(),
-                    outFrames.size());
+            //      AF_LOGD("before filter %s , input frame size = %d , out frames size = %d", filter->getName().c_str(), inputFrames.size(),
+            //               outFrames.size());
 
             pullFrames(filter, outFrames);
             pushFrames(filter, inputFrames);
             pullFrames(filter, outFrames);
 
-            AF_LOGD("after filter %s , input frame size = %d , out frames size = %d", filter->getName().c_str(), inputFrames.size(),
-                    outFrames.size());
+            //         AF_LOGD("after filter %s , input frame size = %d , out frames size = %d", filter->getName().c_str(), inputFrames.size(),
+            //                 outFrames.size());
         }
 
         swapFrames(mOutPutFrames, outFrames);
     }
 
-    AF_LOGD("filterLoop out....");
+    //    AF_LOGD("filterLoop out....");
 }
 
 
@@ -85,10 +85,10 @@ void VideoFilterChain::pullFrames(std::unique_ptr<IVideoFilter> &filter, SpscQue
     while (true) {
         ret = filter->pull(frame, 0);
         if (ret >= 0) {
-            AF_LOGD("filter %s pull success pts= %lld", filter->getName().c_str(), frame->getInfo().pts);
+            //     AF_LOGD("filter %s pull success pts= %lld", filter->getName().c_str(), frame->getInfo().pts);
             outFrames.push(frame.release());
         } else if (ret == -EAGAIN) {
-            AF_LOGD("filter %s pull  EAGAIN", filter->getName().c_str());
+            //        AF_LOGD("filter %s pull  EAGAIN", filter->getName().c_str());
             break;
         } else {
             AF_LOGW("filter %s  pull Error = %d ", filter->getName().c_str(), ret);
@@ -103,7 +103,7 @@ void VideoFilterChain::swapFrames(SpscQueue<IAFFrame *> &dstFrames, SpscQueue<IA
         dstFrames.push(srcFrames.front());
         srcFrames.pop();
     }
-    AF_LOGD("swapFrames  dstFrames frame size = %d , srcFrames frames size = %d", dstFrames.size(), srcFrames.size());
+    //    AF_LOGD("swapFrames  dstFrames frame size = %d , srcFrames frames size = %d", dstFrames.size(), srcFrames.size());
 }
 
 void VideoFilterChain::clearFrames(SpscQueue<IAFFrame *> &frames)
@@ -125,13 +125,13 @@ void VideoFilterChain::pushFrames(std::unique_ptr<IVideoFilter> &filter, SpscQue
         } else {
             frame = std::unique_ptr<IAFFrame>(inputFrames.front());
 
-            AF_LOGD("filter %s push pts = %lld", filter->getName().c_str(), frame->getInfo().pts);
+            //     AF_LOGD("filter %s push pts = %lld", filter->getName().c_str(), frame->getInfo().pts);
 
             ret = filter->push(frame, 0);
             if (ret >= 0) {
                 inputFrames.pop();
             } else if (ret == -EAGAIN) {
-                AF_LOGD("filter %s push EAGAIN", filter->getName().c_str());
+                //           AF_LOGD("filter %s push EAGAIN", filter->getName().c_str());
                 //todo why not eagain
                 break;
             } else {
