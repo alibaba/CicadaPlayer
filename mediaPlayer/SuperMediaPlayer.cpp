@@ -108,6 +108,13 @@ void SuperMediaPlayer::SetView(void *view)
     mMsgCtrlListener->ProcessSetViewMsg(view);
 }
 
+void SuperMediaPlayer::ClearScreen()
+{
+    if (mAVDeviceManager->getVideoRender()) {
+        mAVDeviceManager->getVideoRender()->clearScreen();
+    }
+}
+
 int64_t SuperMediaPlayer::GetMasterClockPts()
 {
     return mMasterClock.GetTime();
@@ -1195,8 +1202,12 @@ void SuperMediaPlayer::doReadPacket()
                 //AF_LOGD("system_availableram is %" PRIu64 "",info.system_availableram);
                 if (info.system_availableram > 2 * mSet->lowMemSize) {
                     checkStep = (int) (info.system_availableram / (5 * 1024 * 1024));
+#ifdef ANDROID
+                } else if (0 && info.system_availableram < mSet->lowMemSize) {
+#else
                 } else if (info.system_availableram < mSet->lowMemSize) {
-                    AF_LOGW("low memery...");
+#endif
+                   AF_LOGW("low memory...");
 
                     if (!mLowMem) {
                         mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_SYSTEM_LOW_MEMORY, "App Low memory");
@@ -1905,6 +1916,14 @@ int SuperMediaPlayer::FillVideoFrame()
         }
 
         Stream_meta *meta = (Stream_meta *) (mCurrentVideoMeta.get());
+
+        if (!mAdaptiveVideo && mVideoWidth > 0 && (pFrame->getInfo().video.width != mVideoWidth || pFrame->getInfo().video.height != mVideoHeight)) {
+
+            // displayWidth and displayHeight is changed, but we can't know the sar for now
+
+            // TODO: get the sar from frame or update current video meta
+            meta->displayWidth = meta->displayHeight = 0;
+        }
 
         if (meta->displayWidth > 0 && meta->displayHeight > 0) {
             pFrame->getInfo().video.dar = 1.0 * meta->displayWidth / meta->displayHeight;
@@ -3368,9 +3387,11 @@ void SuperMediaPlayer::updateVideoMeta()
     mDemuxerService->GetStreamMeta(mCurrentVideoMeta, mCurrentVideoIndex, false);
     auto *meta = (Stream_meta *) (mCurrentVideoMeta.get());
 
-    if (mVideoWidth != meta->width || mVideoHeight != meta->height || mVideoRotation != meta->rotate) {
-        mVideoWidth = meta->displayWidth;
-        mVideoHeight = meta->displayHeight;
+    int with = meta->displayWidth == 0 ? meta->width : meta->displayWidth;
+    int height = meta->displayHeight == 0 ? meta->height : meta->displayHeight;
+    if (mVideoWidth != with || mVideoHeight != height || mVideoRotation != meta->rotate) {
+        mVideoWidth = with;
+        mVideoHeight = height;
         mVideoRotation = meta->rotate;
         mPNotifier->NotifyVideoSizeChanged(mVideoWidth, mVideoHeight);
     }

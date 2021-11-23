@@ -43,6 +43,8 @@ namespace Cicada {
          */
         virtual void SetView(void *view) = 0;
 
+        virtual void ClearScreen() = 0;
+
         /*
          *设置播放url
          */
