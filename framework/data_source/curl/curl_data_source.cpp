@@ -113,7 +113,7 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
 
     if (CURLE_OK ==
             curl_easy_getinfo(pConnection->getCurlHandle(), CURLINFO_RESPONSE_CODE, &response)) {
-        AF_LOGI("CURLINFO_RESPONSE_CODE is %d", response);
+        CURL_LOGD("CURLINFO_RESPONSE_CODE is %d", response);
 
         if (response >= 400) {
             return gen_framework_http_errno((int) response);
