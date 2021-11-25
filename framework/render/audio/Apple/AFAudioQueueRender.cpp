@@ -439,27 +439,30 @@ int AFAudioQueueRender::audioQueueLoop()
             mNeedFlush = false;
         }
 
-        if (mBufferAllocatedCount < mBufferCount && mInPut.size() >= mBufferCount) {
+        while (mBufferAllocatedCount < mBufferCount && mInPut.size() > 0 && mRunning) {
             assert(mAudioDataByteSize > 0);
             assert(mBufferCount <= MAX_QUEUE_SIZE);
-            while (mBufferAllocatedCount < mBufferCount && mRunning) {
-                AudioQueueBuffer *buffer = nullptr;
-                OSStatus err = AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &buffer);
-                if (err != noErr) {
-                    AF_LOGE("AudioQueueAllocateBuffer error %d \n", err);
-                    break;
-                }
-                _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
-                UInt32 miniBufferSize = getMiniBufferSize(buffer->mAudioDataBytesCapacity);
-                buffer->mAudioDataByteSize = copyAudioData(buffer, miniBufferSize);
-                assert(buffer->mAudioDataByteSize > 0);
-                err = AudioQueueEnqueueBuffer(_audioQueueRef, buffer, 0, nullptr);
-                if (err != noErr) {
-                    AF_LOGE("AudioQueueEnqueueBuffer error %d \n", err);
-                    assert(0);
-                }
-                mBufferAllocatedCount++;
+            AudioQueueBuffer *buffer = nullptr;
+            OSStatus err = AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &buffer);
+            if (err != noErr) {
+                AF_LOGE("AudioQueueAllocateBuffer error %d \n", err);
+                break;
             }
+            _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
+            UInt32 miniBufferSize = getMiniBufferSize(buffer->mAudioDataBytesCapacity);
+            buffer->mAudioDataByteSize = copyAudioData(buffer, miniBufferSize);
+            assert(buffer->mAudioDataByteSize > 0);
+            err = AudioQueueEnqueueBuffer(_audioQueueRef, buffer, 0, nullptr);
+            if (err != noErr) {
+                AF_LOGE("AudioQueueEnqueueBuffer error %d \n", err);
+                assert(0);
+            }
+            mBufferAllocatedCount++;
+        }
+
+        if (mBufferAllocatedCount < mBufferCount) {
+            af_msleep(10);
+            continue;
         }
         CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.01, 1);
         if (mInPut.empty())
