@@ -3411,6 +3411,9 @@ int64_t SuperMediaPlayer::getPlayerBufferDuration(bool gotMax, bool internal)
     int num = i;
 
     for (i = 0; i < num; i++) {
+        if (durations[i] < 0) {
+            continue;
+        }
         if (duration < 0) {
             duration = durations[i];
         } else {
