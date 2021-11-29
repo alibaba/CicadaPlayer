@@ -78,7 +78,11 @@ CurlEasyManager::CurlEasyManager()
 
 CurlEasyManager::~CurlEasyManager()
 {
-    stop = true;
+    {
+        std::unique_lock<std::mutex> idleLock(checkIdleMutex);
+        stop = true;
+        checkIdleCondition.notify_one();
+    }
     checkIdleThread->stop();
 }
 
