@@ -27,6 +27,7 @@ function patch_ffmpeg() {
     git_am_patch ../../contribute/ffmpeg/0008-avformat-flvdec-add-aliyun-extend-auio-codec-id.patch
     git_am_patch ../../contribute/ffmpeg/0009-chore-configure-xml2-use-check-lib.patch
     git_am_patch ../../contribute/ffmpeg/0010-build-export-some-func-for-windows.patch
+    git_am_patch ../../contribute/ffmpeg/0011-libavformat-flvdec-add-flv_strict_header-option-to-d.patch
 }
 
 function patch_openssl() {
