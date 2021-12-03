@@ -5,7 +5,7 @@
 #import "SampleDisplayLayerRender.h"
 #include "DisplayLayerImpl-interface.h"
 #include <base/media/PBAFFrame.h>
-
+#define LOG_TAG "DisplayLayerImpl"
 #import <render/video/glRender/base/utils.h>
 #include <utility>
 #if TARGET_OS_IPHONE
@@ -13,17 +13,20 @@
 #elif TARGET_OS_OSX
 #import <AppKit/AppKit.h>
 #endif
+#include <utils/frame_work_log.h>
 
 @implementation SampleDisplayLayerRender {
     CALayer *parentLayer;
     AVLayerVideoGravity videoGravity;
     CVPixelBufferRef renderingBuffer;
+    bool removed;
 }
 DisplayLayerImpl::DisplayLayerImpl()
 {}
 DisplayLayerImpl::~DisplayLayerImpl()
 {
     if (renderHandle) {
+        [(__bridge id) renderHandle removeObserver];
         CFRelease(renderHandle);
     }
 }
@@ -164,6 +167,7 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     _rotateTransform = CATransform3DMakeRotation(0, 0, 0, 0);
     _scaleTransform = CATransform3DMakeRotation(0, 0, 0, 0);
     renderingBuffer = nullptr;
+    removed = false;
     return self;
 }
 
@@ -196,6 +200,10 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 }
 - (void)initLayer
 {
+    if (removed) {
+        AF_LOGW("initLayer removed\n");
+        return;
+    }
     if (!self.displayLayer) {
         self.displayLayer = [AVSampleBufferDisplayLayer layer];
         self.displayLayer.videoGravity = AVLayerVideoGravityResize;
@@ -263,7 +271,7 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
         if (strcmp(dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL), dispatch_queue_get_label(dispatch_get_main_queue())) == 0) {
             [self initLayer];
         } else {
-            dispatch_sync(dispatch_get_main_queue(), ^{
+            dispatch_async(dispatch_get_main_queue(), ^{
               [self initLayer];
             });
         }
@@ -495,7 +503,7 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 
 - (int)createLayer
 {
-    NSLog(@"createLayer");
+    //  NSLog(@"createLayer");
     return 0;
 };
 
@@ -562,22 +570,27 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     CFRelease(sampleBuffer);
 }
 
-- (void)dealloc
+- (void)removeObserver
 {
     if (strcmp(dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL), dispatch_queue_get_label(dispatch_get_main_queue())) == 0) {
+        removed = true;
         if (self.displayLayer) {
             [self.displayLayer removeFromSuperlayer];
             [parentLayer removeObserver:self forKeyPath:@"bounds" context:nil];
         }
     } else {
-        // FIXME: use async
         dispatch_sync(dispatch_get_main_queue(), ^{
+          removed = true;
           if (self.displayLayer) {
               [self.displayLayer removeFromSuperlayer];
               [parentLayer removeObserver:self forKeyPath:@"bounds" context:nil];
           }
         });
     }
+}
+
+- (void)dealloc
+{
     if (_bGColour) {
         CGColorRelease(_bGColour);
     }
