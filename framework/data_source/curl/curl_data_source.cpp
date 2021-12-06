@@ -467,11 +467,15 @@ int CurlDataSource::Read(void *buf, size_t size)
         ret = mPConnection->FillBuffer(1);
 
         if (ret < 0) {
+            AF_LOGE("CurlDataSource::Read ret=%d, size=%u", ret, size);
             return ret;
         }
     }
-
-    return mPConnection->readBuffer(buf, size);
+    ret = mPConnection->readBuffer(buf, size);
+    if (ret < 0) {
+        AF_LOGE("CurlDataSource::Read ret=%d, size=%u", ret, size);
+    }
+    return ret;
 }
 
 string CurlDataSource::GetOption(const string &key)

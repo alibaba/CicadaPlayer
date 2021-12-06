@@ -90,6 +90,9 @@ namespace Cicada {
                 int readSize = std::min(initSegSize, size);
                 memcpy(buffer, pHandle->mInitSegBuffer + pHandle->mInitSegPtr, readSize);
                 pHandle->mInitSegPtr += readSize;
+                if (readSize < 0) {
+                    AF_LOGE("HLSStream::read_callback 1 ret=%d, size=%d", readSize, size);
+                }
                 return readSize;
             }
         }
@@ -98,7 +101,11 @@ namespace Cicada {
         if (ret == 0) {
             MoveToNextPart move_ret = pHandle->moveToNextPartialSegment();
             if (move_ret == MoveToNextPart::moveSuccess) {
-                return pHandle->readSegment(buffer, size);
+                ret = pHandle->readSegment(buffer, size);
+                if (ret < 0) {
+                    AF_LOGE("HLSStream::read_callback 2 ret=%d, size=%d", ret, size);
+                }
+                return ret;
             } else if (move_ret == MoveToNextPart::tryAgain) {
                 int tryTimes = 150;
                 while (tryTimes > 0 && !pHandle->mInterrupted) {
@@ -106,7 +113,11 @@ namespace Cicada {
                     pHandle->mPTracker->reLoadPlayList();
                     MoveToNextPart move_ret = pHandle->moveToNextPartialSegment();
                     if (move_ret == MoveToNextPart::moveSuccess) {
-                        return pHandle->readSegment(buffer, size);
+                        ret = pHandle->readSegment(buffer, size);
+                        if (ret < 0) {
+                            AF_LOGE("HLSStream::read_callback 3 ret=%d, size=%d", ret, size);
+                        }
+                        return ret;
                     } else if (move_ret == MoveToNextPart::segmentEnd) {
                         return 0;
                     }
@@ -124,6 +135,9 @@ namespace Cicada {
             if (pHandle->mVttPtsOffSet != INT64_MIN) {
                 AF_LOGD("WVTTParser pts is %lld\n", pHandle->mVttPtsOffSet);
             }
+        }
+        if (ret < 0) {
+            AF_LOGE("HLSStream::read_callback 4 ret=%d, size=%d", ret, size);
         }
 
         return ret;
@@ -598,6 +612,7 @@ namespace Cicada {
             resetSource();
             ret = openSegment(uri, start, end);
             retryTimes++;
+            AF_LOGD("openSegment ret=%d retryTimes=%d \n", ret, retryTimes);
 
             if (ret >= 0 || retryTimes > 2) {
                 break;
@@ -1090,6 +1105,9 @@ namespace Cicada {
 
         packet = nullptr;
         ret = mPDemuxer->readPacket(packet);
+        if (ret < 0) {
+            AF_LOGD("mPDemuxer->readPacket ret=%d, packet=%p", ret, packet.get());
+        }
         //AF_LOGD("mPDemuxer->readPacket ret is %d,pFrame is %p", ret, *pFrame);
 
         if (ret == -EAGAIN) {
