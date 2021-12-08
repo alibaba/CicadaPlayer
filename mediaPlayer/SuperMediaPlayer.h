@@ -605,6 +605,7 @@ namespace Cicada {
         bool mCalculateSpeedUsePacket{true};
         std::unique_ptr<CicadaJSONArray> mFilterConfig;
         UTCTimer *mUtcTimer{nullptr};
+        bool mOpenAudioDeviceFailed{false};
 
         std::string mContainerInfo{};
     };

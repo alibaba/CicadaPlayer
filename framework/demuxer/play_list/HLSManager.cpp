@@ -377,7 +377,8 @@ namespace Cicada {
         AF_LOGD("CloseStream %d\n", id);
 
         if (mMuxedStream) {
-            // TODO: select stream
+            int subIndex = GEN_SUB_STREAM_ID(id);
+            mMuxedStream->CloseSubStream(subIndex);
             return;
         }
 

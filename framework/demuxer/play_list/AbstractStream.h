@@ -30,6 +30,11 @@ namespace Cicada {
 
         virtual int GetStreamMeta(Stream_meta *meta, int index, bool sub) const = 0;
 
+        virtual bool CloseSubStream(int index)
+        {
+            return false;
+        }
+
         virtual bool isOpened() = 0;
 
         virtual int start() = 0;

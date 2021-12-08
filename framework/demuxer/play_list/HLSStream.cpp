@@ -583,7 +583,9 @@ namespace Cicada {
                 AF_LOGD("sub type is %d\n", subType);
                 AF_LOGD("trackerType type is %d\n", trackerType);
 
-                if ((trackerType == STREAM_TYPE_MIXED && subType != STREAM_TYPE_UNKNOWN) || subType == trackerType) {
+                if ((trackerType == STREAM_TYPE_MIXED && subType != STREAM_TYPE_UNKNOWN &&
+                     mClosedSubStreams.find(i) == mClosedSubStreams.end()) ||
+                    subType == trackerType) {
                     AF_LOGW("open stream  index is %d\n", i);
                     mPDemuxer->OpenStream(i);
                     OpenedStreamIndex = i;
@@ -1159,8 +1161,9 @@ namespace Cicada {
                     for (int i = 0; i < nbStream; ++i) {
                         mPDemuxer->GetStreamMeta(&meta, i, false);
 
-                        if (meta.type == mPTracker->getStreamType()
-                                || (mPTracker->getStreamType() == STREAM_TYPE_MIXED && meta.type != STREAM_TYPE_UNKNOWN)) {
+                        if (meta.type == mPTracker->getStreamType() ||
+                            (mPTracker->getStreamType() == STREAM_TYPE_MIXED && meta.type != STREAM_TYPE_UNKNOWN &&
+                             mClosedSubStreams.find(i) == mClosedSubStreams.end())) {
                             mPDemuxer->OpenStream(i);
                         }
 
@@ -1361,6 +1364,15 @@ namespace Cicada {
         return 0;
     }
 
+    bool HLSStream::CloseSubStream(int index)
+    {
+        mClosedSubStreams.insert(index);
+        if (mPDemuxer) {
+            mPDemuxer->CloseStream(index);
+        }
+        return true;
+    }
+
     bool HLSStream::isOpened()
     {
         return mIsOpened;
@@ -1390,6 +1402,7 @@ namespace Cicada {
         mIsEOS = false;
         mIsDataEOS = false;
         mStopOnSegEnd = false;
+        mClosedSubStreams.clear();
         mError = 0;
 
         if (mThreadPtr == nullptr) {

@@ -2420,6 +2420,7 @@ RENDER_RESULT SuperMediaPlayer::RenderAudio()
         }
     } else if (render_ret == IAudioRender::OPEN_AUDIO_DEVICE_FAILED) {
         AF_LOGE("render audio failed due to can not open device, close audio stream");
+        mOpenAudioDeviceFailed = true;
         closeAudio();
         if (HAVE_VIDEO) {
             mPNotifier->NotifyEvent(MEDIA_PLAYER_EVENT_OPEN_AUDIO_DEVICE_FAILED, "open audio device failed");
@@ -2890,7 +2891,7 @@ void SuperMediaPlayer::ProcessOpenStreamInit(int streamIndex)
                     mCurrentVideoIndex = GEN_STREAM_ID(mMainStreamId, j);
                     mVideoInterlaced = meta->interlaced;
                     updateVideoMeta();
-                } else if (!mSet->bDisableAudio && meta->type == STREAM_TYPE_AUDIO && mCurrentAudioIndex < 0 && meta->channels > 0) {
+                } else if (!mSet->bDisableAudio && !mOpenAudioDeviceFailed && meta->type == STREAM_TYPE_AUDIO && mCurrentAudioIndex < 0 && meta->channels > 0) {
                     AF_LOGD("get a audio stream\n");
                     mCurrentAudioIndex = GEN_STREAM_ID(mMainStreamId, j);
                     mCATimeBase = meta->ptsTimeBase;
@@ -2928,6 +2929,7 @@ void SuperMediaPlayer::setUpAVPath()
 
         if (ret < 0) {
             AF_LOGE("%s SetUpAudioPath failed,url is %s %s", __FUNCTION__, mSet->url.c_str(), framework_err2_string(ret));
+            mOpenAudioDeviceFailed = true;
             closeAudio();
             mCATimeBase = 0;
         } else {
@@ -3214,7 +3216,7 @@ int SuperMediaPlayer::ReadPacket()
                         break;
                     }
                     case STREAM_TYPE_AUDIO: {
-                        if (!mSet->bDisableAudio && mCurrentAudioIndex < 0 && ((Stream_meta *) (*meta))->channels > 0) {
+                        if (!mSet->bDisableAudio && !mOpenAudioDeviceFailed && mCurrentAudioIndex < 0 && ((Stream_meta *) (*meta))->channels > 0) {
                             mCurrentAudioIndex = pFrame->getInfo().streamIndex;
                             mCATimeBase = ((Stream_meta *) (*meta))->ptsTimeBase;
                         }
@@ -4028,6 +4030,7 @@ void SuperMediaPlayer::Reset()
     mCalculateSpeedUsePacket = true;
     mUtcTimer = nullptr;
     mContainerInfo = {};
+    mOpenAudioDeviceFailed = false;
 }
 
 int SuperMediaPlayer::GetCurrentStreamIndex(StreamType type)

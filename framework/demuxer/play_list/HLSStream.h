@@ -18,6 +18,7 @@
 #include <condition_variable>
 #include <deque>
 #include <map>
+#include <set>
 #include <mutex>
 
 namespace Cicada {
@@ -67,6 +68,8 @@ namespace Cicada {
         int GetNbStreams() const override;
 
         int GetStreamMeta(Stream_meta *meta, int index, bool sub) const override;
+
+        bool CloseSubStream(int index) override;
 
         bool isOpened() override;
 
@@ -246,6 +249,8 @@ namespace Cicada {
         int64_t mLastPts{INT64_MIN};
         int64_t mDiscardPts{INT64_MIN};
         int discardCount{0};
+
+        std::set<int> mClosedSubStreams;
 
     public:
         int64_t getLastPts()
