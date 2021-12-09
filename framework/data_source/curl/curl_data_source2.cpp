@@ -532,29 +532,41 @@ void CurlDataSource2::fillConnectInfo()
         }
     }
 
+    enum valueType {
+        valueTypeDouble,
+        valueTypeLong,
+    };
     typedef struct printInfo {
         const char *str;
         int key;
+        valueType type;
         int scale;
         int value;
     } printInfo;
-    printInfo infos[]{{"dnsCost", CURLINFO_NAMELOOKUP_TIME, 1000, 0},
-                      {"connectCost", CURLINFO_CONNECT_TIME, 1000, 0},
-                      {"redirectCount", CURLINFO_REDIRECT_COUNT, 1, 0},
-                      {nullptr, 0, 0, 0}};
+    printInfo infos[]{{"dnsCost", CURLINFO_NAMELOOKUP_TIME, valueTypeDouble, 1000, 0},
+                      {"connectCost", CURLINFO_CONNECT_TIME, valueTypeDouble, 1000, 0},
+                      {"redirectCount", CURLINFO_REDIRECT_COUNT, valueTypeLong, 1, 0},
+                      {"pv", CURLINFO_HTTP_VERSION, valueTypeLong, 1, 0},
+                      {nullptr, 0, valueTypeDouble, 0}};
 
-    for (auto info : infos) {
-        double val = info.value;
-
-        if (info.str == nullptr) {
+    for (auto &info : infos) {
+        if (info.str == nullptr || info.key <= 0) {
             break;
         }
-
-        if (info.key >= 0) {
-            curl_easy_getinfo(mPConnection->getCurlHandle(), (CURLINFO) info.key, &val);
+        switch (info.type) {
+            case valueTypeDouble: {
+                double val = info.value;
+                curl_easy_getinfo(mPConnection->getCurlHandle(), (CURLINFO) info.key, &val);
+                Json.addValue(info.str, (int) (val * info.scale));
+                break;
+            }
+            case valueTypeLong: {
+                long val = info.value;
+                curl_easy_getinfo(mPConnection->getCurlHandle(), (CURLINFO) info.key, &val);
+                Json.addValue(info.str, (int) (val * info.scale));
+                break;
+            }
         }
-
-        Json.addValue(info.str, (int) (val * info.scale));
     }
 
     mConnectInfo = Json.printJSON();
