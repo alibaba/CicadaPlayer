@@ -306,6 +306,10 @@ namespace Cicada {
 
         int64_t getCurrentPosition();
 
+        bool checkEOSVideo();
+
+        bool checkEOSAudio();
+
         void checkEOS();
 
         void playCompleted();
@@ -546,6 +550,8 @@ namespace Cicada {
         bool mPausedByAudioInterrupted{false};
         bool mNeedVideoRender{true};
         bool mVideoCatchingUp{false};
+        bool mVideoEOS{false};
+        bool mAudioEOS{false};
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H
