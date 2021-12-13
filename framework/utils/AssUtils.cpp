@@ -411,6 +411,10 @@ AssHeader AssUtils::parseAssHeader(const std::string &header)
 {
     AssHeader ret;
     std::string data(header);
+    if (data.empty()) {
+        return ret;
+    }
+
     char *p = &data.at(0);
     ParserState state = PST_UNKNOWN;
     while (1) {
