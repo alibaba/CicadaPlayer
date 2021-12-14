@@ -224,7 +224,11 @@ int CurlDataSource2::Open(const string &url)
             return 0;
         }
     }
-
+#if 1
+    closeConnections(true);
+    mUri = url;
+    return Open(0);
+#elif
     mOpenTimeMS = af_gettime_relative() / 1000;
 
     mPConnection->removeFormMulti();
@@ -259,6 +263,7 @@ int CurlDataSource2::Open(const string &url)
 
     closeConnections(false);
     return ret;
+#endif
 }
 
 void CurlDataSource2::Close()
