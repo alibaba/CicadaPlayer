@@ -607,6 +607,7 @@ namespace Cicada {
     int HLSStream::tryOpenSegment(const string &uri, int64_t start, int64_t end)
     {
         AF_LOGD("tryOpenSegment: %s(%lld,%lld)\n", uri.c_str(), start, end);
+        mSegmentOpened = false;
         int retryTimes = 0;
         int ret;
 
@@ -623,6 +624,9 @@ namespace Cicada {
             af_msleep(20);
         } while (isHttpError(ret) && !mInterrupted);
 
+        if (ret >= 0) {
+            mSegmentOpened = true;
+        }
         return ret;
     }
 
@@ -1106,9 +1110,12 @@ namespace Cicada {
         }
 
         packet = nullptr;
-        ret = mPDemuxer->readPacket(packet);
-        if (ret < 0) {
-            AF_LOGD("mPDemuxer->readPacket ret=%d, packet=%p", ret, packet.get());
+        ret = 0;
+        if (mSegmentOpened) {
+            ret = mPDemuxer->readPacket(packet);
+            if (ret < 0) {
+                AF_LOGD("mPDemuxer->readPacket ret=%d, packet=%p", ret, packet.get());
+            }
         }
         //AF_LOGD("mPDemuxer->readPacket ret is %d,pFrame is %p", ret, *pFrame);
 

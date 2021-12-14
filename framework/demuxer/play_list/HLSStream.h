@@ -252,6 +252,8 @@ namespace Cicada {
 
         std::set<int> mClosedSubStreams;
 
+        bool mSegmentOpened{false};
+
     public:
         int64_t getLastPts()
         {
