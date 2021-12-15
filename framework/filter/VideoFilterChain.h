@@ -8,7 +8,6 @@
 #include "IVideoFilter.h"
 #include <base/media/TextureFrame.h>
 #include <base/media/spsc_queue.h>
-#include <functional>
 #include <map>
 #include <memory>
 
@@ -44,17 +43,6 @@ namespace Cicada {
 
         bool hasFilter(const std::string &target);
 
-        void setDCACb(const std::string &target, const std::function<void(int level, const std::string &content)> &func);
-
-    private:
-        class Callback : public DCACallback {
-            void send(std::string target, int level, std::string content);
-
-        public:
-            Callback(void *userData) : DCACallback(userData)
-            {}
-        };
-
     private:
         void filterLoop();
 
@@ -70,8 +58,6 @@ namespace Cicada {
         std::map<std::string, std::unique_ptr<IVideoFilter>> mVideoFiltersMap{};
         SpscQueue<IAFFrame *> mInPutFrames{10};
         SpscQueue<IAFFrame *> mOutPutFrames{10};
-        std::function<void(int level, const std::string &content)> sendEvent;
-        std::unique_ptr<Callback> mDCACallback{nullptr};
     };
 }// namespace Cicada
 #endif//SOURCE_VIDEOFILTERCHAIN_H

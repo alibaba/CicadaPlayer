@@ -5,6 +5,7 @@
 #ifndef CICADAMEDIA_IVIDEOFILTER_H
 #define CICADAMEDIA_IVIDEOFILTER_H
 #include <base/media/IAFPacket.h>
+#include <functional>
 #include <memory>
 #include <string>
 #include <utils/AFMediaType.h>
@@ -19,16 +20,6 @@ namespace Cicada {
     const static std::string USEFEATURE_OPTION = "useFeature";
     const static std::string VIDEO_FPS_OPTION = "video_fps";
     const static std::string PLAYER_SPEED_OPTION = "player_speed";
-
-    class DCACallback {
-    protected:
-        void *mUserData;
-
-    public:
-        explicit DCACallback(void *userData) : mUserData(userData){};
-
-        virtual void send(std::string target, int level, std::string content) = 0;
-    };
 
     class CICADA_CPLUS_EXTERN IVideoFilter {
 
@@ -98,9 +89,9 @@ namespace Cicada {
             return mInvalid;
         }
 
-        virtual void setDCACb(DCACallback *dcaCallback)
+        virtual void setDCA(const std::function<void(int level, const std::string &content)> &sendEvent)
         {
-            this->mDcaCallback = dcaCallback;
+            mSendEvent = sendEvent;
         }
 
         virtual void setCurrentTarget(const std::string &target)
@@ -116,7 +107,7 @@ namespace Cicada {
         float mSpeed = 1.0;
         double mVideoFps{25};
         std::string currentTarget;
-        DCACallback *mDcaCallback;
+        std::function<void(int level, const std::string &content)> mSendEvent;
     };
 }// namespace Cicada
 

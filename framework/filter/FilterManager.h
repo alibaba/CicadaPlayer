@@ -51,8 +51,6 @@ namespace Cicada {
     private:
         std::map<IVideoFilter::Feature, std::unique_ptr<VideoFilterChain>> mFilterChains{};
 
-        void setDCA(std::string &target);
-
         const Stream_meta * streamMeta{nullptr};
 
         IAFFrame::videoInfo mVideoInfo{};
