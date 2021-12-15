@@ -44,7 +44,7 @@ namespace Cicada {
 
         bool hasFilter(const std::string &target);
 
-        void setDCACb(const std::function<void(int level, const std::string &content)> &func);
+        void setDCACb(const std::string &target, const std::function<void(int level, const std::string &content)> &func);
 
     private:
         class Callback : public DCACallback {

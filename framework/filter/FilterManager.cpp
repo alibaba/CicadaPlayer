@@ -52,9 +52,6 @@ void FilterManager::setupFilterChains()
             continue;
         }
 
-        filter->setOption(VIDEO_FPS_OPTION, to_string(std::max(25, (int) streamMeta->avg_fps)), "");
-        filter->setOption(PLAYER_SPEED_OPTION, to_string(mSpeed), "");
-
         std::unique_ptr<IVideoFilter> targetFilter = std::unique_ptr<IVideoFilter>(filter);
         std::string options;
         if (configItem.hasItem(filterPrototype::FILTER_CONFIG_KEY_OPTIONS)) {
@@ -70,6 +67,7 @@ void FilterManager::setupFilterChains()
 
             targetFilter->setOption("useFeature", AfString::to_string(IVideoFilter::Feature::Texture), "");
             textureFilterChain->addFilter(target, move(targetFilter));
+            textureFilterChain->setDCACb(target, [this](int level, const std::string &content) -> void { sendEvent(level, content); });
 
         } else if ((filterFeature & IVideoFilter::Feature::Buffer) && filter->isFeatureSupported(IVideoFilter::Feature::Buffer)) {
             AF_LOGI("bufferFilter chain add : %s for %s", targetFilter->getName().c_str(), target.c_str());
@@ -77,15 +75,11 @@ void FilterManager::setupFilterChains()
             targetFilter->setOption("useFeature", AfString::to_string(IVideoFilter::Feature::Buffer), "");
             if (targetFilter->init(0) /* not used */) {
                 bufferFilterChain->addFilter(target, move(targetFilter));
+                bufferFilterChain->setDCACb(target, [this](int level, const std::string &content) -> void { sendEvent(level, content); });
             }
         }
-    }
-
-    if (!textureFilterChain->empty()) {
-        mFilterChains[IVideoFilter::Feature::Texture] = move(textureFilterChain);
-    }
-    if (!bufferFilterChain->empty()) {
-        mFilterChains[IVideoFilter::Feature::Buffer] = move(bufferFilterChain);
+        filter->setOption(VIDEO_FPS_OPTION, to_string(std::max(25, (int) streamMeta->avg_fps)), "");
+        filter->setOption(PLAYER_SPEED_OPTION, to_string(mSpeed), "");
     }
 
     for (auto &iter : mFilterChains) {
@@ -93,7 +87,6 @@ void FilterManager::setupFilterChains()
             iter.second->setInvalid(filter.first, filter.second);
         }
     }
-    setDCA();
 }
 
 bool FilterManager::push(std::unique_ptr<IAFFrame> &frame)
@@ -209,12 +202,5 @@ void FilterManager::setStreamMeta(const Stream_meta* meta) {
         //TODO how to deal with pixel format changed
         setupFilterChains();
         mFilterInited = true;
-    }
-}
-
-void FilterManager::setDCA()
-{
-    for (auto &iter : mFilterChains) {
-        iter.second->setDCACb([this](int level, const std::string &content) -> void { sendEvent(level, content); });
     }
 }

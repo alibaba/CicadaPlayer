@@ -241,9 +241,13 @@ bool VideoFilterChain::hasFilter(const std::string &target)
     return mVideoFiltersMap.find(target) != mVideoFiltersMap.end();
 }
 
-void VideoFilterChain::setDCACb(const std::function<void(int level, const std::string &content)> &func)
+void VideoFilterChain::setDCACb(const std::string &target, const std::function<void(int level, const std::string &content)> &func)
 {
     sendEvent = func;
+    if (!target.empty() && mVideoFiltersMap.find(target) != mVideoFiltersMap.end()) {
+        mVideoFiltersMap[target]->setDCACb(mDCACallback.get());
+        return;
+    }
     for (auto &iter : mVideoFiltersMap) {
         iter.second->setDCACb(mDCACallback.get());
     }
