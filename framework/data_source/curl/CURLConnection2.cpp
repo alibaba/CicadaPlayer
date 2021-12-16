@@ -435,6 +435,7 @@ int CURLConnection2::FillBuffer(uint32_t want, CurlMulti &multi)
             case CURLE_COULDNT_CONNECT:
             case CURLE_RECV_ERROR:
             case CURLE_COULDNT_RESOLVE_HOST:
+            case CURLE_HTTP2:
                 return_error = false;
                 break;
             case CURLE_HTTP_RANGE_ERROR:
