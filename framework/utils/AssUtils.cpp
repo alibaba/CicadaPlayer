@@ -441,6 +441,10 @@ AssHeader AssUtils::parseAssHeader(const std::string &header)
 AssDialogue AssUtils::parseAssDialogue(const AssHeader &header, const std::string &data)
 {
     AssDialogue ret;
+    if (data.empty()) {
+        return ret;
+    }
+
     std::string text(data);
     process_event_tail(header, ret, &text.at(0), 0);
     return ret;
