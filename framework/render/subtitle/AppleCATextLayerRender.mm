@@ -58,7 +58,6 @@ void AppleCATextLayerRender::clear()
 
 - (void)showDialogue:(Cicada::AssDialogue)ret atIndex:(NSInteger)index
 {
-    dispatch_async(dispatch_get_main_queue(), ^{
         CATextLayer *textLayer = nil;
         NSString *layerKey = [NSString stringWithFormat:@"%i", ret.Layer];
         DialogueObj* obj = [self findIdleDialogueObj];
@@ -84,16 +83,13 @@ void AppleCATextLayerRender::clear()
         obj.dialogue = ret;
 
       [self buildAssStyle:textLayer withAssDialogue:ret];
-    });
 }
 
 - (void)hideDialogue:(Cicada::AssDialogue)ret atIndex:(NSInteger)index
 {
     DialogueObj* obj = [self findDialogueObjByIdx:index];
     if (!obj.layer.hidden) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            obj.layer.hidden = YES;
-        });
+        obj.layer.hidden = YES;
     }
 }
 
