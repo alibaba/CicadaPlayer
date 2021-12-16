@@ -159,8 +159,15 @@ namespace Cicada {
         }
 
         mCtx->flags |= AVFMT_FLAG_GENPTS;
-        // TODO: add a opt to set fps probe
-        mCtx->fps_probe_size = 0;
+        /* normal mp4 already have fps after avformat_open_input, so probe fps will not cost additional time
+         * special mp4 (https://ll-hls-test.apple.com/llhls1/media1/lowLatencyHLS.m3u8 some front packets don't have duration)
+         * does not have fps after open, so need to set fps_probe_size to probe fps in avformat_find_stream_info. if not set, 
+         * steam will not have fps after avformat_find_stream_info, and lead to wrong packet duration in av_read_frame */
+        if (strcmp(mCtx->iformat->name, "mov,mp4,m4a,3gp,3g2,mj2") != 0) {
+            mCtx->fps_probe_size = 0;
+        } else {
+            mCtx->fps_probe_size = 5;
+        }
         // TODO: only find ts and flv's info?
 
         if (mMetaInfo) {
