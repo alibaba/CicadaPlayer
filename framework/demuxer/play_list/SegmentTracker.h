@@ -85,7 +85,10 @@ namespace Cicada {
 
         void setExtDataSource(IDataSource *source);
 
-        bool isRealTimeStream() { return mRealtime; }
+        bool isRealTimeStream()
+        {
+            return mRealtime;
+        }
 
         void MoveToLiveStartSegment(const int64_t liveStartIndex);
 
@@ -133,7 +136,7 @@ namespace Cicada {
         std::atomic_int mPlayListStatus{0};
 
         std::atomic_bool mSeeked{false};
-        
+
         bool mRealtime = false;
 
         int64_t mReloadErrorStartTime{INT64_MIN};
@@ -146,8 +149,9 @@ namespace Cicada {
         int64_t mLastPlaylistUpdateTime{0};
         bool mNeedReloadWithoutSkip{false};
         IDataSource *mExtDataSource{nullptr};
+        std::shared_ptr<segment> mPreloadSegment{nullptr};
     };
-}
+}// namespace Cicada
 
 
-#endif //FRAMEWORK_SEGMENTTRACKER_H
+#endif//FRAMEWORK_SEGMENTTRACKER_H

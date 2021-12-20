@@ -1137,6 +1137,14 @@ namespace Cicada {
             ret = 0;
         }
 
+        if (ret == 0) {
+            MoveToNextPart move_ret = moveToNextPartialSegment();
+            if (move_ret == MoveToNextPart::moveSuccess || move_ret == MoveToNextPart::tryAgain) {
+                AF_LOGD("[lhls] move to next part segment in read");
+                return -EAGAIN;
+            }
+        }
+
         if (ret == 0 || mReopen) {
             if (mReopen) {
                 AF_LOGD("reopen");

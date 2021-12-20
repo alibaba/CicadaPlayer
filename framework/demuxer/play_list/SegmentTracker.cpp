@@ -61,6 +61,9 @@ namespace Cicada {
     std::shared_ptr<segment> SegmentTracker::getCurSegment(bool force)
     {
         std::unique_lock<std::recursive_mutex> locker(mMutex);
+        if (mPreloadSegment) {
+            return mPreloadSegment;
+        }
         shared_ptr<segment> seg = nullptr;
 
         if (mRep->GetSegmentList()) {
@@ -86,6 +89,7 @@ namespace Cicada {
 
         if (seg) {
             mCurSegNum = seg->getSequenceNumber();
+            mPreloadSegment = nullptr;
         } else {
             mCurSegNum--;
         }
@@ -386,6 +390,7 @@ namespace Cicada {
                     }
                     uint64_t preloadSegNum;
                     if (currentSegList->findPartialSegment(mRep->mPreloadHint.uri, preloadSegNum)) {
+                        mPreloadSegment = nullptr;
                         if (mCurSegNum < preloadSegNum) {
                             mCurSegNum = preloadSegNum;
                             AF_LOGD("[lhls] move to preload segment, segNum=%llu, uri=%s", mCurSegNum, mRep->mPreloadHint.uri.c_str());
@@ -725,19 +730,19 @@ namespace Cicada {
         assert(mRep);
         std::unique_lock<std::recursive_mutex> locker(mMutex);
         mRep->mPreloadHint.used = true;
-        std::shared_ptr<segment> ret = std::make_shared<segment>(0);
-        ret->setSourceUrl("");
+        mPreloadSegment = std::make_shared<segment>(0);
+        mPreloadSegment->setSourceUrl("");
         auto lastSeg = mRep->GetSegmentList()->getSegments().back();
         if (lastSeg->startTime != UINT64_MAX) {
-            ret->startTime = lastSeg->startTime + lastSeg->duration;
+            mPreloadSegment->startTime = lastSeg->startTime + lastSeg->duration;
         }
         if (lastSeg->utcTime >= 0) {
-            ret->utcTime = lastSeg->utcTime + lastSeg->duration;
+            mPreloadSegment->utcTime = lastSeg->utcTime + lastSeg->duration;
         }
         SegmentPart part;
         part.uri = mRep->mPreloadHint.uri;
-        ret->updateParts({part});
-        return ret;
+        mPreloadSegment->updateParts({part});
+        return mPreloadSegment;
     }
     void SegmentTracker::setExtDataSource(IDataSource *source)
     {
