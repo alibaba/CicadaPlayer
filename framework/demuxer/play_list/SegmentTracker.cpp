@@ -395,19 +395,21 @@ namespace Cicada {
                             mCurSegNum = preloadSegNum;
                             AF_LOGD("[lhls] move to preload segment, segNum=%llu, uri=%s", mCurSegNum, mRep->mPreloadHint.uri.c_str());
                         }
+                        mRep->mPreloadHint.used = false;
                     }
                     auto curSeg = getCurSegment(false);
                     if (curSeg) {
                         curSeg->moveToPreloadSegment(mRep->mPreloadHint.uri);
                     }
                 }
-                if (!mRep->mPreloadHint.uri.empty() && mRep->mPreloadHint.uri != rep->mPreloadHint.uri) {
+                if (!mRep->mPreloadHint.used && mRep->mPreloadHint.uri != rep->mPreloadHint.uri) {
                     mRep->mPreloadHint = rep->mPreloadHint;
                 }
 
                 rep->SetSegmentList(nullptr);
 
                 mRep->mRenditionReport = rep->mRenditionReport;
+                mRep->mCanBlockReload = rep->mCanBlockReload;
                 // update is live
                 mRep->b_live = rep->b_live;
 
@@ -449,6 +451,12 @@ namespace Cicada {
             if (list == nullptr) {  //masterPlayList
                 ret = loadPlayList();
                 mLastLoadTime = af_gettime_relative();
+
+                mCanBlockReload = mRep->mCanBlockReload;
+                if (mCanBlockReload && mTargetDuration > 0) {
+                    mSourceConfig.connect_time_out_ms = 3 * mTargetDuration;
+                }
+                mCanSkipUntil = mRep->mCanSkipUntil;
 
                 if (ret < 0) {
                     AF_LOGE("loadPlayList error %d\n", ret);

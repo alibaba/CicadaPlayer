@@ -141,7 +141,7 @@ namespace Cicada {
 
         int64_t mReloadErrorStartTime{INT64_MIN};
 
-        bool mCanBlockReload{false};
+        std::atomic_bool mCanBlockReload{false};
         std::atomic_bool mLoadingPlaylist{false};
         int64_t mCurrentMsn{-1};
         int64_t mCurrentPart{-1};
