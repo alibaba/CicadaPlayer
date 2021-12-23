@@ -658,7 +658,7 @@ namespace Cicada {
             uint64_t firstSegNum = getFirstSegNum();
             uint64_t curSegNum = getCurSegNum();
             uint64_t position = curSegNum - firstSegNum - 1;
-            AF_LOGD("1206, getCurSegPosition <--- targetSegNum %llu ， firstSegNum = %llu ,curSegNum = %llu \n", position, firstSegNum, curSegNum);
+            AF_LOGD("1206, getCurSegPosition <--- targetSegNum %llu , firstSegNum = %llu ,curSegNum = %llu \n", position, firstSegNum, curSegNum);
             return position;
         } else {
             AF_LOGD("1206, getCurSegPosition  %llu\n", mCurSegPos);
