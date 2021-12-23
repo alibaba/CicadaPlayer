@@ -195,6 +195,7 @@ int CurlDataSource2::Open(int flags)
 
     int ret = curl_connect(mPConnection, rangeStart != INT64_MIN ? rangeStart : 0);
     if (mNeedReconnect) {
+        curl_easy_setopt(mPConnection->getCurlHandle(), CURLOPT_FORBID_REUSE, 1);
         return Open(mUri);
     }
     mOpenTimeMS = af_gettime_relative() / 1000 - mOpenTimeMS;
@@ -350,6 +351,7 @@ int64_t CurlDataSource2::Seek(int64_t offset, int whence)
             AF_LOGI("short seek failed\n");
         }
     } else {
+        curl_easy_setopt(mPConnection->getCurlHandle(), CURLOPT_FORBID_REUSE, 1);
         closeConnections(true);
     }
 #if USE_MULTI
@@ -464,6 +466,7 @@ int CurlDataSource2::Read(void *buf, size_t size)
     if (mFileSize <= 0 || mPConnection->tell() < mFileSize) {
         ret = mPConnection->FillBuffer(1, *mMulti, mNeedReconnect);
         if (mNeedReconnect) {
+            curl_easy_setopt(mPConnection->getCurlHandle(), CURLOPT_FORBID_REUSE, 1);
             closeConnections(false);
             mPConnection->setReconnect(true);
             int64_t seek = mPConnection->tell();
