@@ -73,7 +73,7 @@ namespace Cicada {
 
         static CurlDataSource2 se;
 
-        void closeConnections(bool current);
+        void closeConnections(bool current, bool forbidReuse);
 
         void OnReconnect() override;
 

@@ -195,7 +195,6 @@ int CurlDataSource2::Open(int flags)
 
     int ret = curl_connect(mPConnection, rangeStart != INT64_MIN ? rangeStart : 0);
     if (mNeedReconnect) {
-        curl_easy_setopt(mPConnection->getCurlHandle(), CURLOPT_FORBID_REUSE, 1);
         return Open(mUri);
     }
     mOpenTimeMS = af_gettime_relative() / 1000 - mOpenTimeMS;
@@ -214,7 +213,7 @@ int CurlDataSource2::Open(int flags)
 int CurlDataSource2::Open(const string &url)
 {
     if (mNeedReconnect) {
-        closeConnections(false);
+        closeConnections(false, true);
         mNeedReconnect = false;
     }
     if (mPConnection == nullptr) {
@@ -229,7 +228,7 @@ int CurlDataSource2::Open(const string &url)
         }
     }
 #if 1
-    closeConnections(true);
+    closeConnections(true, false);
     mUri = url;
     return Open(0);
 #elif
@@ -280,19 +279,25 @@ void CurlDataSource2::Close()
             item->disableListener();
         }
     }
-    closeConnections(true);
+    closeConnections(true, mNeedReconnect);
 }
 
-void CurlDataSource2::closeConnections(bool current)
+void CurlDataSource2::closeConnections(bool current, bool forbidReuse)
 {
     lock_guard<mutex> lock(mMutex);
     if (current && mPConnection) {
+        if (forbidReuse) {
+            curl_easy_setopt(mPConnection->getCurlHandle(), CURLOPT_FORBID_REUSE, 1);
+        }
         mPConnection->deleteFormMulti();
         mPConnection = nullptr;
     }
 
     if (mConnections) {
         for (auto item = mConnections->begin(); item != mConnections->end();) {
+            if (forbidReuse) {
+                curl_easy_setopt((*item)->getCurlHandle(), CURLOPT_FORBID_REUSE, 1);
+            }
             (*item)->deleteFormMulti();
             item = mConnections->erase(item);
         }
@@ -351,8 +356,7 @@ int64_t CurlDataSource2::Seek(int64_t offset, int whence)
             AF_LOGI("short seek failed\n");
         }
     } else {
-        curl_easy_setopt(mPConnection->getCurlHandle(), CURLOPT_FORBID_REUSE, 1);
-        closeConnections(true);
+        closeConnections(true, true);
     }
 #if USE_MULTI
     CURLConnection2 *con = nullptr;
@@ -466,8 +470,7 @@ int CurlDataSource2::Read(void *buf, size_t size)
     if (mFileSize <= 0 || mPConnection->tell() < mFileSize) {
         ret = mPConnection->FillBuffer(1, *mMulti, mNeedReconnect);
         if (mNeedReconnect) {
-            curl_easy_setopt(mPConnection->getCurlHandle(), CURLOPT_FORBID_REUSE, 1);
-            closeConnections(false);
+            closeConnections(false, true);
             mPConnection->setReconnect(true);
             int64_t seek = mPConnection->tell();
             int64_t seekRet = Seek(seek, SEEK_SET);
