@@ -4124,6 +4124,11 @@ void SuperMediaPlayer::ChangePlayerStatus(PlayerStatus newStatus)
     mOldPlayStatus = mPlayStatus;
 
     if (mPlayStatus != newStatus) {
+        if (newStatus == PLAYER_ERROR) {
+            if (mDataSource) {
+                mDataSource->clearCache();
+            }
+        }
         mPNotifier->NotifyPlayerStatusChanged(mPlayStatus, newStatus);
         mPlayStatus = newStatus;
     }
