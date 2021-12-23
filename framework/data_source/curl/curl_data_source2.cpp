@@ -75,7 +75,7 @@ int CurlDataSource2::curl_connect(CURLConnection2 *pConnection, int64_t filePos)
     pConnection->SetResume(filePos);
     pConnection->addToMulti();
 
-    if ((ret = pConnection->FillBuffer(1, *mMulti)) < 0) {
+    if ((ret = pConnection->FillBuffer(1, *mMulti, mNeedReconnect)) < 0) {
         AF_LOGE("Connect, didn't get any data from stream.");
         return ret;
     }
@@ -194,6 +194,9 @@ int CurlDataSource2::Open(int flags)
     }
 
     int ret = curl_connect(mPConnection, rangeStart != INT64_MIN ? rangeStart : 0);
+    if (mNeedReconnect) {
+        return Open(mUri);
+    }
     mOpenTimeMS = af_gettime_relative() / 1000 - mOpenTimeMS;
 
     if (ret >= 0) {
@@ -339,13 +342,14 @@ int64_t CurlDataSource2::Seek(int64_t offset, int whence)
     }
 
     //first seek in cache
-    if (mPConnection->short_seek(offset) >= 0) {
-        AF_LOGI("short seek ok\n");
-        return offset;
+    if (!mNeedReconnect) {
+        if (mPConnection->short_seek(offset) >= 0) {
+            AF_LOGI("short seek ok\n");
+            return offset;
+        } else {
+            AF_LOGI("short seek failed\n");
+        }
     } else {
-        AF_LOGI("short seek failed\n");
-    }
-    if (mNeedReconnect) {
         closeConnections(true);
     }
 #if USE_MULTI
@@ -458,7 +462,7 @@ int CurlDataSource2::Read(void *buf, size_t size)
 
     /* only request 1 byte, for truncated reads (only if not eof) */
     if (mFileSize <= 0 || mPConnection->tell() < mFileSize) {
-        // TODO: deal reconnect in mPConnection->FillBuffer
+        ret = mPConnection->FillBuffer(1, *mMulti, mNeedReconnect);
         if (mNeedReconnect) {
             closeConnections(false);
             mPConnection->setReconnect(true);
@@ -466,7 +470,6 @@ int CurlDataSource2::Read(void *buf, size_t size)
             int64_t seekRet = Seek(seek, SEEK_SET);
             assert(seekRet == seek);
         }
-        ret = mPConnection->FillBuffer(1, *mMulti);
 
         if (ret < 0) {
             AF_LOGE("CurlDataSource2::Read ret=%d", ret);

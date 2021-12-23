@@ -396,13 +396,13 @@ void CURLConnection2::SetResume(int64_t pos)
     curl_easy_setopt(mHttp_handle, CURLOPT_RESUME_FROM_LARGE, (curl_off_t) mFilePos);
 }
 
-int CURLConnection2::FillBuffer(uint32_t want, CurlMulti &multi)
+int CURLConnection2::FillBuffer(uint32_t want, CurlMulti &multi, const atomic<bool> &needReconnect)
 {
     int64_t starTime = af_getsteady_ms();
     bool reConnect = false;
 
     while (RingBuffergetMaxReadSize(pRbuf) < want && RingBuffergetMaxWriteSize(pRbuf) > 0) {
-        if (*(pInterrupted)) {
+        if (*(pInterrupted) || needReconnect) {
             AF_LOGW("FRAMEWORK_ERR_EXIT");
             return FRAMEWORK_ERR_EXIT;
         }
@@ -609,7 +609,7 @@ int CURLConnection2::short_seek(int64_t off)
             RingBufferSkipBytes(pRbuf, len);
         }
 
-        if ((ret = FillBuffer(m_bufferSize, *mMulti)) < 0) {
+        if ((ret = FillBuffer(m_bufferSize, *mMulti, mNeedReconnect)) < 0) {
             if (len && !RingBufferSkipBytes(pRbuf, -len)) {
                 AF_LOGE("%s - Failed to restore position after failed fill", __FUNCTION__);
             } else {

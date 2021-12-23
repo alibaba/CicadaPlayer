@@ -52,7 +52,7 @@ namespace Cicada {
 
         void disableListener();
 
-        int FillBuffer(uint32_t want, CurlMulti &multi);
+        int FillBuffer(uint32_t want, CurlMulti &multi, const std::atomic<bool> &needReconnect);
 
         int short_seek(int64_t off);
 
