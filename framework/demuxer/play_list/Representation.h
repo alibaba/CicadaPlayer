@@ -83,6 +83,7 @@ namespace Cicada{
         double mCanSkipUntil{0.0};
         double mHoldBack{0.0};
         double mPartHoldBack{0.0};
+        std::vector<RenditionReport> mRenditionReport;
 
     private:
         SegmentList *mPSegList = nullptr;

@@ -94,7 +94,7 @@ namespace Cicada {
         }
     }
 
-    const vector<SegmentPart> &segment::getSegmentParts()
+    const std::vector<SegmentPart> &segment::getSegmentParts()
     {
         std::lock_guard<std::recursive_mutex> lck(mMutex);
         return mParts;
@@ -102,7 +102,7 @@ namespace Cicada {
 
     void segment::moveToNextPart()
     {
-        lock_guard<recursive_mutex> lck(mMutex);
+        std::lock_guard<std::recursive_mutex> lck(mMutex);
 
         if (mUri.empty()) {
             // dose not have complete segment, use part
@@ -139,7 +139,7 @@ namespace Cicada {
 
     void segment::moveToPart(int partIndex)
     {
-        lock_guard<recursive_mutex> lck(mMutex);
+        std::lock_guard<std::recursive_mutex> lck(mMutex);
         if (mParts.empty()) {
             return;
         }
@@ -165,7 +165,7 @@ namespace Cicada {
 
     void segment::moveToNearestIndependentPart(int partIndex)
     {
-        lock_guard<recursive_mutex> lck(mMutex);
+        std::lock_guard<std::recursive_mutex> lck(mMutex);
         if (mParts.empty()) {
             return;
         }
@@ -191,7 +191,7 @@ namespace Cicada {
 
     bool segment::isDownloadComplete(bool &bHasUnusedParts)
     {
-        lock_guard<recursive_mutex> lck(mMutex);
+        std::lock_guard<std::recursive_mutex> lck(mMutex);
         bool isComplete = !mUri.empty();
         bHasUnusedParts = (mPartsNextIndex < mParts.size());
         return isComplete;

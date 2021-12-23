@@ -82,11 +82,12 @@ namespace Cicada{
                 EXTXMAP,
                 EXTXMEDIA,
                 EXTXSTREAMINF,
-                EXTXPART,
-                EXTXPARTINF,
+                EXTX_PART,
+                EXTX_PART_INF,
                 EXTX_SERVER_CONTROL,
                 EXTX_PRELOAD_HINT,
                 EXTX_SKIP,
+                EXTX_RENDITION_REPORT,
             };
 
             AttributesTag(int, const std::string &);

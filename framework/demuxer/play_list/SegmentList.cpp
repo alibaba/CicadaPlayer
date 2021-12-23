@@ -18,7 +18,7 @@ namespace Cicada {
         segments.clear();
     }
 
-    list<std::shared_ptr<segment>> &SegmentList::getSegments()
+    std::list<std::shared_ptr<segment>> &SegmentList::getSegments()
     {
         return segments;
     }
@@ -41,7 +41,7 @@ namespace Cicada {
      * return the next segment if the segment with @param number not exist when force is true
      */
 
-    shared_ptr<segment> SegmentList::getSegmentByNumber(uint64_t number, bool force)
+    std::shared_ptr<segment> SegmentList::getSegmentByNumber(uint64_t number, bool force)
     {
         std::lock_guard<std::mutex> uMutex(segmetsMuxtex);
 
@@ -64,7 +64,7 @@ namespace Cicada {
         return nullptr;
     }
 
-    void SegmentList::addSegment(const shared_ptr<segment> &seg)
+    void SegmentList::addSegment(const std::shared_ptr<segment> &seg)
     {
         if (mFirstSeqNum < 0) {
             mFirstSeqNum = seg->sequence;

@@ -358,7 +358,7 @@ namespace Cicada {
                 }
                 break;
 
-                case AttributesTag::EXTXPART: {
+                case AttributesTag::EXTX_PART: {
                     const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
                     if (keytag) {
                         SegmentPart part;
@@ -400,7 +400,7 @@ namespace Cicada {
                     break;
                 }
 
-                case AttributesTag::EXTXPARTINF: {
+                case AttributesTag::EXTX_PART_INF: {
                     const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
                     const Attribute *partTargetAttr;
                     if (keytag && (partTargetAttr = keytag->getAttributeByName("PART-TARGET"))) {
@@ -471,6 +471,26 @@ namespace Cicada {
                     }
                 }
                 break;
+
+                case AttributesTag::EXTX_RENDITION_REPORT: {
+                    const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
+                    if (keytag) {
+                        RenditionReport rr;
+                        const Attribute *uriAttr = keytag->getAttributeByName("URI");
+                        if (uriAttr) {
+                            rr.uri = uriAttr->quotedString();
+                        }
+                        const Attribute *msnAttr = keytag->getAttributeByName("LAST-MSN");
+                        if (msnAttr) {
+                            rr.lastMsn = msnAttr->decimal();
+                        }
+                        const Attribute *partAttr = keytag->getAttributeByName("LAST-PART");
+                        if (partAttr) {
+                            rr.lastPart = partAttr->decimal();
+                        }
+                        rep->mRenditionReport.push_back(rr);
+                    }
+                } break;
 
                 case Tag::EXTXDISCONTINUITY:
                     discontinuityNum++;

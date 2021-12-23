@@ -300,12 +300,12 @@ namespace Cicada {
                 {"EXT-X-STREAM-INF",             AttributesTag::EXTXSTREAMINF},
                 {"EXTINF",                       ValuesListTag::EXTINF},
                 {"",                             SingleValueTag::URI},
-                {"EXT-X-PART",                   AttributesTag::EXTXPART},
-                {"EXT-X-PART-INF",               AttributesTag::EXTXPARTINF},
+                {"EXT-X-PART",                   AttributesTag::EXTX_PART},
+                {"EXT-X-PART-INF",               AttributesTag::EXTX_PART_INF},
                 {"EXT-X-SERVER-CONTROL",         AttributesTag::EXTX_SERVER_CONTROL},
                 {"EXT-X-PRELOAD-HINT",           AttributesTag::EXTX_PRELOAD_HINT},
                 {"EXT-X-SKIP",                   AttributesTag::EXTX_SKIP},
-                // TODO: add other lhls tag
+                {"EXT-X-RENDITION-REPORT",       AttributesTag::EXTX_RENDITION_REPORT},
                 {NULL,                           0},
             };
 
@@ -337,11 +337,12 @@ namespace Cicada {
                     case AttributesTag::EXTXMAP:
                     case AttributesTag::EXTXMEDIA:
                     case AttributesTag::EXTXSTREAMINF:
-                    case AttributesTag::EXTXPART:
-                    case AttributesTag::EXTXPARTINF:
+                    case AttributesTag::EXTX_PART:
+                    case AttributesTag::EXTX_PART_INF:
                     case AttributesTag::EXTX_SERVER_CONTROL:
                     case AttributesTag::EXTX_PRELOAD_HINT:
                     case AttributesTag::EXTX_SKIP:
+                    case AttributesTag::EXTX_RENDITION_REPORT:
                         return new (std::nothrow) AttributesTag(exttagmapping[i].i, value);
                 }
             }

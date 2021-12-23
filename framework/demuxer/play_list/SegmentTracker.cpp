@@ -407,6 +407,7 @@ namespace Cicada {
 
                 rep->SetSegmentList(nullptr);
 
+                mRep->mRenditionReport = rep->mRenditionReport;
                 // update is live
                 mRep->b_live = rep->b_live;
 

@@ -9,7 +9,6 @@
 #define SegmentPart_h
 
 #include <string>
-using namespace std;
 
 namespace Cicada {
     typedef struct SegmentPart {
@@ -27,6 +26,12 @@ namespace Cicada {
         int64_t rangeStart{INT64_MIN};
         int64_t rangeEnd{INT64_MIN};
         std::string uri;
+    };
+
+    struct RenditionReport {
+        std::string uri;
+        int64_t lastMsn{-1};
+        int64_t lastPart{-1};
     };
 }// namespace Cicada
 
