@@ -410,6 +410,9 @@ namespace Cicada {
 
                 mRep->mRenditionReport = rep->mRenditionReport;
                 mRep->mCanBlockReload = rep->mCanBlockReload;
+                mRep->mCanSkipUntil = rep->mCanSkipUntil;
+                mCanBlockReload = rep->mCanBlockReload;
+                mCanSkipUntil = rep->mCanSkipUntil;
                 // update is live
                 mRep->b_live = rep->b_live;
 
@@ -633,6 +636,10 @@ namespace Cicada {
         if (mPDataSource) {
             mPDataSource->Interrupt(inter);
         }
+        mCurrentMsn = -1;
+        mCurrentPart = -1;
+        mCanBlockReload = false;
+        mCanSkipUntil = false;
     }
 
     bool SegmentTracker::isInited()
