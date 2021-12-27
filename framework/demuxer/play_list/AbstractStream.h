@@ -9,11 +9,13 @@
  * AbstractStream is a single stream proved form playList file,
  * maybe a ts muxed with one or more es stream,or a aac file
  */
+#include "SegmentPart.h"
 #include "utils/AFMediaType.h"
 #include <base/OptionOwner.h>
 #include <demuxer/demuxer_service.h>
 
 namespace Cicada {
+
     class AbstractStream : public OptionOwner {
     public:
         AbstractStream();
@@ -57,6 +59,14 @@ namespace Cicada {
         {
             return 0;
         };
+
+        virtual void setCurRenditionInfo(const std::vector<RenditionReport> &renditions)
+        {}
+
+        virtual std::vector<RenditionReport> getCurRenditionInfo()
+        {
+            return {};
+        }
 
         virtual int SetCurSegNum(uint64_t num) = 0;
 

@@ -100,6 +100,9 @@ namespace Cicada {
         void usePreloadSegment(std::string &uri, int64_t &rangeStart, int64_t &rangeEnd);
         std::shared_ptr<segment> usePreloadSegment();
 
+        void setRenditionInfo(const std::vector<RenditionReport> &renditions);
+        std::vector<RenditionReport> getRenditionInfo();
+
     private:
         int loadPlayList(bool noSkip = false);
 
@@ -150,6 +153,7 @@ namespace Cicada {
         bool mNeedReloadWithoutSkip{false};
         IDataSource *mExtDataSource{nullptr};
         std::shared_ptr<segment> mPreloadSegment{nullptr};
+        std::vector<RenditionReport> mCurrentRenditions;
     };
 }// namespace Cicada
 

@@ -1668,6 +1668,21 @@ namespace Cicada {
         return reopenSegment(params);
     }
 
+    void HLSStream::setCurRenditionInfo(const std::vector<RenditionReport> &renditions)
+    {
+        if (mPTracker) {
+            mPTracker->setRenditionInfo(renditions);
+        }
+    }
+
+    std::vector<RenditionReport> HLSStream::getCurRenditionInfo()
+    {
+        if (mPTracker) {
+            return mPTracker->getRenditionInfo();
+        }
+        return {};
+    }
+
     bool HLSStream::isLive()
     {
         return mPTracker->isLive();

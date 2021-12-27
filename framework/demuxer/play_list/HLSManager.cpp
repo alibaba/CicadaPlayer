@@ -218,6 +218,19 @@ namespace Cicada {
                                     curSegInfo.position = targetPosition;
                                     j->mPStream->setCurSegInfo(curSegInfo);
                                     j->mPStream->setDiscardPts(lastPts);
+                                    std::vector<RenditionReport> renditions = i->mPStream->getCurRenditionInfo();
+                                    j->mPStream->setCurRenditionInfo(renditions);
+                                    std::string renditionStr;
+                                    for (auto &it : renditions) {
+                                        renditionStr += " uri=";
+                                        renditionStr += it.uri;
+                                        renditionStr += ",msn=";
+                                        renditionStr += std::to_string(it.lastMsn);
+                                        renditionStr += ",part=";
+                                        renditionStr += std::to_string(it.lastPart);
+                                        renditionStr += ";";
+                                    }
+                                    AF_LOGD("[lhls] rendition info: %s", renditionStr.c_str());
                                 } else {
                                     AF_LOGE("set SegNum to %llu\n",
                                             i->mPStream->getCurSegNum() + 1);

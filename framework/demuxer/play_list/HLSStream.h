@@ -92,6 +92,9 @@ namespace Cicada {
 
         int setCurSegInfo(CurSegInfo &curSegInfo) override;
 
+        void setCurRenditionInfo(const std::vector<RenditionReport> &renditions) override;
+        std::vector<RenditionReport> getCurRenditionInfo() override;
+
         bool isLive() override;
 
         int64_t getDuration() override;

@@ -275,6 +275,22 @@ namespace Cicada {
                 uri += std::to_string(mCurrentMsn);
                 uri += "&_HLS_part=";
                 uri += std::to_string(mCurrentPart);
+            } else if (!mCurrentRenditions.empty()) {
+                std::string playListUrl = mRep->getPlaylistUrl();
+                for (auto &it : mCurrentRenditions) {
+                    if (it.uri == playListUrl && mCurSegNum >= it.lastMsn && mCurSegNum < it.lastMsn + 3) {
+                        if (uri.find('?') == std::string::npos) {
+                            uri += "?";
+                        } else {
+                            uri += "&";
+                        }
+                        uri += "_HLS_msn=";
+                        uri += std::to_string(mCurSegNum);
+                        AF_LOGD("[llhls] use rendition report to load playlist");
+                        break;
+                    }
+                }
+                mCurrentRenditions.clear();
             }
             if (!noSkip && mCanSkipUntil > 0.0 && af_getsteady_ms() - mLastPlaylistUpdateTime < mCanSkipUntil * 0.5 * 1000) {
                 if (uri.find('?') == std::string::npos) {
@@ -372,6 +388,9 @@ namespace Cicada {
                     mRep->SetSegmentList(sList);
                 }
 
+                mRep->mCanBlockReload = rep->mCanBlockReload;
+                mCanBlockReload = rep->mCanBlockReload;
+
                 SegmentList *currentSegList = mRep->GetSegmentList();
                 if (mCanBlockReload) {
                     auto lastSeg = currentSegList->getSegmentByNumber(currentSegList->getLastSeqNum(), false);
@@ -409,9 +428,7 @@ namespace Cicada {
                 rep->SetSegmentList(nullptr);
 
                 mRep->mRenditionReport = rep->mRenditionReport;
-                mRep->mCanBlockReload = rep->mCanBlockReload;
                 mRep->mCanSkipUntil = rep->mCanSkipUntil;
-                mCanBlockReload = rep->mCanBlockReload;
                 mCanSkipUntil = rep->mCanSkipUntil;
                 // update is live
                 mRep->b_live = rep->b_live;
@@ -480,6 +497,8 @@ namespace Cicada {
             }
 
             mInited = true;
+        } else if (isLive()) {
+            loadPlayList();
         }
 
         // start from a num
@@ -764,5 +783,15 @@ namespace Cicada {
     {
         std::unique_lock<std::recursive_mutex> locker(mMutex);
         mExtDataSource = source;
+    }
+
+    void SegmentTracker::setRenditionInfo(const std::vector<RenditionReport> &renditions)
+    {
+        mCurrentRenditions = renditions;
+    }
+
+    std::vector<RenditionReport> SegmentTracker::getRenditionInfo()
+    {
+        return mRep->mRenditionReport;
     }
 }
