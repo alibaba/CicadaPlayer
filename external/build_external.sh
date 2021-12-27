@@ -28,6 +28,11 @@ function patch_ffmpeg() {
     git_am_patch ../../contribute/ffmpeg/0009-chore-configure-xml2-use-check-lib.patch
 }
 
+function patch_curl(){
+    cd "${CURL_SOURCE_DIR}" || exit
+    git_am_patch ../../contribute/curl/0001-curl-functions.m4-remove-inappropriate-AC_REQUIRE.patch
+}
+
 function git_apply_patch() {
     git apply $1
     if [[ $? -ne 0 ]]; then
@@ -68,6 +73,10 @@ function load_source() {
     if [[ -d ${LIBXML2_SOURCE_DIR} ]];then
         cd ${LIBXML2_SOURCE_DIR}
         git_am_patch ../../contribute/libxml2/0001-disable-check-libtool.patch
+    fi
+
+    if [[ -d ${CURL_SOURCE_DIR} ]];then
+        patch_curl
     fi
     return 0;
 }
