@@ -35,6 +35,11 @@ function patch_openssl() {
     git_am_patch ../../contribute/openssl/0001-Configuration-darwin64-arm64-cc-for-Apple-silicon.patch
 }
 
+function patch_curl(){
+    cd "${CURL_SOURCE_DIR}" || exit
+    git_am_patch ../../contribute/curl/0001-curl-functions.m4-remove-inappropriate-AC_REQUIRE.patch
+}
+
 function git_apply_patch() {
     git apply $1
     if [[ $? -ne 0 ]]; then
@@ -79,6 +84,10 @@ function load_source() {
 
     if [[ -d ${OPEN_SSL_SOURCE_DIR} ]];then
         patch_openssl
+    fi
+
+    if [[ -d ${CURL_SOURCE_DIR} ]];then
+        patch_curl
     fi
     return 0;
 }
