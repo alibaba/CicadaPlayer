@@ -158,7 +158,7 @@ static int sampleDecrypt_read_close(AVFormatContext *s)
 #define VD AV_OPT_FLAG_VIDEO_PARAM | AV_OPT_FLAG_DECODING_PARAM
 static const AVOption options[] = {
     {
-        "Decryptor", "Decryptor address", OFFSET(decryptor), AV_OPT_TYPE_UINT64, {.i64 = 0}, INT64_MIN, INT64_MAX, VD
+        "Decryptor", "Decryptor address", OFFSET(decryptor), AV_OPT_TYPE_UINT64, {.i64 = 0}, INT64_MIN, (double)INT64_MAX, VD
     },
 
     {NULL}
