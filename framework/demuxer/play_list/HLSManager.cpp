@@ -210,14 +210,6 @@ namespace Cicada {
                                 j->toStreamId = -1;
 
                                 if (i->mPStream->isLive()) {
-                                    uint64_t targetPosition = i->mPStream->getCurSegPosition() + 1;
-                                    int64_t targetSegNo = i->mPStream->getCurSegNum() + 1;
-                                    AF_LOGE("set SegPosition to %llu ,targetSegNo  = %llu \n", targetPosition, targetSegNo);
-                                    AbstractStream::CurSegInfo curSegInfo{};
-                                    curSegInfo.segNum = targetSegNo;
-                                    curSegInfo.position = targetPosition;
-                                    j->mPStream->setCurSegInfo(curSegInfo);
-                                    j->mPStream->setDiscardPts(lastPts);
                                     std::vector<RenditionReport> renditions = i->mPStream->getCurRenditionInfo();
                                     j->mPStream->setCurRenditionInfo(renditions);
                                     std::string renditionStr;
@@ -231,6 +223,15 @@ namespace Cicada {
                                         renditionStr += ";";
                                     }
                                     AF_LOGD("[lhls] rendition info: %s", renditionStr.c_str());
+
+                                    uint64_t targetPosition = i->mPStream->getCurSegPosition() + 1;
+                                    int64_t targetSegNo = i->mPStream->getCurSegNum() + 1;
+                                    AF_LOGE("set SegPosition to %llu ,targetSegNo  = %llu \n", targetPosition, targetSegNo);
+                                    AbstractStream::CurSegInfo curSegInfo{};
+                                    curSegInfo.segNum = targetSegNo;
+                                    curSegInfo.position = targetPosition;
+                                    j->mPStream->setCurSegInfo(curSegInfo);
+                                    j->mPStream->setDiscardPts(lastPts);
                                 } else {
                                     AF_LOGE("set SegNum to %llu\n",
                                             i->mPStream->getCurSegNum() + 1);

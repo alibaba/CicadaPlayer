@@ -499,6 +499,11 @@ namespace Cicada {
             mInited = true;
         } else if (isLive()) {
             loadPlayList();
+            mCanBlockReload = mRep->mCanBlockReload;
+            if (mCanBlockReload && mTargetDuration > 0) {
+                mSourceConfig.connect_time_out_ms = 3 * mTargetDuration;
+            }
+            mCanSkipUntil = mRep->mCanSkipUntil;
         }
 
         // start from a num
