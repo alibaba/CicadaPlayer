@@ -1739,30 +1739,20 @@ void SuperMediaPlayer::doDeCode()
     }
 }
 
-void SuperMediaPlayer::checkEOS()
+bool SuperMediaPlayer::checkEOSAudio()
 {
-    if (!mEof || PLAYER_COMPLETION == mPlayStatus) {
-        return;
-    }
 
-    //in case of ONLY AUDIO stream.
-    if ((HAVE_VIDEO && mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO) && !videoDecoderEOS &&
-         (APP_BACKGROUND != mAppStatus)) ||
-        (HAVE_AUDIO && !audioDecoderEOS)) {
-        return;
+    if (!HAVE_AUDIO) {
+        return true;
     }
-
+    if (!audioDecoderEOS) {
+        return false;
+    }
     int packetSize = mBufferController->GetPacketSize(BUFFER_TYPE_AUDIO);
     int frameSize = static_cast<int>(mAudioFrameQue.size());
-
-    if ((APP_BACKGROUND != mAppStatus) && mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
-        frameSize += mVideoFrameQue.size();
-        packetSize += mBufferController->GetPacketSize(BUFFER_TYPE_VIDEO);
-    }
-
     if (frameSize > 0 || packetSize > 0) {
         AF_TRACE;
-        return;
+        return false;
     }
 
     uint64_t audioQueDuration = mAVDeviceManager->getAudioRenderQueDuration();
@@ -1778,10 +1768,48 @@ void SuperMediaPlayer::checkEOS()
         }
 
         if ((now - mCheckAudioQueEOSTime) * 1000 <= audioQueDuration) {
-            return;
+            return false;
         }
     }
+    return true;
+}
 
+bool SuperMediaPlayer::checkEOSVideo()
+{
+    if (!HAVE_VIDEO) {
+        return true;
+    }
+    if (mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO) && !videoDecoderEOS && (APP_BACKGROUND != mAppStatus)) {
+        return false;
+    }
+    int packetSize = 0;
+    int frameSize = 0;
+    if ((APP_BACKGROUND != mAppStatus) && mAVDeviceManager->isDecoderValid(SMPAVDeviceManager::DEVICE_TYPE_VIDEO)) {
+        frameSize += mVideoFrameQue.size();
+        packetSize += mBufferController->GetPacketSize(BUFFER_TYPE_VIDEO);
+    }
+
+    if (frameSize > 0 || packetSize > 0) {
+        AF_TRACE;
+        return false;
+    }
+    return true;
+}
+
+void SuperMediaPlayer::checkEOS()
+{
+    if (!mEof || PLAYER_COMPLETION == mPlayStatus) {
+        return;
+    }
+    if (!mVideoEOS) {
+        mVideoEOS = checkEOSVideo();
+    }
+    if (!mAudioEOS) {
+        mAudioEOS = checkEOSAudio();
+    }
+    if (!(mVideoEOS && mAudioEOS)) {
+        return;
+    }
     NotifyPosition(mDuration);
     playCompleted();
 }
@@ -3526,6 +3554,8 @@ void SuperMediaPlayer::Reset()
     mFirstVideoPts = INT64_MIN;
     mMediaStartPts = INT64_MIN;
     mEof = false;
+    mVideoEOS = false;
+    mAudioEOS = false;
     mFirstBufferFlag = true;
     mBufferingFlag = false;
     mCurVideoPts = INT64_MIN;
@@ -3629,6 +3659,16 @@ StreamInfo *SuperMediaPlayer::GetCurrentStreamInfo(StreamType type)
 
 void SuperMediaPlayer::VideoRenderCallback(void *arg, int64_t pts, bool rendered, void *userData)
 {
+#if 0
+    static int64_t audioPts = INT64_MIN;
+    if (type == ST_TYPE_AUDIO){
+        audioPts = info.pts;
+    } else if (type == ST_TYPE_VIDEO){
+        if (audioPts != INT64_MIN){
+            AF_LOGD("avsync video late %lld (%lld - %lld) clock is %lld\n",audioPts - info.pts,audioPts, info.pts,mMasterClock.GetTime());
+        }
+    }
+#endif
     //   AF_LOGD("video stream render pts is %lld", pts);
     auto *pHandle = static_cast<SuperMediaPlayer *>(arg);
 
@@ -3797,7 +3837,7 @@ void SuperMediaPlayer::ApsaraAudioRenderCallback::onUpdateTimePosition(int64_t p
 }
 void SuperMediaPlayer::ApsaraVideoRenderListener::onFrameInfoUpdate(IAFFrame::AFFrameInfo &info)
 {
-    if (mPlayer.mCurrentAudioIndex < 0 && info.timePosition >= 0 && !mPlayer.isSeeking()) {
+    if ((mPlayer.mCurrentAudioIndex < 0 || mPlayer.mAudioEOS) && info.timePosition >= 0 && !mPlayer.isSeeking()) {
         mPlayer.mCurrentPos = info.timePosition;
         // AF_LOGD("timePosition %lld\n", info.timePosition);
     }

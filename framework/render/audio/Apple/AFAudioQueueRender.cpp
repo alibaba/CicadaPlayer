@@ -28,25 +28,19 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
     //    }
     //    gtime =af_gettime_ms();
 
-
-    int size = inBuffer->mAudioDataByteSize;
-
+    UInt32 size = inBuffer->mAudioDataByteSize;
     assert(pThis);
     if (!pThis->mRunning) {
         return;
     }
     pThis->mPlayedBufferSize += inBuffer->mAudioDataByteSize;
-    /*
-     *  MUST copy buffer fully, otherwise lots of bug will come
-     */
-    bool CopyFull = true;
-#if TARGET_OS_IPHONE
-    if (IOSNotificationManager::Instance()->GetActiveStatus() == 0 || pThis->mQueueSpeed > 1.0) {
-        CopyFull = true;
-        size = inBuffer->mAudioDataBytesCapacity;
+
+    UInt32 miniSize = pThis->getMiniBufferSize(inBuffer->mAudioDataBytesCapacity);
+    if (miniSize > 0) {
+        size = miniSize;
     }
-#endif
-    inBuffer->mAudioDataByteSize = pThis->copyAudioData(inBuffer, CopyFull);
+
+    inBuffer->mAudioDataByteSize = pThis->copyAudioData(inBuffer, size);
     if (inBuffer->mAudioDataByteSize == 0) {
         //    AF_LOGW("no audio data\n");
         inBuffer->mAudioDataByteSize = size;
@@ -58,7 +52,39 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
     }
     AudioQueueEnqueueBuffer(inAQ, inBuffer, 0, nullptr);
 }
-UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer, bool CopyFull)
+
+UInt32 AFAudioQueueRender::getMiniBufferSize(UInt32 maxBufferSize)
+{
+#if TARGET_OS_IPHONE
+    if (IOSNotificationManager::Instance()->GetActiveStatus() == 0) {
+        /*
+	    *  MUST copy buffer fully, otherwise lots of bug will come
+	    */
+        return maxBufferSize;
+    }
+#endif
+
+    if (mInPut.empty()) {
+        return 0;
+    }
+
+    AVFrame *audioFrame = getAVFrame(mInPut.front());
+    int frameBufferSize = getPCMFrameLen((const AVFrame *) audioFrame);
+    int frameDuration = getPCMFrameDuration((const AVFrame *) audioFrame);
+    int frameNum = 1;
+
+    //at least 20ms
+    int miniDuration = static_cast<int>(20000 * mQueueSpeed);
+    if (frameDuration < miniDuration) {
+        frameNum = miniDuration / frameDuration + 1;
+    }
+
+    UInt32 miniBufferSize = static_cast<UInt32>(frameBufferSize * frameNum);
+    miniBufferSize = std::min(maxBufferSize, miniBufferSize);
+    return miniBufferSize;
+}
+
+UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer, UInt32 targetSize)
 {
     if (mNeedFlush) {
         while (mInPut.size() > 0) {
@@ -74,11 +100,11 @@ UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer, bool 
     }
     UInt32 copySize = 0;
     int retryCont = 0;
-    while (copySize < inBuffer->mAudioDataBytesCapacity) {
+    while (copySize < targetSize) {
         if (mInPut.size() > 0) {
             bool frameClear = false;
             size_t len = copyPCMDataWithOffset(getAVFrame(mInPut.front()), mReadOffset, (uint8_t *) inBuffer->mAudioData + copySize,
-                                               inBuffer->mAudioDataBytesCapacity - copySize, &frameClear);
+                                               targetSize - copySize, &frameClear);
             assert(len > 0);
             mReadOffset += len;
             copySize += len;
@@ -95,10 +121,6 @@ UInt32 AFAudioQueueRender::copyAudioData(const AudioQueueBuffer *inBuffer, bool 
                 delete mInPut.front();
                 mInPut.pop();
                 mReadOffset = 0;
-            }
-            // FIXME: lowlatency  mBufferCount == 4
-            if (!CopyFull && (mBufferCount < 4 || copySize >= inBuffer->mAudioDataBytesCapacity / 4)) {
-                break;
             }
         } else {
             if (retryCont++ < 3 && mRunning && !mNeedFlush) {
@@ -345,8 +367,9 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
 
     if (mBufferCount == 0) {
         //FIXME: for low latency stream, queue another more buffer
-        assert(frame->getInfo().duration > 0);
-        if (frame->getInfo().duration < 20000) {
+        AVFrame *audioFrame = getAVFrame(frame.get());
+        int frameDuration = getPCMFrameDuration((const AVFrame *) audioFrame);
+        if (frameDuration < 20000) {
             mBufferCount = 4;
         } else {
             mBufferCount = 3;
@@ -375,10 +398,10 @@ int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
                 return 0;
             }
             _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
-            buffer->mAudioDataByteSize = copyAudioData(buffer, false);
+            UInt32 miniBufferSize = getMiniBufferSize(buffer->mAudioDataBytesCapacity);
+            buffer->mAudioDataByteSize = copyAudioData(buffer, miniBufferSize);
             mBufferAllocatedCount++;
         }
-
         for (int i = 0; i < mBufferAllocatedCount; i++) {
             AudioQueueEnqueueBuffer(_audioQueueRef, _audioQueueBufferRefArray[i], 0, nullptr);
         }

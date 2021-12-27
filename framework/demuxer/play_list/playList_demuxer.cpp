@@ -45,7 +45,7 @@ namespace Cicada {
         mPPlayList = mParser->parse(mPath);
 
         if (mPPlayList) {
-            mPPlayList->dump();
+            //   mPPlayList->dump();
         } else {
             return -EINVAL;
         }

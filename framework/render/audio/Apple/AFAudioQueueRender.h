@@ -75,7 +75,9 @@ namespace Cicada {
 
         static void OutputCallback(void *inUserData, AudioQueueRef inAQ, AudioQueueBufferRef inBuffer);
 
-        UInt32 copyAudioData(const AudioQueueBuffer *inBuffer, bool CopyFull);
+        UInt32 getMiniBufferSize(UInt32 maxBufferSize);
+
+        UInt32 copyAudioData(const AudioQueueBuffer *inBuffer, UInt32 targetSize);
 
 #if TARGET_OS_IPHONE
         void onInterrupted(Cicada::AF_AUDIO_SESSION_STATUS status) override;

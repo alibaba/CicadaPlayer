@@ -34,8 +34,7 @@ namespace Cicada{
 
         void enableReferInputPts(bool value) {mReferInputPTS = value;};
     protected:
-
-        bool mReferInputPTS = false;
+        bool mReferInputPTS = true;
 
         format mSrcFormat;
         format mDstFormat;
