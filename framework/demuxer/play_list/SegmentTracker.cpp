@@ -403,13 +403,15 @@ namespace Cicada {
                         mCurrentPart = lastSeg->getSegmentParts().size();
                     }
                 }
-                if (mRep->mPreloadHint.used && !mRep->mPreloadHint.uri.empty()) {
+                if (mRep->mPreloadHint.used) {
+                    if (mPreloadSegment && currentSegList->getLastSeqNum() >= mPreloadSegment->getSequenceNumber()) {
+                        mPreloadSegment = nullptr;
+                    }
                     if (rep->mPreloadHint.uri != mRep->mPreloadHint.uri && !currentSegList->containPartialSegment(mRep->mPreloadHint.uri)) {
                         // TODO: cancel preload
                     }
                     uint64_t preloadSegNum;
                     if (currentSegList->findPartialSegment(mRep->mPreloadHint.uri, preloadSegNum)) {
-                        mPreloadSegment = nullptr;
                         if (mCurSegNum < preloadSegNum) {
                             mCurSegNum = preloadSegNum;
                             AF_LOGD("[lhls] move to preload segment, segNum=%llu, uri=%s", mCurSegNum, mRep->mPreloadHint.uri.c_str());
@@ -771,6 +773,7 @@ namespace Cicada {
         std::unique_lock<std::recursive_mutex> locker(mMutex);
         mRep->mPreloadHint.used = true;
         mPreloadSegment = std::make_shared<segment>(0);
+        mPreloadSegment->sequence = mCurSegNum + 1;
         mPreloadSegment->setSourceUrl("");
         auto lastSeg = mRep->GetSegmentList()->getSegments().back();
         if (lastSeg->startTime != UINT64_MAX) {
