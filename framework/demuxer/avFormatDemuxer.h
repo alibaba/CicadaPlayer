@@ -138,13 +138,13 @@ namespace Cicada {
         int MAX_QUEUE_SIZE = 60; // about 500ms  video and audio packet
         bool mSecretDemxuer{false};
         std::string mDrmMagicKey{};
-
-    private:
         std::atomic_bool mInterrupted{false};
-        std::map<int, std::unique_ptr<AVStreamCtx>> mStreamCtxMap{};
-        AVIOContext *mPInPutPb = nullptr;
         bool bOpened{false};
         int64_t mStartTime = INT64_MIN;
+
+    private:
+        std::map<int, std::unique_ptr<AVStreamCtx>> mStreamCtxMap{};
+        AVIOContext *mPInPutPb = nullptr;
         std::deque<unique_ptr<IAFPacket>> mPacketQueue{};
         std::atomic_bool bEOS{false};
         std::atomic_bool bPaused{false};
