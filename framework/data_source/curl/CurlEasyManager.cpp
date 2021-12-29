@@ -10,10 +10,15 @@
 
 using namespace Cicada;
 
-CurlEasyManager &CurlEasyManager::getInstance()
+static bool released = false;
+
+CurlEasyManager *CurlEasyManager::getInstance()
 {
     static CurlEasyManager sCurlEasyManager;
-    return sCurlEasyManager;
+    if (released) {
+        return nullptr;
+    }
+    return &sCurlEasyManager;
 }
 
 void CurlEasyManager::acquireEasy(const std::string &url, CURL **easyHandler, CURLM **multiHandler)
@@ -78,6 +83,7 @@ CurlEasyManager::CurlEasyManager()
 
 CurlEasyManager::~CurlEasyManager()
 {
+    released = true;
     {
         std::unique_lock<std::mutex> idleLock(checkIdleMutex);
         stop = true;

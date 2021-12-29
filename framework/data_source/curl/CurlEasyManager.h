@@ -24,7 +24,7 @@ class CurlEasyManager {
     };
 
 public:
-    static CurlEasyManager &getInstance();
+    static CurlEasyManager *getInstance();
 
     /**
      *

@@ -114,7 +114,7 @@ void Cicada::CURLConnection::setSourceConfig(Cicada::IDataSource::SourceConfig *
 
 Cicada::CURLConnection::CURLConnection(const std::string &url)
 {
-    CurlEasyManager::getInstance().acquireEasy(url, &mHttp_handle, &multi_handle);
+    CurlEasyManager::getInstance()->acquireEasy(url, &mHttp_handle, &multi_handle);
     pRbuf = RingBufferCreate(RINGBUFFER_SIZE + RINGBUFFER_BACK_SIZE);
     RingBufferSetBackSize(pRbuf, RINGBUFFER_BACK_SIZE);
     m_bFirstLoop = 1;
@@ -162,8 +162,9 @@ Cicada::CURLConnection::~CURLConnection()
     if (multi_handle && mHttp_handle) {
         curl_multi_remove_handle(multi_handle, mHttp_handle);
     }
-
-    CurlEasyManager::getInstance().releaseEasy(&mHttp_handle, &multi_handle);
+    if (CurlEasyManager::getInstance()) {
+        CurlEasyManager::getInstance()->releaseEasy(&mHttp_handle, &multi_handle);
+    }
 
     if (pRbuf) {
         RingBufferDestroy(pRbuf);
