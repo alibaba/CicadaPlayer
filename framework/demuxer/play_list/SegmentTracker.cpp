@@ -448,6 +448,9 @@ namespace Cicada {
                     delete pPlayList;
                 }
                 mLastPlaylistUpdateTime = af_getsteady_ms();
+            } else {
+                delete parser;
+                return -EAGAIN;
             }
 
             // mRep->mStreamType = rep->mStreamType;
