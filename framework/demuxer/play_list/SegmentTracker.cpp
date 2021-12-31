@@ -503,7 +503,11 @@ namespace Cicada {
 
             mInited = true;
         } else if (isLive()) {
-            loadPlayList();
+            ret = loadPlayList();
+            if (ret < 0) {
+                AF_LOGE("loadPlayList error %d\n", ret);
+                return ret;
+            }
             mCanBlockReload = mRep->mCanBlockReload;
             if (mCanBlockReload && mTargetDuration > 0) {
                 mSourceConfig.connect_time_out_ms = 3 * mTargetDuration;

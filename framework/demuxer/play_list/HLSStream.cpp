@@ -1606,7 +1606,12 @@ namespace Cicada {
 
         mWaitCond.notify_one();
 
-        if (mThreadPtr) {
+        bool threadRunning = false;
+        if (mThreadPtr && mThreadPtr->getStatus() == afThread::THREAD_STATUS_RUNNING) {
+            threadRunning = true;
+        }
+
+        if (mThreadPtr && threadRunning) {
             mThreadPtr->pause();
         }
 
@@ -1641,7 +1646,7 @@ namespace Cicada {
         mIsDataEOS = false;
         mError = 0;
 
-        if (mThreadPtr) {
+        if (mThreadPtr && threadRunning) {
             mThreadPtr->start();
         }
 
