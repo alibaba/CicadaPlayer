@@ -897,12 +897,6 @@ namespace Cicada {
             if (ret == -EAGAIN) {
                 AF_LOGI("open_internal again\n");
                 af_usleep(10000);
-                ret = mPTracker->reLoadPlayList();
-
-                if (ret == gen_framework_http_errno(403)) {
-                    mError = ret;
-                }
-
                 return 0;
             } else if (ret < 0) {
                 if (ret == gen_framework_errno(error_class_format, 0) && !mPTracker->isLive() &&
