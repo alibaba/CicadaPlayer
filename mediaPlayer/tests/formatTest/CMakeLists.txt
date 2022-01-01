@@ -35,6 +35,7 @@ target_link_libraries(mediaPlayerFormatTest PRIVATE
         videodec
         framework_filter
         framework_utils
+        framework_drm
         avfilter
         avformat
         avcodec

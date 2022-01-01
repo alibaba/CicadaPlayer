@@ -9,7 +9,11 @@
 #include <utils/AFMediaType.h>
 #include <string>
 #include <mutex>
+#include <functional>
 #include <af_config.h>
+#include <base/media/IAFPacket.h>
+#include <drm/DrmHandler.h>
+#include "IVideoFrame.h"
 
 enum decoder_status {
     got_pic,
@@ -38,8 +42,6 @@ typedef enum DECODER_FRAME_STATUS {
 #define STATUS_VT_DECODER_BACKGROUND  1 << decoder_background
 #define STATUS_CREATE_FAIL 1 << decoder_create_fail
 
-#include <base/media/IAFPacket.h>
-#include "IVideoFrame.h"
 
 namespace Cicada {
 
@@ -62,13 +64,15 @@ namespace Cicada {
             clean_error();
         }
 
-        virtual int open(const Stream_meta *meta, void *voutObsr, uint64_t flags) = 0;
+        virtual int open(const Stream_meta *meta, void *voutObsr, uint64_t flags , const DrmInfo *drmInfo ) = 0;
 
         virtual void flush() = 0;
 
         virtual void close() = 0;
 
-        virtual void preClose() = 0;
+        virtual void prePause() = 0;
+
+        virtual void pause(bool pause) = 0;
 
         virtual void setEOF()
         {
@@ -166,6 +170,17 @@ namespace Cicada {
 
         virtual int getRecoverQueueSize() = 0;
 
+        virtual uint32_t getInputPaddingSize() = 0;
+
+        virtual bool supportReuse()
+        {
+            return true;
+        }
+        
+        void setRequireDrmHandlerCallback(std::function<DrmHandler*(const DrmInfo& drmInfo)> callback){
+            mRequireDrmHandlerCallback  = callback;
+        }
+
     protected:
         std::string mName;
         int mFlags = 0; // VFLAG_HW,VFLAG_OUT
@@ -176,6 +191,8 @@ namespace Cicada {
         bool mInBackground = false;
         bool bNeedKeyFrame{true};
         int64_t keyPts = INT64_MIN;
+
+        std::function<DrmHandler*(const DrmInfo& drmInfo)> mRequireDrmHandlerCallback{nullptr};
     };
 }
 

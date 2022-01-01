@@ -36,6 +36,7 @@ target_link_libraries(mediaPlayerSwitchStreamTest PRIVATE
         videodec
         framework_filter
         framework_utils
+        framework_drm
         avfilter
         avformat
         avcodec

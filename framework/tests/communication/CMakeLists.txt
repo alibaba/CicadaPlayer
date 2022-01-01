@@ -15,6 +15,7 @@ add_executable(communicationTest test.cpp)
 target_link_libraries(communicationTest PRIVATE
         communication
         framework_utils
+        framework_drm
         avformat
         avcodec
         avutil

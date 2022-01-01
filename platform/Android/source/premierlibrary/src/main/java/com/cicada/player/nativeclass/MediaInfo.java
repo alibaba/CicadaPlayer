@@ -26,11 +26,14 @@ public class MediaInfo {
     }
 
 
-    //call from native code
-    private void setTrackInfos(TrackInfo[] trackInfos) {
+    public void setTrackInfos(TrackInfo[] trackInfos) {
         if (trackInfos != null && trackInfos.length > 0) {
             mTrackInfos.addAll(Arrays.asList(trackInfos));
         }
     }
 
+
+    private Object[] getTrackInfoArray() {
+        return mTrackInfos.toArray();
+    }
 }

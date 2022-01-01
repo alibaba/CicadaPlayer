@@ -37,6 +37,16 @@ void releaseMeta(Stream_meta *pMeta)
         pMeta->description = NULL;
     }
 
+    if (pMeta->keyUrl) {
+        free(pMeta->keyUrl);
+        pMeta->keyUrl = NULL;
+    }
+
+    if (pMeta->keyFormat) {
+        free(pMeta->keyFormat);
+        pMeta->keyFormat = NULL;
+    }
+
     Source_meta *meta = pMeta->meta;
     releaseSourceMeta(meta);
 

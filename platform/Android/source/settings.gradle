@@ -1,1 +1,2 @@
+include ':ExternalPlayerExoLibrary'
 include ':paasApp', ':premierlibrary', ':zxing'

@@ -37,6 +37,8 @@ namespace Cicada {
 
         void Interrupt(bool interrupt) override;
 
+        std::string GetUri() override;
+
     private:
 
         CURLConnection *initConnection();
@@ -62,6 +64,8 @@ namespace Cicada {
 
         static CurlDataSource se;
 
+        void closeConnections(bool current);
+
     private:
         const static int max_connection = 1;
         std::string mLocation;
@@ -82,8 +86,6 @@ namespace Cicada {
         std::string mConnectInfo;
         bool mBDummy = false;
         std::vector<CURLConnection *>* mConnections {nullptr};
-
-        void closeConnections(bool current);
     };
 }
 

@@ -66,10 +66,12 @@ endif ()
 target_link_libraries(cicadaPlayer PRIVATE
         framework_filter
         framework_utils
+        framework_drm
         avfilter
         avformat
         avcodec
         swresample
+        swscale
         avutil
         ${FRAMEWORK_LIBS})
 if (NOT MSVC)
@@ -101,11 +103,15 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif ()
 
 if (APPLE)
+    find_library(AVFOUNDATION AVFoundation)
+    find_library(QUARTZCORE QuartzCore)
     target_link_libraries(
             cicadaPlayer PUBLIC
             iconv
             bz2
             ${FRAMEWORK_LIBS}
+            ${AVFOUNDATION}
+            ${QUARTZCORE}
     )
 elseif (MSVC)
 else ()

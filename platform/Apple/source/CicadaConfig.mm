@@ -13,6 +13,7 @@
 @synthesize maxDelayTime;
 @synthesize highBufferDuration;
 @synthesize startBufferDuration;
+@synthesize positionTimerIntervalMs;
 @synthesize maxBufferDuration;
 @synthesize networkTimeout;
 @synthesize referer;
@@ -22,6 +23,8 @@
 @synthesize networkRetryCount;
 @synthesize httpHeaders;
 @synthesize liveStartIndex;
+@synthesize disableAudio;
+@synthesize disableVideo;
 
 - (instancetype)init{
     if (self = [super init]) {
@@ -37,6 +40,9 @@
         networkRetryCount = 2;
         httpHeaders = [[NSMutableArray alloc] init];
         liveStartIndex = -3;
+        disableAudio = NO;
+        disableVideo = NO;
+        positionTimerIntervalMs = 500;
     }
     return self;
 }

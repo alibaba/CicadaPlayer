@@ -6,9 +6,10 @@
 #define CICADA_PLAYER_CODECPROTOTYPE_H
 #include <memory>
 #include "IDecoder.h"
+#include <drm/DrmInfo.h>
 
-class codecPrototype {
-//    static vector<codecPrototype *> codecQueue;
+class CICADA_CPLUS_EXTERN codecPrototype {
+    //    static vector<codecPrototype *> codecQueue;
     static codecPrototype*  codecQueue [10];
     static int _nextSlot;
 public:
@@ -16,11 +17,13 @@ public:
 
     virtual Cicada::IDecoder *clone() = 0;
 
-    virtual bool is_supported(AFCodecID code, uint64_t flags, int maxSize) = 0;
+    virtual bool is_supported(const Stream_meta &meta, uint64_t flags, int maxSize) = 0;
+
+    virtual bool is_drmSupport(const Cicada::DrmInfo *drmInfo) = 0;
 
     static void addPrototype(codecPrototype *se);
 
-    static Cicada::IDecoder *create(AFCodecID code, uint64_t flags, int maxSize);
+    static Cicada::IDecoder *create(const Stream_meta &meta, uint64_t flags, int maxSize, const Cicada::DrmInfo *drmInfo);
 
 };
 

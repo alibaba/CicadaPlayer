@@ -5,7 +5,7 @@
 //  Created by huang_jiafa on 2019/01/18.
 //  Copyright (c) 2019 Aliyun. All rights reserved.
 //
-
+#define LOG_TAG "AFAudioSession"
 #import <AudioToolbox/AudioToolbox.h>
 #import <AVFoundation/AVFoundation.h>
 #import "AFAudioSession.h"
@@ -61,7 +61,7 @@
 
 -(void) handleRouteChange:(NSNotification *)notification
 {
-    UInt8 reasonValue = [[notification.userInfo valueForKey:AVAudioSessionRouteChangeReasonKey] intValue];
+    NSInteger reasonValue = [[notification.userInfo valueForKey:AVAudioSessionRouteChangeReasonKey] intValue];
     AVAudioSessionRouteDescription *routeDescription = [notification.userInfo valueForKey:AVAudioSessionRouteChangePreviousRouteKey];
 
     switch (reasonValue) {
@@ -95,22 +95,32 @@
 
 -(void) handleInterruption:(NSNotification *)notification
 {
-    UInt8 theInterruptionType = [[notification.userInfo valueForKey:AVAudioSessionInterruptionTypeKey] intValue];
-
-    AF_LOGI("Session %s\n", theInterruptionType == AVAudioSessionInterruptionTypeBegan ? "Begin Interruption" : "End Interruption");
-
-    AF_AUDIO_SESSION_STATUS nID = AFAudioSessionEndInterruption;
-
-    if (theInterruptionType == AVAudioSessionInterruptionTypeBegan) {
-        nID = AFAudioSessionBeginInterruption;
+    NSDictionary *userInfo = notification.userInfo;
+    if (!userInfo || !userInfo[AVAudioSessionInterruptionTypeKey]) {
+        return;
     }
-    else if (theInterruptionType == AVAudioSessionInterruptionTypeEnded) {
-        //[[AVAudioSession sharedInstance] setActive:YES error:nil];
-        nID = AFAudioSessionEndInterruption;
-    }
+    NSInteger interruptionType = [notification.userInfo[AVAudioSessionInterruptionTypeKey] integerValue];
+    NSInteger interruptionOption = [notification.userInfo[AVAudioSessionInterruptionOptionKey] integerValue];
+    BOOL delayedSuspendedNotification = NO;
+    AF_LOGD("interruptionType is %d, interruptionOption is %d\n", interruptionType, interruptionOption);
 
-    if (NULL != mFun) {
-        mFun(nID);
+    if (@available(iOS 10.3, *)) {
+        if ([notification.userInfo objectForKey:AVAudioSessionInterruptionWasSuspendedKey]) {
+            delayedSuspendedNotification = (long) [notification.userInfo objectForKey:AVAudioSessionInterruptionWasSuspendedKey] == 1;
+        }
+    }
+    AF_LOGD("delayedSuspendedNotification is %d\n", delayedSuspendedNotification);
+
+    if (interruptionType == AVAudioSessionInterruptionTypeBegan && !delayedSuspendedNotification) {
+        // Playback interrupted by an incoming phone call.
+        if (mFun) {
+            mFun(AFAudioSessionBeginInterruption);
+        }
+    }
+    if (interruptionType == AVAudioSessionInterruptionTypeEnded && interruptionOption == AVAudioSessionInterruptionOptionShouldResume) {
+        if (mFun) {
+            mFun(AFAudioSessionEndInterruption);
+        }
     }
 }
 

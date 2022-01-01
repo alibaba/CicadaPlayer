@@ -115,6 +115,17 @@ Cicada::CURLConnection::CURLConnection(Cicada::IDataSource::SourceConfig *pConfi
     multi_handle = curl_multi_init();
 }
 
+void CURLConnection::setSSLBackEnd(curl_sslbackend sslbackend)
+{
+    //For https ignore CA certificates
+    curl_easy_setopt(mHttp_handle, CURLOPT_SSL_VERIFYPEER, FALSE);
+
+    // openssl not verify host, otherwise will return CURLE_PEER_FAILED_VERIFICATION
+    if (sslbackend == CURLSSLBACKEND_OPENSSL) {
+        curl_easy_setopt(mHttp_handle, CURLOPT_SSL_VERIFYHOST, FALSE);
+    }
+}
+
 Cicada::CURLConnection::~CURLConnection()
 {
     if (multi_handle && mHttp_handle) {
@@ -292,6 +303,17 @@ void Cicada::CURLConnection::setSource(const string &location, struct curl_slist
         curl_easy_setopt(mHttp_handle, CURLOPT_RESOLVE, reSolveList);
     }
 }
+void CURLConnection::setPost(bool post, int64_t size, const uint8_t *data)
+{
+    if (post) {
+        curl_easy_setopt(mHttp_handle, CURLOPT_POST, 1);
+        curl_easy_setopt(mHttp_handle, CURLOPT_POSTFIELDSIZE, (long) size);
+        curl_easy_setopt(mHttp_handle, CURLOPT_POSTFIELDS, data);
+
+    } else {
+        curl_easy_setopt(mHttp_handle, CURLOPT_POST, 0);
+    }
+}
 
 int CURLConnection::my_trace(CURL *handle, curl_infotype type,
                              char *data, size_t size,
@@ -356,9 +378,6 @@ int Cicada::CURLConnection::esayHandle_set_common_opt()
     curl_easy_setopt(mHttp_handle, CURLOPT_DEBUGDATA, this);
     curl_easy_setopt(mHttp_handle, CURLOPT_HEADERFUNCTION, write_response);
     curl_easy_setopt(mHttp_handle, CURLOPT_HEADERDATA, this);
-//For https ignore CA certificates
-    curl_easy_setopt(mHttp_handle, CURLOPT_SSL_VERIFYPEER, FALSE);
-    //   curl_easy_setopt(mHttp_handle, CURLOPT_SSL_VERIFYHOST, FALSE);
     return 0;
 }
 
@@ -485,6 +504,10 @@ int CURLConnection::FillBuffer(uint32_t want)
                             case CURLE_OUT_OF_MEMORY:
                                 return FRAMEWORK_ERR(ENOMEM);
 
+                            case CURLE_URL_MALFORMAT:
+                                return gen_framework_errno(error_class_network, network_errno_url_malformat);
+
+
                             default:
                                 return FRAMEWORK_ERR(EIO);
                         }
@@ -493,13 +516,12 @@ int CURLConnection::FillBuffer(uint32_t want)
             }
 
             // Don't retry when we didn't "see" any error
-#ifndef WIN32
-
             if (CURLResult == CURLE_OK) {
-                return FRAMEWORK_NET_ERR_UNKNOWN;
+                // we assume eof
+                AF_LOGW("assume a abnormal eos\n");
+                return 0;
             }
 
-#endif
             // Close handle
             disconnect();
 
@@ -674,7 +696,7 @@ int CURLConnection::short_seek(int64_t off)
             return ret;
         }
 
-        AF_LOGI("read buffer size %d need is %d\n", RingBuffergetMaxReadSize(pRbuf), delta - len);
+        AF_LOGI("read buffer size %" PRIu32 " need is %d\n", RingBuffergetMaxReadSize(pRbuf), (int) (delta - len));
 
         if (!RingBufferSkipBytes(pRbuf, (int) (delta - len))) {
             AF_LOGI("%s - Failed to skip to position after having filled buffer", __FUNCTION__);
@@ -723,4 +745,27 @@ void CURLConnection::updateSource(const string &location)
 {
     curl_easy_setopt(mHttp_handle, CURLOPT_URL, location.c_str());
     mFileSize = -1;
+
+    uri = location;
+    if (reSolveList) {
+        curl_slist_free_all(reSolveList);
+    }
+
+    CURLSH *sh = nullptr;
+    reSolveList = CURLShareInstance::Instance()->getHosts(uri, &sh);
+    assert(sh != nullptr);
+    curl_easy_setopt(mHttp_handle, CURLOPT_SHARE, sh);
+
+    if (reSolveList != nullptr) {
+        curl_easy_setopt(mHttp_handle, CURLOPT_RESOLVE, reSolveList);
+    }
+}
+
+void CURLConnection::updateHeaderList(struct curl_slist *headerList)
+{
+    if (headerList) {
+        curl_easy_setopt(mHttp_handle, CURLOPT_HTTPHEADER, headerList);
+    } else {
+        curl_easy_setopt(mHttp_handle, CURLOPT_HTTPHEADER, NULL);
+    }
 }

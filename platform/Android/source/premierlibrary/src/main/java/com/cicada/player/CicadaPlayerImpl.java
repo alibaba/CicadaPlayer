@@ -13,6 +13,7 @@ import com.cicada.player.nativeclass.MediaInfo;
 import com.cicada.player.nativeclass.NativePlayerBase;
 import com.cicada.player.nativeclass.PlayerConfig;
 import com.cicada.player.nativeclass.TrackInfo;
+import com.cicada.player.utils.media.DrmCallback;
 
 import java.lang.ref.WeakReference;
 
@@ -472,10 +473,10 @@ import java.lang.ref.WeakReference;
         }
     };
 
-    public CicadaPlayerImpl(Context context, String traceID) {
+    public CicadaPlayerImpl(Context context, String name, String traceID) {
         mContext = context;
         mTraceID = traceID;
-        mCorePlayer = new NativePlayerBase(context);
+        mCorePlayer = new NativePlayerBase(context , name);
         mCorePlayer.setTraceId(mTraceID);
 
         bindListeners();
@@ -1024,6 +1025,10 @@ import java.lang.ref.WeakReference;
     public void selectExtSubtitle(int index, boolean select){
         mCorePlayer.selectExtSubtitle(index,select);
     }
+    @Override
+    public void setStreamDelayTime(int index, int time){
+        mCorePlayer.setStreamDelayTime(index, time);
+    }
 
     @Override
     public void setDefaultBandWidth(int bandWidth) {
@@ -1058,6 +1063,17 @@ import java.lang.ref.WeakReference;
     @Override
     public void setFastStart(boolean open) {
         mCorePlayer.setFastStart(open);
+    }
+
+    @Override
+    public int invokeComponent(String content)
+    {
+        return mCorePlayer.invokeComponent(content);
+    }
+
+    @Override
+    public void setDrmCallback( DrmCallback callback){
+        mCorePlayer.setDrmCallback(callback);
     }
 }
 

@@ -7,8 +7,9 @@
 
 #include <af_config.h>
 
-#include <stdint.h>
 #include "CicadaType.h"
+#include <inttypes.h>
+#include <stdint.h>
 
 #define AF_LOG_LEVEL_NONE  0
 #define AF_LOG_LEVEL_FATAL  8
@@ -71,7 +72,19 @@ char *getTime();
 #define AF_LOGE(...) __log_print(AF_LOG_LEVEL_ERROR,LOG_TAG,__VA_ARGS__)
 #define AF_LOGF(...) __log_print(LOG_LEVEL_FATAL,LOG_TAG,__VA_ARGS__)
 
+#define API_LOG_IN_TAG "API_IN:"
+#define API_LOG_OUT_TAG "API_OUT:"
+
 #define AF_TRACE do { AF_LOGD("%s:%d(%s)\n",__FILE__,__LINE__,__func__);} while(0)
+
+#define AF_API_TRACE_IN                                                                                                                    \
+    do {                                                                                                                                   \
+        AF_LOGD(API_LOG_IN_TAG "%s\n", __func__);                                                                                          \
+    } while (0)
+#define AF_API_TRACE_OUT                                                                                                                   \
+    do {                                                                                                                                   \
+        AF_LOGD(API_LOG_OUT_TAG "%s)\n", __func__);                                                                                        \
+    } while (0)
 
 #define AF_DUMP_INT(LINE) AF_LOGD("%s is %lld\n",#LINE,LINE)
 

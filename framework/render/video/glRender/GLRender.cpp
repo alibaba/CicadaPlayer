@@ -83,21 +83,7 @@ int GLRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
     }
 
     if (frame == nullptr) {
-        // do flush
-        mVSync->pause();
-        {
-            std::unique_lock<std::mutex> locker(mFrameMutex);
-
-            while (!mInputQueue.empty()) {
-                dropFrame();
-            }
-        }
-        std::unique_lock<std::mutex> locker(mInitMutex);
-
-        if (!mInBackground) {
-            mVSync->start();
-        }
-
+        bFlushAsync = true;
         return 0;
     }
 
@@ -123,11 +109,6 @@ int GLRender::setRotate(IVideoRender::Rotate rotate)
     AF_LOGD("-----> setRotate");
     mRotate = rotate;
     return 0;
-}
-
-void GLRender::setVideoRotate(Rotate rotate)
-{
-    mVideoRotate = rotate;
 }
 
 int GLRender::setFlip(IVideoRender::Flip flip)
@@ -187,6 +168,13 @@ int GLRender::onVsyncInner(int64_t tick)
 
     {
         std::unique_lock<std::mutex> locker(mFrameMutex);
+
+        if (bFlushAsync) {
+            while (!mInputQueue.empty()) {
+                dropFrame();
+            }
+            bFlushAsync = false;
+        }
 
         if (!mInputQueue.empty()) {
             if (mInputQueue.size() >= MAX_IN_SIZE) {
@@ -264,8 +252,11 @@ void GLRender::VSyncOnDestroy()
 {
     mPrograms.clear();
 
-    if(mContext == nullptr) {
+    if (mContext == nullptr) {
         return;
+    }
+    if (mClearScreenOn) {
+        glClearScreen();
     }
 
     mContext->DestroyView();
@@ -276,14 +267,25 @@ void GLRender::VSyncOnDestroy()
     mContext = nullptr;
 }
 
+void GLRender::glClearScreen()
+{
+    glViewport(0, 0, mWindowWidth, mWindowHeight);
+    unsigned int backgroundColor = mBackgroundColor;
+    float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    cicada::convertToGLColor(backgroundColor, color);
+    glClearColor(color[0], color[1], color[2], color[3]);
+    glClear(GL_COLOR_BUFFER_BIT);
+    mContext->Present(mGLSurface);
+}
+
 bool GLRender::renderActually()
 {
-    if(mContext == nullptr) {
+    if (mContext == nullptr) {
         return false;
     }
 
     if (mInBackground) {
-//        AF_LOGD("renderActurally  .. InBackground ..");
+        //        AF_LOGD("renderActurally  .. InBackground ..");
         return false;
     }
 
@@ -301,12 +303,15 @@ bool GLRender::renderActually()
     }
 
 #endif
-
+    if (mInvalid) {
+        return false;
+    }
     bool displayViewChanged  = false;
+    bool viewSizeChanged = false;
     {
         unique_lock<mutex> viewLock(mViewMutex);
         displayViewChanged = mContext->SetView(mDisplayView);
-        bool viewSizeChanged = mContext->IsViewSizeChanged();
+        viewSizeChanged = mContext->IsViewSizeChanged();
 
         if (viewSizeChanged || displayViewChanged
                 || (mGLSurface == nullptr && mDisplayView != nullptr)) {
@@ -318,8 +323,13 @@ bool GLRender::renderActually()
     mWindowWidth = mContext->GetWidth();
     mWindowHeight = mContext->GetHeight();
 
-    if (mGLSurface == nullptr) {
-//        AF_LOGE("0918 renderActurally  return mGLSurface = null..");
+    if (mGLSurface == nullptr || mInvalid) {
+
+        std::unique_lock<std::mutex> locker(mFrameMutex);
+        if (!mInputQueue.empty()) {
+            dropFrame();
+        }
+
         return false;
     }
 
@@ -349,6 +359,8 @@ bool GLRender::renderActually()
 
     if (frame != nullptr) {
         framePts = frame->getInfo().pts;
+        mVideoInfo = frame->getInfo();
+        mVideoRotate = getRotate(frame->getInfo().video.rotate);
     }
 
     Rotate finalRotate = Rotate_None;
@@ -369,7 +381,16 @@ bool GLRender::renderActually()
     mProgramContext->updateWindowSize(mWindowWidth, mWindowHeight, displayViewChanged);
     mProgramContext->updateFlip(mFlip);
     mProgramContext->updateBackgroundColor(mBackgroundColor);
-    int ret = mProgramContext->updateFrame(frame);
+    int ret = -1;
+    if (mScreenCleared && frame == nullptr) {
+        //do not draw last frame when need clear screen.
+        if (viewSizeChanged || displayViewChanged) {
+            glClearScreen();
+        }
+    } else {
+        mScreenCleared = false;
+        ret = mProgramContext->updateFrame(frame);
+    }
     //work around for glReadPixels is upside-down.
     {
         std::unique_lock<std::mutex> locker(mCaptureMutex);
@@ -407,22 +428,15 @@ bool GLRender::renderActually()
         if ((INT64_MIN != framePts) && (mRenderResultCallback != nullptr)) {
             mRenderResultCallback(framePts, true);
         }
+
+        if (mListener) {
+            mListener->onFrameInfoUpdate(mVideoInfo);
+        }
     }
 
     if (mClearScreenOn) {
-        glViewport(0, 0, mWindowWidth, mWindowHeight);
-        unsigned int backgroundColor = mBackgroundColor;
-        float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-        cicada::convertToGLColor(backgroundColor, color);
-        glClearColor(color[0], color[1], color[2], color[3]);
-        glClear(GL_COLOR_BUFFER_BIT);
-        mContext->Present(mGLSurface);
-
-        if (mProgramContext != nullptr) {
-            mProgramFormat = -1;
-            mProgramContext = nullptr;
-        }
-
+        glClearScreen();
+        mScreenCleared = true;
         mClearScreenOn = false;
     }
 
@@ -503,23 +517,23 @@ void GLRender::captureScreen(std::function<void(uint8_t *, int, int)> func)
     }
 }
 
-void *GLRender::getSurface()
+void *GLRender::getSurface(bool cached)
 {
 #ifdef __ANDROID__
-    {
+    IProgramContext *programContext = getProgram(AF_PIX_FMT_CICADA_MEDIA_CODEC);
+
+    if (programContext == nullptr || programContext->getSurface() == nullptr || !cached) {
         std::unique_lock<std::mutex> locker(mCreateOutTextureMutex);
         needCreateOutTexture = true;
         mCreateOutTextureCondition.wait(locker, [this]() -> int {
             return !needCreateOutTexture;
         });
     }
-    IProgramContext *programContext = getProgram(AF_PIX_FMT_CICADA_MEDIA_CODEC);
 
-    if (programContext == nullptr) {
-        return nullptr;
+    programContext = getProgram(AF_PIX_FMT_CICADA_MEDIA_CODEC);
+    if (programContext) {
+        return programContext->getSurface();
     }
-
-    return programContext->getSurface();
 #endif
     return nullptr;
 }
@@ -527,7 +541,9 @@ void *GLRender::getSurface()
 IProgramContext *GLRender::getProgram(int frameFormat, IAFFrame *frame)
 {
     if (mPrograms.count(frameFormat) > 0) {
-        return mPrograms[frameFormat].get();
+        IProgramContext *pContext = mPrograms[frameFormat].get();
+        pContext->useProgram();
+        return pContext;
     }
 
     unique_ptr<IProgramContext> targetProgram{nullptr};
@@ -601,11 +617,6 @@ float GLRender::getRenderFPS()
     return mFps;
 }
 
-void GLRender::setRenderResultCallback(function<void(int64_t, bool)> renderResultCallback)
-{
-    mRenderResultCallback = renderResultCallback;
-}
-
 void GLRender::surfaceChanged()
 {
 #ifdef __ANDROID__
@@ -618,4 +629,3 @@ void GLRender::surfaceChanged()
     mRenderCallbackCon.wait(lock);
 #endif
 }
-

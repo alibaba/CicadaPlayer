@@ -1,9 +1,10 @@
 #ifndef CICADA_PLAYER_MSG_CONTROL_H
 #define CICADA_PLAYER_MSG_CONTROL_H
 
-#include <mutex>
-#include <deque>
+#include "native_cicada_player_def.h"
 #include <condition_variable>
+#include <deque>
+#include <mutex>
 #include <string>
 
 using namespace std;
@@ -30,6 +31,7 @@ namespace Cicada {
         MSG_ADD_EXT_SUBTITLE,
         MSG_SELECT_EXT_SUBTITLE,
         MSG_SET_SPEED,
+        MSG_SET_BITSTREAM,
 
         MSG_INTERNAL_VIDEO_FIRST = 0x100,
         MSG_INTERNAL_VIDEO_RENDERED = MSG_INTERNAL_VIDEO_FIRST,
@@ -38,59 +40,67 @@ namespace Cicada {
     } PlayMsgType;
 
 
-    typedef struct _DisplayModeParam {
+    typedef struct DisplayModeParam {
         int mode;
     } DisplayModeParam;
 
 
-    typedef struct _RotateModeParam {
+    typedef struct RotateModeParam {
         int mode;
     } RotateModeParam;
 
-    typedef struct _MirrorModeParam {
+    typedef struct MirrorModeParam {
         int mode;
     } MirrorModeParam;
 
-    typedef struct _MsgViewParam {
+    typedef struct MsgViewParam {
         void *view;
     } MsgViewParam;
 
-    typedef struct _MsgDataSourceParam {
+    typedef struct MsgDataSourceParam {
         std::string *url;
     } MsgDataSourceParam;
 
-    typedef struct _MsgSeekParam {
+    typedef struct MsgBitStreamParam {
+        readCB read;
+        seekCB seek;
+        void *arg;
+    } MsgBitStreamParam;
+
+    typedef struct MsgSeekParam {
         int64_t seekPos;
         bool bAccurate;
     } MsgSeekParam;
 
-    typedef struct _MsgSpeedParam {
+    typedef struct MsgSpeedParam {
         float speed;
     } MsgSpeedParam;
 
-    typedef struct _MsgHoldOnVideoParam {
+    typedef struct MsgHoldOnVideoParam {
 
         bool hold;
     } MsgHoldOnVideoParam;
 
-    typedef struct _MsgChangeStreamParam {
+    typedef struct MsgChangeStreamParam {
         int index;
     } MsgChangeStreamParam;
 
-    typedef struct _MsgVideoRenderedParam {
+    typedef struct MsgVideoRenderedParam {
         int64_t pts;
         int64_t timeMs;
+        bool rendered;
         void *userData;
     } MsgVideoRenderedParam;
 
-    typedef struct _MsgSelectExtSubtitleParam {
+    typedef struct MsgSelectExtSubtitleParam {
         int index;
         bool bSelect;
     } MsgSelectExtSubtitleParam;
 
-    typedef union _MsgParam {
+    typedef union MsgParam {
         MsgViewParam viewParam;
         MsgDataSourceParam dataSourceParam;
+        MsgBitStreamParam msgBitStreamParam;
         MsgSeekParam seekParam;
         MsgChangeStreamParam streamParam;
         MsgVideoRenderedParam videoRenderedParam;
@@ -99,13 +109,11 @@ namespace Cicada {
         MsgSpeedParam msgSpeedParam;
     } MsgParam;
 
-    typedef struct _QueueMsgStruct {
+    typedef struct QueueMsgStruct {
         PlayMsgType msgType;
         MsgParam msgParam;
         int64_t msgTime;
     } QueueMsgStruct;
-
-    typedef bool (*OnMsgProcesser)(PlayMsgType msg, MsgParam msgConent, void *userData);
 
     class PlayerMessageControllerListener {
     public:
@@ -133,6 +141,8 @@ namespace Cicada {
 
         virtual void ProcessSetDataSourceMsg(const std::string &url) = 0;
 
+        virtual void ProcessSetBitStreamMsg(readCB read, seekCB seekCb, void *arg) = 0;
+
         virtual void ProcessPauseMsg() = 0;
 
         virtual void ProcessSeekToMsg(int64_t seekPos, bool bAccurate) = 0;
@@ -141,7 +151,7 @@ namespace Cicada {
 
         virtual void ProcessSwitchStreamMsg(int index) = 0;
 
-        virtual void ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, void *picUserData) = 0;
+        virtual void ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, bool rendered, void *picUserData) = 0;
 
         virtual void ProcessVideoCleanFrameMsg() = 0;
 

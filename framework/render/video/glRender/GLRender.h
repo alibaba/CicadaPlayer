@@ -39,8 +39,6 @@ public:
 
     int init() override;
 
-    void setVideoRotate(Rotate rotate) override;
-
     int setDisPlay(void *view) override;
 
     int clearScreen() override;
@@ -48,8 +46,6 @@ public:
     void setBackgroundColor(unsigned int color) override;
 
     int renderFrame(std::unique_ptr<IAFFrame> &frame) override;
-
-    void setRenderResultCallback(std::function<void(int64_t, bool)> renderResultCallback) override;
 
     int setRotate(Rotate rotate) override;
 
@@ -61,11 +57,15 @@ public:
 
     void captureScreen(std::function<void(uint8_t *, int, int)> func) override;
 
-    void *getSurface() override;
+    void *getSurface(bool cached) override;
 
     float getRenderFPS() override;
 
     void surfaceChanged() override;
+    uint64_t getFlags() override
+    {
+        return 0;
+    };
 
 private:
 
@@ -92,6 +92,8 @@ private:
     bool renderActually();
 
     void captureScreen();
+
+    void glClearScreen();
 
     void calculateFPS(int64_t tick);
 
@@ -142,8 +144,10 @@ private:
     int mProgramFormat = -1;
 
     bool mClearScreenOn = false;
+    bool mScreenCleared = false;
+    IAFFrame::AFFrameInfo mVideoInfo{};
 
-    std::function<void(int64_t,bool)> mRenderResultCallback = nullptr;
+    std::atomic_bool bFlushAsync{false};
 
 #ifdef __ANDROID__
     std::mutex mRenderCallbackMutex{};

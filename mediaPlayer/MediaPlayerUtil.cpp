@@ -10,6 +10,7 @@
 #include "MediaPlayerUtil.h"
 #include "utils/timer.h"
 #include "utils/CicadaJSON.h"
+#include <cassert>
 
 using namespace std;
 
@@ -69,6 +70,8 @@ namespace Cicada {
         mLastLoopTime = 0;
         mLoopIndex = 0;
         mVideoRenderFps = 0;
+        mReadGotSize = 0;
+        mCurrentDownloadSpeed = 0;
     }
 
     void MediaPlayerUtil::getPropertyJSONStr(const std::string &name, CicadaJSONArray &array, bool isArray,
@@ -137,7 +140,7 @@ namespace Cicada {
         }
     }
 
-    void MediaPlayerUtil::notifyRead(enum readEvent event)
+    void MediaPlayerUtil::notifyRead(enum readEvent event, uint64_t size)
     {
         switch (event) {
             case readEvent_Again:
@@ -146,6 +149,8 @@ namespace Cicada {
 
             case readEvent_Got:
                 mReadGotIndex++;
+                assert(size > 0);
+                mReadGotSize += size;
                 break;
 
             case readEvent_timeOut:
@@ -165,13 +170,15 @@ namespace Cicada {
             float timeS = float(time - mLastReadTime) / 1000000;
 
             if (timeS > 1.0) {
+                mCurrentDownloadSpeed = (float) mReadGotSize * 8 / timeS;
                 AF_LOGD("mReadLoopIndex is \t %f\n", (float) mReadLoopIndex / timeS);
                 AF_LOGD("mReadAgainIndex is\t %f\n", (float) mReadAgainIndex / timeS);
                 AF_LOGD("mReadGotIndex is\t %f\n", (float) mReadGotIndex / timeS);
                 AF_LOGD("mReadTimeOutIndex\t is %f\n", (float) mReadTimeOutIndex / timeS);
+                AF_LOGD("mCurrentDownloadSpeed\t is %f kbps\n", mCurrentDownloadSpeed / 1024);
                 AF_LOGD("\n");
                 mLastReadTime = time;
-                mReadLoopIndex = mReadAgainIndex = mReadGotIndex = mReadTimeOutIndex = 0;
+                mReadLoopIndex = mReadAgainIndex = mReadGotIndex = mReadTimeOutIndex = mReadGotSize = 0;
             }
         }
     }

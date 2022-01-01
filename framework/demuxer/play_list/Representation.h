@@ -62,6 +62,7 @@ namespace Cicada{
     public:
         // TODO use set and get
         time_t targetDuration = 0;
+        time_t partTargetDuration = 0;
         bool b_live = false;
         int mPlayListType{0};
         Stream_type mStreamType = STREAM_TYPE_MIXED;

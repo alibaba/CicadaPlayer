@@ -17,15 +17,17 @@
 #include <atomic>
 #include <base/media/spsc_queue.h>
 #include <queue>
+#include <map>
+#include <drm/DrmInfo.h>
 
-class ActiveDecoder : public Cicada::IDecoder {
+class CICADA_CPLUS_EXTERN ActiveDecoder : public Cicada::IDecoder {
 
 public:
     ActiveDecoder();
 
     virtual ~ActiveDecoder() override;
 
-    int open(const Stream_meta *meta, void *voutObsr, uint64_t flags) override;
+    int open(const Stream_meta *meta, void *voutObsr, uint64_t flags, const Cicada::DrmInfo *drmInfo) override;
 
     void close() override;
 
@@ -33,13 +35,18 @@ public:
 
     int getFrame(std::unique_ptr<IAFFrame> &frame, uint64_t timeOut) override;
 
+
+    void pause(bool pause) override;
+
     void flush() override;
 
-    void preClose() override;
+    void prePause() override;
 
     int holdOn(bool hold) override;
 
     int getRecoverQueueSize() override;
+
+    uint32_t getInputPaddingSize() override;
 
 private:
 
@@ -47,7 +54,7 @@ private:
 
     virtual int dequeue_decoder(std::unique_ptr<IAFFrame> &pFrame) = 0;
 
-    virtual int init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags) = 0;
+    virtual int init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags, const Cicada::DrmInfo *drmInfo) = 0;
 
     virtual void close_decoder() = 0;
 
@@ -89,10 +96,11 @@ private:
     Cicada::SpscQueue<IAFPacket *> mInputQueue;
     Cicada::SpscQueue<IAFFrame *> mOutputQueue;
     int maxOutQueueSize = 10;
+    int maxInQueueSize = 16;
     std::mutex mMutex{};
     std::mutex mSleepMutex{};
 #endif
-    bool bHolding = false;
+    std::atomic_bool bHolding{false};
     std::queue<std::unique_ptr<IAFPacket>> mHoldingQueue{};
     enum AFCodecID mCodecId{AF_CODEC_ID_NONE};
 };

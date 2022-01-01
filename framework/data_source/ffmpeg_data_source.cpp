@@ -11,8 +11,8 @@
 #include <utils/ffmpeg_utils.h>
 
 extern "C" {
+#include <libavformat/avio.h>
 #include <libavutil/error.h>
-#include <libavutil/common.h>
 }
 using std::string;
 namespace Cicada {
@@ -35,7 +35,7 @@ namespace Cicada {
     {
         AVDictionary *format_opts = nullptr;
         av_dict_set_int(&format_opts, "rw_timeout", mConfig.low_speed_time_ms * 1000, 0);
-        int ret = ffurl_open(&mPuc, mUri.c_str(), AVIO_FLAG_READ | AVIO_FLAG_NONBLOCK, &mInterruptCB, &format_opts);
+        int ret = avio_open2(&mPuc, mUri.c_str(), AVIO_FLAG_READ | AVIO_FLAG_NONBLOCK, &mInterruptCB, &format_opts);
 
         if (ret == AVERROR_PROTOCOL_NOT_FOUND) {
             ret = FRAMEWORK_ERR_PROTOCOL_NOT_SUPPORT;
@@ -44,8 +44,12 @@ namespace Cicada {
             av_dict_free(&format_opts);
         }
 
+        if (ret < 0) {
+            AF_LOGE("open error\n");
+            return ret;
+        }
         if (rangeStart != INT64_MIN) {
-            ffurl_seek(mPuc, (int64_t) rangeStart, SEEK_SET);
+            avio_seek(mPuc, (int64_t) rangeStart, SEEK_SET);
         }
 
         return ret;
@@ -54,26 +58,37 @@ namespace Cicada {
     void ffmpegDataSource::Close()
     {
         if (mPuc) {
-            ffurl_closep(&mPuc);
-            mPuc = nullptr;
+            avio_closep(&mPuc);
         }
     }
 
     int64_t ffmpegDataSource::Seek(int64_t offset, int whence)
     {
-        if (whence == SEEK_SIZE) {
-            whence = AVSEEK_SIZE;
+        if (mPuc == nullptr) {
+            return -EINVAL;
         }
-
-        if (mPuc) {
-            return ffurl_seek(mPuc, offset, whence);
+        int64_t pos = offset;
+        switch (whence) {
+            case SEEK_SIZE:
+                return avio_size(mPuc);
+            case SEEK_END: {
+                int64_t size = avio_size(mPuc);
+                if (size <= 0) {
+                    return -EINVAL;
+                }
+                pos = size + offset;
+                whence = SEEK_SET;
+            }
+            default:
+                return avio_seek(mPuc, pos, whence);
         }
-
-        return -EINVAL;
     }
 
     int ffmpegDataSource::Read(void *buf, size_t nbyte)
     {
+        if (mPuc == nullptr) {
+            return -EINVAL;
+        }
         if (rangeEnd != INT64_MIN) {
             nbyte = std::min(nbyte, (size_t) (rangeEnd - Seek(0, SEEK_CUR)));
 
@@ -82,7 +97,7 @@ namespace Cicada {
             }
         }
 
-        int ret = ffurl_read(mPuc, (unsigned char *) buf, nbyte);
+        int ret = avio_read(mPuc, (unsigned char *) buf, nbyte);
 
         if (ret == AVERROR_EOF) {
             ret = 0;

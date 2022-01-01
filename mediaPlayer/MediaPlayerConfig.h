@@ -43,6 +43,11 @@ namespace Cicada {
 
         int liveStartIndex;
 
+        bool mDisableAudio;
+        bool mDisableVideo;
+
+        int mPositionTimerIntervalMs;
+
     public:
         std::string toString() const;
     };

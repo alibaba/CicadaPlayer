@@ -34,7 +34,7 @@ namespace Cicada{
 
         virtual void CloseStream(int id) = 0;
 
-        virtual int seek(int64_t us, int flags, int index) = 0;
+        virtual int64_t seek(int64_t us, int flags, int index) = 0;
 
         virtual int SwitchStreamAligned(int from, int to) = 0;
 
@@ -56,18 +56,22 @@ namespace Cicada{
             mSourceConfig = config;
         }
 
-        virtual void setBitStreamFormat(bool vMergeHeader, bool aMergeHeader)
+        virtual void setBitStreamFormat(header_type vMergeHeader, header_type aMergeHeader)
         {
             mMergeVideoHeader = vMergeHeader;
             mMergerAudioHeader = aMergeHeader;
         }
+        
+        virtual bool isRealTimeStream(int index) = 0;
+
+        virtual int64_t getTargetDuration() = 0;
 
     protected:
         playList *mPList = nullptr;
         IDataSource *mExtDataSource = nullptr;
         IDataSource::SourceConfig mSourceConfig{};
-        bool mMergeVideoHeader = false;
-        bool mMergerAudioHeader = false;
+        header_type mMergeVideoHeader = header_type::header_type_no_touch;
+        header_type mMergerAudioHeader = header_type::header_type_no_touch;
     };
 }
 

@@ -30,6 +30,15 @@ namespace Cicada {
         mListener.remove(listener);
     }
 
+    void AnalyticsCollectorImpl::ReportUpdatePlaySession(const std::string &sessionId)
+    {
+        for (AnalyticsCollectorListener *iter : mListener) {
+            if (nullptr != iter) {
+                iter->OnPlayerUpdateSessionId(sessionId);
+            }
+        }
+    }
+
     // setting
     void AnalyticsCollectorImpl::ReportLooping(bool looping)
     {

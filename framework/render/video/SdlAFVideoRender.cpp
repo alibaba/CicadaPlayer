@@ -7,17 +7,26 @@
 #include "SdlAFVideoRender.h"
 #include <base/media/AVAFPacket.h>
 #include <render/video/vsync/VSyncFactory.h>
+#include <thread>
+#include <utils/frame_work_log.h>
 #ifdef __APPLE__
 #include <base/media/PBAFFrame.h>
 #endif
 
 static int SDLCALL SdlWindowSizeEventWatch(void *userdata, SDL_Event *event);
 
+static void sdlLogCb(void *userdata, int category, SDL_LogPriority priority, const char *message)
+{
+    AF_LOGI("sdl log: %d %d %s", category, priority, message);
+}
+
 SdlAFVideoRender::SdlAFVideoRender()
 {
     mVSync = VSyncFactory::create(*this, 60);
 //   mHz = 0;
     SDL_InitSubSystem(SDL_INIT_VIDEO);
+    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
+    SDL_LogSetOutputFunction(sdlLogCb, nullptr);
     mVSync->start();
 };
 
@@ -25,10 +34,19 @@ SdlAFVideoRender::~SdlAFVideoRender()
 {
     if (mVideoTexture != nullptr) {
         SDL_DestroyTexture(mVideoTexture);
+        mVideoTexture = nullptr;
+        mInited = false;
     }
     if (mRenderNeedRelease) {
         SDL_DelEventWatch(SdlWindowSizeEventWatch, this);
         SDL_DestroyRenderer(mVideoRender);
+        mVideoRender = nullptr;
+        mRenderNeedRelease = false;
+    }
+    if (mWindowNeedRelease && mVideoWindow) {
+        SDL_DestroyWindow(mVideoWindow);
+        mVideoWindow = nullptr;
+        mWindowNeedRelease = false;
     }
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
@@ -67,15 +85,37 @@ int SdlAFVideoRender::init()
 
 int SdlAFVideoRender::refreshScreen()
 {
+    bool needClearScreen = false;
     {
         std::unique_lock<std::mutex> lock(mRenderMutex);
 
         if (mLastVideoFrame == nullptr && mBackFrame != nullptr) {
             mLastVideoFrame = mBackFrame->clone();
         }
+        if (mLastVideoFrame == nullptr) {
+            needClearScreen = true;
+        }
     }
-    onVSync(-1);
+    if (needClearScreen) {
+        clearScreen();
+    } else {
+        onVSync(-1);
+    }
     return 0;
+}
+
+void SdlAFVideoRender::delayRefreshScreen()
+{
+    std::thread thread([=]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        {
+            std::unique_lock<std::mutex> lock(mRenderMutex);
+            if (mLastVideoFrame == nullptr && mBackFrame != nullptr) {
+                mLastVideoFrame = mBackFrame->clone();
+            }
+        }
+    });
+    thread.detach();
 }
 
 
@@ -88,6 +128,7 @@ int SdlAFVideoRender::clearScreen()
         SDL_RenderClear(mVideoRender);
         SDL_RenderPresent(mVideoRender);
     }
+    mBackFrame = nullptr;
 
     return 0;
 }
@@ -96,8 +137,10 @@ int SdlAFVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
 {
     {
 
+        bool paused = false;
         if (frame == nullptr) {
             mVSync->pause();
+            paused = true;
         }
         {
             std::unique_lock<std::mutex> lock(mRenderMutex);
@@ -105,9 +148,15 @@ int SdlAFVideoRender::renderFrame(std::unique_ptr<IAFFrame> &frame)
                 mLastVideoFrame->setDiscard(true);
                 mRenderResultCallback(mLastVideoFrame->getInfo().pts, false);
             }
+            if (mListener && mLastVideoFrame) {
+                mListener->onFrameInfoUpdate(mLastVideoFrame->getInfo());
+            }
+            mLastVideoFrame = std::move(frame);
         }
-        mLastVideoFrame = std::move(frame);
-        if (frame == nullptr) {
+        if (mLastVideoFrame && mVideoRotate != getRotate(mLastVideoFrame->getInfo().video.rotate)) {
+            mVideoRotate = getRotate(mLastVideoFrame->getInfo().video.rotate);
+        }
+        if (paused) {
             mVSync->start();
         }
     }
@@ -191,7 +240,7 @@ int SdlAFVideoRender::onVSyncInner(int64_t tick)
     srcRect.y = 0;
     srcRect.w = mVideoWidth;
     srcRect.h = mVideoHeight;
-    int angle = mRotate;
+    int angle = (mRotate + mVideoRotate) % 360;
     SDL_RendererFlip flip = convertFlip();
     SDL_Rect dstRect = getDestRet();
     {
@@ -226,23 +275,21 @@ int SdlAFVideoRender::onVSyncInner(int64_t tick)
 int SdlAFVideoRender::setRotate(Rotate rotate)
 {
     mRotate = rotate;
+    refreshScreen();
     return 0;
-}
-
-void SdlAFVideoRender::setVideoRotate(Rotate rotate)
-{
-    mVideoRotate = rotate;
 }
 
 int SdlAFVideoRender::setFlip(Flip flip)
 {
     mFlip = flip;
+    refreshScreen();
     return 0;
 }
 
 int SdlAFVideoRender::setScale(Scale scale)
 {
     mScale = scale;
+    refreshScreen();
     return 0;
 }
 
@@ -344,15 +391,6 @@ SDL_RendererFlip SdlAFVideoRender::convertFlip()
     return flip;
 }
 
-void SdlAFVideoRender::setWindowSize(int windWith, int windHeight)
-{
-    if (mWindowWidth != windWith || mWindowHeight != windHeight) {
-        mWindowWidth = windWith;
-        mWindowHeight = windHeight;
-        refreshScreen();
-    }
-}
-
 void SdlAFVideoRender::captureScreen(std::function<void(uint8_t *data, int width, int height)> func)
 {
     if (func == nullptr) {
@@ -372,7 +410,7 @@ void SdlAFVideoRender::captureScreen(std::function<void(uint8_t *data, int width
         AF_LOGE("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
         return;
     }
-
+    refreshScreen();
     Uint32 surfaceFormat = surface->format->format;
     {
         std::unique_lock<std::mutex> lock(mRenderMutex);
@@ -391,10 +429,10 @@ void SdlAFVideoRender::captureScreen(std::function<void(uint8_t *data, int width
         func(nullptr, 0, 0);
     }
     SDL_FreeSurface(surface);
-    
+
     return ;
 }
- 
+
 
 SDL_Rect SdlAFVideoRender::getSnapRect()
 {
@@ -406,10 +444,12 @@ SDL_Rect SdlAFVideoRender::getSnapRect()
     SDL_Rect rect = getDestRet();
     int finalW, finalH;
 
-    if (mRotate == Rotate::Rotate_None || mRotate == Rotate::Rotate_180) {
+    int angle = (mRotate + mVideoRotate) % 360;
+
+    if (angle == Rotate::Rotate_None || angle == Rotate::Rotate_180) {
         finalW = rect.w;
         finalH = rect.h;
-    } else if (mRotate == Rotate::Rotate_90 || mRotate == Rotate::Rotate_270) {
+    } else if (angle == Rotate::Rotate_90 || angle == Rotate::Rotate_270) {
         finalW = rect.h;
         finalH = rect.w;
     } else {
@@ -437,22 +477,45 @@ int SdlAFVideoRender::setDisPlay(void *view)
     }
     if (mVideoTexture != nullptr) {
         SDL_DestroyTexture(mVideoTexture);
+        mVideoTexture = nullptr;
+        mInited = false;
     }
     if (mRenderNeedRelease) {
         SDL_DelEventWatch(SdlWindowSizeEventWatch, this);
         SDL_DestroyRenderer(mVideoRender);
+        mVideoRender = nullptr;
         mRenderNeedRelease = false;
+    }
+    if (mWindowNeedRelease && mVideoWindow) {
+        SDL_DestroyWindow(mVideoWindow);
+        mVideoWindow = nullptr;
+        mWindowNeedRelease = false;
     }
     if (display->type == CicadaSDLViewType_NATIVE_WINDOW) {
         mVideoWindow = SDL_CreateWindowFrom(display->view);
         SDL_ShowWindow(mVideoWindow);
+        mWindowNeedRelease = true;
     } else {
         mVideoWindow = static_cast<SDL_Window *>(display->view);
+        mWindowNeedRelease = false;
     }
 
     if (mVideoWindow) {
         mVideoRender = SDL_GetRenderer(mVideoWindow);
         if (mVideoRender == nullptr) {
+            // log all render name
+            int renderCount = SDL_GetNumRenderDrivers();
+            for (int i = 0; i < renderCount; i++) {
+                SDL_RendererInfo renderDriverInfo;
+                SDL_GetRenderDriverInfo(i, &renderDriverInfo);
+                std::string renderDriverName;
+                if (renderDriverInfo.name) {
+                    renderDriverName = renderDriverInfo.name;
+                }
+                AF_LOGI("sdl render%d: %s\n", i, renderDriverName.c_str());
+            }
+
+            // add before renderer created, so this callback will be called before renderer's window size change callback
             SDL_AddEventWatch(SdlWindowSizeEventWatch, this);
             Uint32 renderFlags = 0;
 #ifdef __WINDOWS__
@@ -460,9 +523,20 @@ int SdlAFVideoRender::setDisPlay(void *view)
             renderFlags = SDL_RENDERER_SOFTWARE;
 #endif
             mVideoRender = SDL_CreateRenderer(mVideoWindow, -1, renderFlags);
+
+            // log the render name
+            SDL_RendererInfo renderInfo;
+            SDL_GetRendererInfo(mVideoRender, &renderInfo);
+            std::string renderName;
+            if (renderInfo.name) {
+                renderName = renderInfo.name;
+            }
+            AF_LOGI("create sdl render: %s\n", renderName.c_str());
+
             mRenderNeedRelease = true;
-        } else
+        } else {
             mRenderNeedRelease = false;
+        }
     }
 
     return 0;
@@ -477,6 +551,12 @@ int SDLCALL SdlWindowSizeEventWatch(void *userdata, SDL_Event *event)
                 SDL_Window *window = SDL_GetWindowFromID(event->window.windowID);
                 pSelf->onWindowSizeChange(window);
             }
+        } else if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
+            // after SDL_WINDOWEVENT_SIZE_CHANGED event, d3d11 recreate resource, then in this event refresh use new d3d11 resource
+            SdlAFVideoRender *pSelf = (SdlAFVideoRender *) userdata;
+            if (pSelf) {
+                pSelf->delayRefreshScreen();
+            }
         }
     }
     return 0;
@@ -489,6 +569,7 @@ void SdlAFVideoRender::onWindowSizeChange(SDL_Window *window)
         if (!mInited) {
             return;
         }
+        // block the renderer's window size change callback(d3d11 recreate resource) until render complete
         std::unique_lock<std::mutex> lock(mWindowSizeChangeMutex);
         mWindowSizeChangeCon.wait(lock);
 #endif

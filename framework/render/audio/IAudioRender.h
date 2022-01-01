@@ -10,6 +10,9 @@
 #include <utils/AFMediaType.h>
 
 namespace Cicada{
+
+    typedef bool (*renderingFrameCB)(void *userData, IAFFrame *frame);
+
     class IAFRenderFilter {
     public:
         virtual ~IAFRenderFilter() = default;
@@ -29,7 +32,13 @@ namespace Cicada{
         /**
          * playback interrupt
          */
-        virtual void onInterrupt(bool interrupt) {};
+        virtual bool onInterrupt(bool interrupt)
+        {
+            return false;
+        };
+
+        virtual void onUpdateTimePosition(int64_t pos)
+        {}
     };
 
     class IAudioRender {
@@ -37,6 +46,7 @@ namespace Cicada{
     public:
 
         const static int FORMAT_NOT_SUPPORT = -201;
+        const static int OPEN_AUDIO_DEVICE_FAILED = -202;
 
         virtual ~IAudioRender() = default;
 
@@ -164,9 +174,18 @@ namespace Cicada{
             mListener = listener;
         }
 
+        virtual void setRenderingCb(renderingFrameCB cb, void *userData)
+        {
+            mRenderingCb = cb;
+            mRenderingCbUserData = userData;
+        }
+        virtual void prePause() = 0;
+
     protected:
         IAudioRender *mExtFilter{};
         IAudioRenderListener *mListener{};
+        renderingFrameCB mRenderingCb{nullptr};
+        void *mRenderingCbUserData{nullptr};
     };
 }
 

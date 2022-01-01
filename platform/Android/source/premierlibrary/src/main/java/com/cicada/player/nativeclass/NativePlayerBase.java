@@ -8,7 +8,6 @@ import android.net.ConnectivityManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 import android.view.Surface;
 
 import com.cicada.player.CicadaPlayer;
@@ -16,6 +15,9 @@ import com.cicada.player.bean.ErrorCode;
 import com.cicada.player.bean.ErrorInfo;
 import com.cicada.player.bean.InfoBean;
 import com.cicada.player.bean.InfoCode;
+import com.cicada.player.utils.Logger;
+import com.cicada.player.utils.NativeUsed;
+import com.cicada.player.utils.media.DrmCallback;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -30,25 +32,11 @@ public class NativePlayerBase {
     private static final String TAG = "NativePlayerBase";
     private static String libPath = null;
     private MainHandler mCurrentThreadHandler;
-    private boolean mEnableLog = false;
-
-    void log(String tag, String msg) {
-        if (mEnableLog) {
-            Log.i(tag, msg);
-        }
-    }
-
-    void loge(String tag, String msg) {
-        if (mEnableLog) {
-            Log.e(tag, msg);
-        }
-    }
 
     static {
         System.loadLibrary("alivcffmpeg");
         System.loadLibrary("CicadaPlayer");
     }
-
 
     private static class MainHandler extends Handler {
         private WeakReference<NativePlayerBase> playerWeakReference;
@@ -85,19 +73,23 @@ public class NativePlayerBase {
     }
 
 
-    private Context mContext;
+    private static Context mContext = null;
     private long mNativeContext;
 
     protected long getNativeContext() {
         return mNativeContext;
     }
 
+    public static Context getContext() {
+        return mContext;
+    }
+
     protected void setNativeContext(long l) {
-        log(TAG, "setNativeContext " + l);
+        Logger.v(TAG, "setNativeContext " + l);
         mNativeContext = l;
     }
 
-    public NativePlayerBase(Context context) {
+    public NativePlayerBase(Context context, String name) {
 
         mContext = context;
 
@@ -107,7 +99,7 @@ public class NativePlayerBase {
         }
 
         //保证回调的线程在创建的线程中
-        log(TAG, "Looper.myLooper() == Looper.getMainLooper() ? = " + (Looper.myLooper() == Looper.getMainLooper()));
+        Logger.v(TAG, "Looper.myLooper() == Looper.getMainLooper() ? = " + (Looper.myLooper() == Looper.getMainLooper()));
 
         if (Looper.myLooper() != Looper.getMainLooper()) {
             Looper.prepare();
@@ -115,7 +107,7 @@ public class NativePlayerBase {
         //TODO Later : 线程的情况下回调的问题。
         mCurrentThreadHandler = new MainHandler(this, Looper.getMainLooper());
 
-        construct(context);
+        construct(context, name);
     }
 
     private static String getUserNativeLibPath(Context context) {
@@ -139,8 +131,8 @@ public class NativePlayerBase {
         return userPath;
     }
 
-    private void construct(Context context) {
-        nConstruct();
+    private void construct(Context context, String name) {
+        nConstruct(name);
         if (context != null) {
             ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
             nSetConnectivityManager(connectivityManager);
@@ -148,49 +140,49 @@ public class NativePlayerBase {
     }
 
     public void setSurface(Surface surface) {
-        log(TAG, "setSurface surface  =  " + surface);
+        Logger.v(TAG, "setSurface surface  =  " + surface);
         nSetSurface(surface);
     }
 
     public void setDataSource(String url) {
-        log(TAG, "setDataSource url  =  " + url);
+        Logger.v(TAG, "setDataSource url  =  " + url);
         nSetDataSource(url);
     }
 
     public void prepare() {
-        log(TAG, "prepare ");
+        Logger.v(TAG, "prepare ");
         nPrepare();
     }
 
     public void start() {
-        log(TAG, "start ");
+        Logger.v(TAG, "start ");
         nStart();
     }
 
     public void pause() {
-        log(TAG, "pause ");
+        Logger.v(TAG, "pause ");
         nPause();
     }
 
     public void stop() {
-        log(TAG, "stop ");
+        Logger.v(TAG, "stop ");
         nStop();
     }
 
     public void release() {
-        log(TAG, "release ");
+        Logger.v(TAG, "release ");
         nRelease();
         mContext = null;
     }
 
     public void seekTo(long position) {
-        log(TAG, "seekTo   =  " + position + " ms ");
+        Logger.v(TAG, "seekTo   =  " + position + " ms ");
         mCurrentThreadHandler.removeMessages(UPDATE_CURRENT_POSITION);
         nSeekTo(position, 0x10);//not Accurate
     }
 
     public void seekTo(long position, int mode) {
-        log(TAG, "seekTo   =  " + position + " ms ");
+        Logger.v(TAG, "seekTo   =  " + position + " ms ");
         mCurrentThreadHandler.removeMessages(UPDATE_CURRENT_POSITION);
         nSeekTo(position, mode);
     }
@@ -203,20 +195,20 @@ public class NativePlayerBase {
     public long getDuration() {
         long duration = nGetDuration();
 
-        log(TAG, "getDuration =  " + duration);
+        Logger.v(TAG, "getDuration =  " + duration);
         return duration;
     }
 
     public float getVolume() {
         float volume = nGetVolume();
 
-        log(TAG, "getVolume =  " + volume);
+        Logger.v(TAG, "getVolume =  " + volume);
         return volume;
     }
 
     public void setVolume(float volume) {
 
-        log(TAG, "setVolume =  " + volume);
+        Logger.v(TAG, "setVolume =  " + volume);
         nSetVolume(volume);
     }
 
@@ -229,81 +221,81 @@ public class NativePlayerBase {
     }
 
     public void selectTrack(int trackIndex) {
-        log(TAG, "selectTrack trackIndex  =  " + trackIndex);
+        Logger.v(TAG, "selectTrack trackIndex  =  " + trackIndex);
         nSelectTrack(trackIndex);
     }
 
     public TrackInfo getCurrentTrackInfo(int type) {
-        log(TAG, "getCurrentTrackInfo type  =  " + type);
+        Logger.v(TAG, "getCurrentTrackInfo type  =  " + type);
         return (TrackInfo) nGetCurrentStreamInfo(type);
     }
 
     public void setLoop(boolean looping) {
-        log(TAG, "setLoop = " + looping);
+        Logger.v(TAG, "setLoop = " + looping);
         nSetLoop(looping);
     }
 
     public boolean isLoop() {
         boolean isLoop = nIsLoop();
-        log(TAG, "isLoop = " + isLoop);
+        Logger.v(TAG, "isLoop = " + isLoop);
         return isLoop;
     }
 
 
     public void setMute(boolean mute) {
-        log(TAG, "setMute = " + mute);
+        Logger.v(TAG, "setMute = " + mute);
         nSetMute(mute);
     }
 
     public boolean isMuted() {
         boolean isMute = nIsMuted();
-        log(TAG, "isMuted = " + isMute);
+        Logger.v(TAG, "isMuted = " + isMute);
         return isMute;
     }
 
     public int getVideoWidth() {
         int videoWidth = nGetVideoWidth();
-        log(TAG, "getVideoWidth = " + videoWidth);
+        Logger.v(TAG, "getVideoWidth = " + videoWidth);
         return videoWidth;
     }
 
     public int getVideoHeight() {
         int videoHeight = nGetVideoHeight();
-        log(TAG, "getVideoHeight = " + videoHeight);
+        Logger.v(TAG, "getVideoHeight = " + videoHeight);
         return videoHeight;
     }
 
     public float getVideoRotation() {
         int videoRotation = nGetVideoRotation();
-        log(TAG, "getVideoRotation = " + videoRotation);
+        Logger.v(TAG, "getVideoRotation = " + videoRotation);
         return videoRotation;
     }
 
     public long getCurrentPosition() {
         long currentPosition = nGetCurrentPosition();
-        log(TAG, "getCurrentPosition = " + currentPosition);
+        Logger.v(TAG, "getCurrentPosition = " + currentPosition);
         return currentPosition;
     }
 
     public long getBufferedPosition() {
         long bufferedPosition = nGetBufferedPosition();
-        log(TAG, "getBufferedPosition = " + bufferedPosition);
+        Logger.v(TAG, "getBufferedPosition = " + bufferedPosition);
         return bufferedPosition;
     }
 
     public void enableHardwareDecoder(boolean enable) {
-        log(TAG, "enableHardwareDecoder = " + enable);
+        Logger.v(TAG, "enableHardwareDecoder = " + enable);
         nEnableHardwareDecoder(enable);
     }
 
     public void setConfig(PlayerConfig config) {
-        log(TAG, "setConfig = " + config);
+        Logger.v(TAG, "setConfig = " + config);
         nSetConfig(config);
     }
 
     public PlayerConfig getConfig() {
         Object config = nGetConfig();
-        log(TAG, "getConfig = " + config);
+        Logger.v(TAG, "getConfig = " + config);
         if (config != null) {
             return (PlayerConfig) config;
         } else {
@@ -312,18 +304,18 @@ public class NativePlayerBase {
     }
 
     public void reload() {
-        log(TAG, "Reload");
+        Logger.v(TAG, "Reload");
         nReload();
     }
 
     public void setScaleMode(CicadaPlayer.ScaleMode scaleMode) {
-        log(TAG, "setScaleMode = " + scaleMode);
+        Logger.v(TAG, "setScaleMode = " + scaleMode);
         nSetScaleMode(scaleMode.ordinal());
     }
 
 
     public void setCacheConfig(CacheConfig cacheConfig) {
-        log(TAG, "setCacheConfig = " + cacheConfig.mEnable);
+        Logger.v(TAG, "setCacheConfig = " + cacheConfig.mEnable);
         nSetCacheConfig(cacheConfig);
     }
 
@@ -347,7 +339,7 @@ public class NativePlayerBase {
 
     public void setRotateMode(CicadaPlayer.RotateMode rotateMode) {
         int rotateValue = rotateMode.getValue();
-        log(TAG, "setRotateMode = " + rotateValue);
+        Logger.v(TAG, "setRotateMode = " + rotateValue);
         nSetRotateMode(rotateValue);
     }
 
@@ -385,12 +377,12 @@ public class NativePlayerBase {
     }
 
     public void setTraceId(String traceId) {
-        log(TAG, "setTraceId = " + traceId);
+        Logger.v(TAG, "setTraceId = " + traceId);
         nSetTraceID(traceId);
     }
 
     public void setOption(String key, String value) {
-        log(TAG, "setOption = " + key + ": " + value);
+        Logger.v(TAG, "setOption = " + key + ": " + value);
         nSetOption(key, value);
     }
 
@@ -409,31 +401,38 @@ public class NativePlayerBase {
         }
         return optionValue;
     }
+
     public void setAutoPlay(boolean autoPlay) {
-        log(TAG, "setAutoPlay = " + autoPlay);
+        Logger.v(TAG, "setAutoPlay = " + autoPlay);
         nSetAutoPlay(autoPlay);
     }
 
     public boolean isAutoPlay() {
         boolean isAutoPlay = nIsAutoPlay();
-        log(TAG, "isAutoPlay = " + isAutoPlay);
+        Logger.v(TAG, "isAutoPlay = " + isAutoPlay);
         return isAutoPlay;
     }
 
 
     public void snapShot() {
-        log(TAG, "snapShot");
+        Logger.v(TAG, "snapShot");
         nSnapShot();
     }
 
-    public void addExtSubtitle(String url){
-        log(TAG, "addExtSubtitle = " + url);
+    public void addExtSubtitle(String url) {
+        Logger.v(TAG, "addExtSubtitle = " + url);
         nAddExtSubtitle(url);
     }
 
-    public void selectExtSubtitle(int index, boolean select){
-        log(TAG, "selectExtSubtitle  index = " + index + " , select = " + select);
-        nSelectExtSubtitle(index,select);
+    public void selectExtSubtitle(int index, boolean select) {
+        Logger.v(TAG, "selectExtSubtitle  index = " + index + " , select = " + select);
+        nSelectExtSubtitle(index, select);
+    }
+
+    public void setStreamDelayTime(int index, int time)
+    {
+        Logger.v(TAG, "setStreamDelayTime  index = " + index + " , time = " + time);
+        nSetStreamDelayTime(index, time);
     }
 
     public void setIPResolveType(CicadaPlayer.IPResolveType type) {
@@ -456,9 +455,13 @@ public class NativePlayerBase {
         nSetBlackType(type);
     }
 
+    public int invokeComponent(String content) {
+        return nInvokeComponent(content);
+    }
+
     ////===============-------------------==================------------------////
 
-    protected native void nConstruct();
+    protected native void nConstruct(String name);
 
     protected native void nSetConnectivityManager(Object connectManager);
 
@@ -471,6 +474,8 @@ public class NativePlayerBase {
     protected native void nAddExtSubtitle(String url);
 
     protected native void nSelectExtSubtitle(int index, boolean select);
+
+    protected native void nSetStreamDelayTime(int index, int time);
 
     protected native void nSelectTrack(int index);
 
@@ -568,6 +573,8 @@ public class NativePlayerBase {
 
     protected native void nSetFastStart(boolean open);
 
+    protected native int nInvokeComponent(String content);
+
     //////==========--------------==================------------------================//
 
     private CicadaPlayer.OnVideoSizeChangedListener mOnVideoSizeChangedListener = null;
@@ -586,76 +593,76 @@ public class NativePlayerBase {
     private CicadaPlayer.OnSnapShotListener mOnSnapShotListener = null;
 
     public void setOnSubtitleDisplayListener(CicadaPlayer.OnSubtitleDisplayListener l) {
-        log(TAG, "setOnSubtitleDisplayListener = " + l);
+        Logger.v(TAG, "setOnSubtitleDisplayListener = " + l);
         mOnSubtitleDisplayListener = l;
     }
 
     public void setOnStateChangedListener(CicadaPlayer.OnStateChangedListener l) {
 
-        log(TAG, "setOnStateChangedListener = " + l);
+        Logger.v(TAG, "setOnStateChangedListener = " + l);
         mOnStateChangedListener = l;
     }
 
     public void setOnPreparedListener(CicadaPlayer.OnPreparedListener l) {
 
-        log(TAG, "setOnPrepdareListener = " + l);
+        Logger.v(TAG, "setOnPrepdareListener = " + l);
         mOnPreparedListener = l;
     }
 
     public void setOnCompletionListener(CicadaPlayer.OnCompletionListener l) {
-        log(TAG, "setOnCompletionListener = " + l);
+        Logger.v(TAG, "setOnCompletionListener = " + l);
         mOnCompletionListener = l;
     }
 
     public void setOnInfoListener(CicadaPlayer.OnInfoListener l) {
-        log(TAG, "setOnInfoListener = " + l);
+        Logger.v(TAG, "setOnInfoListener = " + l);
         mOnInfoListener = l;
     }
 
     public void setOnErrorListener(CicadaPlayer.OnErrorListener l) {
-        log(TAG, "setOnErrorListener = " + l);
+        Logger.v(TAG, "setOnErrorListener = " + l);
         mOnErrorListener = l;
     }
 
     public void setOnRenderingStartListener(CicadaPlayer.OnRenderingStartListener l) {
-        log(TAG, "setOnRenderingStartListener = " + l);
+        Logger.v(TAG, "setOnRenderingStartListener = " + l);
         mOnRenderingStartListener = l;
     }
 
     public void setOnVideoSizeChangedListener(CicadaPlayer.OnVideoSizeChangedListener l) {
-        log(TAG, "setOnVideoSizeChangedListener = " + l);
+        Logger.v(TAG, "setOnVideoSizeChangedListener = " + l);
         mOnVideoSizeChangedListener = l;
     }
 
-    public void setOnVideoRenderedListener(CicadaPlayer.OnVideoRenderedListener l){
-        log(TAG, "setOnVideoRenderedListener = " + l);
+    public void setOnVideoRenderedListener(CicadaPlayer.OnVideoRenderedListener l) {
+        Logger.v(TAG, "setOnVideoRenderedListener = " + l);
         mOnVideoRenderedListener = l;
         nEnableVideoRenderedCallback(l != null);
     }
 
     public void setOnTrackSelectRetListener(CicadaPlayer.OnTrackChangedListener l) {
-        log(TAG, "setOnSwitchStreamResultListener = " + l);
+        Logger.v(TAG, "setOnSwitchStreamResultListener = " + l);
         mOnTrackChangedListener = l;
     }
 
 
     public void setOnLoadingStatusListener(CicadaPlayer.OnLoadingStatusListener l) {
-        log(TAG, "setOnLoadingStatusListener = " + l);
+        Logger.v(TAG, "setOnLoadingStatusListener = " + l);
         mOnLoadingStatusListener = l;
     }
 
     public void setOnSeekCompleteListener(CicadaPlayer.OnSeekCompleteListener l) {
-        log(TAG, "setOnSeekCompleteListener = " + l);
+        Logger.v(TAG, "setOnSeekCompleteListener = " + l);
         mOnSeekCompleteListener = l;
     }
 
     public void setOnTrackInfoGetListener(CicadaPlayer.OnTrackReadyListener l) {
-        log(TAG, "setOnStreamInfoGetListener = " + l);
+        Logger.v(TAG, "setOnStreamInfoGetListener = " + l);
         mOnTrackReadyListener = l;
     }
 
     public void setOnSnapShotListener(CicadaPlayer.OnSnapShotListener l) {
-        log(TAG, "setOnSnapShotListener = " + l);
+        Logger.v(TAG, "setOnSnapShotListener = " + l);
         mOnSnapShotListener = l;
     }
 
@@ -664,7 +671,7 @@ public class NativePlayerBase {
     //底层回调
     protected void onPrepared() {
 
-        log(TAG, "onPrepared  ");
+        Logger.v(TAG, "onPrepared  ");
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -678,7 +685,7 @@ public class NativePlayerBase {
 
     protected void onCompletion() {
 
-        log(TAG, "onCompletion  ");
+        Logger.v(TAG, "onCompletion  ");
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -691,7 +698,7 @@ public class NativePlayerBase {
 
     protected void onCircleStart() {
 
-        log(TAG, "onCircleStart  ");
+        Logger.v(TAG, "onCircleStart  ");
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -706,7 +713,7 @@ public class NativePlayerBase {
 
 
     protected void onAutoPlayStart() {
-        log(TAG, "onAutoPlayStart  ");
+        Logger.v(TAG, "onAutoPlayStart  ");
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -723,7 +730,7 @@ public class NativePlayerBase {
 
     protected void onError(final int code, final String msg, Object extra) {
 
-        log(TAG, "onError , " + code + " , " + msg);
+        Logger.v(TAG, "onError , " + code + " , " + msg);
 
         ErrorCode errorCode = ErrorCode.ERROR_UNKNOWN;
         for (ErrorCode item : ErrorCode.values()) {
@@ -750,7 +757,7 @@ public class NativePlayerBase {
 
 
     protected void onEvent(final int code, final String msg, Object extra) {
-        log(TAG, "onEvent , " + code + " , " + msg);
+        Logger.v(TAG, "onEvent , " + code + " , " + msg);
 
         InfoCode infoCode = InfoCode.Unknown;
         for (InfoCode item : InfoCode.values()) {
@@ -777,7 +784,7 @@ public class NativePlayerBase {
 
 
     protected void onFirstFrameShow() {
-        log(TAG, "onFirstFrameShow  ");
+        Logger.v(TAG, "onFirstFrameShow  ");
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -791,7 +798,7 @@ public class NativePlayerBase {
 
     protected void onVideoSizeChanged(final int width, final int height) {
 
-        log(TAG, "onVideoSizeChanged = " + width + " , " + height);
+        Logger.v(TAG, "onVideoSizeChanged = " + width + " , " + height);
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -803,7 +810,7 @@ public class NativePlayerBase {
     }
 
     protected void onVideoRendered(final long timeMs, final long pts) {
-        log(TAG, "onVideoRendered = " + timeMs + " , pts = " + pts);
+        Logger.v(TAG, "onVideoRendered = " + timeMs + " , pts = " + pts);
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -815,7 +822,7 @@ public class NativePlayerBase {
     }
 
     protected void onStreamInfoGet(final MediaInfo mediaInfo) {
-        log(TAG, "onStreamInfoGet = " + mediaInfo.getTrackInfos().size());
+        Logger.v(TAG, "onStreamInfoGet = " + mediaInfo.getTrackInfos().size());
 
         mCurrentThreadHandler.post(new Runnable() {
             @Override
@@ -829,7 +836,7 @@ public class NativePlayerBase {
 
     protected void onSwitchStreamSuccess(final TrackInfo newInfo) {
 
-        log(TAG, "onSwitchStreamSuccess = " + newInfo.getType() + " , " + newInfo.getIndex());
+        Logger.v(TAG, "onSwitchStreamSuccess = " + newInfo.getType() + " , " + newInfo.getIndex());
 //        mCurrentStreamInfo = newInfo;
         mCurrentThreadHandler.post(new Runnable() {
             @Override
@@ -843,7 +850,7 @@ public class NativePlayerBase {
 
 
     protected void onSwitchStreamFail(final TrackInfo targetInfo, final int code, final String msg) {
-        log(TAG, "onSwitchStreamFail = " + targetInfo.getType() + " , " + targetInfo.getIndex() + " , code = " + code + " , " + msg);
+        Logger.v(TAG, "onSwitchStreamFail = " + targetInfo.getType() + " , " + targetInfo.getIndex() + " , code = " + code + " , " + msg);
 
 
         ErrorCode errorCode = ErrorCode.ERROR_UNKNOWN;
@@ -870,7 +877,7 @@ public class NativePlayerBase {
     }
 
     protected void onCurrentPositionUpdate(final long position) {
-        log(TAG, "onCurrentPositionUpdate = " + position);
+//        Logger.v(TAG, "onCurrentPositionUpdate = " + position);
 
         Message msg = mCurrentThreadHandler.obtainMessage(UPDATE_CURRENT_POSITION, (int) position, 0);
         mCurrentThreadHandler.sendMessage(msg);
@@ -878,7 +885,7 @@ public class NativePlayerBase {
 
     protected void onStatusChanged(final int newStatus, final int oldStatus) {
 
-        log(TAG, "onStatusChanged = " + newStatus);
+        Logger.v(TAG, "onStatusChanged = " + newStatus);
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -891,7 +898,7 @@ public class NativePlayerBase {
 
     protected void onBufferedPositionUpdate(final long position) {
 
-        log(TAG, "onBufferedPositionUpdate = " + position);
+        Logger.v(TAG, "onBufferedPositionUpdate = " + position);
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -907,7 +914,7 @@ public class NativePlayerBase {
 
 
     protected void onLoadingStart() {
-        log(TAG, "onLoadingStart ");
+        Logger.v(TAG, "onLoadingStart ");
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -919,7 +926,7 @@ public class NativePlayerBase {
     }
 
     protected void onLoadingProgress(final float percent) {
-        log(TAG, "onLoadingProgress =  " + percent);
+        Logger.v(TAG, "onLoadingProgress =  " + percent);
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -931,7 +938,7 @@ public class NativePlayerBase {
     }
 
     protected void onLoadingEnd() {
-        log(TAG, "onLoadingEnd ");
+        Logger.v(TAG, "onLoadingEnd ");
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -943,7 +950,7 @@ public class NativePlayerBase {
     }
 
     protected void onSeekEnd() {
-        log(TAG, "onSeekEnd ");
+        Logger.v(TAG, "onSeekEnd ");
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -956,7 +963,7 @@ public class NativePlayerBase {
 
     protected void onShowSubtitle(final int trackIndex, final long id, final String content, final Object extra) {
 
-        log(TAG, "onShowSubtitle  = " + id + ", " + content + " , trackIndex = " + trackIndex);
+        Logger.v(TAG, "onShowSubtitle  = " + id + ", " + content + " , trackIndex = " + trackIndex);
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -969,7 +976,7 @@ public class NativePlayerBase {
 
     protected void onSubtitleExtAdded(final int id, final String content) {
 
-        log(TAG, "onSubtitleExtAdded  = " + id + ", " + content);
+        Logger.v(TAG, "onSubtitleExtAdded  = " + id + ", " + content);
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -980,25 +987,40 @@ public class NativePlayerBase {
         });
     }
 
+    protected void onCurrentDownloadSpeed(final long speed){
+        Logger.v(TAG, "onCurrentDownloadSpeed  = " + speed);
+        mCurrentThreadHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mOnInfoListener != null) {
+                    InfoBean infoBean = new InfoBean();
+                    infoBean.setCode(InfoCode.CurrentDownloadSpeed);
+                    infoBean.setExtraValue(speed);
+                    mOnInfoListener.onInfo(infoBean);
+                }
+            }
+        });
+    }
+
     protected void onHideSubtitle(final int trackIndex, final long id) {
-        log(TAG, "onHideSubtitle  = " + id + " , trackIndex = " + trackIndex);
+        Logger.v(TAG, "onHideSubtitle  = " + id + " , trackIndex = " + trackIndex);
         mCurrentThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 if (mOnSubtitleDisplayListener != null) {
-                    mOnSubtitleDisplayListener.onSubtitleHide(trackIndex,id);
+                    mOnSubtitleDisplayListener.onSubtitleHide(trackIndex, id);
                 }
             }
         });
     }
 
     protected void onCaptureScreen(final int width, final int height, final byte[] buffer) {
-        log(TAG, "onCaptureScreen . width = " + width + " , height = " + height);
+        Logger.v(TAG, "onCaptureScreen . width = " + width + " , height = " + height);
 
         Bitmap bOutput = null;
         do {
             if (width <= 0 || height <= 0 || buffer == null || buffer.length == 0) {
-                loge(TAG, "onCaptureScreen .ERROR !!!  width = " + width + " , height = " + height + " , buffer = " + buffer);
+                Logger.v(TAG, "onCaptureScreen .ERROR !!!  width = " + width + " , height = " + height + " , buffer = " + buffer);
                 break;
             }
 
@@ -1007,7 +1029,7 @@ public class NativePlayerBase {
                 Buffer src = ByteBuffer.wrap(buffer);
                 bOutput.copyPixelsFromBuffer(src);
             } catch (Exception e) {
-                loge(TAG, "onCaptureScreen .ERROR !!!  createBitmap exception = " + e.getMessage());
+                Logger.e(TAG, "onCaptureScreen .ERROR !!!  createBitmap exception = " + e.getMessage());
             }
 
         } while (false);
@@ -1026,8 +1048,31 @@ public class NativePlayerBase {
 
     }
 
+    @NativeUsed
+    protected byte[] requestProvision(String url , byte[] data ) {
+        if(mDrmCallback == null) {
+            return null;
+        }else{
+            return mDrmCallback.requestProvision(url,data);
+        }
+    }
+
+    @NativeUsed
+    protected byte[] requestKey(String url, byte[] data) {
+        if (mDrmCallback == null) {
+            return null;
+        } else {
+            return mDrmCallback.requestKey(url, data);
+        }
+    }
+
     public String getCacheFilePath(String URL) {
         return nGetCacheFilePath(URL);
     }
 
+    private DrmCallback mDrmCallback = null;
+
+    public void setDrmCallback(DrmCallback callback) {
+        mDrmCallback = callback;
+    }
 }

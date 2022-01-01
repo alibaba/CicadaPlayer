@@ -27,6 +27,8 @@ public:
 
     int initProgram() override;
 
+    void useProgram() override;
+
     void updateScale(IVideoRender::Scale scale) override;
 
     void updateRotate(IVideoRender::Rotate rotate) override;

@@ -43,6 +43,11 @@ typedef enum _StreamType {
     ST_TYPE_SUB,
 } StreamType;
 
+typedef enum _VideoHDRType {
+    VideoHDRType_SDR,
+    VideoHDRType_HDR10,
+} VideoHDRType;
+
 typedef enum _IpResolveType { IpResolveWhatEver, IpResolveV4, IpResolveV6 } IpResolveType;
 
 #define VIDEO_FLAG 1 << ST_TYPE_VIDEO
@@ -58,6 +63,7 @@ typedef struct _StreamInfo {
     int videoBandwidth;
     int videoWidth;
     int videoHeight;
+    VideoHDRType HDRType;
 
     //audio
     char *audioLang;
@@ -94,6 +100,7 @@ typedef struct playerListener_t {
     playerType1Callback PositionUpdate;
     playerType1Callback BufferPositionUpdate;
     playerType1Callback LoadingProgress;
+    playerType1Callback CurrentDownLoadSpeed;
 
     playerType12Callback VideoSizeChanged;
     playerType12Callback StatusChanged;
@@ -138,19 +145,31 @@ typedef enum SeekMode {
 } SeekMode;
 
 typedef enum PropertyKey {
-    PROPERTY_KEY_RESPONSE_INFO    = 0,
-    PROPERTY_KEY_CONNECT_INFO     = 1,
-    PROPERTY_KEY_OPEN_TIME_STR    = 2,
-    PROPERTY_KEY_PROBE_STR        = 3,
+    PROPERTY_KEY_RESPONSE_INFO = 0,
+    PROPERTY_KEY_CONNECT_INFO = 1,
+    PROPERTY_KEY_OPEN_TIME_STR = 2,
+    PROPERTY_KEY_PROBE_STR = 3,
     PROPERTY_KEY_VIDEO_BUFFER_LEN = 4,
-    PROPERTY_KEY_DELAY_INFO       = 5,
-    PROPERTY_KEY_REMAIN_LIVE_SEG  = 6,
+    PROPERTY_KEY_DELAY_INFO = 5,
+    PROPERTY_KEY_REMAIN_LIVE_SEG = 6,
     PROPERTY_KEY_NETWORK_IS_CONNECTED = 7,
+    PROPERTY_KEY_PLAY_CONFIG = 8,
+    PROPERTY_KEY_DECODE_INFO = 9,
+    PROPERTY_KEY_HLS_KEY_URL = 10,
 } PropertyKey;
+
+typedef enum VideoTag {
+    VIDEO_TAG_NONE = 0,
+    VIDEO_TAG_SDR = 1 << 0,
+    VIDEO_TAG_HDR10 = 1 << 1,
+    VIDEO_TAG_WIDEVINE_L1 = 1 << 2,
+    VIDEO_TAG_WIDEVINE_L3 = 1 << 3,
+    VIDEO_TAG_FAIRPLAY = 1 << 4,
+} VideoTag;
 
 class AMediaFrame;
 
-typedef void (*playerMediaFrameCb)(void *arg, const std::unique_ptr<IAFPacket>& frame, StreamType type);
+typedef void (*playerMediaFrameCb)(void *arg, const IAFPacket *frame, StreamType type);
 
 typedef int (*readCB)(void *arg, uint8_t *buffer, int size);
 
@@ -159,6 +178,8 @@ typedef int64_t (*seekCB)(void *arg, int64_t offset, int whence);
 typedef int64_t(*clockRefer)(void *arg);
 
 typedef bool (*onRenderFrame)(void *userData, IAFFrame *frame);
+
+typedef bool (*UpdateViewCB)(int videoType, void *userData);
 
 class ErrorConverter {
 public:

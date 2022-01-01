@@ -9,6 +9,8 @@ find_library(COREGRAPHICS CoreGraphics)
 find_library(OPEN_AL OpenAl)
 find_library(CORE_IMAGE CoreImage)
 find_library(QUARTZ_CORE QuartzCore)
+find_library(AV_FOUNDATION AVFoundation)
+
 
 message("xxxxxxxxxxxxxxxxxxxxxxxx TOP_DIR is ${TOP_DIR}")
 
@@ -17,7 +19,6 @@ if ("${TARGET_PLATFORM}" STREQUAL "iOS")
             ${TOP_DIR}/apsaraPlayer/external/install/ffmpeg/iOS/Xcode/OS/_builds/ NO_DEFAULT_PATH)
     set(ALIVCFFMPEG ${TOP_DIR}/apsaraPlayer/external/install/ffmpeg/iOS/Xcode/OS/_builds/alivcffmpeg.framework)
     message("CONAN is ${CONAN}")
-    find_library(AV_FOUNDATION AVFoundation)
     find_library(UIKIT UIKit)
     find_library(OPENGLES OpenGLES)
 else ()
@@ -34,6 +35,7 @@ set(ALI_SRC_LIBRARIES
         data_source
         framework_filter
         framework_utils
+        framework_drm
         cacheModule
         videodec
         muxer
@@ -43,28 +45,12 @@ set(ALI_SRC_LIBRARIES
         iconv
         resolv
         bz2
-        ${VIDEO_TOOL_BOX}
-        ${COREMEDIA}
-        ${COREVIDEO}
-        ${COREFOUNDATION}
-        ${COREGRAPHICS}
-        ${AUDIO_TOOL_BOX}
-        ${CORE_AUDIO}
-        ${OPEN_AL}
-        ${CORE_IMAGE}
         c++
         )
+
+set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES} "-framework CoreMedia -framework CoreVideo -framework VideoToolbox -framework CoreFoundation -framework CoreGraphics -framework AudioToolbox -framework CoreAudio -framework OpenAl -framework CoreImage -framework AVFoundation -framework QuartzCore")
 if (IOS)
-    set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES}
-            ${AV_FOUNDATION}
-            ${UIKIT}
-            ${QUARTZ_CORE}
-            ${OPENGLES}
-            )
+    set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES} "-framework UIKit -framework OpenGLES")
 else ()
-    set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES}
-#            ${CONAN}
-            ${APP_KIT}
-            ${OPEN_GL}
-            )
+    set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES} "-framework AppKit -framework OpenGl")
 endif ()

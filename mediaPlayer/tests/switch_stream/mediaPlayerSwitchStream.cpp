@@ -2,13 +2,14 @@
 // Created by pingkai on 2020/1/14.
 //
 
+#include "tests/mediaPlayerTest.h"
+#include "tests/player_command.h"
 #include "gtest/gtest.h"
 #include <memory>
-#include "tests/mediaPlayerTest.h"
-#include <utils/timer.h>
-#include "tests/player_command.h"
-#include <vector>
 #include <utils/AFUtils.h>
+#include <utils/frame_work_log.h>
+#include <utils/timer.h>
+#include <vector>
 
 using namespace std;
 

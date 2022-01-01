@@ -3,22 +3,22 @@
 //
 #define LOG_TAG "HLSStream"
 
-#include <algorithm>
-#include <utils/errors/framework_error.h>
-#include <utils/timer.h>
-#include <demuxer/play_list/segment_decrypt/AES_128Decrypter.h>
-#include <cassert>
-#include <demuxer/DemuxerMeta.h>
-#include "../../utils/mediaFrame.h"
 #include "HLSStream.h"
 #include "Helper.h"
+#include "demuxer/IDemuxer.h"
 #include "segment_decrypt/SegDecryptorFactory.h"
-//#define NOLOGD
-#include "../../utils/frame_work_log.h"
-#include "../IDemuxer.h"
+#include "utils/frame_work_log.h"
+#include "utils/mediaFrame.h"
+#include <algorithm>
+#include <cassert>
 #include <cstdlib>
 #include <data_source/dataSourcePrototype.h>
+#include <demuxer/DemuxerMeta.h>
+#include <demuxer/play_list/segment_decrypt/AES_128Decrypter.h>
 #include <utils/af_string.h>
+#include <utils/errors/framework_error.h>
+#include <utils/timer.h>
+#include <utils/DrmUtils.h>
 
 // TODO support active and no active mode
 
@@ -95,6 +95,29 @@ namespace Cicada {
 
         ret = pHandle->readSegment(buffer, size);
 
+        if (ret == 0) {
+            MoveToNextPart move_ret = pHandle->moveToNextPartialSegment();
+            if (move_ret == MoveToNextPart::moveSuccess) {
+                return pHandle->readSegment(buffer, size);
+            } else if (move_ret == MoveToNextPart::tryAgain) {
+                int tryTimes = 150;
+                while (tryTimes > 0) {
+                    af_msleep(20);
+                    pHandle->mPTracker->reLoadPlayList();
+                    MoveToNextPart move_ret = pHandle->moveToNextPartialSegment();
+                    if (move_ret == MoveToNextPart::moveSuccess) {
+                        return pHandle->readSegment(buffer, size);
+                    } else if (move_ret == MoveToNextPart::segmentEnd) {
+                        return 0;
+                    }
+                    --tryTimes;
+                };
+                return 0;
+            } else {
+                return move_ret;
+            }
+        }
+
         if (pHandle->getStreamType() == STREAM_TYPE_SUB && pHandle->mVttPtsOffSet == INT64_MIN && ret > 0) {
             pHandle->mVttPtsOffSet = pHandle->mWVTTParser.addBuffer(buffer, ret);
 
@@ -121,6 +144,28 @@ namespace Cicada {
         }
 
         return ret;
+    }
+
+    MoveToNextPart HLSStream::moveToNextPartialSegment()
+    {
+        auto curSeg = mPTracker->getCurSegment();
+        if (curSeg && curSeg->mSegType == SEG_LHLS) {
+            bool bHasUnusedParts = false;
+            bool downloadComplete = curSeg->isDownloadComplete(bHasUnusedParts);
+            if (bHasUnusedParts) {
+                curSeg->moveToNextPart();
+                string uri = Helper::combinePaths(mPTracker->getBaseUri(), curSeg->getDownloadUrl());
+                tryOpenSegment(uri, curSeg->rangeStart, curSeg->rangeEnd);
+                return MoveToNextPart::moveSuccess;
+            } else {
+                if (downloadComplete) {
+                    return MoveToNextPart::segmentEnd;
+                } else {
+                    return MoveToNextPart::tryAgain;
+                }
+            }
+        }
+        return MoveToNextPart::segmentEnd;
     }
 
     int64_t HLSStream::seekSegment(off_t offset, int whence)
@@ -171,7 +216,7 @@ namespace Cicada {
             return 0;
         }
 
-        uri = Helper::combinePaths(mPTracker->getBaseUri(), mCurSeg->init_section->mUri);
+        uri = Helper::combinePaths(mPTracker->getBaseUri(), mCurSeg->init_section->getDownloadUrl());
         ret = tryOpenSegment(uri, mCurSeg->init_section->rangeStart, mCurSeg->init_section->rangeEnd);
 
         if (ret < 0) {
@@ -267,7 +312,6 @@ namespace Cicada {
         }
 
         if (mPTracker->isLive() && !mPTracker->isSeeked()) {
-            uint64_t curNum;
             if (mOpts) {
                 string value = mOpts->get("liveStartIndex");
                 if (!value.empty()) {
@@ -275,13 +319,7 @@ namespace Cicada {
                     AF_LOGI("set liveStartIndex to %lld\n", mLiveStartIndex);
                 }
             }
-            if (mLiveStartIndex >= 0) {
-                curNum = std::min(mPTracker->getFirstSegNum() + mLiveStartIndex, mPTracker->getLastSegNum());
-            } else {
-                curNum = std::max(mPTracker->getLastSegNum() + mLiveStartIndex + 1, mPTracker->getFirstSegNum());
-            }
-
-            mPTracker->setCurSegNum(curNum);
+            mPTracker->MoveToLiveStartSegment(mLiveStartIndex);
         }
 
         mStopOnSegEnd = false;
@@ -298,7 +336,7 @@ namespace Cicada {
                     return -EAGAIN;
                 } else {
                     AF_LOGE("can't find seg %llu\n", mPTracker->getCurSegNum());
-                    return -1;
+                    return gen_framework_errno(error_class_format, 0);
                 }
             }
 
@@ -310,7 +348,7 @@ namespace Cicada {
 
             string uri;
             uri = Helper::combinePaths(mPTracker->getBaseUri(),
-                                       mCurSeg->mUri);
+                                       mCurSeg->getDownloadUrl());
             AF_LOGD("open uri is %s seq is %llu\n", uri.c_str(), mCurSeg->sequence);
             ret = tryOpenSegment(uri, mCurSeg->rangeStart, mCurSeg->rangeEnd);
 
@@ -404,6 +442,13 @@ namespace Cicada {
             mDemuxerMeta = nullptr;
         }
 
+        for (SegmentEncryption &item: mCurSeg->encryptions) {
+            if (item.keyFormat.empty() || DrmUtils::isSupport(item.keyFormat)) {
+                mCurrentEncryption = item;
+                break;
+            }
+        }
+
         ret = updateDecrypter();
 
         if (ret < 0) {
@@ -484,6 +529,7 @@ namespace Cicada {
 
     int HLSStream::tryOpenSegment(const string &uri, int64_t start, int64_t end)
     {
+        AF_LOGI("tryOpenSegment: %s\n", uri.c_str());
         int retryTimes = 0;
         int ret;
 
@@ -561,7 +607,7 @@ namespace Cicada {
     bool HLSStream::updateKey()
     {
         string keyUrl = Helper::combinePaths(mPTracker->getBaseUri(),
-                                             mCurSeg->encryption.keyUrl);
+                                             mCurrentEncryption.keyUrl);
 
         if (mKeyUrl == keyUrl) {
             return false;
@@ -604,19 +650,19 @@ namespace Cicada {
         return true;
     }
 
-    bool HLSStream::updateIV() const
+    bool HLSStream::updateIV()
     {
-        if (!mCurSeg->encryption.ivStatic) {
-            mCurSeg->encryption.iv.clear();
-            mCurSeg->encryption.iv.resize(16);
+        if (!mCurrentEncryption.ivStatic) {
+            mCurrentEncryption.iv.clear();
+            mCurrentEncryption.iv.resize(16);
             int number = (int) mCurSeg->getSequenceNumber();
-            mCurSeg->encryption.iv[15] = static_cast<unsigned char>(
+            mCurrentEncryption.iv[15] = static_cast<unsigned char>(
                                              (number /* - segment::SEQUENCE_FIRST*/) & 0xff);
-            mCurSeg->encryption.iv[14] = static_cast<unsigned char>(
+            mCurrentEncryption.iv[14] = static_cast<unsigned char>(
                                              ((number /* - segment::SEQUENCE_FIRST*/) >> 8) & 0xff);
-            mCurSeg->encryption.iv[13] = static_cast<unsigned char>(
+            mCurrentEncryption.iv[13] = static_cast<unsigned char>(
                                              ((number/* - segment::SEQUENCE_FIRST*/) >> 16) & 0xff);
-            mCurSeg->encryption.iv[12] = static_cast<unsigned char>(
+            mCurrentEncryption.iv[12] = static_cast<unsigned char>(
                                              ((number /* - segment::SEQUENCE_FIRST*/) >> 24) & 0xff);
             return true;
         }
@@ -626,41 +672,48 @@ namespace Cicada {
 
     int HLSStream::updateSegDecrypter()
     {
-        if (mCurSeg->encryption.method == SegmentEncryption::AES_128) {
+        if (mCurrentEncryption.method == SegmentEncryption::AES_128) {
             if (updateKey()) {
                 if (mSegDecrypter == nullptr)
                     mSegDecrypter = unique_ptr<ISegDecrypter>(
-                                        SegDecryptorFactory::create(mCurSeg->encryption.method, Decrypter_read_callback, this));
+                                        SegDecryptorFactory::create(mCurrentEncryption.method, Decrypter_read_callback, this));
 
                 mSegDecrypter->SetOption("decryption key", mKey, 16);
             }
 
             if (updateIV()) {
-                mSegDecrypter->SetOption("decryption IV", &mCurSeg->encryption.iv[0], 16);
+                mSegDecrypter->SetOption("decryption IV", &mCurrentEncryption.iv[0], 16);
             }
 
             mSegDecrypter->flush();
-        } else if (mCurSeg->encryption.method == SegmentEncryption::AES_PRIVATE) {
+
+            if (mDRMMagicKey.empty() && mSegKeySource){
+                mDRMMagicKey = mSegKeySource->GetOption("drmMagicKey");
+            }
+        } else if (mCurrentEncryption.method == SegmentEncryption::AES_PRIVATE) {
             memset(mKey, 0, 16);
-            long length = mCurSeg->encryption.keyUrl.length();
+            long length = mCurrentEncryption.keyUrl.length();
 
             if (length > 16) {
                 length = 16;
             }
 
-            memcpy(mKey, mCurSeg->encryption.keyUrl.c_str(), length);
+            memcpy(mKey, mCurrentEncryption.keyUrl.c_str(), length);
 
             if (mSegDecrypter == nullptr) {
                 mSegDecrypter = unique_ptr<ISegDecrypter>(
-                                    SegDecryptorFactory::create(mCurSeg->encryption.method,
+                                    SegDecryptorFactory::create(mCurrentEncryption.method,
                                             Decrypter_read_callback, this));
             }
 
-            mCurSeg->encryption.iv.clear();
-            mCurSeg->encryption.iv.resize(16);
+            mCurrentEncryption.iv.clear();
+            mCurrentEncryption.iv.resize(16);
             mSegDecrypter->SetOption("decryption key", mKey, 16);
-            mSegDecrypter->SetOption("decryption IV", &mCurSeg->encryption.iv[0], 16);
+            mSegDecrypter->SetOption("decryption IV", &mCurrentEncryption.iv[0], 16);
             mSegDecrypter->flush();
+            if (mDRMMagicKey.empty() && mSegKeySource){
+                mDRMMagicKey = mSegDecrypter->GetOption("drmMagicKey");
+            }
         }
 
         return 0;
@@ -681,10 +734,13 @@ namespace Cicada {
             assert(mSampeAesDecrypter != nullptr);
 
             if (mSampeAesDecrypter) {
-                mSampeAesDecrypter->SetOption("decryption IV", &mCurSeg->encryption.iv[0], 16);
+                mSampeAesDecrypter->SetOption("decryption IV", &mCurrentEncryption.iv[0], 16);
 //                mSampeAesDecrypter->SetOption("decryption KEYFORMAT", (uint8_t *) mCurSeg->encryption.keyFormat.c_str(),
 //                                              (int) mCurSeg->encryption.keyFormat.length());
             }
+        }
+        if (mDRMMagicKey.empty() && mSegKeySource) {
+            mDRMMagicKey = mSegKeySource->GetOption("drmMagicKey");
         }
 
         return 0;
@@ -826,16 +882,17 @@ namespace Cicada {
     int HLSStream::updateDecrypter()
     {
         int ret = 0;
-        mProtectedBuffer = mCurSeg->encryption.method != SegmentEncryption::NONE;
+        mProtectedBuffer = mCurrentEncryption.method != SegmentEncryption::NONE;
 
-        if (mCurSeg->encryption.method == SegmentEncryption::AES_128 ||
-                mCurSeg->encryption.method == SegmentEncryption::AES_PRIVATE) {
+        if (mCurrentEncryption.method == SegmentEncryption::AES_128 ||
+                mCurrentEncryption.method == SegmentEncryption::AES_PRIVATE) {
             ret = updateSegDecrypter();
 
             if (ret < 0) {
                 return ret;
             }
-        } else if (mCurSeg->encryption.method == SegmentEncryption::AES_SAMPLE) {
+        } else if (mCurrentEncryption.method == SegmentEncryption::AES_SAMPLE
+                && mCurrentEncryption.keyFormat.empty()) {
             ret = updateSampleAesDecrypter();
 
             if (ret < 0) {
@@ -861,15 +918,19 @@ namespace Cicada {
             do {
                 mCurSeg = seg;
                 string uri = Helper::combinePaths(mPTracker->getBaseUri(),
-                                                  seg->mUri);
+                                                  seg->getDownloadUrl());
                 ret = tryOpenSegment(uri, seg->rangeStart, seg->rangeEnd);
 
-                if (isHttpError(ret)) {
+                if (isHttpError(ret) || isLocalFileError(ret)) {
                     resetSource();
                     seg = mPTracker->getNextSegment();
 
                     if (seg) {
-                        af_msleep(20);
+                        if (seg->mSegType == SEG_LHLS) {
+                            af_msleep(5);
+                        } else {
+                            af_msleep(20);
+                        }
                         continue;
                     } else if (mPTracker->isLive()) {
                         return -EAGAIN;
@@ -878,7 +939,7 @@ namespace Cicada {
                         break;
                     }
                 }
-            } while (isHttpError(ret));
+            } while (isHttpError(ret) || isLocalFileError(ret));
 
             if (ret < 0) {
                 mDataSourceError = ret;
@@ -891,7 +952,7 @@ namespace Cicada {
                 return ret;
             }
 
-            AF_LOGD("stream(%p) read seg %s seqno is %llu\n", this, seg->mUri.c_str(),
+            AF_LOGD("stream(%p) read seg %s seqno is %llu\n", this, seg->getDownloadUrl().c_str(),
                     seg->getSequenceNumber());
             ret = updateDecrypter();
 
@@ -936,7 +997,7 @@ namespace Cicada {
             return -EAGAIN;
         }
 
-        if (ret == network_errno_http_range) {
+        if (ret == gen_framework_errno(error_class_network, network_errno_http_range)) {
             ret = 0;
         }
 
@@ -982,7 +1043,13 @@ namespace Cicada {
         }
 
         if (ret == -EAGAIN && mPTracker->getDuration() == 0) {
-            ret = updateSegment();
+
+            MoveToNextPart move_ret = moveToNextPartialSegment();
+            if (move_ret == MoveToNextPart::segmentEnd) {
+                ret = updateSegment();
+            } else {
+                return -EAGAIN;
+            }
 
             if (ret < 0) {
                 return ret;
@@ -994,8 +1061,9 @@ namespace Cicada {
         if (packet != nullptr) {
             //  AF_LOGD("read a frame \n");
 
-            if (mProtectedBuffer) {
+            if (mProtectedBuffer && !mDRMMagicKey.empty()) {
                 packet->setProtected();
+                packet->setMagicKey(mDRMMagicKey);
             }
             if (mPTracker->getStreamType() != STREAM_TYPE_MIXED) {
                 packet->getInfo().streamIndex = 0;
@@ -1123,12 +1191,23 @@ namespace Cicada {
             meta->description = strdup(mPTracker->getDescriptionInfo().c_str());
         }
 
+        meta->keyUrl = mCurrentEncryption.keyUrl.empty() ? nullptr : strdup(mCurrentEncryption.keyUrl.c_str());
+        meta->keyFormat = mCurrentEncryption.keyFormat.empty() ? nullptr : strdup(mCurrentEncryption.keyFormat.c_str());
+
         return 0;
     }
 
     bool HLSStream::isOpened()
     {
         return mIsOpened;
+    }
+
+    int64_t HLSStream::getTargetDuration()
+    {
+        if (mPTracker) {
+            return mPTracker->getTargetDuration();
+        }
+        return INT64_MIN;
     }
 
     int HLSStream::start()
@@ -1209,17 +1288,31 @@ namespace Cicada {
         if (!b_ret) {
             AF_LOGE("(%d)getSegmentNumberByTime error us is %lld\n", mPTracker->getStreamType(),
                     us);
+            // us's accuracy is ms, so change duration's accuracy to ms
+            bool seekOnLast = false;
+            if (us == (mPTracker->getDuration() / 1000 * 1000)) {
+                num = mPTracker->getLastSegNum();
 
-            if (mPTracker->getStreamType() == STREAM_TYPE_SUB) {
-                mIsEOS = false;
-                mError = 0;
-
-                if (mThreadPtr) {
-                    mThreadPtr->start();
+                // reopen will -- it
+                if (mIsOpened_internal) {
+                    num++;
                 }
+                usSought = us;
+                seekOnLast = true;
             }
 
-            return -1;
+            if (!seekOnLast) {
+                if (mPTracker->getStreamType() == STREAM_TYPE_SUB) {
+                    mIsEOS = false;
+                    mError = 0;
+
+                    if (mThreadPtr) {
+                        mThreadPtr->start();
+                    }
+                } else {
+                    return -1;
+                }
+            }
         }
 
         AF_LOGD("%s:%d stream (%d) usSeeked is %lld seek num is %d\n", __func__, __LINE__,
@@ -1430,9 +1523,20 @@ namespace Cicada {
             if (mPDemuxer) {
                 return mPDemuxer->GetProperty(-1, key);
             }
+        } else if ("keyUrl" == key) {
+            return mCurrentEncryption.keyUrl;
         }
 
         return "";
+    }
+
+    bool HLSStream::isRealTimeStream()
+    {
+        if (mPTracker != nullptr) {
+            return mPTracker->isRealTimeStream();
+        } else {
+            return false;
+        }
     }
 
     HLSStream::WebVttParser::WebVttParser() = default;
@@ -1529,4 +1633,5 @@ namespace Cicada {
         mMapPTS = INT64_MIN;
         bFinished = false;
     }
+
 }

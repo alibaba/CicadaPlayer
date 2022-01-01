@@ -22,7 +22,7 @@ set(COMMON_INC_DIR ${COMMON_INC_DIR}
         ${PROJECT_SOURCE_DIR})
 
 
-set(FFMPEG_SOURCE_DIR ${TOPDIR}/external/external/ffmpeg/)
+set(FFMPEG_SOURCE_DIR ${INSTALL_DIR}/../external/ffmpeg/)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=return-type")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=return-type")

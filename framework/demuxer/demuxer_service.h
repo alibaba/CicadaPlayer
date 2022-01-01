@@ -64,7 +64,7 @@ namespace Cicada {
 
         void preStop();
 
-        int Seek(int64_t us, int flags, int index);
+        int64_t Seek(int64_t us, int flags, int index);
 
         static int read_callback(void *arg, uint8_t *buffer, int size);
 
@@ -83,6 +83,7 @@ namespace Cicada {
         void setDemuxerCb(const std::function<void(std::string, std::string)> &func);
 
         void setDemuxerMeta(std::unique_ptr<DemuxerMeta> &meta);
+
     public:
 
 
@@ -102,6 +103,8 @@ namespace Cicada {
         int GetNbSubStream(int index);
 
         int GetRemainSegmentCount(int index);
+        
+        bool isRealTimeStream(int index);
 
         int SwitchStreamAligned(int from, int to);
 

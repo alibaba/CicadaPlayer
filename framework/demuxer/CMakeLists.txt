@@ -24,6 +24,8 @@ target_sources(demuxer PRIVATE
         avFormatDemuxer.h
         AVBSF.cpp
         AVBSF.h
+        AdtsBSF.cpp
+        AdtsBSF.h
         sample_decrypt/HLSSampleAesDecrypter.h
         sample_decrypt/HLSSampleAesDecrypter.cpp
         demuxerPrototype.cpp
@@ -46,6 +48,7 @@ if (ENABLE_HLS_DEMUXER)
     target_compile_definitions(demuxer PRIVATE ENABLE_HLS_DEMUXER)
     target_sources(demuxer PRIVATE
             play_list/segment.cpp
+            play_list/SegmentPart.h
             play_list/Representation.cpp
             play_list/AdaptationSet.cpp
             play_list/Period.cpp

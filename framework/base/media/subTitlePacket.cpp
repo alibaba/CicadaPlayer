@@ -32,7 +32,7 @@ uint8_t *subTitlePacket::getData()
     return mpBuffer;
 }
 
-std::unique_ptr<IAFPacket> subTitlePacket::clone()
+std::unique_ptr<IAFPacket> subTitlePacket::clone() const
 {
     return std::unique_ptr<IAFPacket>(new subTitlePacket(mpBuffer, mSize, mInfo.pts, mInfo.duration));
 }

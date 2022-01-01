@@ -61,7 +61,7 @@ namespace Cicada {
         playlistManager->setOptions(mOpts);
         playlistManager->setExtDataSource(mProxySource);
         playlistManager->setDataSourceConfig(sourceConfig);
-        playlistManager->setBitStreamFormat(mMergeVideoHeader, mMergerAudioHeader);
+        playlistManager->setBitStreamFormat(mMergeVideoHeader, mMergeAudioHeader);
         mPPlaylistManager = playlistManager;
         ret = playlistManager->init();
 
@@ -103,7 +103,7 @@ namespace Cicada {
         }
     }
 
-    int playList_demuxer::Seek(int64_t us, int flags, int index)
+    int64_t playList_demuxer::Seek(int64_t us, int flags, int index)
     {
         if (mPPlaylistManager) {
             return mPPlaylistManager->seek(us, flags, index);
@@ -194,5 +194,22 @@ namespace Cicada {
         if (mPPlaylistManager != nullptr) {
             mPPlaylistManager->interrupt(inter);
         }
+    }
+
+    bool playList_demuxer::isRealTimeStream(int index)
+    {
+        if (mPPlaylistManager) {
+            return mPPlaylistManager->isRealTimeStream(index);
+        }
+
+        return false;
+    }
+
+    int64_t playList_demuxer::getMaxGopTimeUs()
+    {
+        if (mPPlaylistManager) {
+            return mPPlaylistManager->getTargetDuration();
+        }
+        return INT64_MIN;
     }
 }

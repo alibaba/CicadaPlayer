@@ -8,6 +8,7 @@
 #include <utils/AFMediaType.h>
 #include "native_cicada_player_def.h"
 #include <cacheModule/cache/CacheConfig.h>
+#include <drm/DrmHandler.h>
 
 namespace Cicada{
     class IDemuxerFactory;
@@ -22,6 +23,8 @@ namespace Cicada {
 
         virtual ~ICicadaPlayer() = default;
 
+        virtual string getName() = 0;
+
         /*
         * 初始化;(同步)
         */
@@ -29,6 +32,10 @@ namespace Cicada {
 
 
         virtual void SetOnRenderCallBack(onRenderFrame cb, void *userData) = 0;
+
+        virtual void SetAudioRenderingCallBack(onRenderFrame cb, void *userData) = 0;
+
+        virtual void SetUpdateViewCB(UpdateViewCB cb, void *userData) = 0;
 
         /*
          *设置显示窗口
@@ -215,6 +222,8 @@ namespace Cicada {
 
         virtual int selectExtSubtitle(int index, bool bSelect) = 0;
 
+        virtual int setStreamDelay(int index, int64_t time) = 0;
+
         virtual void setMediaFrameCb(playerMediaFrameCb func, void *arg)
         {
             if (mMediaFrameCb == func) {
@@ -224,18 +233,15 @@ namespace Cicada {
             mMediaFrameCb = func;
         }
 
-        virtual void setBitStreamCb(readCB read, seekCB seek, void *arg)
-        {
-            mBSReadCb = read;
-            mBSSeekCb = seek;
-            mBSCbArg = arg;
-        }
+        virtual void setBitStreamCb(readCB read, seekCB seek, void *arg){};
 
         virtual void setClockRefer(clockRefer cb, void *arg)
         {
             mClockRef = cb;
             mCRArg = arg;
         }
+
+        virtual void setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)>  &drmCallback) = 0;
 
         virtual int getCurrentStreamMeta(Stream_meta *meta, StreamType type) = 0;
 
@@ -256,13 +262,12 @@ namespace Cicada {
 
         virtual int invokeComponent(std::string content) = 0;
 
+        virtual float getCurrentDownloadSpeed() = 0;
+
     protected:
         playerMediaFrameCb mMediaFrameCb = nullptr;
         void *mMediaFrameCbArg = nullptr;
 
-        readCB mBSReadCb = nullptr;
-        seekCB mBSSeekCb = nullptr;
-        void *mBSCbArg = nullptr;
         clockRefer mClockRef = nullptr;
         void* mCRArg = nullptr;
 

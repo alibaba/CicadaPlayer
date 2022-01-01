@@ -36,9 +36,8 @@ public:
 
     static int registerMethod(JNIEnv *pEnv);
 
-
 public:
-    static void java_Construct(JNIEnv *env, jobject instance);
+    static void java_Construct(JNIEnv *env, jobject instance, jstring name);
 
     static void java_SetConnectivityManager(JNIEnv *env, jobject instance, jobject connectManager);
 
@@ -52,6 +51,8 @@ public:
     static void java_AddExtSubtitle(JNIEnv *env, jobject instance, jstring url);
 
     static void java_SelectExtSubtitle(JNIEnv *env, jobject instance, jint index, jboolean select);
+
+    static void java_SetStreamDelayTime(JNIEnv *env, jobject instance, jint index, jint time);
 
     static void java_SelectTrack(JNIEnv *env, jobject instance, jint index);
 
@@ -127,6 +128,8 @@ public:
 
     static void java_SetOption(JNIEnv *env, jobject instance, jstring key, jstring value);
 
+    static int java_InvokeComponent(JNIEnv *env, jobject instance, jstring content);
+
     static void java_SetAutoPlay(JNIEnv *env, jobject instance,
                                  jboolean autoPlay);
 
@@ -147,6 +150,11 @@ public:
 
     static void java_SetDefaultBandWidth(JNIEnv *env , jobject instance , jint defaultBandWidth);
 public:
+
+    static void onRequestProvisionCallback(char**responseData, int* responseSize, const char* url, const char *data, int size , void *arg);
+
+    static void onRequestKeyCallback(char**responseData, int* responseSize, const char* url, const char *data, int size , void *arg);
+
     static void jni_onError(int64_t code, const void *msg, /*void *extra, */void *userData);
 
     static void jni_onEvent(int64_t code, const void *msg, /*void *extra, */void *userData);
@@ -195,6 +203,12 @@ public:
                         void *userData);
 
     static void jni_onSubTitleExtAdd(int64_t index, const void *url, void *userData);
+
+    static void jni_onCurrentDownloadSpeed(int64_t speed, void *userData);
+
+    static jbyteArray  jni_requestProvision(const std::string& url , void* data, int size, void *userData);
+
+    static jbyteArray  jni_requestKey(const std::string& url , void* data, int size , int type, void *userData);
 
 private:
     static int64_t mapStatus(int64_t status);

@@ -2,12 +2,13 @@
 // Created by moqi on 2019/11/15.
 //
 
+#include "demuxerUtils.h"
 #include "gtest/gtest.h"
-#include <demuxer/demuxerPrototype.h>
 #include <data_source/dataSourcePrototype.h>
+#include <demuxer/demuxerPrototype.h>
 #include <demuxer/demuxer_service.h>
 #include <utils/AFUtils.h>
-#include "demuxerUtils.h"
+#include <utils/frame_work_log.h>
 
 using namespace Cicada;
 
@@ -145,38 +146,133 @@ TEST(first_seek, hls)
 TEST(mergeHeader, mp4)
 {
     std::string url = "http://player.alicdn.com/video/aliyunmedia.mp4";
-    test_mergeHeader(url, true);
-    test_mergeHeader(url, false);
+    test_mergeHeader(url, header_type_merge);
+    test_mergeHeader(url, header_type_extract);
 }
 
 TEST(mergeHeader, ts)
 {
     std::string url =
         "https://alivc-demo-vod.aliyuncs.com/ddb0c76ce153450081cd4c45118371a7/d30995ad97bc4643bf0a8c4cedd0c81f-007b1abb398f0e4c6f46d30b0125da41-sd-00001.ts";
-    test_mergeHeader(url, true);
-    test_mergeHeader(url, false);
+    test_mergeHeader(url, header_type_merge);
+    test_mergeHeader(url, header_type_extract);
 }
 
 TEST(mergeHeader, hls)
 {
     std::string url =
         "https://alivc-demo-vod.aliyuncs.com/ddb0c76ce153450081cd4c45118371a7/d30995ad97bc4643bf0a8c4cedd0c81f-e16b4635a4cb03424234c3a3d0e7f7e1-sd.m3u8";
-    test_mergeHeader(url, true);
-    test_mergeHeader(url, false);
+    test_mergeHeader(url, header_type_merge);
+    test_mergeHeader(url, header_type_extract);
 }
 
 TEST(mergeHeader, hls_aes)
 {
     std::string url =
         "https://alivc-demo-vod.aliyuncs.com/d2c89d7210d443109434685f45ed607b/45ed0cccd8092bf25ee33764b5a52be4-sd-encrypt-stream.m3u8";
-    test_mergeHeader(url, true);
-    test_mergeHeader(url, false);
+    test_mergeHeader(url, header_type_merge);
+    test_mergeHeader(url, header_type_extract);
 }
 
 TEST(mergeHeader, hls_multi)
 {
     std::string url =
         "https://alivc-demo-vod.aliyuncs.com/59f748948daa4438b42e42db755ae01e/9d44b2b86d334c6b9df649e35ad0240f.m3u8";
-    test_mergeHeader(url, true);
-    test_mergeHeader(url, false);
+    test_mergeHeader(url, header_type_merge);
+    test_mergeHeader(url, header_type_extract);
+}
+
+//TEST(mergeAudioHeader, mp4)
+//{
+//    std::string url = "http://player.alicdn.com/video/aliyunmedia.mp4";
+//    test_mergeAudioHeader(url, header_type_merge);
+//    test_mergeAudioHeader(url, header_type_extract);
+//}
+//
+//TEST(mergeAudioHeader, ts)
+//{
+//    std::string url =
+//            "https://alivc-demo-vod.aliyuncs.com/ddb0c76ce153450081cd4c45118371a7/d30995ad97bc4643bf0a8c4cedd0c81f-007b1abb398f0e4c6f46d30b0125da41-sd-00001.ts";
+//    test_mergeAudioHeader(url, header_type_merge);
+//    test_mergeAudioHeader(url, header_type_extract);
+//}
+//
+//TEST(mergeAudioHeader, hls)
+//{
+//    std::string url =
+//            "https://alivc-demo-vod.aliyuncs.com/ddb0c76ce153450081cd4c45118371a7/d30995ad97bc4643bf0a8c4cedd0c81f-e16b4635a4cb03424234c3a3d0e7f7e1-sd.m3u8";
+//    test_mergeAudioHeader(url, header_type_merge);
+//    test_mergeAudioHeader(url, header_type_extract);
+//}
+//
+//TEST(mergeAudioHeader, hls_wideWine)
+//{
+//    std::string url =
+//            "http://30.26.143.3:8080/MultiDRM/master.m3u8";
+//    test_mergeAudioHeader(url, header_type_merge);
+//    test_mergeAudioHeader(url, header_type_extract);
+//}
+//
+//
+//TEST(mergeAudioHeader, hls_aes)
+//{
+//    std::string url =
+//            "https://alivc-demo-vod.aliyuncs.com/d2c89d7210d443109434685f45ed607b/45ed0cccd8092bf25ee33764b5a52be4-sd-encrypt-stream.m3u8";
+//    test_mergeAudioHeader(url, header_type_merge);
+//    test_mergeAudioHeader(url, header_type_extract);
+//}
+//
+//TEST(mergeAudioHeader, hls_multi)
+//{
+//    std::string url =
+//            "https://alivc-demo-vod.aliyuncs.com/59f748948daa4438b42e42db755ae01e/9d44b2b86d334c6b9df649e35ad0240f.m3u8";
+//    test_mergeAudioHeader(url, header_type_merge);
+//    test_mergeAudioHeader(url, header_type_extract);
+//}
+
+
+//TEST(enctryptionInfo, hls_wideWine)
+//{
+//    std::string url =
+//            "http://30.26.143.3:8080/MultiDRM/master.m3u8";
+//    test_encryptionInfo(url, Stream_type::STREAM_TYPE_VIDEO , header_type_extract);
+//    test_encryptionInfo(url, Stream_type::STREAM_TYPE_VIDEO , header_type_merge);
+//}
+//
+//
+//TEST(enctryptionInfoAudio, hls_wideWine)
+//{
+//    std::string url =
+//            "http://30.26.143.3:8080/MultiDRM/master.m3u8";
+//    test_encryptionInfo(url,Stream_type::STREAM_TYPE_AUDIO , header_type_merge);
+//    test_encryptionInfo(url,Stream_type::STREAM_TYPE_AUDIO , header_type_extract);
+//}
+//
+//TEST(metaKeyInfo, hls_wideWine)
+//{
+//    std::string url =
+//            "http://30.26.143.3:8080/MultiDRM/master.m3u8";
+//    test_metaKeyInfo(url,Stream_type::STREAM_TYPE_VIDEO);
+//}
+//
+//TEST(metaKeyInfoAudio, hls_wideWine)
+//{
+//    std::string url =
+//            "http://30.26.143.3:8080/MultiDRM/master.m3u8";
+//    test_metaKeyInfo(url,Stream_type::STREAM_TYPE_AUDIO);
+//}
+
+TEST(scd_h264 , mp4)
+{std::string url =
+            "http://player.alicdn.com/video/aliyunmedia.mp4";
+    test_csd(url , header_type_merge);
+    test_csd(url , header_type_extract);
+}
+
+
+TEST(scd_h265 , mp4)
+{std::string url =
+            "https://alivc-demo-vod.aliyuncs.com/a2b7103c0bd049ecb7689472027cad2d/20144bf04b0e4f3c82ea2a7425a0a345-c4f5aabdcc7ba2861e8f0092d94db3bc-sd.mp4";
+    test_csd(url , header_type_merge);
+    test_csd(url , header_type_extract);
 }

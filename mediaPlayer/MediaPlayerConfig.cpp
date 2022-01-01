@@ -20,6 +20,9 @@ namespace Cicada {
         bEnableTunnelRender = false;
         pixelBufferOutputFormat = 0;
         liveStartIndex = -3;
+        mDisableAudio = false;
+        mDisableVideo = false;
+        mPositionTimerIntervalMs = 500;
     }
 
     std::string MediaPlayerConfig::toString() const
@@ -36,6 +39,9 @@ namespace Cicada {
         item.addValue("startBufferDuration", startBufferDuration);
         item.addValue("bClearShowWhenStop", bClearShowWhenStop);
         item.addValue("bEnableTunnelRender", bEnableTunnelRender);
+        item.addValue("mDisableAudio", mDisableAudio);
+        item.addValue("mDisableVideo", mDisableVideo);
+        item.addValue("mPositionTimerIntervalMs", mPositionTimerIntervalMs);
         return item.printJSON();
     }
 }

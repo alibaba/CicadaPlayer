@@ -5,10 +5,11 @@
 #ifndef CICADAPLAYERSDK_SUBTITLEPLAYER_H
 #define CICADAPLAYERSDK_SUBTITLEPLAYER_H
 
+#include <deque>
+#include <future>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-#include <future>
 
 #include "subTitleSource.h"
 #include <native_cicada_player_def.h>
@@ -53,8 +54,10 @@ namespace Cicada {
 
             std::unique_ptr<subTitleSource> mSource;
             bool mSelected{false};
+            std::atomic_int mNeedFlush{0};
             std::unique_ptr<IAFPacket> mPacket;
-
+            int64_t mDelay{0};
+            std::deque<std::unique_ptr<IAFPacket>> mSubtitleShowedQueue{};
         };
 
 
@@ -82,14 +85,19 @@ namespace Cicada {
 
         int select(int index, bool bSelect);
 
+        int setDelayTime(int index, int64_t time);
+
         bool isActive();
 
         void enable(bool bEnable);
 
         void onNoop();
 
+        void flush();
+
     private:
         void render(subTitlePlayer::SourceInfo &info, int64_t pts);
+        void flushSource(SourceInfo *source);
 
     private:
         Listener &mListener;

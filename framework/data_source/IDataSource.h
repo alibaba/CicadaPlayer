@@ -67,6 +67,8 @@ namespace Cicada {
 
         virtual int setRange(int64_t start, int64_t end);
 
+        virtual void setPost(bool post, int64_t size, const uint8_t *data);
+
         virtual int Open(int flags) = 0;
 
         virtual int Open(const std::string &url);
@@ -100,6 +102,10 @@ namespace Cicada {
         std::string mUri{};
         int64_t rangeStart{INT64_MIN};
         int64_t rangeEnd{INT64_MIN};
+
+        bool mBPost{false};
+        const uint8_t *mPostData{nullptr};
+        int64_t mPostSize{0};
 
     };
 }

@@ -8,6 +8,7 @@
 #include <utils/frame_work_log.h>
 #include <utils/file/FileUtils.h>
 #include <utils/af_string.h>
+#include <utils/uuid.h>
 #include "MediaPlayer.h"
 #include "media_player_api.h"
 #include "abr/AbrManager.h"
@@ -18,6 +19,7 @@
 #include "analytics/AnalyticsQueryListener.h"
 #include "media_player_error_def.h"
 #include "PlayerCacheDataSource.h"
+#include "QueryListener.h"
 
 using namespace Cicada;
 
@@ -25,66 +27,13 @@ namespace Cicada {
 
 #define GET_PLAYER_HANDLE  playerHandle* handle = (playerHandle*)mPlayerHandle;
 #define GET_MEDIA_PLAYER MediaPlayer* player = (MediaPlayer*)userData;
-
-    class QueryListener : public AnalyticsQueryListener {
-    public:
-        explicit QueryListener(MediaPlayer *player)
-        {
-            mPlayer = player;
-        }
-
-        ~QueryListener() override = default;;
-
-        // analytics query interface
-        int64_t OnAnalyticsGetCurrentPosition() override
-        {
-            if (mPlayer) {
-                return mPlayer->GetCurrentPosition();
-            }
-
-            return -1;
-        }
-
-        int64_t OnAnalyticsGetBufferedPosition() override
-        {
-            if (mPlayer) {
-                return mPlayer->GetBufferedPosition();
-            }
-
-            return -1;
-        }
-
-        int64_t OnAnalyticsGetDuration() override
-        {
-            if (mPlayer) {
-                return mPlayer->GetDuration();
-            }
-
-            return -1;
-        }
-
-        std::string OnAnalyticsGetPropertyString(PropertyKey key) override
-        {
-            if (mPlayer) {
-                return mPlayer->GetPropertyString(key);
-            }
-
-            return "";
-        }
-
-    private:
-        MediaPlayer *mPlayer = nullptr;
-    };
-
-    MediaPlayer::MediaPlayer()
-            : MediaPlayer(*(AnalyticsCollectorFactory::Instance()))
+    MediaPlayer::MediaPlayer(const char *opt) : MediaPlayer(*(AnalyticsCollectorFactory::Instance()), opt)
     {
     }
 
-    MediaPlayer::MediaPlayer(IAnalyticsCollectorFactory &factory)
-            : mCollectorFactory(factory)
+    MediaPlayer::MediaPlayer(IAnalyticsCollectorFactory &factory, const char *opt) : mCollectorFactory(factory)
     {
-        playerHandle *handle = CicadaCreatePlayer();
+        playerHandle *handle = CicadaCreatePlayer(opt);
         mPlayerHandle = (void *) handle;
         playerListener listener{nullptr};
         listener.userData = this;
@@ -101,6 +50,7 @@ namespace Cicada {
         listener.LoadingStart = loadingStartCallback;
         listener.LoadingEnd = loadingEndCallback;
         listener.LoadingProgress = loadingProgressCallback;
+        listener.CurrentDownLoadSpeed = currentDownLoadSpeed;
         listener.Seeking = PlayerSeeking;
         listener.SeekEnd = PlayerSeekEnd;
         listener.SubtitleShow = subtitleShowCallback;
@@ -117,6 +67,7 @@ namespace Cicada {
         configPlayer(mConfig);
         mQueryListener = new QueryListener(this);
         mCollector = mCollectorFactory.createAnalyticsCollector(mQueryListener);
+        bExternalCollector = false;
         mAbrManager = new AbrManager();
         std::function<void(int)> fun = [this](int stream) -> void {
             return this->abrChanged(stream);
@@ -125,6 +76,40 @@ namespace Cicada {
         AbrBufferRefererData *pRefererData = new AbrBufferRefererData(handle);
         mAbrAlgo->SetRefererData(pRefererData);
         mAbrManager->SetAbrAlgoStrategy(mAbrAlgo);
+
+        refreshPlayerSessionId();
+    }
+
+    void MediaPlayer::refreshPlayerSessionId() {
+        char signatureStr[100] = {0};
+        uuid id;
+        uuid4_generate( &id );
+        uuid_to_string( &id, signatureStr);
+        mPlayerSessionId = signatureStr;
+        if(mCollector != nullptr) {
+            mCollector->ReportUpdatePlaySession(mPlayerSessionId);
+        }
+        
+        GET_PLAYER_HANDLE;
+        CicadaSetOption(handle, "sessionId" , mPlayerSessionId.c_str());
+    }
+
+    string MediaPlayer::GetPlayerSessionId() {
+        return mPlayerSessionId;
+    }
+
+    void MediaPlayer::SetAnalyticsCollector(IAnalyticsCollector * collector) {
+        if (mCollector && !bExternalCollector) {
+            mCollectorFactory.destroyAnalyticsCollector(mCollector);
+            // avoid be used in derivative class
+            mCollector = nullptr;
+        }
+
+        bExternalCollector = true;
+        mCollector = collector;
+        if(mCollector != nullptr) {
+            mCollector->ReportUpdatePlaySession(mPlayerSessionId);
+        }
     }
 
     void MediaPlayer::dummyFunction(bool dummy)
@@ -145,7 +130,7 @@ namespace Cicada {
         delete mConfig;
         CicadaReleasePlayer(&handle);
 
-        if (mCollector) {
+        if (mCollector && !bExternalCollector) {
             mCollectorFactory.destroyAnalyticsCollector(mCollector);
             // avoid be used in derivative class
             mCollector = nullptr;
@@ -277,6 +262,12 @@ namespace Cicada {
 
     void MediaPlayer::Prepare()
     {
+        if(mFirstPrepared) {
+            refreshPlayerSessionId();
+        } else {
+            mFirstPrepared = true;
+        }
+
         if (mCollector) {
             mCollector->ReportBlackInfo();
             mCollector->ReportPrepare();
@@ -487,6 +478,10 @@ namespace Cicada {
         CicadaSetOption(handle, "http_proxy", playerConfig.httpProxy.c_str());
         CicadaSetOption(handle, "ClearShowWhenStop", playerConfig.bClearShowWhenStop ? "1" : "0");
         CicadaSetOption(handle, "enableVideoTunnelRender", playerConfig.bEnableTunnelRender ? "1" : "0");
+        CicadaSetOption(handle, "disableAudio", playerConfig.mDisableAudio ? "1" : "0");
+        CicadaSetOption(handle, "disableVideo", playerConfig.mDisableVideo ? "1" : "0");
+        CicadaSetOption(handle, "timerInterval", to_string(playerConfig.mPositionTimerIntervalMs).c_str());
+        CicadaSetOption(handle, "networkRetryCount", to_string(playerConfig.networkRetryCount).c_str());
         if (playerConfig.pixelBufferOutputFormat != 0) {
             CicadaSetOption(handle, "pixelBufferOutputFormat", to_string(playerConfig.pixelBufferOutputFormat).c_str());
         }
@@ -869,6 +864,15 @@ namespace Cicada {
         }
     }
 
+    void MediaPlayer::currentDownLoadSpeed(int64_t speed, void *userData)
+    {
+        GET_MEDIA_PLAYER
+
+        if (player->mListener.CurrentDownLoadSpeed) {
+            player->mListener.CurrentDownLoadSpeed(speed, player->mListener.userData);
+        }
+    }
+
     void MediaPlayer::subtitleShowCallback(int64_t index, int64_t size, const void *content,
                                            void *userData)
     {
@@ -1081,13 +1085,23 @@ namespace Cicada {
         GET_PLAYER_HANDLE;
         CicadaSelectExtSubtitle(handle, index, select);
     }
+    int MediaPlayer::SetStreamDelayTime(int index, int64_t time)
+    {
+        GET_PLAYER_HANDLE;
+        return CicadaSetStreamDelayTime(handle, index, time);
+    }
 
     void MediaPlayer::SetDataSourceChangedCallback(function<void(const string &)> urlChangedCallbak)
     {
         mPlayUrlChangedCallback = urlChangedCallbak;
     }
 
-    void MediaPlayer::onMediaFrameCallback(void *arg, const unique_ptr<IAFPacket> &frame, StreamType type)
+    void MediaPlayer::setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)> & drmCallback){
+        GET_PLAYER_HANDLE;
+        CicadaSetDrmRequestCallback(handle, drmCallback);
+    }
+
+    void MediaPlayer::onMediaFrameCallback(void *arg, const IAFPacket *frame, StreamType type)
     {
         MediaPlayer *player = (MediaPlayer *) arg;
 
@@ -1098,7 +1112,7 @@ namespace Cicada {
         player->mediaFrameCallback(frame, type);
     }
 
-    void MediaPlayer::mediaFrameCallback(const unique_ptr<IAFPacket> &frame, StreamType type)
+    void MediaPlayer::mediaFrameCallback(const IAFPacket *frame, StreamType type)
     {
 #ifdef ENABLE_CACHE_MODULE
         if (mCacheManager) {
@@ -1122,6 +1136,19 @@ namespace Cicada {
         GET_PLAYER_HANDLE;
         CicadaSetOnRenderCallBack(handle, cb, userData);
     }
+
+    void MediaPlayer::SetAudioRenderingCallback(onRenderFrame cb, void *userData)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaSetAudioRenderingCallBack(handle, cb, userData);
+    }
+
+    void MediaPlayer::SetUpdateViewCallback(UpdateViewCB cb, void *userData)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaSetUpdateViewCallback(handle, cb, userData);
+    }
+
     void MediaPlayer::SetStreamTypeFlags(uint64_t flags)
     {
         GET_PLAYER_HANDLE;
@@ -1139,9 +1166,15 @@ namespace Cicada {
         int value = mode;
         CicadaSetOption(handle, "fastStart", to_string(value).c_str());
     }
-    int MediaPlayer::InvokeComponent(const std::string &content)
+    int MediaPlayer::InvokeComponent(const char *content)
     {
         GET_PLAYER_HANDLE;
-        return CicadaInvokeComponent(handle, content.c_str());
+        return CicadaInvokeComponent(handle, content);
+    }
+
+    std::string MediaPlayer::getName()
+    {
+        GET_PLAYER_HANDLE;
+        return CicadaGetPlayerName(handle);
     }
 }

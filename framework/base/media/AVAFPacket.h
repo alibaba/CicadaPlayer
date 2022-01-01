@@ -6,10 +6,12 @@
 #define FRAMEWORK_AVPACKET_H
 
 #include "base/media/IAFPacket.h"
+#include <string>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
-};
+#include <libavutil/encryption_info.h>
+}
 
 #ifdef __APPLE__
 class PBAFFrame;
@@ -39,7 +41,7 @@ public:
         mIsProtected = true;
     }
 
-    std::unique_ptr<IAFPacket> clone() override;
+    std::unique_ptr<IAFPacket> clone() const override;
 
     int64_t getSize() override;
 
@@ -47,16 +49,36 @@ public:
 
     explicit operator AVPacket *();
 
+    void setMagicKey(const std::string &key) override
+    {
+        if (mMagicKey.empty()) {
+            mMagicKey = key;
+        }
+    }
+
+    std::string getMagicKey() override
+    {
+        return mMagicKey;
+    }
+
+    bool getEncryptionInfo(EncryptionInfo* dst) override;
+
 private:
     AVPacket *mpkt{nullptr};
     bool mIsProtected;
+    std::string mMagicKey{};
+    AVEncryptionInfo *mAVEncryptionInfo{nullptr};
 
     void copyInfo();
 };
 
 
-class AVAFFrame : public IAFFrame {
+class CICADA_CPLUS_EXTERN AVAFFrame : public IAFFrame {
 public:
+
+    explicit AVAFFrame(const AFFrameInfo &info, const uint8_t **data, const int *lineSize, int lineNums,
+                       IAFFrame::FrameType type = FrameTypeUnknown);
+
     explicit AVAFFrame(AVFrame *frame, FrameType type = FrameTypeUnknown);
 
     explicit AVAFFrame(AVFrame **frame, FrameType type = FrameTypeUnknown);
@@ -74,10 +96,6 @@ public:
     AVFrame *ToAVFrame();
 
     explicit operator AVFrame *() const;
-
-#ifdef __APPLE__
-    explicit operator PBAFFrame *();
-#endif
 
     void updateInfo();
 
@@ -100,13 +118,12 @@ static inline AVFrame *getAVFrame(IAFFrame *frame)
 
 static inline AVPacket *getAVPacket(IAFPacket *packet)
 {
-    auto * avafPacket = dynamic_cast<AVAFPacket *>(packet);
+    auto *avafPacket = dynamic_cast<AVAFPacket *>(packet);
     if (avafPacket) {
         return static_cast<AVPacket *>(*(avafPacket));
     }
     return nullptr;
-
 }
 
 
-#endif //FRAMEWORK_AVPACKET_H
+#endif//FRAMEWORK_AVPACKET_H

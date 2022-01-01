@@ -104,7 +104,13 @@
     [self.view addSubview:self.settingAndConfigView];
 
     [CicadaPlayer setAudioSessionDelegate:self];
-    self.player = [[CicadaPlayer alloc] init];
+    if (self.useFairPlay) {
+        self.player = [[CicadaPlayer alloc] init:nil opt:@{@"name":@"AppleAVPlayer"}];
+        [self.player performSelector:@selector(setAVResourceLoaderDelegate:) withObject:self.avResourceLoaderDelegate];
+    } else {
+        self.player = [[CicadaPlayer alloc] init];
+    }
+    
     self.player.enableHardwareDecoder = [CicadaTool isHardware];
     self.player.playerView = self.CicadaView.playerView;
     self.player.delegate = self;
@@ -114,12 +120,20 @@
     [self.settingAndConfigView setVolume:self.player.volume/2];
     [self setConfig];
     
+    
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationDidChangeFunc) name:UIDeviceOrientationDidChangeNotification object:nil];
     // 添加检测app进入后台的观察者
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationEnterBackground) name: UIApplicationWillResignActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(applicationEnterBackground)
+                                                 name:UIApplicationDidEnterBackgroundNotification
+                                               object:nil];
     // app从后台进入前台都会调用这个方法
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidBecomeActive) name: UIApplicationDidBecomeActiveNotification object:nil];
-    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(applicationDidBecomeActive)
+                                                 name:UIApplicationWillEnterForegroundNotification
+                                               object:nil];
+
     WEAK_SELF
     [[AFNetworkReachabilityManager sharedManager] startMonitoring];
     [[AFNetworkReachabilityManager sharedManager] setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
@@ -612,6 +626,17 @@ tableview点击外挂字幕回调
         }
     }else if (eventWithString == CICADA_EVENT_PLAYER_NETWORK_RETRY_SUCCESS) {
         self.retryCount = 3;
+    } else if (eventWithString == CICADA_EVENT_PLAYER_DIRECT_COMPONENT_MSG) {
+        NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:[description dataUsingEncoding:NSUTF8StringEncoding]
+                                                            options:0
+                                                              error:nil];
+        NSString *value = dic[@"content"];
+        if ([value isEqualToString:@"hello"]) {
+            NSMutableDictionary *mutableDic = [dic mutableCopy];
+            mutableDic[@"content"] = @"hi";
+            NSData *data = [NSJSONSerialization dataWithJSONObject:mutableDic options:0 error:nil];
+            [self.player invokeComponent:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]];
+        }
     }
     [CicadaTool hudWithText:description view:self.view];
 }

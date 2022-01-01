@@ -27,6 +27,10 @@ namespace Cicada {
     public:
         int64_t GetPacketDuration(BUFFER_TYPE type);
 
+        void SetOnePacketDuration(BUFFER_TYPE type, int64_t duration);
+
+        int64_t GetOnePacketDuration(BUFFER_TYPE type);
+
         int GetPacketSize(BUFFER_TYPE type);
 
         bool IsPacketEmtpy(BUFFER_TYPE type);

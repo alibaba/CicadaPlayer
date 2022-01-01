@@ -3,12 +3,15 @@
 //
 #define LOG_TAG "AudioRender"
 
+#include <utils/frame_work_log.h>
+
+#include "filterAudioRender.h"
+#include <base/media/AVAFPacket.h>
+#include <cassert>
 #include <cerrno>
+#include <filter/filterFactory.h>
 #include <utils/af_string.h>
 #include <utils/ffmpeg_utils.h>
-#include <filter/filterFactory.h>
-#include <base/media/AVAFPacket.h>
-#include "filterAudioRender.h"
 #include <utils/timer.h>
 
 namespace Cicada {
@@ -23,7 +26,7 @@ namespace Cicada {
     filterAudioRender::~filterAudioRender()
     {
         unique_lock<mutex> lock(mFrameQueMutex);
-        mState = State::state_uninit;
+        mRunning = false;
         mFrameQueCondition.notify_one();
 
         if (mRenderThread) {
@@ -48,21 +51,34 @@ namespace Cicada {
         mOutputInfo.nb_samples = 0;
         int ret = init_device();
 
+        uint64_t device_ability = device_get_ability();
+
+        if (!(device_ability & A_FILTER_FLAG_TEMPO)) {
+            mFilterFlags |= A_FILTER_FLAG_TEMPO;
+        }
+
+        if (!(device_ability & A_FILTER_FLAG_VOLUME)) {
+            mFilterFlags |= A_FILTER_FLAG_VOLUME;
+        }
+
         if (ret < 0) {
             AF_LOGE("subInit failed , ret = %d ", ret);
             return ret;
         }
+        if (mOutputInfo.nb_samples > 0) {
+            float rate = (float) mInputInfo.sample_rate / mOutputInfo.sample_rate;
+            float nb_samples = mOutputInfo.nb_samples /= rate;
+            mOutputInfo.nb_samples = nb_samples;
+        }
 
         if (needFilter) {
             mFilter = std::unique_ptr<IAudioFilter>(filterFactory::createAudioFilter(mInputInfo, mOutputInfo, mUseActiveFilter));
-            ret = mFilter->init();
+            ret = mFilter->init(mFilterFlags);
 
             if (ret < 0) {
                 return ret;
             }
         }
-
-        mState = State::state_init;
         mRenderThread = std::unique_ptr<afThread>(NEW_AF_THREAD(renderLoop));
         return 0;
     }
@@ -82,7 +98,8 @@ namespace Cicada {
         }
 
         if (mOutputInfo.nb_samples == 0) {
-            mOutputInfo.nb_samples = frame->getInfo().audio.nb_samples;
+            float rate = (float) mInputInfo.sample_rate / (float) mOutputInfo.sample_rate;
+            mOutputInfo.nb_samples = frame->getInfo().audio.nb_samples / rate;
         }
 
         mFrameQue.push(move(frame));
@@ -114,10 +131,11 @@ namespace Cicada {
 
     void filterAudioRender::mute(bool bMute)
     {
+        mMute = bMute;
         if (bMute) {
             device_setVolume(0);
         } else {
-            device_setVolume(mVolume);
+            device_setVolume(mVolume * mVolume * mVolume);
         }
     }
 
@@ -125,7 +143,10 @@ namespace Cicada {
     {
         if (mVolume != volume) {
             mVolume = volume;
-            mVolumeChanged = true;
+
+            if (!(mFilterFlags & A_FILTER_FLAG_VOLUME)) {
+                device_setVolume(mVolume * mVolume * mVolume);
+            }
         }
 
         return 0;
@@ -133,11 +154,10 @@ namespace Cicada {
 
     int filterAudioRender::setSpeed(float speed)
     {
+        assert(mFilterFlags & A_FILTER_FLAG_TEMPO);
         if (mSpeed != speed) {
             mSpeed = speed;
-            mSpeedChanged = true;
         }
-
         return 0;
     }
 
@@ -154,42 +174,28 @@ namespace Cicada {
 
     int filterAudioRender::pauseThread()
     {
-        if (mState.load() != state_running) {
-            AF_LOGE("Pause occur error state %d", mState.load());
-            return -1;
+        mRunning = false;
+        if (mRenderThread) {
+            mRenderThread->pause();
         }
-
-        {
-            unique_lock<mutex> lock(mFrameQueMutex);
-            mState = state_pause;
-            mFrameQueCondition.notify_all();
-        }
-
-        mRenderThread->pause();
         return 0;
     }
 
 
     int filterAudioRender::startThread()
     {
-        if (mState != State::state_init && mState != State::state_pause) {
-            AF_LOGE("Start occur error state %d", mState.load());
-            return -1;
+        mRunning = true;
+        if (mRenderThread) {
+            mRenderThread->start();
         }
-
-        mState = state_running;
-        mRenderThread->start();
         return 0;
     }
 
 
     void filterAudioRender::flush()
     {
-        State currentState = mState;
-
-        if (currentState == state_running) {
-            pauseThread();
-        }
+        bool running = mRunning;
+        pauseThread();
 
         while (!mFrameQue.empty()) {
             mFrameQue.pop();
@@ -205,38 +211,42 @@ namespace Cicada {
         mSpeedDeltaDuration = 0;
         mRenderFrame = nullptr;
 
-        if (currentState == state_running) {
+        if (running) {
             startThread();
         }
     }
 
     int filterAudioRender::renderLoop()
     {
-        if (mState != State::state_running) {
+        if (!mRunning) {
             return 0;
         }
 
         if (mRenderFrame == nullptr) {
             mRenderFrame = getFrame();
         }
+        int ret = 0;
 
         while (mRenderFrame != nullptr) {
-            if (mState != State::state_running) {
+            if (!mRunning) {
                 return 0;
             }
-            if (mSpeedChanged) {
+
+            float speed = mSpeed.load();
+            if (speed != mFilterSpeed) {
                 applySpeed();
-                mSpeedChanged = false;
+                mFilterSpeed = speed;
             }
 
-            if (mVolumeChanged) {
+            float volume = mVolume.load();
+            if (volume != mFilterVolume) {
                 applyVolume();
-                mVolumeChanged = false;
+                mFilterVolume = volume;
             }
 
             loopChecker();
             int nb_samples = mRenderFrame->getInfo().audio.nb_samples;
-            int ret = device_write(mRenderFrame);
+            ret = device_write(mRenderFrame);
 
             if (ret == -EAGAIN) {
 
@@ -250,7 +260,7 @@ namespace Cicada {
             }
             mRenderFrame = getFrame();
         }
-        if (mFrameQue.empty()) {
+        if (mFrameQue.empty() || ret == -EAGAIN) {
 
             // TODO: only on Android xiaomi miui 9?
             mMaxQueSize = std::min(mMaxQueSize.load() + 1, MAX_INPUT_BUFFER_COUNT);
@@ -298,7 +308,7 @@ namespace Cicada {
         if (mFilter == nullptr) {
             mFilter = std::unique_ptr<IAudioFilter>(filterFactory::createAudioFilter(mInputInfo, mOutputInfo, mUseActiveFilter));
             mFilter->setOption("rate", AfString::to_string(mSpeed), "atempo");
-            int ret = mFilter->init();
+            int ret = mFilter->init(mFilterFlags);
 
             if (ret < 0) {
                 return ret;
@@ -320,7 +330,7 @@ namespace Cicada {
             if (mFilter == nullptr) {
                 mFilter = std::unique_ptr<IAudioFilter>(filterFactory::createAudioFilter(mInputInfo, mOutputInfo, mUseActiveFilter));
                 mFilter->setOption("volume", AfString::to_string(gain), "volume");
-                int ret = mFilter->init();
+                int ret = mFilter->init(mFilterFlags);
 
                 if (ret < 0) {
                     return ret;
@@ -337,8 +347,17 @@ namespace Cicada {
             }
         }
 
-        float gain = volume * volume * volume;
-        device_setVolume(gain);
+        if(!mMute) {
+            float gain = volume * volume * volume;
+            device_setVolume(gain);
+        }
         return 0;
+    }
+    void filterAudioRender::prePause()
+    {
+        if (mRenderThread) {
+            mRenderThread->prePause();
+        }
+        device_preClose();
     }
 }

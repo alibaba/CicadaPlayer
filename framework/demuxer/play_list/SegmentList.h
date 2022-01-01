@@ -41,8 +41,14 @@ namespace Cicada{
 
         uint64_t getFirstSeqNum() const;
         uint64_t getLastSeqNum() const;
+        
+        bool hasLHLSSegments();
+
+        int64_t getTargetDuration();
 
     private:
+        void updateLastLHLSSegment(const std::shared_ptr<segment> &seg);
+        
         std::list<std::shared_ptr<segment>> segments;
 
         std::mutex segmetsMuxtex;

@@ -5,9 +5,10 @@
 
 #include "CacheManager.h"
 #include <utility>
+#include <utils/frame_work_log.h>
+#include <utils/mediaFrame.h>
 #include <utils/mediaTypeInternal.h>
 #include <vector>
-#include <utils/mediaFrame.h>
 
 CacheManager::CacheManager()
 {
@@ -69,7 +70,7 @@ string CacheManager::init()
     return mSourceUrl;
 }
 
-void CacheManager::sendMediaFrame(const unique_ptr<IAFPacket> &frame, StreamType type)
+void CacheManager::sendMediaFrame(const IAFPacket *frame, StreamType type)
 {
     if (!mNeedProcessFrame) {
         return;

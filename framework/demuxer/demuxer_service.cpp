@@ -142,7 +142,10 @@ namespace Cicada {
         }
 
         if (!mNoFile) {
-            if (mPDataSource == nullptr && mSeekCb == nullptr) {
+            /*
+             * demuxer will occurred an error when set seek callback but can't seek
+             */
+            if ((mPDataSource == nullptr || mPDataSource->Seek(0, SEEK_SIZE) <= 0) && (mSeekCb == nullptr)) {
                 AF_LOGD("not support seek\n");
                 mDemuxerPtr->SetDataCallBack(read_callback, nullptr, open_callback, interrupt_callback, this);
             } else {
@@ -287,6 +290,15 @@ namespace Cicada {
         return mDemuxerPtr->GetRemainSegmentCount(index);
     }
 
+    bool demuxer_service::isRealTimeStream(int index)
+    {
+        if (nullptr == mDemuxerPtr) {
+            return false;
+        }
+
+        return mDemuxerPtr->isRealTimeStream(index);
+    }
+
     void demuxer_service::interrupt(int inter)
     {
         AF_TRACE;
@@ -294,7 +306,7 @@ namespace Cicada {
         return mDemuxerPtr->interrupt(inter);
     }
 
-    int demuxer_service::Seek(int64_t us, int flags, int index)
+    int64_t demuxer_service::Seek(int64_t us, int flags, int index)
     {
         AF_TRACE;
 
@@ -391,4 +403,5 @@ namespace Cicada {
             return pHandle->mPDataSource->Interrupt(static_cast<bool>(inter));
         }
     }
+
 }

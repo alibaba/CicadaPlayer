@@ -22,6 +22,7 @@ class AbrAlgoStrategy;
 #include <string>
 #include <utils/AFMediaType.h>
 #include <vector>
+#include <drm/DrmHandler.h>
 
 #ifdef ANDROID
 
@@ -48,9 +49,9 @@ namespace Cicada {
 
     class MediaPlayer {
     public:
-        MediaPlayer();
+        explicit MediaPlayer(const char *opt = nullptr);
 
-        MediaPlayer(IAnalyticsCollectorFactory &factory);
+        explicit MediaPlayer(IAnalyticsCollectorFactory &factory, const char *opt = nullptr);
 
         ~MediaPlayer();
 
@@ -59,13 +60,21 @@ namespace Cicada {
             return "paas 0.9";//TODO version
         }
 
+        std::string getName();
+
     public:
+
+        void SetAnalyticsCollector(IAnalyticsCollector * collector);
+
         void EnableVideoRenderedCallback(bool enable);
 
         void SetOnRenderFrameCallback(onRenderFrame cb, void *userData);
 
-        void SetStreamTypeFlags(uint64_t flags);
+        void SetAudioRenderingCallback(onRenderFrame cb, void *userData);
 
+        void SetUpdateViewCallback(UpdateViewCB cb, void *userData);
+
+        void SetStreamTypeFlags(uint64_t flags);
 
         void SetIPResolveType(IpResolveType type);
 
@@ -95,6 +104,8 @@ namespace Cicada {
         * when play url not equals SetDataSource , will callback.
         */
         void SetDataSourceChangedCallback(function<void(const string &)> urlChangedCallbak);
+
+        void setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)> & drmCallback);
 
         /*
          *select specific track info
@@ -302,6 +313,8 @@ namespace Cicada {
 
         void SelectExtSubtitle(int index, bool select);
 
+        int SetStreamDelayTime(int index, int64_t time);
+
         void setErrorConverter(ErrorConverter *converter);
 
         std::string GetPropertyString(PropertyKey key);
@@ -334,7 +347,9 @@ namespace Cicada {
 
         void SetDefaultBandWidth(int bandWidth);
 
-        int InvokeComponent(const std::string &content);
+        int InvokeComponent(const char *content);
+
+        string GetPlayerSessionId();
 
     protected:
         static void preparedCallback(void *userData);
@@ -363,6 +378,8 @@ namespace Cicada {
 
         static void loadingProgressCallback(int64_t prg, void *userData);
 
+        static void currentDownLoadSpeed(int64_t speed, void *userData);
+
         static void subtitleShowCallback(int64_t index, int64_t size, const void *content, void *userData);
 
         static void subtitleHideCallback(int64_t index, int64_t size, const void *content, void *userData);
@@ -385,11 +402,13 @@ namespace Cicada {
 
         void abrChanged(int stream);
 
-        static void onMediaFrameCallback(void *arg, const unique_ptr<IAFPacket> &frame, StreamType type);
-        void mediaFrameCallback(const unique_ptr<IAFPacket> &frame, StreamType type);
+        static void onMediaFrameCallback(void *arg, const IAFPacket *frame, StreamType type);
+        void mediaFrameCallback(const IAFPacket *frame, StreamType type);
 
     private:
         void configPlayer(const MediaPlayerConfig *config) const;
+
+        void refreshPlayerSessionId();
 
         void dummyFunction(bool dummy);
 
@@ -399,6 +418,7 @@ namespace Cicada {
         MediaPlayerConfig *mConfig;
         AnalyticsQueryListener *mQueryListener;
         IAnalyticsCollector *mCollector{nullptr};
+        bool  bExternalCollector{false};
         IAnalyticsCollectorFactory &mCollectorFactory;
         AbrManager *mAbrManager;
         AbrAlgoStrategy *mAbrAlgo;
@@ -418,6 +438,10 @@ namespace Cicada {
         void *mMediaFrameArg = nullptr;
 
         function<void(const string &)> mPlayUrlChangedCallback = nullptr;
+
+        std::string mPlayerSessionId{};
+        bool mFirstPrepared = false;
+
     };
 }// namespace Cicada
 

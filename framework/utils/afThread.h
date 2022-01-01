@@ -42,6 +42,8 @@ public:
 
     void stop();
 
+    void forceStop();
+
     AF_THREAD_STATUS getStatus()
     {
         return mThreadStatus;

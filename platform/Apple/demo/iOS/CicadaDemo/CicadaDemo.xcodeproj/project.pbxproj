@@ -46,6 +46,8 @@
 		9E38464323BAE66400600660 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9E38464523BAE66400600660 /* Localizable.strings */; };
 		9EAE8FA423AB212D0026C695 /* CicadaScanViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9EAE8FA323AB212D0026C695 /* CicadaScanViewController.m */; };
 		A3E0D1B1446E5EFC1FFA955A /* libPods-CicadaDemo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2D29A7BB5E10D77DE2F09D7 /* libPods-CicadaDemo.a */; };
+		CB46507D24D1E5310065DB1A /* AssetLoaderDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = CB46507C24D1E5310065DB1A /* AssetLoaderDelegate.m */; };
+		CB46508024D2757B0065DB1A /* FairplayInputViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CB46507F24D2757B0065DB1A /* FairplayInputViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,13 +64,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = BEE5ECD7414E44FCABDD1CCF;
 			remoteInfo = alivcffmpeg;
-		};
-		1F7561C72369505B001A5B1E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1F7561AD2369505B001A5B1E /* CicadaPlayerSDK.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 7C9363D6C29C4783A29D5B57;
-			remoteInfo = bitStreamDecoder;
 		};
 		1F7561C92369505B001A5B1E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -140,11 +135,18 @@
 			remoteGlobalIDString = 718DE06640164DAE90E4746D;
 			remoteInfo = media_player;
 		};
-		EFA24BED23C5837500AAE484 /* PBXContainerItemProxy */ = {
+		CB5A797224C941650005ABD3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F7561AD2369505B001A5B1E /* CicadaPlayerSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E517E7A36B11457A8E1E9802;
+			remoteInfo = communication;
+		};
+		CB987C0424C980C000ADCD00 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1F7561AD2369505B001A5B1E /* CicadaPlayerSDK.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = C19012DBC7B5459EB873E151;
+			remoteGlobalIDString = 1CCA6A9F9969404588A651B2;
 			remoteInfo = install;
 		};
 /* End PBXContainerItemProxy section */
@@ -242,6 +244,10 @@
 		9E38464923BAE71B00600660 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Main.strings; sourceTree = "<group>"; };
 		9EAE8FA223AB212D0026C695 /* CicadaScanViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CicadaScanViewController.h; sourceTree = "<group>"; };
 		9EAE8FA323AB212D0026C695 /* CicadaScanViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CicadaScanViewController.m; sourceTree = "<group>"; };
+		CB46506C24D1E5310065DB1A /* AssetLoaderDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AssetLoaderDelegate.h; sourceTree = "<group>"; };
+		CB46507C24D1E5310065DB1A /* AssetLoaderDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AssetLoaderDelegate.m; sourceTree = "<group>"; };
+		CB46507E24D2757B0065DB1A /* FairplayInputViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FairplayInputViewController.h; sourceTree = "<group>"; };
+		CB46507F24D2757B0065DB1A /* FairplayInputViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FairplayInputViewController.m; sourceTree = "<group>"; };
 		D2D29A7BB5E10D77DE2F09D7 /* libPods-CicadaDemo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CicadaDemo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC8E51BEE6DE88901BAC16FE /* Pods-CicadaDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CicadaDemo.release.xcconfig"; path = "Pods/Target Support Files/Pods-CicadaDemo/Pods-CicadaDemo.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -332,6 +338,8 @@
 				183ACF8D21E450E00011B598 /* SourceChooserDetailViewController.m */,
 				18C00E3F21DC59BB00E2861C /* SourceInputViewController.h */,
 				18C00E3D21DC59BB00E2861C /* SourceInputViewController.m */,
+				CB46507E24D2757B0065DB1A /* FairplayInputViewController.h */,
+				CB46507F24D2757B0065DB1A /* FairplayInputViewController.m */,
 				182E5E0321EB194D00B45B02 /* NativeVideoViewController.h */,
 				182E5E0421EB194D00B45B02 /* NativeVideoViewController.m */,
 				18C00E5721DCB6D800E2861C /* CicadaPlayerViewController.h */,
@@ -360,6 +368,8 @@
 		18C00E4D21DC9E0E00E2861C /* other */ = {
 			isa = PBXGroup;
 			children = (
+				CB46506C24D1E5310065DB1A /* AssetLoaderDelegate.h */,
+				CB46507C24D1E5310065DB1A /* AssetLoaderDelegate.m */,
 				184CE9CF21E3289A0037C5A2 /* UIView+AVPFrame.h */,
 				184CE9D021E3289A0037C5A2 /* UIView+AVPFrame.m */,
 				18DF2E5321E77C5900507CEF /* UIViewController+backAction.h */,
@@ -420,8 +430,8 @@
 			children = (
 				1F7561C22369505B001A5B1E /* CicadaPlayerSDK.framework/CicadaPlayerSDK */,
 				1F7561C42369505B001A5B1E /* alivcffmpeg.framework/alivcffmpeg */,
-				1F7561C82369505B001A5B1E /* libbitStreamDecoder.a */,
 				1F7561CA2369505B001A5B1E /* libcacheModule.a */,
+				CB5A797324C941650005ABD3 /* libcommunication.a */,
 				1F7561CC2369505B001A5B1E /* libdata_source.a */,
 				1F7561CE2369505B001A5B1E /* libdemuxer.a */,
 				1F7561D02369505B001A5B1E /* libframework_filter.a */,
@@ -484,13 +494,12 @@
 				18FCB28A21D6126A00289843 /* Sources */,
 				18FCB28B21D6126A00289843 /* Frameworks */,
 				18FCB28C21D6126A00289843 /* Resources */,
-				4F767942BD279EAAAC8B8DEB /* [CP] Copy Pods Resources */,
 				18818E3D225614B000E20011 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				EFA24BEE23C5837500AAE484 /* PBXTargetDependency */,
+				CB987C0524C980C000ADCD00 /* PBXTargetDependency */,
 			);
 			name = CicadaDemo;
 			productName = AliPlayerDemo;
@@ -526,7 +535,7 @@
 				TargetAttributes = {
 					18FCB28D21D6126A00289843 = {
 						CreatedOnToolsVersion = 9.2;
-						ProvisioningStyle = Manual;
+						ProvisioningStyle = Automatic;
 					};
 					9E2ABC52239FBDE800753787 = {
 						CreatedOnToolsVersion = 11.1;
@@ -576,13 +585,6 @@
 			name = alivcffmpeg.framework/alivcffmpeg;
 			path = alivcffmpeg.framework;
 			remoteRef = 1F7561C32369505B001A5B1E /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		1F7561C82369505B001A5B1E /* libbitStreamDecoder.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libbitStreamDecoder.a;
-			remoteRef = 1F7561C72369505B001A5B1E /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		1F7561CA2369505B001A5B1E /* libcacheModule.a */ = {
@@ -655,6 +657,13 @@
 			remoteRef = 9EAE8FA723AB212E0026C695 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		CB5A797324C941650005ABD3 /* libcommunication.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcommunication.a;
+			remoteRef = CB5A797224C941650005ABD3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -681,24 +690,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		4F767942BD279EAAAC8B8DEB /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-CicadaDemo/Pods-CicadaDemo-resources.sh",
-				"${PODS_CONFIGURATION_BUILD_DIR}/IQKeyboardManager/IQKeyboardManager.bundle",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/IQKeyboardManager.bundle",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-CicadaDemo/Pods-CicadaDemo-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		E9D084FFFA6DCB9CAF4823D1 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -739,6 +730,7 @@
 				18CF620621E8475800EB3E97 /* CicadaShowImageView.m in Sources */,
 				18DF2E5521E77C5900507CEF /* UIViewController+backAction.m in Sources */,
 				182E5E0521EB194D00B45B02 /* NativeVideoViewController.m in Sources */,
+				CB46508024D2757B0065DB1A /* FairplayInputViewController.m in Sources */,
 				183ACF9C21E4C4010011B598 /* CicadaConfig+refresh.m in Sources */,
 				1F052F23236963BB00A6E842 /* CicadaDemoView.m in Sources */,
 				186F804A2255E876004DA7BE /* SettingViewController.m in Sources */,
@@ -748,6 +740,7 @@
 				18C00E5921DCB6D800E2861C /* CicadaPlayerViewController.m in Sources */,
 				18C00E4321DC59BC00E2861C /* SourceInputViewController.m in Sources */,
 				186F76F121D71FE4005DC20E /* AppDelegate.m in Sources */,
+				CB46507D24D1E5310065DB1A /* AssetLoaderDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -765,10 +758,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		EFA24BEE23C5837500AAE484 /* PBXTargetDependency */ = {
+		CB987C0524C980C000ADCD00 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = install;
-			targetProxy = EFA24BED23C5837500AAE484 /* PBXContainerItemProxy */;
+			targetProxy = CB987C0424C980C000ADCD00 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -916,8 +909,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = CRDEY67TWJ;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -947,8 +940,8 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = CRDEY67TWJ;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",

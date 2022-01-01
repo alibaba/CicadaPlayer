@@ -96,7 +96,8 @@ namespace Cicada {
         mPDecoder = nullptr;
     }
 
-    int avcodecDecoder::init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags)
+    int avcodecDecoder::init_decoder(const Stream_meta *meta, void *wnd, uint64_t flags,
+                                     const DrmInfo *drmInfo)
     {
         auto codecId = (enum AVCodecID) CodecID2AVCodecID(meta->codec);
         mPDecoder->codec = avcodec_find_decoder(codecId);
@@ -192,6 +193,7 @@ namespace Cicada {
         mPDecoder->hwDeviceType_set = CICADA_HWDEVICE_TYPE_UNKNOWN;
 #endif
         avcodec_register_all();
+        mFlags |= DECFLAG_PASSTHROUGH_INFO;
     }
 
     avcodecDecoder::~avcodecDecoder()
@@ -245,7 +247,15 @@ namespace Cicada {
         }
 
 #endif
+        int64_t timePosition = INT64_MIN;
+        if (mPDecoder->avFrame->metadata){
+            AVDictionaryEntry *t = av_dict_get(mPDecoder->avFrame->metadata,"timePosition", nullptr,AV_DICT_IGNORE_SUFFIX);
+            if (t){
+                timePosition = atoll(t->value);
+            }
+        }
         pFrame = unique_ptr<IAFFrame>(new AVAFFrame(mPDecoder->avFrame));
+        pFrame->getInfo().timePosition = timePosition;
         return ret;
     };
 
@@ -272,6 +282,17 @@ namespace Cicada {
             AF_LOGD("send null to decoder\n");
         }
 
+        if (pkt){
+            AVDictionary *dict = nullptr;
+            int size = 0;
+            av_dict_set_int(&dict,"timePosition",pPacket->getInfo().timePosition,0);
+            uint8_t *metadata = av_packet_pack_dictionary(dict, &size);
+            av_dict_free(&dict);
+            int addRet = av_packet_add_side_data(pkt, AV_PKT_DATA_STRINGS_METADATA, metadata, size);
+            assert(metadata);
+            assert(addRet >= 0);
+        }
+
         ret = avcodec_send_packet(mPDecoder->codecCont, pkt);
 
         if (0 == ret) {
@@ -286,6 +307,13 @@ namespace Cicada {
 
         return ret;
     }
-
-
+    bool avcodecDecoder::supportReuse()
+    {
+        if (mPDecoder->codecCont == nullptr) {
+            return true;
+        }
+        // TODO: check the data format whether changed (avcc adts ...)
+        //return mPDecoder->codecCont->extradata_size == 0;
+        return false;
+    }
 }

@@ -111,6 +111,30 @@ public class PlayerConfig {
      */
     public int mLiveStartIndex = -3;
 
+    /**
+     * 禁用Audio。
+     */
+    /****
+     * Disable audio track.
+     */
+    public boolean mDisableAudio = false;
+
+    /**
+     * 禁用Video。
+     */
+    /****
+     * Disable video track.
+     */
+    public boolean mDisableVideo = false;
+
+    /**
+     * 进度跟新的频率。包括当前位置和缓冲位置。
+     */
+    /****
+     * Set the frequencies of Progress. Includes the current position and the buffer position.
+     */
+    public int mPositionTimerIntervalMs = 500;
+
     private String[] mCustomHeaders = null;
 
     public String[] getCustomHeaders() {

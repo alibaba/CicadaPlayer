@@ -12,6 +12,8 @@
 class IVideoRender {
 
 public:
+    static const uint64_t FLAG_HDR = (1 << 0);
+    static const uint64_t FLAG_DUMMY = (1 << 1);
 
     enum Rotate {
         Rotate_None = 0,
@@ -31,6 +33,20 @@ public:
         Scale_AspectFit,
         Scale_AspectFill,
         Scale_Fill
+    };
+
+    static Rotate getRotate(int value)
+    {
+        switch (value) {
+            case 90:
+                return Rotate_90;
+            case 180:
+                return Rotate_180;
+            case 270:
+                return Rotate_270;
+            default:
+                return Rotate_None;
+        }
     };
 
     class ScreenShotInfo {
@@ -56,7 +72,6 @@ public:
         }
     };
 
-public:
     class IVideoRenderFilter {
     public:
         virtual ~IVideoRenderFilter() = default;
@@ -68,6 +83,13 @@ public:
 
     };
 
+    class IVideoRenderListener {
+    public:
+        virtual void onFrameInfoUpdate(IAFFrame::AFFrameInfo &info) = 0;
+        virtual ~IVideoRenderListener() = default;
+    };
+
+public:
     virtual ~IVideoRender() = default;
 
     /**
@@ -75,8 +97,6 @@ public:
      * @return
      */
     virtual int init() = 0;
-
-    virtual void setVideoRotate(Rotate rotate) = 0;
 
     /**
      * clear screen to black.
@@ -100,7 +120,15 @@ public:
      * NOTE: will callback in render thread.
      * @param renderedCallback
      */
-    virtual void setRenderResultCallback(std::function<void(int64_t, bool)> renderedCallback) = 0;
+    virtual void setRenderResultCallback(std::function<void(int64_t, bool)> renderedCallback)
+    {
+        mRenderResultCallback = renderedCallback;
+    }
+
+    virtual void setListener(IVideoRenderListener *listener)
+    {
+        mListener = listener;
+    }
 
     /**
      * set render rotate.
@@ -168,16 +196,27 @@ public:
     }
 
 
-    virtual void *getSurface()
+    virtual void *getSurface(bool cached)
     {
         return nullptr;
     }
 
     virtual float getRenderFPS() = 0;
 
+    virtual void invalid(bool invalid)
+    {
+        mInvalid = invalid;
+    }
+    virtual uint64_t getFlags() = 0;
+
 
 protected:
     IVideoRenderFilter *mFilter{};
+    bool mInvalid{false};
+
+    // TODO: delete this
+    std::function<void(int64_t, bool)> mRenderResultCallback = nullptr;
+    IVideoRenderListener *mListener{nullptr};
 };
 
 

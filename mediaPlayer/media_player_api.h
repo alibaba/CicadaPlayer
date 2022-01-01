@@ -5,6 +5,7 @@
 #include <utils/AFMediaType.h>
 #include <cacheModule/cache/CacheConfig.h>
 #include "native_cicada_player_def.h"
+#include <drm/DrmHandler.h>
 
 //typedef struct Stream_meta_t Stream_meta;
 
@@ -13,7 +14,7 @@ typedef struct playerHandle_t playerHandle;
 /*
  *create the Cicada player
  */
-playerHandle *CicadaCreatePlayer();
+playerHandle *CicadaCreatePlayer(const char *opts);
 
 /*
  * release Cicada player
@@ -27,6 +28,10 @@ int CicadaSetListener(playerHandle *pHandle, const playerListener &Listener);
 
 
 void CicadaSetOnRenderCallBack(playerHandle *pHandle, onRenderFrame cb, void *userData);
+
+void CicadaSetAudioRenderingCallBack(playerHandle *pHandle, onRenderFrame cb, void *userData);
+
+void CicadaSetUpdateViewCallback(playerHandle *pHandle, UpdateViewCB cb, void *userData);
 
 /*
  * set external component callback
@@ -243,6 +248,8 @@ void CicadaAddExtSubtitle(playerHandle *pHandle, const char *uri);
 
 void CicadaSelectExtSubtitle(playerHandle *pHandle, int index, bool select);
 
+int CicadaSetStreamDelayTime(playerHandle *pHandle, int index, int64_t time);
+
 /*
  * get video with and height
  */
@@ -282,5 +289,9 @@ void CicadaReload(playerHandle *pHandle);
 void CicadaSetDefaultBandWidth(playerHandle *player, int bandWidth);
 
 int CicadaInvokeComponent(playerHandle *player, const char *content);
+
+void CicadaSetDrmRequestCallback(playerHandle *player, const std::function<Cicada::DrmResponseData*(const Cicada::DrmRequestParam& drmRequestParam)> & drmCallback);
+
+std::string CicadaGetPlayerName(playerHandle *player);
 
 #endif // CICADA_PLAYER_H_

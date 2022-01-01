@@ -95,21 +95,31 @@ CicadaTrackInfo* CicadaOCHelper::getCicadaTrackInfo(const StreamInfo *info)
 
     trackInfo.trackType = static_cast<CicadaTrackType>(info->type);
     trackInfo.trackIndex = info->streamIndex;
-    trackInfo.videoWidth = info->videoWidth;
-    trackInfo.videoHeight = info->videoHeight;
-    trackInfo.trackBitrate = info->videoBandwidth;
-    trackInfo.audioChannels = info->nChannels;
-    trackInfo.audioSamplerate = info->sampleRate;
-    trackInfo.audioSampleFormat = info->sampleFormat;
-
     if (info->description) {
         trackInfo.description = [NSString stringWithUTF8String:info->description];
     }
-    if (info->audioLang) {
-        trackInfo.audioLanguage = [NSString stringWithUTF8String:info->audioLang];
-    }
-    if (info->subtitleLang) {
-        trackInfo.subtitleLanguage = [NSString stringWithUTF8String:info->subtitleLang];
+    switch (trackInfo.trackType) {
+        case CICADA_TRACK_VIDEO:
+            trackInfo.videoWidth = info->videoWidth;
+            trackInfo.videoHeight = info->videoHeight;
+            trackInfo.trackBitrate = info->videoBandwidth;
+            trackInfo.HDRType = static_cast<CicadaVideoHDRType>(info->HDRType);
+            break;
+        case CICADA_TRACK_AUDIO:
+            trackInfo.audioChannels = info->nChannels;
+            trackInfo.audioSamplerate = info->sampleRate;
+            trackInfo.audioSampleFormat = info->sampleFormat;
+            if (info->audioLang) {
+                trackInfo.audioLanguage = [NSString stringWithUTF8String:info->audioLang];
+            }
+            break;
+        case CICADA_TRACK_SUBTITLE:
+            if (info->subtitleLang) {
+                trackInfo.subtitleLanguage = [NSString stringWithUTF8String:info->subtitleLang];
+            }
+            break;
+        default:
+            break;
     }
 
     return trackInfo;
@@ -148,6 +158,7 @@ void CicadaOCHelper::getListener(playerListener &listener)
     listener.BufferPositionUpdate = onBufferPositionUpdate;
     listener.LoadingStart = onLoadingStart;
     listener.LoadingProgress = onLoadingProgress;
+    listener.CurrentDownLoadSpeed = onCurrentDownLoadSpeed;
     listener.LoadingEnd = onLoadingEnd;
     listener.SeekEnd = onSeekEnd;
     listener.StreamInfoGet = onStreamInfoGet;
@@ -301,6 +312,17 @@ void CicadaOCHelper::onLoadingProgress(int64_t percent, void *userData) {
         });
     }
 }
+
+void CicadaOCHelper::onCurrentDownLoadSpeed(int64_t speed, void *userData)
+{
+    __weak CicadaPlayer *player = getOCPlayer(userData);
+    if (player.delegate && [player.delegate respondsToSelector:@selector(onCurrentDownLoadSpeed:speed:)]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          [player.delegate onCurrentDownLoadSpeed:player progress:speed];
+        });
+    }
+}
+
 
 void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *data, void *userData) {
     __weak CicadaPlayer * player = getOCPlayer(userData);

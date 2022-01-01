@@ -28,6 +28,11 @@ namespace Cicada {
         demuxer_type_webvtt,
     } demuxer_type;
 
+    typedef enum header_type {
+        header_type_no_touch,
+        header_type_merge,
+        header_type_extract,
+    } header_type;
 
     class CICADA_CPLUS_EXTERN IDemuxer : public OptionOwner, public IDCA {
     public:
@@ -81,7 +86,7 @@ namespace Cicada {
 
         virtual void flush() = 0;
 
-        virtual int Seek(int64_t us, int flags, int index) = 0;
+        virtual int64_t Seek(int64_t us, int flags, int index) = 0;
 
         virtual int GetNbStreams() const = 0;
 
@@ -124,6 +129,11 @@ namespace Cicada {
             return false;
         }
 
+        virtual int64_t getMaxGopTimeUs()
+        {
+            return INT64_MIN;
+        }
+
         virtual void setDataSourceIO()
         {
 
@@ -137,20 +147,20 @@ namespace Cicada {
         virtual const std::string GetProperty(int index, const string &key) const
         { return ""; }
 
-        virtual void SetOption(const options *opts)
-        {
-            mOpts = opts;
-        };
-
         virtual int SetOption(const std::string &key, const int64_t value)
         {
             return 0;
         }
 
-        virtual void setBitStreamFormat(bool vMergeHeader, bool aMergeHeader)
+        virtual int SetOption(const std::string &key, const std::string& value)
+        {
+            return 0;
+        }
+
+        virtual void setBitStreamFormat(header_type vMergeHeader, header_type aMergeHeader)
         {
             mMergeVideoHeader = vMergeHeader;
-            mMergerAudioHeader = aMergeHeader;
+            mMergeAudioHeader = aMergeHeader;
         }
 
         virtual void setDemuxerCb(std::function<void(std::string, std::string)> func)
@@ -175,6 +185,11 @@ namespace Cicada {
         {
             return mName;
         }
+        
+        virtual bool isRealTimeStream(int index)
+        {
+            return false;
+        }
 
     protected:
         demuxer_callback_read mReadCb{nullptr};
@@ -186,8 +201,8 @@ namespace Cicada {
         string mPath{};
         IDataSource::SourceConfig sourceConfig{};
 
-        bool mMergeVideoHeader = false;
-        bool mMergerAudioHeader = false;
+        header_type mMergeVideoHeader = header_type ::header_type_no_touch;
+        header_type mMergeAudioHeader = header_type ::header_type_no_touch;
 
         DemuxerMetaInfo *mMetaInfo = nullptr;
         std::string mName = "IDemuxer";

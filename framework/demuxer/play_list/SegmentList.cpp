@@ -3,8 +3,8 @@
 //
 #define LOG_TAG "SegmentList"
 
-#include <utils/frame_work_log.h>
 #include "SegmentList.h"
+#include <utils/frame_work_log.h>
 
 namespace Cicada {
 
@@ -61,8 +61,9 @@ namespace Cicada {
         if (seg->startTime == UINT64_MAX) {
             seg->startTime = mNextStartTime;
         }
-
-        mNextStartTime = seg->startTime + seg->duration;
+        if (!seg->mUri.empty()) {
+            mNextStartTime = seg->startTime + seg->duration;
+        }
         mLastSeqNum = seg->sequence;
         segments.push_back(seg);
     }
@@ -87,7 +88,7 @@ namespace Cicada {
         for (auto &i : segments) {
             duration += i->duration;
 
-            if ((duration / 1000 * 1000) > time) {
+            if (duration > time) {
                 num = i->sequence;
                 time = duration - i->duration;
                 return true;
@@ -105,8 +106,14 @@ namespace Cicada {
         int size = sList.size();
 
         for (auto i = sList.begin(); i != sList.end();) {
-            if ((*i)->sequence <= mLastSeqNum) {
+            if ((*i)->sequence < mLastSeqNum) {
                 (*i) = nullptr;
+            } else if ((*i)->sequence == mLastSeqNum) {
+                if ((*i)->mSegType == SEG_LHLS) {
+                    updateLastLHLSSegment((*i));
+                } else {
+                    (*i) = nullptr;
+                }
             } else {
                 AF_LOGI("xxxxxx add a new seg %llu", (*i)->sequence);
                 (*i)->startTime = UINT64_MAX;
@@ -120,7 +127,9 @@ namespace Cicada {
             segments.pop_front();
         }
 
-        mFirstSeqNum = segments.front()->sequence;
+        if (!segments.empty()) {
+            mFirstSeqNum = segments.front()->sequence;
+        }
         delete pSList;
         return 0;
     }
@@ -133,4 +142,45 @@ namespace Cicada {
     {
         return static_cast<uint64_t>(mLastSeqNum);
     }
-}
+
+    void SegmentList::updateLastLHLSSegment(const std::shared_ptr<segment> &seg)
+    {
+        std::lock_guard<std::mutex> uMutex(segmetsMuxtex);
+
+        if (segments.size() > 0) {
+            std::shared_ptr<segment> old_seg = segments.back();
+            if (old_seg != nullptr && old_seg->sequence == mLastSeqNum && old_seg->mUri.empty()) {
+                if (old_seg != nullptr && seg != nullptr) {
+                    old_seg->updateParts(seg->getSegmentParts());
+                    if (!seg->mUri.empty()) {
+                        old_seg->duration = seg->duration;
+                        mNextStartTime += old_seg->duration;
+                        old_seg->setSourceUrl(seg->mUri);
+                    }
+                }
+            }
+        }
+    }
+
+    bool SegmentList::hasLHLSSegments()
+    {
+        bool ret = false;
+
+        for (auto seg : segments) {
+            if (seg->mSegType == SEG_LHLS) {
+                ret = true;
+                break;
+            }
+        }
+
+        return ret;
+    }
+
+    int64_t SegmentList::getTargetDuration()
+    {
+        if (mRep == nullptr) {
+            return INT64_MIN;
+        }
+        return mRep->targetDuration;
+    }
+}// namespace Cicada

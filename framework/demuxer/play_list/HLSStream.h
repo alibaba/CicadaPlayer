@@ -20,6 +20,9 @@
 #include <atomic>
 
 namespace Cicada {
+
+    enum MoveToNextPart { tryAgain = -11, segmentEnd = 0, moveSuccess = 1 };
+
     class HLSStream : public AbstractStream {
 
         class WebVttParser {
@@ -92,7 +95,11 @@ namespace Cicada {
         void interrupt(int inter) override;
 
         std::string GetProperty(const string &key);
+        
+        bool isRealTimeStream();
 
+
+        int64_t getTargetDuration();
 
     private:
 
@@ -137,13 +144,15 @@ namespace Cicada {
 
         int readSegment(const uint8_t *buffer, int size);
 
+        MoveToNextPart moveToNextPartialSegment();
+
         int upDateInitSection();
 
         int64_t seekSegment(off_t offset, int whence);
 
         int updateSegment();
 
-        bool updateIV() const;
+        bool updateIV();
 
         enum OpenType {
             SegNum, SegPosition
@@ -215,7 +224,11 @@ namespace Cicada {
         int OpenedStreamIndex = 0;
         bool mProtectedBuffer{false};
 
-        int64_t mLiveStartIndex{-3};//segment index to start live streams at (negative values are from the end)
+        //segment index to start live streams at (negative values are from the end). for lhls, it is partial segment index
+        int64_t mLiveStartIndex{-3};
+
+        std::string mDRMMagicKey{};
+        SegmentEncryption mCurrentEncryption{};
     };
 }
 

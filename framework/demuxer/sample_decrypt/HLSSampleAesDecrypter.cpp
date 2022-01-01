@@ -125,12 +125,8 @@ static uint8_t *find_naulunit(uint8_t *buffer, int size, int *nal_size, int &sta
         return nullptr;
     }
 
-    if (find_end_pos == -1) {
-        *nal_size = size - find_start_pos;
-        return buffer + find_start_pos;
-    }
-
-    return nullptr;
+    *nal_size = size - find_start_pos;
+    return buffer + find_start_pos;
 }
 
 static int remove_nalunit_prevention(uint8_t *nal_unit, int nal_size, uint8_t *dst, int &dst_pos)

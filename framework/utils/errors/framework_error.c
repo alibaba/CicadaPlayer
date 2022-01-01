@@ -2,9 +2,10 @@
 // Created by moqi on 2018/6/11.
 //
 
-#include <string.h>
-#include "../frame_work_log.h"
 #include "framework_error.h"
+#include "../frame_work_log.h"
+#include <errno.h>
+#include <string.h>
 
 const char *network_err2_string(uint8_t Errno)
 {
@@ -20,6 +21,9 @@ const char *network_err2_string(uint8_t Errno)
 
         case network_errno_could_not_connect:
             return "Couldn't connect to server";
+
+        case network_errno_url_malformat:
+            return "URL using bad/illegal format or missing URL";
 
         case network_errno_http_403:
             return "Server returned 403 Forbidden (access denied)";
@@ -58,6 +62,30 @@ const char *codec_err2_string(uint8_t Errno)
 
         default:
             return "Unknown codec error";
+    }
+}
+
+const char *drm_err2_string(uint8_t Errno)
+{
+    switch (Errno) {
+        case drm_error_denied_by_server:
+            return "denied by server";
+        case drm_error_key_response_null:
+            return "key response is null";
+        case drm_error_provision_response_null:
+            return "provision response is null";
+        case drm_error_resource_busy:
+            return "resource busy";
+        case drm_error_unsupport_scheme:
+            return "unsupport scheme";
+        case drm_error_released:
+            return "drm released";
+        case drm_error_provision_fail:
+            return "drm provision fail";
+        case drm_error_unknow:
+            return "unknow drm error";
+        default:
+            return "Unknown drm error";
     }
 }
 
@@ -110,6 +138,9 @@ const char *framework_err2_string(error_type err)
         case error_class_internal:
             return internal_err2_string(Errno);
 
+        case error_class_drm:
+            return drm_err2_string(Errno);
+
         default:
             return "Unknown Error";
     }
@@ -132,6 +163,11 @@ bool isHttpError(error_type err)
     }
 
     return false;
+}
+
+bool isLocalFileError(error_type err)
+{
+    return err == -ENOENT || err == -EACCES;
 }
 
 error_type gen_framework_http_errno(int httpCode)

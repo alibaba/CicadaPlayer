@@ -37,6 +37,13 @@ OBJC_EXPORT
  */
 - (instancetype)init:(NSString*)traceID;
 
+/****
+ @brief Initialize the player.
+ @param traceID A trace ID for debugging.
+ @param opt user defined settings
+ */
+- (instancetype)init:(NSString*)traceID opt:(NSDictionary *)opt;
+
 /**
  @brief 使用url方式来播放视频
  @param source CicadaUrlSource的输入类型
@@ -257,6 +264,20 @@ OBJC_EXPORT
  */
 -(void) selectExtSubtitle:(int)trackIndex enable:(BOOL)enable;
 
+
+/**
+ * 设置某路流相对于主时钟的延时时间，默认是0, 目前只支持外挂字幕
+ * @param index 流的索引
+ * @param time  延时，单位毫秒
+ */
+/****
+ * set the delay time of the stream
+ * @param index steam index
+ * @param time  ms
+ */
+
+- (void)setStreamDelayTime:(int)index time:(int)time;
+
 /**
  @brief 重新加载。比如网络超时时，可以重新加载。
  */
@@ -331,6 +352,25 @@ OBJC_EXPORT
  * @return The information
  */
 -(NSString *) getOption:(CicadaOption)key;
+
+/**
+ @brief 向播放器的组件发送命令。
+ @param content 命令内容。
+ @return 命令执行结果， < 0 失败。
+ */
+/****
+ @brief Send command to component
+ @param content command content
+ @return < 0 on Error
+ */
+
+- (int)invokeComponent:(NSString *)content;
+
+/****
+@brief 支持业务方设置resourceLoaderDelegate，可支持fairPlay
+@param avResourceLoaderDelegate Log output callback block, which can be nil.
+*/
+-(void)setAVResourceLoaderDelegate:(id<AVAssetResourceLoaderDelegate> *)avResourceLoaderDelegate;
 
 /**
  @brief 获取SDK版本号信息

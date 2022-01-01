@@ -15,13 +15,6 @@
 namespace Cicada {
     class filterAudioRender : public IAudioRender {
     public:
-        enum State {
-            state_uninit,   // 0:constructor
-            state_init,   // 1:inited: Demuxer output streams,
-            state_pause,   // 2:pause :
-            state_running,  // 3:running
-        };
-    public:
 
         filterAudioRender();
 
@@ -46,6 +39,8 @@ namespace Cicada {
         void pause(bool bPause) override;
 
         void flush() override;
+
+        void prePause() override;
 
     private:
         virtual int init_device() = 0;
@@ -72,6 +67,11 @@ namespace Cicada {
             return 0;
         };
 
+        virtual void device_preClose()
+        {}
+
+        virtual uint64_t device_get_ability() = 0;
+
 
     private:
         int renderLoop();
@@ -90,15 +90,15 @@ namespace Cicada {
         IAFFrame::audioInfo mInputInfo{};
         IAFFrame::audioInfo mOutputInfo{};
         bool needFilter = false;
-        atomic<State> mState{State::state_uninit};
+        atomic<bool> mRunning{false};
 
     private:
-
         volatile std::atomic<float> mSpeed{1};
-        std::atomic_bool mSpeedChanged{false};
+        std::atomic<float> mFilterSpeed{1};
         std::atomic<int64_t> mSpeedDeltaDuration{0};
         volatile std::atomic<float> mVolume{1};
-        std::atomic_bool mVolumeChanged{false};
+        std::atomic<float> mFilterVolume{1};
+        volatile std::atomic_bool mMute{false};
         std::unique_ptr<Cicada::IAudioFilter> mFilter{};
         std::mutex mFrameQueMutex;
         std::condition_variable mFrameQueCondition;
@@ -106,6 +106,7 @@ namespace Cicada {
         std::unique_ptr<IAFFrame> mRenderFrame{nullptr};
         bool mUseActiveFilter{false};
         std::atomic_int mMaxQueSize{2};
+        uint64_t mFilterFlags{};
 
     protected:
         std::unique_ptr<afThread> mRenderThread = nullptr;

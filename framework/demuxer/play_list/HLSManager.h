@@ -43,7 +43,7 @@ namespace Cicada{
 
         int start() override;
 
-        int seek(int64_t us, int flags, int index) override;
+        int64_t seek(int64_t us, int flags, int index) override;
 
         int SwitchStreamAligned(int from, int to) override;
 
@@ -54,6 +54,10 @@ namespace Cicada{
         const std::string GetProperty(int index, const string &key) override;
 
         int GetRemainSegmentCount(int index) override;
+        
+        bool isRealTimeStream(int index) override;
+
+        int64_t getTargetDuration() override;
 
     private:
         std::list<HLSStreamInfo*> mStreamInfoList{};

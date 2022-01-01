@@ -35,11 +35,13 @@ public:
         return -ENOTSUP;
     };
 
-    virtual float getHz() = 0;
-
     virtual void start() = 0;
 
     virtual void pause() = 0;
+
+    virtual float getHz() = 0;
+
+    virtual int getPeriod() = 0;
 
 protected:
     Listener &mListener;

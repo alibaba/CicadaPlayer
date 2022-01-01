@@ -19,7 +19,7 @@ namespace Cicada {
             mContext = [[NSOpenGLContext alloc] initWithFormat:pf shareContext:(__bridge NSOpenGLContext *) sharedContext];
         }
 
-        [pf release];
+        //   [pf release];
         //    GLint major;
         //    GLint minor;
         //    NSOpenGLGetVersion(&major, &minor);
@@ -40,8 +40,8 @@ namespace Cicada {
         }
         GLSurface *surface = new GLSurface();
         mCurrentSurface = surface;
-        mCurrentSurface->nativeWindow = mSetView;
-        mCurrentSurface->surface = mSetView;
+        mCurrentSurface->nativeWindow = (__bridge void *) mSetView;
+        mCurrentSurface->surface = (__bridge void *) mSetView;
         return mCurrentSurface;
     }
 
@@ -109,13 +109,16 @@ namespace Cicada {
 
         [NSOpenGLContext clearCurrentContext];
 
-        [mContext release];
+        //[mContext release];
         mContext = nil;
     }
 
     int CicadaMGLContext::GetVisualFormat() { return 0; }
 
-    void *CicadaMGLContext::GetContext() { return mContext; }
+    void *CicadaMGLContext::GetContext()
+    {
+        return (__bridge void *) mContext;
+    }
 
     int CicadaMGLContext::GetWidth() { return mWidth; }
 
@@ -126,7 +129,7 @@ namespace Cicada {
 
     bool CicadaMGLContext::SetView(void *view) {
         std::lock_guard<std::mutex> lock(mViewMutex);
-        if (mSetView == view) {
+        if (((__bridge void *) mSetView) == view) {
             return false;
         } else {
             mViewInited = false;

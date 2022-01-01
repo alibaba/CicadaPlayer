@@ -16,9 +16,10 @@ using namespace std;
 #include <deque>
 #include "system_refer_clock.h"
 
+#include "SMPAVDeviceManager.h"
+#include "SMPMessageControllerListener.h"
 #include "SMP_DCAManager.h"
 #include "SuperMediaPlayerDataSourceListener.h"
-#include "codec/videoDecoderFactory.h"
 #include "hls_adaptive_manager.h"
 #include "player_notifier.h"
 #include "player_types.h"
@@ -28,8 +29,11 @@ using namespace std;
 #include <render/audio/IAudioRender.h>
 #include <utils/bitStreamParser.h>
 
+#include "CicadaPlayerPrototype.h"
 #include <cacheModule/CacheModule.h>
 #include <cacheModule/cache/CacheConfig.h>
+#include <drm/DrmManager.h>
+#include <codec/IDecoder.h>
 
 #ifdef __APPLE__
 
@@ -38,13 +42,9 @@ using namespace std;
 #endif
 
 #include "mediaPlayerSubTitleListener.h"
+#include "SMPRecorderSet.h"
 
 namespace Cicada {
-    using namespace Cicada;
-#define HAVE_VIDEO (mCurrentVideoIndex >= 0)
-#define HAVE_AUDIO (mCurrentAudioIndex >= 0)
-#define HAVE_SUBTITLE (mCurrentSubtitleIndex >= 0)
-
     typedef struct streamTime_t {
         int64_t startTime;
         int64_t deltaTime;
@@ -63,12 +63,17 @@ namespace Cicada {
         APP_BACKGROUND,
     } APP_STATUS;
 
+    enum class ViewUpdateStatus {
+        Unknown,
+        No,
+        Yes,
+    };
 
-    class SuperMediaPlayer : public ICicadaPlayer,
-                             private PlayerMessageControllerListener {
+    class SuperMediaPlayer : public ICicadaPlayer, private CicadaPlayerPrototype {
 
         friend class SuperMediaPlayerDataSourceListener;
         friend class SMP_DCAManager;
+        friend class SMPMessageControllerListener;
 
     public:
 
@@ -76,9 +81,18 @@ namespace Cicada {
 
         ~SuperMediaPlayer() override;
 
+        string getName() override
+        {
+            return "SuperMediaPlayer";
+        }
+
         int SetListener(const playerListener &Listener) override;
 
         void SetOnRenderCallBack(onRenderFrame cb, void *userData) override;
+
+        void SetAudioRenderingCallBack(onRenderFrame cb, void *userData) override;
+
+        void SetUpdateViewCB(UpdateViewCB cb, void *userData) override;
 
         // TODO: use setParameters and setOpt to set
         void SetRefer(const char *refer) override;
@@ -97,7 +111,10 @@ namespace Cicada {
 
         void GetOption(const char *key, char *value) override;
 
-        int64_t GetPlayingPosition() override;
+        int64_t GetPlayingPosition() override
+        {
+            return getCurrentPosition() / 1000;
+        };
 
         int64_t GetBufferPosition() override;
 
@@ -145,6 +162,8 @@ namespace Cicada {
 
         void SetDataSource(const char *url) override;
 
+        void setBitStreamCb(readCB read, seekCB seek, void *arg) override;
+
         void Prepare() override;
 
         void SetVolume(float volume) override;
@@ -191,16 +210,20 @@ namespace Cicada {
 
         int selectExtSubtitle(int index, bool bSelect) override;
 
+        int setStreamDelay(int index, int64_t time) override;
+
         int invokeComponent(std::string content) override;
+
+        void setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)>  &drmCallback) override;
+
+        float getCurrentDownloadSpeed() override;
 
     private:
         void NotifyPosition(int64_t position);
 
-        int64_t GetCurrentPosition();
-
         void OnTimer(int64_t curTime);
 
-        void updateLoopGap();
+        int updateLoopGap();
 
         int mainService();
 
@@ -246,7 +269,7 @@ namespace Cicada {
 
         void ResetSeekStatus();
 
-        static void VideoRenderCallback(void *arg, int64_t pts, void *userData);
+        static void VideoRenderCallback(void *arg, int64_t pts, bool rendered, void *userData);
 
         void Reset();
 
@@ -260,7 +283,7 @@ namespace Cicada {
 
         void SwitchVideo(int64_t startTime);
 
-        int64_t getPlayerBufferDuration(bool gotMax);
+        int64_t getPlayerBufferDuration(bool gotMax, bool internal);
 
         void ProcessOpenStreamInit(int streamIndex);
 
@@ -276,8 +299,6 @@ namespace Cicada {
 
         void releaseStreamInfo(const StreamInfo *info) const;
 
-        int openUrl();
-
         // mSeekFlag will be set when processing (after remove from mMessageControl), it have gap
         bool isSeeking()
         {
@@ -286,87 +307,89 @@ namespace Cicada {
 
 //        void setRotationMode(RotateMode rotateMode, MirrorMode mirrorMode) const;
 
-        bool CreateVideoRender();
+        bool CreateVideoRender(uint64_t flags);
 
         int CreateVideoDecoder(bool bHW, Stream_meta &meta);
 
         int64_t getCurrentPosition();
 
-        void switchSubTitle(int index);
-
-        void switchAudio(int index);
-
-        void switchVideoStream(int index, Stream_type type);
-
         void checkEOS();
+
+        void playCompleted();
 
         void notifySeekEndCallback();
 
         void notifyPreparedCallback();
 
+        void updateVideoMeta();
+
+        void doDeCode();
+
+        void doRender();
+
+        void doReadPacket();
+
+        int setUpAudioRender(const IAFFrame::audioInfo &info);
+
+        std::atomic<int64_t> mCurrentPos{};
+
+        void printTimePosition(int64_t time) const;
+
+        void setUpAVPath();
+
+        void startRendering(bool start);
+
+        void sendDCAMessage();
+
+        void ProcessUpdateView();
+
+        bool isHDRVideo(const Stream_meta *meta) const;
+
+        bool isWideVineVideo(const Stream_meta *meta) const;
+
+        void closeVideo();
+
+        void checkFirstRender();
+
         class ApsaraAudioRenderCallback : public IAudioRenderListener {
         public:
-            ApsaraAudioRenderCallback(SuperMediaPlayer &player)
-                    : mPlayer(player)
+            explicit ApsaraAudioRenderCallback(SuperMediaPlayer &player) : mPlayer(player)
             {}
 
             void onEOS() override
             {}
 
-            void onInterrupt(bool interrupt) override
+            bool onInterrupt(bool interrupt) override
             {
                 if (interrupt) {
-                    mPlayer.Pause();
+                    if (mPlayer.mPlayStatus == PLAYER_PLAYING) {
+                        mPlayer.Pause();
+                        mPlayer.mPausedByAudioInterrupted = true;
+                    }
                 } else {
-                    mPlayer.Start();
+                    if (mPlayer.mPlayStatus == PLAYER_PAUSED && mPlayer.mPausedByAudioInterrupted) {
+                        mPlayer.Start();
+                    }
                 }
+
+                return true;
             }
+            void onUpdateTimePosition(int64_t pos) override;
 
         private:
             SuperMediaPlayer &mPlayer;
         };
 
-    private:
-        void checkFirstRender();
+        class ApsaraVideoRenderListener : public IVideoRender::IVideoRenderListener {
 
-        bool OnPlayerMsgIsPadding(PlayMsgType msg, MsgParam msgContent) final;
+        public:
+            explicit ApsaraVideoRenderListener(SuperMediaPlayer &player) : mPlayer(player)
+            {}
+            void onFrameInfoUpdate(IAFFrame::AFFrameInfo &info) override;
 
-        void ProcessPrepareMsg() final;
-
-        void ProcessStartMsg() final;
-
-        void ProcessSetDisplayMode() final;
-
-        void ProcessSetRotationMode() final;
-
-        void ProcessSetMirrorMode() final;
-
-        void ProcessSetVideoBackgroundColor() final;
-
-        void ProcessSetViewMsg(void *view) final;
-
-        void ProcessSetDataSourceMsg(const std::string &url) final;
-
-        void ProcessPauseMsg() final;
-
-        void ProcessSeekToMsg(int64_t seekPos, bool bAccurate) final;
-
-        void ProcessMuteMsg() final;
-
-        void ProcessSwitchStreamMsg(int index) final;
-
-        void ProcessVideoRenderedMsg(int64_t pts, int64_t timeMs, void *picUserData) final;
-
-        void ProcessVideoCleanFrameMsg() final;
-
-        void ProcessVideoHoldMsg(bool hold) final;
-
-        void ProcessAddExtSubtitleMsg(const std::string &url) final;
-
-        void ProcessSelectExtSubtitleMsg(int index, bool select) final;
-
-        void ProcessSetSpeed(float speed) final;
-
+        private:
+            SuperMediaPlayer &mPlayer;
+        };
 
     private:
         static IVideoRender::Scale convertScaleMode(ScaleMode mode);
@@ -376,32 +399,45 @@ namespace Cicada {
         static IVideoRender::Flip convertMirrorMode(MirrorMode mode);
 
 
+    public:
+        static bool is_supported(const options *opts)
+        {
+            return true;
+        }
+
+    private:
+        explicit SuperMediaPlayer(int dummy)
+        {
+            mIsDummy = true;
+            addPrototype(this);
+        }
+        ICicadaPlayer *clone() override
+        {
+            return new SuperMediaPlayer();
+        };
+
+        static SuperMediaPlayer se;
+
+
     private:
         IDataSource *mDataSource{nullptr};
         std::atomic_bool mCanceled{false};
         demuxer_service *mDemuxerService{nullptr};
-
-        std::unique_ptr<IDecoder> mVideoDecoder{};
+        std::unique_ptr<DrmManager> mDrmManager{};
         std::queue<unique_ptr<IAFFrame>> mVideoFrameQue{};
-
-        std::unique_ptr<IDecoder> mAudioDecoder{};
         std::deque<unique_ptr<IAFFrame>> mAudioFrameQue{};
         unique_ptr<streamMeta> mCurrentVideoMeta{};
         bool videoDecoderEOS = false;
         bool audioDecoderEOS = false;
         picture_cache_type mPictureCacheType = picture_cache_type_cannot;
         bool videoDecoderFull = false;
-        PlayerMessageControl mMessageControl;
-        ApsaraAudioRenderCallback mAudioRenderCB;
-        BufferController mBufferController;
-
+        std::unique_ptr<SMPMessageControllerListener> mMsgCtrlListener{nullptr};
+        std::unique_ptr<PlayerMessageControl> mMessageControl{nullptr};
+        std::unique_ptr<ApsaraAudioRenderCallback> mAudioRenderCB{nullptr};
+        std::unique_ptr<ApsaraVideoRenderListener> mVideoRenderListener{nullptr};
+        std::unique_ptr<BufferController> mBufferController{nullptr};
         std::mutex mAppStatusMutex;
         std::atomic<APP_STATUS> mAppStatus{APP_FOREGROUND};
-        std::unique_ptr<IAudioRender> mAudioRender{};
-        std::unique_ptr<IVideoRender> mVideoRender{};
-//#ifdef WIN32
-//        AlivcDxva2Render m_dxva2Render;
-//#endif
         int mVideoWidth{0};
         int mVideoHeight{0};
         int mVideoRotation{0};
@@ -419,6 +455,8 @@ namespace Cicada {
         int mWillChangedVideoStreamIndex{-1};
         int mWillChangedAudioStreamIndex{-1};
         int mWillChangedSubtitleStreamIndex{-1};
+        float mCATimeBase{};      // current audio stream origin pts time base
+        float mWATimeBase{};      // willChange audio stream origin pts time base
         int mRemainLiveSegment{0};// To avoid access demuxer multi-thread
         bool mInited{false};
         atomic_bool mSeekNeedCatch{false};
@@ -457,11 +495,8 @@ namespace Cicada {
         int64_t mSubtitleShowIndex{0};
         bool mBufferIsFull{false};
         bool mWillSwitchVideo{false};
-        player_type_set mSet;
+        std::unique_ptr<player_type_set> mSet{};
         int64_t mSoughtVideoPos{INT64_MIN};
-        std::atomic<int64_t> mPlayingPosition{0};
-
-        int mMaxRunningLoopGap = 10;
         int mTimerInterval = 0;
         int64_t mTimerLatestTime = 0;
         std::mutex mCreateMutex{}; // need lock if access pointer outside of loop thread
@@ -469,59 +504,43 @@ namespace Cicada {
         std::mutex mSleepMutex{};
         std::condition_variable mPlayerCondition;
         PlayerNotifier *mPNotifier = nullptr;
-        afThread mApsaraThread;
+        std::unique_ptr<afThread> mApsaraThread{};
         int mLoadingProcess{0};
         int64_t mPrepareStartTime = 0;
-
         int mVideoParserTimes = 0;
         InterlacedType mVideoInterlaced = InterlacedType_UNKNOWN;
         bitStreamParser *mVideoParser = nullptr;
-
-        MediaPlayerUtil mUtil;
-
-        SuperMediaPlayerDataSourceListener mSourceListener;
-        SMP_DCAManager mDcaManager;
-
+        int64_t mPtsDiscontinueDelta{INT64_MIN};
+        std::unique_ptr<MediaPlayerUtil> mUtil{};
+        std::unique_ptr<SuperMediaPlayerDataSourceListener> mSourceListener{nullptr};
+        std::unique_ptr<SMP_DCAManager> mDcaManager{nullptr};
+        std::unique_ptr<SMPAVDeviceManager> mAVDeviceManager{nullptr};
         std::unique_ptr<IAFPacket> mVideoPacket{};
         std::unique_ptr<IAFPacket> mAudioPacket{};
         std::unique_ptr<mediaPlayerSubTitleListener> mSubListener;
         std::unique_ptr<subTitlePlayer> mSubPlayer;
-
         bool dropLateVideoFrames = false;
         bool waitingForStart = false;
         bool mBRendingStart {false};
         bool mSecretPlayBack{false};
-
-    private:
-
+        bool mDrmKeyValid{false};
+        std::unique_ptr<SMPRecorderSet> mRecorderSet{nullptr};
         bool mAutoPlay = false;
-
-        void doDeCode();
-
-        void doRender();
-
-        void doReadPacket();
-
-        int setUpAudioRender(const IAFFrame::audioInfo &info);
-
-        int64_t mCurrentPos = 0;
-
-        void printTimePosition(int64_t time) const;
-
-        void setUpAVPath();
-
-        void startRendering(bool start);
-
         int64_t mCheckAudioQueEOSTime{INT64_MIN};
         uint64_t mAudioQueDuration{UINT64_MAX};
-
         onRenderFrame mFrameCb{nullptr};
         void *mFrameCbUserData{nullptr};
+        std::mutex mViewUpdateMutex{};
+        std::atomic<ViewUpdateStatus> mViewUpdateStatus{ViewUpdateStatus::Unknown};
+        UpdateViewCB mUpdateViewCB{nullptr};
+        void *mUpdateViewCBUserData{nullptr};
+        onRenderFrame mAudioRenderingCb{nullptr};
+        void *mAudioRenderingCbUserData{nullptr};
+        bool mIsDummy{false};
+        bool mPausedByAudioInterrupted{false};
+        readCB mBSReadCb = nullptr;
+        seekCB mBSSeekCb = nullptr;
+        void *mBSCbArg = nullptr;
     };
 }// namespace Cicada
-#endif // CICADA_PLAYER_SERVICE_H
-
-
-
-
-
+#endif// CICADA_PLAYER_SERVICE_H

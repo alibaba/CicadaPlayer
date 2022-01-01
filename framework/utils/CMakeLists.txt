@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.6)
 project(framework_utils)
 set(CMAKE_CXX_STANDARD 11)
+
+include(../module_config.cmake)
+if(ENABLE_CODEC_HEVC)
+    add_definitions(-DENABLE_CODEC_HEVC)
+endif()
+
 set(SOURCE_FILES
         AutoAVFrame.h
         CicadaJSON.h
@@ -55,6 +61,8 @@ set(SOURCE_FILES
         ../base/options.h
         UrlUtils.cpp
         UrlUtils.h
+        DrmUtils.cpp
+        DrmUtils.h
         )
 
 list(APPEND SOURCE_FILES
@@ -68,7 +76,8 @@ if (APPLE)
     list(APPEND SOURCE_FILES
             ../base/media/PBAFFrame.cpp
             ../base/media/PBAFFrame.h
-            ../base/media/avFrame2pixelBuffer.c
+            appleLog.m
+            pixelBufferConvertor.cpp
             )
 endif ()
 
@@ -112,11 +121,18 @@ if (ANDROID)
             Android/GetObjectField.h
             Android/JniUtils.cpp
             Android/JniUtils.h
+            Android/NewByteArray.cpp
+            Android/NewByteArray.h
+            Android/NewLinkedList.cpp
+            Android/NewLinkedList.h
+            Android/NewHashMap.cpp
+            Android/NewHashMap.h
             )
 elseif (IOS)
     set(SOURCE_FILES ${SOURCE_FILES}
             oscl/ios_utils.c
-            ../base/media/subTitlePacket.cpp ../base/media/subTitlePacket.h)
+            ../base/media/subTitlePacket.cpp
+            ../base/media/subTitlePacket.h)
 endif ()
 
 include_directories(

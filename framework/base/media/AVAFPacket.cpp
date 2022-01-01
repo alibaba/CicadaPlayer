@@ -8,7 +8,6 @@
 #include "utils/ffmpeg_utils.h"
 #ifdef __APPLE__
 #include "PBAFFrame.h"
-#include "avFrame2pixelBuffer.h"
 #endif
 
 using namespace std;
@@ -60,6 +59,10 @@ AVAFPacket::AVAFPacket(AVPacket **pkt, bool isProtected) : mIsProtected(isProtec
 
 AVAFPacket::~AVAFPacket()
 {
+    if (mAVEncryptionInfo != nullptr) {
+        av_encryption_info_free(mAVEncryptionInfo);
+    }
+
     av_packet_free(&mpkt);
 }
 
@@ -68,7 +71,7 @@ uint8_t *AVAFPacket::getData()
     return mpkt->data;
 }
 
-unique_ptr<IAFPacket> AVAFPacket::clone()
+unique_ptr<IAFPacket> AVAFPacket::clone() const
 {
     return unique_ptr<IAFPacket>(new AVAFPacket(mpkt, mIsProtected));
 }
@@ -97,6 +100,93 @@ void AVAFPacket::setDiscard(bool discard)
 AVAFPacket::operator AVPacket *()
 {
     return mpkt;
+}
+
+bool AVAFPacket::getEncryptionInfo(IAFPacket::EncryptionInfo *dst)
+{
+    if(mAVEncryptionInfo == nullptr) {
+
+        int encryption_info_size;
+        const uint8_t *new_encryption_info = av_packet_get_side_data(mpkt, AV_PKT_DATA_ENCRYPTION_INFO, &encryption_info_size);
+
+        if (encryption_info_size <= 0 || new_encryption_info == nullptr) {
+            return false;
+        }
+
+        mAVEncryptionInfo = av_encryption_info_get_side_data(new_encryption_info, encryption_info_size);
+    }
+
+    if (mAVEncryptionInfo == nullptr) {
+        return false;
+    }
+
+    if (mAVEncryptionInfo->scheme == MKBETAG('c', 'e', 'n', 'c')) {
+        dst->scheme = "cenc";
+    } else if (mAVEncryptionInfo->scheme == MKBETAG('c', 'e', 'n', 's')) {
+        dst->scheme = "cens";
+    } else if (mAVEncryptionInfo->scheme == MKBETAG('c', 'b', 'c', '1')) {
+        dst->scheme = "cbc1";
+    } else if (mAVEncryptionInfo->scheme == MKBETAG('c', 'b', 'c', 's')) {
+        dst->scheme = "cbcs";
+    }
+
+    dst->crypt_byte_block = mAVEncryptionInfo->crypt_byte_block;
+    dst->skip_byte_block = mAVEncryptionInfo->skip_byte_block;
+    dst->subsample_count = mAVEncryptionInfo->subsample_count;
+
+    dst->key_id = mAVEncryptionInfo->key_id;
+    dst->key_id_size = mAVEncryptionInfo->key_id_size;
+
+    dst->iv = mAVEncryptionInfo->iv;
+    dst->iv_size = mAVEncryptionInfo->iv_size;
+
+    if (mAVEncryptionInfo->subsample_count > 0) {
+        dst->subsample_count = mAVEncryptionInfo->subsample_count;
+        for(int i = 0; i < mAVEncryptionInfo->subsample_count; i++) {
+            SubsampleEncryptionInfo subInfo{};
+            subInfo.bytes_of_protected_data =  mAVEncryptionInfo->subsamples[i].bytes_of_protected_data;
+            subInfo.bytes_of_clear_data = mAVEncryptionInfo->subsamples[i].bytes_of_clear_data;
+            dst->subsamples.push_back(subInfo);
+        }
+    } else {
+        dst->subsample_count = 1;
+        SubsampleEncryptionInfo subInfo{};
+        subInfo.bytes_of_protected_data = getSize();
+        subInfo.bytes_of_clear_data = 0;
+        dst->subsamples.push_back(subInfo);
+    }
+
+    return true;
+}
+
+
+AVAFFrame::AVAFFrame(const IAFFrame::AFFrameInfo &info, const uint8_t **data, const int *lineSize, int lineNums, IAFFrame::FrameType type)
+    : mType(type)
+{
+    AVFrame *avFrame = av_frame_alloc();
+    if (type == FrameType::FrameTypeAudio) {
+        audioInfo aInfo = info.audio;
+        avFrame->channels = aInfo.channels;
+        avFrame->sample_rate = aInfo.sample_rate;
+        avFrame->format = aInfo.format;
+        int sampleSize = av_get_bytes_per_sample((enum AVSampleFormat)(avFrame->format));
+        avFrame->nb_samples = (int) (lineSize[0] / (avFrame->channels * sampleSize));
+    } else if (type == FrameType::FrameTypeVideo) {
+        videoInfo vInfo = info.video;
+        avFrame->width = vInfo.width;
+        avFrame->height = vInfo.height;
+        avFrame->format = vInfo.format;
+    }
+
+    av_frame_get_buffer(avFrame, 32);
+    av_frame_make_writable(avFrame);
+    for (int i = 0; i < lineNums; i++) {
+        uint8_t *frameSamples = avFrame->data[i];
+        memcpy(frameSamples, data[i], lineSize[i]);
+    }
+
+    mAvFrame = avFrame;
+    copyInfo();
 }
 
 AVAFFrame::AVAFFrame(AVFrame **frame, IAFFrame::FrameType type) : mType(type)
@@ -201,15 +291,3 @@ void AVAFFrame::updateInfo()
 {
     copyInfo();
 }
-#ifdef __APPLE__
-AVAFFrame::operator PBAFFrame *()
-{
-    CVPixelBufferRef pixelBuffer = avFrame2pixelBuffer(mAvFrame);
-    if (pixelBuffer) {
-        auto* frame = new PBAFFrame(pixelBuffer, mInfo.pts, mInfo.duration);
-        CVPixelBufferRelease(pixelBuffer);
-        return frame;
-    }
-    return nullptr;
-}
-#endif

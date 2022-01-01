@@ -8,7 +8,8 @@
 #endif
 
 #ifdef __APPLE__
-    #include <render/audio/Apple/AFAudioUnitRender.h>
+#include <render/audio/Apple/AFAudioQueueRender.h>
+#include <render/video/AVFoundation/AVFoundationVideoRender.h>
 #endif
 
 
@@ -17,7 +18,7 @@
 #endif
 #ifdef ENABLE_SDL
 
-#include "audio/SdlAFAudioRender.h"
+#include "audio/SdlAFAudioRender2.h"
 #include "video/SdlAFVideoRender.h"
 
 #endif
@@ -28,12 +29,6 @@
 
 #endif
 
-#ifdef ENABLE_CHEAT_RENDER
-
-#include "video/CheaterVideoRender.h"
-
-#endif
-
 #include "audio/audioRenderPrototype.h"
 
 #ifdef ENABLE_CHEAT_RENDER
@@ -41,6 +36,8 @@
 #include "audio/CheaterAudioRender.h"
 
 #endif
+
+#include "video/DummyVideoRender.h"
 
 using namespace Cicada;
 
@@ -59,22 +56,32 @@ std::unique_ptr<IAudioRender> AudioRenderFactory::create()
     return std::unique_ptr<IAudioRender>(new AudioTrackRender());
 #endif
 #ifdef __APPLE__
-    return std::unique_ptr<IAudioRender>(new AFAudioUnitRender());
-#endif
-#ifdef ENABLE_SDL
-    return std::unique_ptr<IAudioRender>(new SdlAFAudioRender());
+    return std::unique_ptr<IAudioRender>(new AFAudioQueueRender());
+#elif defined(ENABLE_SDL)
+    return std::unique_ptr<IAudioRender>(new SdlAFAudioRender2());
 #endif
     return nullptr;
 }
 
-std::unique_ptr<IVideoRender> videoRenderFactory::create()
+unique_ptr<IVideoRender> videoRenderFactory::create(uint64_t flags)
 {
+    if (flags & IVideoRender::FLAG_DUMMY) {
+        return std::unique_ptr<IVideoRender>(new DummyVideoRender());
+    }
+
+    if (flags & IVideoRender::FLAG_HDR) {
+#if defined(__APPLE__) && !defined(ENABLE_SDL)
+        return std::unique_ptr<IVideoRender>(new AVFoundationVideoRender());
+#endif
+        return nullptr;
+    }
+
 #if defined(GLRENDER)
     return std::unique_ptr<IVideoRender>(new GLRender());
 #elif defined(ENABLE_SDL)
     return std::unique_ptr<IVideoRender>(new SdlAFVideoRender());
 #elif defined(ENABLE_CHEAT_RENDER)
-    return std::unique_ptr<IVideoRender>(new CheaterVideoRender());
+    return std::unique_ptr<IVideoRender>(new DummyVideoRender());
 #endif
     return nullptr;
 }

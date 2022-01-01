@@ -67,7 +67,7 @@ namespace Cicada{
             mSourceConfig = config;
         }
 
-        virtual void setBitStreamFormat(bool vMergeHeader, bool aMergeHeader)
+        virtual void setBitStreamFormat(header_type vMergeHeader, header_type aMergeHeader)
         {
             mMergeVideoHeader = vMergeHeader;
             mMergerAudioHeader = aMergeHeader;
@@ -76,8 +76,8 @@ namespace Cicada{
     protected:
         IDataSource *mExtDataSource = nullptr;
         IDataSource::SourceConfig mSourceConfig{};
-        bool mMergeVideoHeader = false;
-        bool mMergerAudioHeader = false;
+        header_type mMergeVideoHeader = header_type::header_type_no_touch;
+        header_type mMergerAudioHeader = header_type::header_type_no_touch;
     };
 }
 

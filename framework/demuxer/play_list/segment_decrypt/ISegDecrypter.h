@@ -7,6 +7,7 @@
 
 
 #include <cstdint>
+#include <string>
 
 class ISegDecrypter {
 public:
@@ -24,6 +25,10 @@ public:
     virtual int Read(uint8_t *buffer, int size) = 0;
 
     virtual void SetOption(const char *key, uint8_t *buffer, int size) = 0;
+
+    virtual std::string GetOption(const std::string & key){
+            return "";
+    };
 
     virtual void flush() = 0;
 

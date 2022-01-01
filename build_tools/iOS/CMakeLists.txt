@@ -38,6 +38,7 @@ set_target_properties(${LIB_NAME} PROPERTIES
         #        MACOSX_FRAMEWORK_INFO_PLIST Info.plist
         #        PUBLIC_HEADER dynamicFramework.h
         # XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
+        XCODE_ATTRIBUTE_EXCLUDED_ARCHS[sdk=iphonesimulator*] arm64
         XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS YES
         XCODE_ATTRIBUTE_ENABLE_BITCODE "YES"
         XCODE_ATTRIBUTE_BITCODE_GENERATION_MODE bitcode
@@ -69,3 +70,4 @@ endif ()
 #    set_xcode_property(${LIB_NAME} BITCODE_GENERATION_MODE bitcode)
 #endif ()
 target_link_libraries(${LIB_NAME} PRIVATE ${LIBRARYS})
+target_link_libraries(${LIB_NAME} PUBLIC "${LINK_FRAMEWORKS}")

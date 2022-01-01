@@ -108,9 +108,22 @@ static int logOutput = 1;
 
 - (instancetype)init:(NSString*)traceID
 {
+    self = [self init:traceID opt:nil];
+    if (self) {
+        
+    }
+    return self;
+}
+
+- (instancetype)init:(NSString*)traceID opt:(NSDictionary *)opt {
     if (self = [super init]) {
         self.traceId = traceID;
-        self.player = new MediaPlayer();
+        NSString *json = nullptr;
+        if (opt != nullptr) {
+            json = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:opt options:0 error:nil]
+                                         encoding:NSUTF8StringEncoding];
+        }
+        self.player = new MediaPlayer([json UTF8String]);
         [self resetProperty];
         playerListener listener = {0};
         mHelper = new CicadaOCHelper(self);
@@ -127,18 +140,18 @@ static int logOutput = 1;
 #if TARGET_OS_IPHONE
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(becomeActive)
-                                                     name:UIApplicationDidBecomeActiveNotification
+                                                     name:UIApplicationWillEnterForegroundNotification
                                                    object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(resignActive)
-                                                     name:UIApplicationWillResignActiveNotification
+                                                     name:UIApplicationDidEnterBackgroundNotification
                                                    object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(willTerminate)
                                                      name:UIApplicationWillTerminateNotification
                                                    object:nil];
 
-        if (UIApplicationStateActive != [[UIApplication sharedApplication] applicationState]) {
+        if (UIApplicationStateBackground == [[UIApplication sharedApplication] applicationState]) {
             self.player->EnterBackGround(true);
         }
 #endif // TARGET_OS_IPHONE
@@ -151,8 +164,8 @@ static int logOutput = 1;
     [self destroy];
     
 #if TARGET_OS_IPHONE
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationDidBecomeActiveNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationWillResignActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationWillEnterForegroundNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationDidEnterBackgroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationWillTerminateNotification object:nil];
 #endif // TARGET_OS_IPHONE
 }
@@ -168,6 +181,9 @@ static int logOutput = 1;
         alivcConfig.startBufferDuration = config.startBufferDuration;
         alivcConfig.networkRetryCount = config.networkRetryCount;
         alivcConfig.liveStartIndex = config.liveStartIndex;
+        alivcConfig.mDisableVideo = config.disableVideo;
+        alivcConfig.mDisableAudio = config.disableAudio;
+        alivcConfig.mPositionTimerIntervalMs = config.positionTimerIntervalMs;
 
         if (nil != config.httpProxy) {
             alivcConfig.httpProxy = [config.httpProxy UTF8String];
@@ -222,6 +238,9 @@ static int logOutput = 1;
             mConfig.clearShowWhenStop = config->bClearShowWhenStop;
             mConfig.networkRetryCount = config->networkRetryCount;
             mConfig.liveStartIndex = config->liveStartIndex;
+            mConfig.disableAudio = config->mDisableAudio;
+            mConfig.disableVideo = config->mDisableVideo;
+            mConfig.positionTimerIntervalMs = config->mPositionTimerIntervalMs;
 
             [mConfig.httpHeaders removeAllObjects];
             for (int i=0;i<config->customHeaders.size();i++) {
@@ -833,6 +852,13 @@ static int logOutput = 1;
     }
 }
 
+- (void)setStreamDelayTime:(int)index time:(int)time
+{
+    if (self.player) {
+        self.player->SetStreamDelayTime(index, time);
+    }
+}
+
 -(void) reload
 {
     if (self.player) {
@@ -854,6 +880,14 @@ static int logOutput = 1;
     if (self.player) {
         self.player->SetDefaultBandWidth(bandWidth);
     }
+}
+
+- (int)invokeComponent:(NSString *)content
+{
+    if (self.player) {
+        return self.player->InvokeComponent([content UTF8String]);
+    }
+    return -1;
 }
 
 - (void) setDelegate:(id<CicadaDelegate>)theDelegate
@@ -897,7 +931,7 @@ int64_t CicadaClockRefer(void *arg)
     if (player.referClock) {
         return player.referClock();
     }
-    return -1;
+    return 0;
 }
 
 -(void) SetClockRefer:(int64_t (^)(void))referClock
@@ -925,6 +959,12 @@ int64_t CicadaClockRefer(void *arg)
     }
 
     return [NSString stringWithUTF8String:value];
+}
+
+-(void)setAVResourceLoaderDelegate:(id<AVAssetResourceLoaderDelegate> *)avResourceLoaderDelegate {
+    NSInteger objAddress = (NSInteger)avResourceLoaderDelegate;
+    NSString *addressStr = [NSString stringWithFormat:@"%ld", (long)objAddress];
+    self.player->SetOption("AVResourceLoaderDelegate", addressStr.UTF8String);
 }
 
 + (NSString *) getSDKVersion

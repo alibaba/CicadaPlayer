@@ -38,7 +38,6 @@ namespace Cicada {
         bDisableAudio = false;
         bDisableVideo = false;
         bMute = false;
-        bDisableBufferManager = false;
         bLowLatency = false;
         mView = nullptr;
         mAutoSwitchTime = INT64_MIN;
@@ -65,6 +64,9 @@ namespace Cicada {
         maxVideoRecoverSize = 300;
         mFastStart = true;
         pixelBufferOutputFormat = 0;
+        drmMagicKey = "";
+        sessionId = "";
+        netWorkRetryCount = 0;
     }
 }
 

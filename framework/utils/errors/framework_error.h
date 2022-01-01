@@ -18,6 +18,7 @@ enum error_class {
     error_class_network,
     error_class_codec,
     error_class_format,
+    error_class_drm,
 
     error_class_internal = 0x10,
 };
@@ -34,6 +35,7 @@ enum network_errno {
     network_errno_resolve,
     network_errno_connect_timeout,
     network_errno_could_not_connect,
+    network_errno_url_malformat,
 
     network_errno_http_400 = 100,
     network_errno_http_403,
@@ -49,6 +51,19 @@ enum codec_error {
     codec_error_audio_not_support,
 
     codec_error_video_device_error,
+};
+
+enum drm_error {
+    drm_error_none = 0,
+    drm_error_unsupport_scheme,
+    drm_error_resource_busy,
+    drm_error_key_response_null,
+    drm_error_provision_response_null,
+    drm_error_denied_by_server,
+    drm_error_released,
+    drm_error_provision_fail,
+
+    drm_error_unknow = 99,
 };
 
 // TODO: SEGEND define here?
@@ -74,6 +89,8 @@ static inline uint8_t get_errno(error_type err)
 }
 
 bool isHttpError(error_type err);
+
+bool isLocalFileError(error_type err);
 
 error_type gen_framework_http_errno(int httpCode);
 

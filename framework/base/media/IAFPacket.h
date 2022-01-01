@@ -9,14 +9,14 @@
 #include <cstdint>
 //#include <functional>
 #include <vector>
+#include <list>
 #include <memory>
-#include <utils/frame_work_log.h>
 #include <cstring>
-
+#include <string>
 extern "C" {
 //#include <libavutil/rational.h>
 };
-
+#include <utils/CicadaType.h>
 
 struct AVRational;
 
@@ -48,7 +48,34 @@ public:
         ~packetInfo()
         {
             delete[](extra_data);
+        }
+    };
 
+    struct SubsampleEncryptionInfo {
+        unsigned int bytes_of_clear_data{0};
+        unsigned int bytes_of_protected_data{0};
+    };
+
+    struct EncryptionInfo {
+        std::string scheme{};
+
+        uint32_t crypt_byte_block{0};
+        uint32_t skip_byte_block{0};
+
+        uint8_t *key_id{nullptr};
+        uint32_t key_id_size{0};
+
+        uint8_t *iv{nullptr};
+        uint32_t iv_size{0};
+
+        std::list<SubsampleEncryptionInfo> subsamples{};
+        uint32_t subsample_count{0};
+
+        ~EncryptionInfo()
+        {
+            if (!subsamples.empty()) {
+                subsamples.clear();
+            }
         }
     };
 
@@ -58,7 +85,7 @@ public:
 
     virtual ~IAFPacket() = default;
 
-    virtual std::unique_ptr<IAFPacket> clone() = 0;
+    virtual std::unique_ptr<IAFPacket> clone() const = 0;
 
     //TODO renturn const uint8_t, now for framework use
     virtual uint8_t *getData() = 0;
@@ -68,7 +95,7 @@ public:
     virtual void setDiscard(bool discard)
     {
         mbDiscard = discard;
-    };
+    }
 
     virtual bool getDiscard()
     {
@@ -93,6 +120,20 @@ public:
         }
     }
 
+    virtual std::string getMagicKey()
+    {
+        return "";
+    }
+
+    virtual void setMagicKey(const std::string & key)
+    {
+
+    }
+
+    virtual bool getEncryptionInfo(EncryptionInfo *dst)
+    {
+        return false;
+    }
 
 protected:
     packetInfo mInfo{};
@@ -122,6 +163,16 @@ public:
 
         int colorRange;
         int colorSpace;
+
+        bool operator==(const videoInfo &info) const
+        {
+            return this->width == info.width && this->height == info.height && this->format == info.format;
+        }
+
+        bool operator!=(const videoInfo &info) const
+        {
+            return !operator==(info);
+        }
     };
     struct audioInfo {
         int nb_samples;
@@ -150,6 +201,7 @@ public:
         int64_t pkt_dts;
         int64_t duration;
         bool key;
+        int64_t timePosition;
         union {
             videoInfo video;
             audioInfo audio;
@@ -170,16 +222,32 @@ public:
 
     virtual void setDiscard(bool discard)
     {
+        mbDiscard = discard;
+    }
 
+    virtual bool getDiscard()
+    {
+        return mbDiscard;
     }
 
     AFFrameInfo &getInfo();
+
+    void setProtect(bool protect)
+    {
+        mbProtected = protect;
+    }
+
+    bool isProtected() const
+    {
+        return mbProtected;
+    }
 
     void dump();
 
 protected:
     AFFrameInfo mInfo{};
-
+    bool mbDiscard{false};
+    bool mbProtected{false};
 };
 
 

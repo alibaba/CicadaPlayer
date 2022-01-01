@@ -3,6 +3,8 @@
 //
 #define LOG_TAG "avFormatSubtitleDemuxer"
 
+#include <utils/frame_work_log.h>
+
 #include "avFormatSubtitleDemuxer.h"
 
 #include <utils/errors/framework_error.h>
@@ -70,7 +72,7 @@ namespace Cicada {
 
         do {
             ret = readPacketInternal();
-        } while (ret > 0);
+        } while (ret >= 0);
 
         return 0;
     }
@@ -148,7 +150,7 @@ namespace Cicada {
     {
     }
 
-    int avFormatSubtitleDemuxer::Seek(int64_t us, int flags, int index)
+    int64_t avFormatSubtitleDemuxer::Seek(int64_t us, int flags, int index)
     {
         mSeekPTS = us;
         return 0;
@@ -179,10 +181,6 @@ namespace Cicada {
             mSeekPTS = INT64_MIN;
         }
 
-        if (mCurrent == mPacketMap.end()) {
-            return 0;
-        }
-
         if (mCurrentPts == INT64_MIN) {
             mCurrent = mPacketMap.begin();
             mCurrentPts = (*(mCurrent)).second->getInfo().pts;
@@ -192,6 +190,8 @@ namespace Cicada {
             packet = ((*(mCurrent)).second->clone());
             mCurrentPts = packet->getInfo().pts;
             mCurrent++;
+        } else {
+            return 0;
         }
 
         return static_cast<int>(packet->getSize());
@@ -236,7 +236,7 @@ namespace Cicada {
                 }
 
                 av_packet_free(&pkt);
-                return 0;// EOS
+                return AVERROR_EOF;// EOS
             }
 
             if (err == AVERROR_EXIT) {
@@ -281,7 +281,7 @@ namespace Cicada {
         int score = AVPROBE_SCORE_RETRY;
         AVInputFormat *fmt = av_probe_input_format2(&pd, 1, &score);
 
-        if (fmt && strcmp(fmt->name, "webvtt") == 0) {
+        if (fmt && (strcmp(fmt->name, "webvtt") == 0 || strcmp(fmt->name, "srt") == 0)) {
             return true;
         };
 

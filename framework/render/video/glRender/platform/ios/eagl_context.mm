@@ -12,13 +12,15 @@ namespace Cicada{
         if (sharedContext == nullptr) {
             mContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
         } else {
-            mContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3 sharegroup:((EAGLContext *) sharedContext).sharegroup];
+            mContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3
+                                             sharegroup:((__bridge EAGLContext *) sharedContext).sharegroup];
         }
         if (!mContext) {
             if (sharedContext == nullptr) {
                 mContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
             } else {
-                mContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:((EAGLContext *) sharedContext).sharegroup];
+                mContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2
+                                                 sharegroup:((__bridge EAGLContext *) sharedContext).sharegroup];
             }
             mGLVersion = kOpenGLES2_0;
         }
@@ -64,7 +66,7 @@ namespace Cicada{
         glBindRenderbuffer(GL_RENDERBUFFER, surface->renderbuffer);
 
         CHECK_GL_ERROR_DEBUG();
-        [mContext renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer *) surface->surface];
+        [mContext renderbufferStorage:GL_RENDERBUFFER fromDrawable:(__bridge CAEAGLLayer *) surface->surface];
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, surface->renderbuffer);
         CHECK_GL_ERROR_DEBUG();
 
@@ -74,7 +76,7 @@ namespace Cicada{
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         CHECK_GL_ERROR_DEBUG();
 
-        CAEAGLLayer* layer = (CAEAGLLayer *) surface->surface;
+        CAEAGLLayer *layer = (__bridge CAEAGLLayer *) surface->surface;
         mLayerWidth = layer.frame.size.width;
         mLayerHeight = layer.frame.size.height;
 
@@ -146,7 +148,7 @@ namespace Cicada{
         CHECK_GL_ERROR_DEBUG();
         glBindRenderbuffer(GL_RENDERBUFFER, surface->renderbuffer);
         CHECK_GL_ERROR_DEBUG();
-        [mContext renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer *) surface->surface];
+        [mContext renderbufferStorage:GL_RENDERBUFFER fromDrawable:(__bridge CAEAGLLayer *) surface->surface];
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, surface->renderbuffer);
         CHECK_GL_ERROR_DEBUG();
 
@@ -167,7 +169,7 @@ namespace Cicada{
 
     void CicadaEAGLContext::Destroy() {
         [EAGLContext setCurrentContext:nil];
-        [mContext release];
+        //   [mContext release];
     }
 
     int CicadaEAGLContext::GetVisualFormat() { return 0; }
@@ -178,7 +180,10 @@ namespace Cicada{
 
     int CicadaEAGLContext::GetHeight() { return mHeight; }
 
-    void *CicadaEAGLContext::GetContext() { return mContext; }
+    void *CicadaEAGLContext::GetContext()
+    {
+        return (__bridge void *) mContext;
+    }
 
     bool CicadaEAGLContext::IsViewSizeChanged(){
 
@@ -186,7 +191,7 @@ namespace Cicada{
             return false;
         }
 
-        CAEAGLLayer* layer = (CAEAGLLayer *) mCurrentSurface->surface;
+        CAEAGLLayer *layer = (__bridge CAEAGLLayer *) mCurrentSurface->surface;
         if(layer == nullptr){
             return false;
         }

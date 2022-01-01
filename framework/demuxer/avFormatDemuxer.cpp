@@ -144,6 +144,18 @@ namespace Cicada {
             return ret;
         }
 
+        int probeHeader_nbStreams = mCtx->nb_streams;
+        int64_t probeHeader_pos = -1;
+        int probeHeader_seekCount = -1;
+        if (mCtx->pb != nullptr) {
+            probeHeader_pos = mCtx->pb->bytes_read;
+            probeHeader_seekCount = mCtx->pb->seek_count;
+        }
+
+        if (mSeekCb == nullptr && strcmp(mCtx->iformat->name, "mpegts") == 0) {
+            mNedParserPkt = true;
+        }
+
         mCtx->flags |= AVFMT_FLAG_GENPTS;
         // TODO: add a opt to set fps probe
         mCtx->fps_probe_size = 0;
@@ -176,6 +188,18 @@ namespace Cicada {
             return ret;
         }
 
+        int64_t probeStream_pos = -1;
+        int probeStream_seekCount = -1;
+        if (mCtx->pb != nullptr) {
+            probeStream_pos = mCtx->pb->bytes_read;
+            probeStream_seekCount = mCtx->pb->seek_count;
+        }
+
+        int probeStream_nbFrames = 0;
+        for(int i = 0 ; i < mCtx->nb_streams; i++) {
+            probeStream_nbFrames += mCtx->streams[i]->codec_info_nb_frames;
+        }
+
         /*
          * this flag is only affect on mp3 and flac
          */
@@ -188,6 +212,12 @@ namespace Cicada {
         CicadaJSONItem json;
         json.addValue("cost", (int) used);
         json.addValue("time", (double) af_getsteady_ms());
+        json.addValue("headerPos" , (double) probeHeader_pos);
+        json.addValue("headerSeekCount" , (int) probeHeader_seekCount);
+        json.addValue("headerNbStreams" , (int) probeHeader_nbStreams);
+        json.addValue("streamPos" , (double)probeStream_pos);
+        json.addValue("streamSeekCount" , (int)probeStream_seekCount);
+        json.addValue("streamNbFrames" , (int)probeStream_nbFrames);
         mProbeString = json.printJSON();
 
         if (mStartTime > 0 && mStartTime < mCtx->duration) {
@@ -287,12 +317,30 @@ namespace Cicada {
             av_packet_unref(pkt);
         } while (true);
 
+        if (mNedParserPkt) {
+            av_compute_pkt_fields(mCtx, mCtx->streams[pkt->stream_index], nullptr, pkt, AV_NOPTS_VALUE, AV_NOPTS_VALUE);
+        }
+
         if (pkt->pts == AV_NOPTS_VALUE) {
             AF_LOGW("pkt pts error\n");
         }
 
         if (pkt->dts == AV_NOPTS_VALUE) {
             AF_LOGW("pkt dts error\n");
+        }
+
+        int streamIndex = pkt->stream_index;
+
+        int encryption_info_size;
+        const uint8_t *new_encryption_info = av_packet_get_side_data(pkt,
+                                                                     AV_PKT_DATA_ENCRYPTION_INFO,
+                                                                     &encryption_info_size);
+        if (encryption_info_size > 0 && new_encryption_info != nullptr) {
+            mStreamCtxMap[streamIndex]->bsf = nullptr;
+        } else {
+            if (mStreamCtxMap[streamIndex]->bsf == nullptr) {
+                createBsf(streamIndex);
+            }
         }
 
         bool needUpdateExtraData = false;
@@ -303,7 +351,6 @@ namespace Cicada {
 
         if (new_extradata) {
             AF_LOGI("AV_PKT_DATA_NEW_EXTRADATA");
-            int streamIndex = pkt->stream_index;
             AVCodecParameters *codecpar = mCtx->streams[streamIndex]->codecpar;
             av_free(codecpar->extradata);
             codecpar->extradata = static_cast<uint8_t *>(av_malloc(new_extradata_size + AV_INPUT_BUFFER_PADDING_SIZE));
@@ -312,10 +359,13 @@ namespace Cicada {
 
             if (mStreamCtxMap[streamIndex]->bsf) {
                 createBsf(streamIndex);
-            } else {
-                needUpdateExtraData = true;
             }
+            needUpdateExtraData = true;
         }
+        /*
+         * TODO: can't support this for now, audio render only support fixed sample size
+         */
+        av_packet_shrink_side_data(pkt, AV_PKT_DATA_SKIP_SAMPLES, 0);
 
         if (mStreamCtxMap[pkt->stream_index]->bsf) {
             // TODO: while pulling and ret value
@@ -333,7 +383,7 @@ namespace Cicada {
             }
         }
 
-        err = pkt->size;
+        int packet_size = pkt->size;
 
         if (pkt->pts != AV_NOPTS_VALUE) {
             pkt->pts = av_rescale_q(pkt->pts, mCtx->streams[pkt->stream_index]->time_base, av_get_time_base_q());
@@ -344,18 +394,23 @@ namespace Cicada {
         }
 
         if (pkt->duration > 0) {
-            pkt->duration = av_rescale_q(pkt->duration, mCtx->streams[pkt->stream_index]->time_base, av_get_time_base_q());
+            pkt->duration = av_rescale_q(pkt->duration, mCtx->streams[pkt->stream_index]->time_base,
+                                         av_get_time_base_q());
         } else if (mCtx->streams[pkt->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             AVCodecParameters *codecpar = mCtx->streams[pkt->stream_index]->codecpar;
-            if (codecpar->sample_rate > 0) {
+            if (codecpar->sample_rate > 0 && codecpar->frame_size > 0) {
                 pkt->duration = codecpar->frame_size * 1000000 / codecpar->sample_rate;
             }
         }
 
         packet = unique_ptr<IAFPacket>(new AVAFPacket(&pkt, mSecretDemxuer));
 
+        if (mSecretDemxuer){
+            packet->setMagicKey(mDrmMagicKey);
+        }
+
         if (needUpdateExtraData) {
-            packet->setExtraData(new_extradata, new_extradata_size);
+            packet->setExtraData(mCtx->streams[streamIndex]->codecpar->extradata, mCtx->streams[streamIndex]->codecpar->extradata_size);
         }
 
         if (packet->getInfo().pts != INT64_MIN) {
@@ -365,7 +420,7 @@ namespace Cicada {
             packet->getInfo().timePosition = packet->getInfo().pts - mCtx->start_time;
         }
 
-        return err;
+        return packet_size;
     }
 
     int avFormatDemuxer::OpenStream(int index)
@@ -386,7 +441,6 @@ namespace Cicada {
 
         mStreamCtxMap[index] = unique_ptr<AVStreamCtx>(new AVStreamCtx());
         mStreamCtxMap[index]->opened = true;
-        createBsf(index);
         return 0;
     }
 
@@ -410,7 +464,7 @@ namespace Cicada {
         int ret = 0;
         const AVCodecParameters *codecpar = mCtx->streams[index]->codecpar;
 
-        if (mMergeVideoHeader) {
+        if (mMergeVideoHeader == header_type::header_type_merge) {
             if (codecpar->codec_id == AV_CODEC_ID_H264 && codecpar->extradata != nullptr && (codecpar->extradata[0] == 1)) {
                 bsfName = "h264_mp4toannexb";
             } else if (codecpar->codec_id == AV_CODEC_ID_HEVC && codecpar->extradata_size >= 5 &&
@@ -420,7 +474,7 @@ namespace Cicada {
             }
 
             // TODO: mpeg4 dump extra bsf
-        } else {
+        } else if (mMergeVideoHeader == header_type::header_type_extract) {
             if (codecpar->codec_id == AV_CODEC_ID_H264 && codecpar->extradata != nullptr && (codecpar->extradata[0] != 1)) {
                 bsfName = "h26xAnnexb2xVcc";
             } else if (codecpar->codec_id == AV_CODEC_ID_HEVC && codecpar->extradata_size >= 5 &&
@@ -428,9 +482,14 @@ namespace Cicada {
                          AV_RB24(codecpar->extradata) != 0x000001)) {
                 bsfName = "h26xAnnexb2xVcc";
             }
+        }else if (mMergeVideoHeader == header_type::header_type_no_touch) {
+
         }
 
         if (!bsfName.empty()) {
+#if AF_HAVE_PTHREAD
+            std::lock_guard<std::mutex> uLock(mCtxMutex);
+#endif
             mStreamCtxMap[index]->bsf = unique_ptr<IAVBSF>(IAVBSFFactory::create(bsfName));
             ret = mStreamCtxMap[index]->bsf->init(bsfName, mCtx->streams[index]->codecpar);
 
@@ -455,7 +514,7 @@ namespace Cicada {
         mInterrupted = inter;
     }
 
-    int avFormatDemuxer::Seek(int64_t us, int flags, int index)
+    int64_t avFormatDemuxer::Seek(int64_t us, int flags, int index)
     {
         us = getWorkAroundSeekPos(us);
         if (!bOpened) {
@@ -535,7 +594,10 @@ namespace Cicada {
 
     int avFormatDemuxer::GetStreamMeta(Stream_meta *meta, int index, bool sub) const
     {
-        if (index < 0 || index > mCtx->nb_streams) {
+#if AF_HAVE_PTHREAD
+        std::lock_guard<std::mutex> uLock(mCtxMutex);
+#endif
+        if (index < 0 || mCtx == nullptr || index >= mCtx->nb_streams) {
             return -EINVAL;
         }
 
@@ -669,6 +731,24 @@ namespace Cicada {
         return "";
     }
 
+    bool avFormatDemuxer::isRealTimeStream(int index)
+    {
+#if AF_HAVE_PTHREAD
+        std::lock_guard<std::mutex> uLock(mCtxMutex);
+#endif
+        if (mCtx == nullptr) {
+            return false;
+        }
+        bool isLive = (mCtx->duration == AV_NOPTS_VALUE || mCtx->duration == 0);
+        bool isHls = false;
+        bool isDash = false;
+        if (mCtx->iformat) {
+            isHls = (strcmp(mCtx->iformat->name, "hls,applehttp") == 0);
+            isDash = (strcmp(mCtx->iformat->name, "dash") == 0);
+        }
+        return isLive && !(isHls || isDash);
+    }
+
     bool avFormatDemuxer::is_supported(const string &uri, const uint8_t *buffer, int64_t size, int *type, const Cicada::DemuxerMeta *meta,
                                        const Cicada::options *opts)
     {
@@ -683,9 +763,7 @@ namespace Cicada {
         int score = AVPROBE_SCORE_RETRY;
         AVInputFormat *fmt = av_probe_input_format2(&pd, 1, &score);
 
-        if (fmt &&
-                (strcmp(fmt->name, "hls,applehttp") == 0
-                 || strcmp(fmt->name, "webvtt") == 0)) {
+        if (fmt && (strcmp(fmt->name, "hls,applehttp") == 0 || strcmp(fmt->name, "webvtt") == 0 || strcmp(fmt->name, "srt") == 0)) {
             return false;
         }
 
@@ -730,4 +808,5 @@ namespace Cicada {
         }
         return pos >= mCtx->duration - 2 * AV_TIME_BASE ? mCtx->duration - 2 * AV_TIME_BASE : pos;
     }
+
 }

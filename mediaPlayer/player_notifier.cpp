@@ -471,4 +471,13 @@ namespace Cicada {
             mEventQueue.pop_front();
         }
     }
+    void PlayerNotifier::NotifyCurrentDownloadSpeed(float speed)
+    {
+        if (speed != mCurrentDownloadSpeed) {
+            mCurrentDownloadSpeed = speed;
+
+            auto *event = new player_event((int64_t) speed, mListener.CurrentDownLoadSpeed);
+            pushEvent(event);
+        }
+    }
 }

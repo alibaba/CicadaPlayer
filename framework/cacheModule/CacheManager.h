@@ -53,7 +53,7 @@ public:
 
     void setCacheSuccessCallback(function<void()> resultCallback);
 
-    void sendMediaFrame(const std::unique_ptr<IAFPacket> &frame, StreamType type);
+    void sendMediaFrame(const IAFPacket *frame, StreamType type);
 
 private:
     std::mutex mStopMutex{};

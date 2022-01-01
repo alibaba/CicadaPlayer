@@ -11,31 +11,44 @@
 #include "CallObjectMethod.h"
 #include "GetStringUTFChars.h"
 
-char *JniUtils::jByteArrayToChars(JNIEnv *env, jbyteArray bytearray)
+char *JniUtils::jByteArrayToChars(JNIEnv *env, jbyteArray bytearray) {
+    char *chars = nullptr;
+    jByteArrayToChars(env, bytearray, &chars);
+    return chars;
+}
+
+int JniUtils::jByteArrayToChars(JNIEnv *env, jbyteArray bytearray, char **dst)
 {
+    if (bytearray == nullptr || env == nullptr) {
+        return 0;
+    }
+
+    int chars_len = env->GetArrayLength(bytearray);
+    if (*dst == nullptr) {
+        *dst = static_cast<char *>(malloc(chars_len));
+    }
+    jbyte *bytes = env->GetByteArrayElements(bytearray, 0);
+    memcpy(*dst, bytes, chars_len);
+    env->ReleaseByteArrayElements(bytearray, bytes, 0);
+    JniException::clearException(env);
+    return chars_len;
+}
+
+char *JniUtils::jByteArrayToChars_New(JNIEnv *env, jbyteArray bytearray) {
+    if (bytearray == nullptr || env == nullptr) {
+        return nullptr;
+    }
+
     jbyte *bytes = env->GetByteArrayElements(bytearray, 0);
     int chars_len = env->GetArrayLength(bytearray);
-    char *chars = static_cast<char *>(malloc(chars_len));
+    char *chars = new char[chars_len]();
     memcpy(chars, bytes, chars_len);
     env->ReleaseByteArrayElements(bytearray, bytes, 0);
     JniException::clearException(env);
     return chars;
 }
 
-char *JniUtils::jByteArrayToChars_New(JNIEnv *env, jbyteArray bytearray)
-{
-    jbyte *bytes = env->GetByteArrayElements(bytearray, 0);
-    int chars_len = env->GetArrayLength(bytearray);
-    char *chars = new char[chars_len + 1]();
-    memcpy(chars, bytes, chars_len);
-    env->ReleaseByteArrayElements(bytearray, bytes, 0);
-    JniException::clearException(env);
-    return chars;
-}
-
-
-jobject JniUtils::cmap2Jmap(JNIEnv *env, std::map<std::string, std::string> cmap)
-{
+jobject JniUtils::cmap2Jmap(JNIEnv *env, std::map<std::string, std::string> cmap) {
     FindClass jmapclass(env, "java/util/HashMap");
     jmethodID initMethod = env->GetMethodID(jmapclass.getClass(), "<init>", "()V");
     jmethodID putMethod = env->GetMethodID(jmapclass.getClass(), "put",
@@ -54,9 +67,49 @@ jobject JniUtils::cmap2Jmap(JNIEnv *env, std::map<std::string, std::string> cmap
     return jmap;
 }
 
+std::map<std::string, std::string> JniUtils::jmap2cmap(JNIEnv *env, jobject jobj) {
+    std::map<std::string, std::string> cmap;
+    if (jobj == nullptr || env == nullptr) {
+        return cmap;
+    }
 
-std::string JniUtils::callStringMethod(JNIEnv *env, jobject jObj, jmethodID method)
-{
+    FindClass jmapclass(env, "java/util/HashMap");
+    jmethodID jkeysetmid = env->GetMethodID(jmapclass.getClass(), "keySet", "()Ljava/util/Set;");
+    jmethodID jgetmid = env->GetMethodID(jmapclass.getClass(), "get",
+                                         "(Ljava/lang/Object;)Ljava/lang/Object;");
+    jobject jsetkey = env->CallObjectMethod(jobj, jkeysetmid);
+    FindClass jsetclass(env, "java/util/Set");
+    jmethodID jtoArraymid = env->GetMethodID(jsetclass.getClass(), "toArray",
+                                             "()[Ljava/lang/Object;");
+    jobjectArray jobjArray = (jobjectArray) env->CallObjectMethod(jsetkey, jtoArraymid);
+    if (jobjArray != nullptr) {
+        jsize arraysize = env->GetArrayLength(jobjArray);
+        int i = 0;
+        for (i = 0; i < arraysize; i++) {
+            jstring jkey = (jstring) env->GetObjectArrayElement(jobjArray, i);
+            jstring jvalue = (jstring) env->CallObjectMethod(jobj, jgetmid, jkey);
+            GetStringUTFChars key(env, jkey);
+            GetStringUTFChars value(env, jvalue);
+            cmap[key.getChars()] = value.getChars();
+        }
+    }
+    if (jobjArray != nullptr) {
+        env->DeleteLocalRef(jobjArray);
+    }
+
+    if (jsetkey != nullptr) {
+        env->DeleteLocalRef(jsetkey);
+    }
+
+    return cmap;
+}
+
+
+std::string JniUtils::callStringMethod(JNIEnv *env, jobject jObj, jmethodID method) {
+    if (env == nullptr || jObj == nullptr || method == nullptr) {
+        return "";
+    }
+
     CallObjectMethod tmpGetObject(env, jObj, method);
     auto objec = (jstring) tmpGetObject.getValue();
     GetStringUTFChars tmpObj(env, objec);

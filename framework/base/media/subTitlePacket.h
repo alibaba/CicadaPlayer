@@ -14,7 +14,7 @@ public:
 
     ~subTitlePacket() override;
 
-    std::unique_ptr<IAFPacket> clone() override;
+    std::unique_ptr<IAFPacket> clone() const override;
 
     uint8_t *getData() override;
 

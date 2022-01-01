@@ -53,6 +53,52 @@
                 android:text="@string/hardware_decoder" />
             <!--硬解 end-->
 
+
+            <!-- 选择播放器 start -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/title_select_player"
+                android:textSize="20sp" />
+
+            <RadioGroup
+                android:id="@+id/radio_group_player"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="35dp"
+                android:layout_marginTop="5dp">
+
+                <RadioButton
+                    android:id="@+id/radio_btn_cicada"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:checked="true"
+                    android:text="@string/title_cicada_player"
+                    android:textSize="16sp" />
+
+                <RadioButton
+                    android:id="@+id/radio_btn_exo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/title_exo_player"
+                    android:textSize="16sp" />
+
+                <RadioButton
+                    android:id="@+id/radio_btn_media"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/title_media_player"
+                    android:textSize="16sp" />
+
+            </RadioGroup>
+            <!-- 选择播放器 end -->
+
             <!--黑名单 start-->
             <LinearLayout
                 android:layout_width="wrap_content"

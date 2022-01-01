@@ -38,7 +38,6 @@ namespace Cicada {
         bool bDisableAudio{false};
         bool bDisableVideo{false};
         bool bMute = false;
-        bool bDisableBufferManager = false;
         bool bLowLatency = false;
 
         std::atomic<void *> mView{nullptr};
@@ -49,7 +48,7 @@ namespace Cicada {
         atomic<float> mVolume{1.0};
         playerListener mPlayerListener;
         atomic<float> rate {1.0};
-        std::string http_proxy = "";
+        std::string http_proxy{};
         std::vector<std::string> customHeaders;
         bool clearShowWhenStop = false;
         bool bEnableTunnelRender = true;
@@ -64,6 +63,9 @@ namespace Cicada {
         int maxVideoRecoverSize;
         bool mFastStart{true};
         uint32_t pixelBufferOutputFormat;
+        string drmMagicKey;
+        string sessionId{};
+        int netWorkRetryCount{0};
     };
 }
 

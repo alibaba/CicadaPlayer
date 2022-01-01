@@ -42,6 +42,8 @@ namespace Cicada {
 
         void flush() override;
 
+        void prePause() override;
+
     private:
         static void SDLAudioCallback(void *userdata, Uint8 *stream, int len);
 

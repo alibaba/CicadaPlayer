@@ -22,8 +22,8 @@
 #include <cerrno>
 #include <utils/CicadaUtils.h>
 //#include <openssl/opensslv.h>
+#include <cassert>
 #include <cstring>
-
 
 
 // TODO: move to another file
@@ -42,13 +42,17 @@
 static pthread_once_t once = PTHREAD_ONCE_INIT;
 using namespace Cicada;
 
+static curl_sslbackend g_sslbackend = CURLSSLBACKEND_NONE;
+
 CurlDataSource CurlDataSource::se(0);
 using std::string;
 
 CURLConnection *CurlDataSource::initConnection()
 {
     auto *pHandle = new CURLConnection(pConfig);
+    pHandle->setSSLBackEnd(g_sslbackend);
     pHandle->setSource(mLocation, headerList);
+    pHandle->setPost(mBPost, mPostSize, mPostData);
     return pHandle;
 }
 
@@ -79,6 +83,8 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
         if (length > 0.0) {
             mFileSize = pConnection->tell() + (int64_t) length;
             //AF_LOGE("file size is %lld\n",mFileSize);
+        } else {
+            mFileSize = 0;
         }
 
 //        if (curlContext.fileSize == 0)
@@ -89,8 +95,6 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
             curl_easy_getinfo(pConnection->getCurlHandle(), CURLINFO_EFFECTIVE_URL, &location)) {
         if (location) {
             mLocation = location;
-        } else {
-            mLocation = "";
         }
     }
 
@@ -113,10 +117,23 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
 
     return 0;
 }
+static curl_sslbackend getCurlSslBackend()
+{
+    const curl_ssl_backend **list;
+    CURLsslset result = curl_global_sslset((curl_sslbackend) -1, nullptr, &list);
+    assert(result == CURLSSLSET_UNKNOWN_BACKEND);
 
+    // we only build one ssl backend
+    if (list[0]) {
+        return list[0]->id;
+    }
+
+    return CURLSSLBACKEND_NONE;
+}
 
 static void init_curl()
 {
+    g_sslbackend = getCurlSslBackend();
     curl_global_init(CURL_GLOBAL_DEFAULT);
 #if (OPENSSL_VERSION_NUMBER < 0x10100000L)
 //   openssl_thread_setup();
@@ -220,6 +237,23 @@ int CurlDataSource::Open(const string &url)
     mLocation = (isRTMP ? (url + " live=1").c_str() : url.c_str());
     // only change url, don,t change share and resolve
     mPConnection->updateSource(mLocation);
+
+    if (headerList) {
+        curl_slist_free_all(headerList);
+        headerList = nullptr;
+    }
+
+    std::vector<std::string> &customHeaders = mConfig.customHeaders;
+
+    for (string &item : customHeaders) {
+        if (!item.empty()) {
+            headerList = curl_slist_append(headerList, item.c_str());
+        }
+    }
+
+    mPConnection->updateHeaderList(headerList);
+    mPConnection->setPost(mBPost, mPostSize, mPostData);
+
     int ret = curl_connect(mPConnection, rangeStart != INT64_MIN ? rangeStart : 0);
     mOpenTimeMS = af_gettime_relative() / 1000 - mOpenTimeMS;
 
@@ -250,20 +284,29 @@ void CurlDataSource::closeConnections(bool current)
     }
 
     if (deleteConnection) {
-        AsyncJob::Instance()->addJob([deleteConnection] {
+        if (AsyncJob::Instance()) {
+            AsyncJob::Instance()->addJob([deleteConnection] { delete deleteConnection; });
+        } else {
             delete deleteConnection;
-        });
+        }
     }
 
     if (pConnections) {
-        AsyncJob::Instance()->addJob([pConnections] {
-            for (auto item = pConnections->begin(); item != pConnections->end();)
-            {
+        if (AsyncJob::Instance()) {
+            AsyncJob::Instance()->addJob([pConnections] {
+                for (auto item = pConnections->begin(); item != pConnections->end();) {
+                    delete *item;
+                    item = pConnections->erase(item);
+                }
+                delete pConnections;
+            });
+        } else {
+            for (auto item = pConnections->begin(); item != pConnections->end();) {
                 delete *item;
                 item = pConnections->erase(item);
             }
             delete pConnections;
-        });
+        }
     }
 }
 
@@ -298,8 +341,13 @@ if (!mPConnection) {
         return offset;
     }
 
-    if (offset > mFileSize) {
-        return -1;
+    /* do not try to make a new connection if seeking past the end of the file */
+    if (rangeEnd != INT64_MIN || mFileSize > 0) {
+        uint64_t end_pos = rangeEnd != INT64_MIN ? rangeEnd : mFileSize;
+        if (offset >= end_pos) {
+            mPConnection->SetResume(offset);
+            return offset;
+        }
     }
 
     if (offset == mFileSize) {
@@ -310,7 +358,7 @@ if (!mPConnection) {
         AF_LOGI("short seek ok\n");
         return offset;
     } else {
-        AF_LOGI("short seek filed\n");
+        AF_LOGI("short seek failed\n");
     }
 
     CURLConnection *con = nullptr;
@@ -339,11 +387,11 @@ if (!mPConnection) {
         AF_LOGW("short seek ok\n");
         return offset;
     } else {
-        AF_LOGW("short seek filed\n");
+        AF_LOGW("short seek failed\n");
     }
 
     int64_t ret = TrySeekByNewConnection(offset);
-    return (ret >= 0) ? ret : -1;
+    return ret;
 }
 
 int64_t CurlDataSource::TrySeekByNewConnection(int64_t offset)
@@ -381,11 +429,23 @@ int CurlDataSource::Read(void *buf, size_t size)
 {
     int ret = 0;
 
-    if (rangeEnd != INT64_MIN) {
-        size = std::min(size, (size_t) (rangeEnd - mPConnection->tell()));
+    if (rangeEnd != INT64_MIN || mFileSize > 0) {
+        /*
+        * avoid read after seek to end
+        */
 
-        if (size == 0) {
-            return 0;
+        int64_t end = mFileSize;
+        if (rangeEnd > 0) {
+            end = rangeEnd;
+        }
+        end = std::min(mFileSize, end);
+
+        if (end > 0) {
+            size = std::min(size, (size_t)(end - mPConnection->tell()));
+
+            if (size <= 0) {
+                return 0;
+            }
         }
     }
 
@@ -508,4 +568,9 @@ CurlDataSource::CurlDataSource(int dummy) : IDataSource("")
     mBDummy = true;
     init_curl();
     addPrototype(this);
+}
+
+std::string CurlDataSource::GetUri()
+{
+    return mLocation;
 }

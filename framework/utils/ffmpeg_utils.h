@@ -13,6 +13,7 @@ extern "C"{
 
 #include <libavutil/dict.h>
 #include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -68,9 +69,22 @@ void copyPCMData2(const AVFrame *frame, fillBufferCallback fillCallback, void *a
 
 bool updateH26xHeader2xxc(AVCodecParameters *par);
 
-
 const char *getErrorString(int err);
 
+int parse_h264_extraData(enum AVCodecID codecId, const uint8_t* extraData,int extraData_size,
+                         uint8_t** sps_data ,int*sps_data_size,
+                         uint8_t** pps_data, int* pps_data_size,
+                         int* nal_length_size);
+
+int parse_h265_extraData(enum AVCodecID codecId, const uint8_t* extradata,int extradata_size,
+                         uint8_t** vps_data ,int*vps_data_size,
+                         uint8_t** sps_data ,int*sps_data_size,
+                         uint8_t** pps_data, int* pps_data_size,
+                         int* nal_length_size);
+
+void av_compute_pkt_fields(AVFormatContext *s, AVStream *st,
+        AVCodecParserContext *pc, AVPacket *pkt,
+        int64_t next_dts, int64_t next_pts);
 
 #ifdef __cplusplus
 };

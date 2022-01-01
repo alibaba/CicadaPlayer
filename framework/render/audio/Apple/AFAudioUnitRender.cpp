@@ -4,12 +4,13 @@
 
 #define LOG_TAG "AFAudioUnitRender"
 
+#include "AFAudioUnitRender.h"
 #include "AudioRenderType.h"
 #include <AudioToolbox/AudioToolbox.h>
-#include <utils/timer.h>
-#include "AFAudioUnitRender.h"
-#include <utils/ffmpeg_utils.h>
 #include <base/media/AVAFPacket.h>
+#include <utils/ffmpeg_utils.h>
+#include <utils/frame_work_log.h>
+#include <utils/timer.h>
 
 #if TARGET_OS_OSX
     #define MAX_RETRY 3
@@ -453,6 +454,10 @@ namespace Cicada {
 
     void AFAudioUnitRender::device_setVolume(float gain)
     {
+        /*
+         * workaround setting mVolume to 0 before start can't effect immediately
+         */
+        loopChecker();
         mVolume = gain;
 #if AF_USE_MIX
         //        AudioUnitSetParameter(mAudioUnit, kAUNBandEQParam_GlobalGain, kAudioUnitScope_Global, 0, mVolume, 0);

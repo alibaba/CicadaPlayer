@@ -25,6 +25,15 @@
  */
 @property (nonatomic,strong)NSDictionary * subtitleDictionary;
 
+/**
+fairPlay标识，如果使用了FairPlay，avResourceLoaderDelegate也要同步设置
+*/
+@property (nonatomic, assign) BOOL useFairPlay;
+/**
+ResourceLoaderDelegate
+*/
+@property (nonatomic,strong) NSObject<AVAssetResourceLoaderDelegate>* avResourceLoaderDelegate;
+
 @end
 
 

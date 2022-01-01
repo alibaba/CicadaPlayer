@@ -43,6 +43,26 @@ namespace Cicada {
         mQueue.push_back(move(frame));
     }
 
+    void MediaPacketQueue::SetOnePacketDuration(int64_t duration) {
+        ADD_LOCK;
+        if (mPacketDuration <= 0) {
+            mPacketDuration = duration;
+
+            int64_t missedDuration = 0;
+            for (mediaPacket &item : mQueue) {
+                if (item.get()->getInfo().duration <= 0) {
+                    item.get()->getInfo().duration = mPacketDuration;
+                    missedDuration += mPacketDuration;
+                }
+            }
+            mDuration += missedDuration;
+        }
+    }
+
+    int64_t MediaPacketQueue::GetOnePacketDuration() {
+        ADD_LOCK;
+        return mPacketDuration;
+    }
 
     int64_t MediaPacketQueue::GetLastKeyTimePos()
     {
@@ -177,7 +197,7 @@ namespace Cicada {
     {
         ADD_LOCK;
 
-        if (mMediaType == BUFFER_TYPE_VIDEO && mPacketDuration == 0) {
+        if ( (mMediaType == BUFFER_TYPE_VIDEO || mMediaType == BUFFER_TYPE_AUDIO) && mPacketDuration == 0) {
             if (mQueue.empty()) {
                 return 0;
             }
@@ -275,5 +295,7 @@ namespace Cicada {
 
         return mQueue.front()->getInfo().pts;
     }
+
+
 
 }//namespace Cicada

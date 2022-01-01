@@ -11,9 +11,10 @@
 using namespace Cicada;
 using namespace std;
 
+#include "NetWorkEventReceiver.h"
 #include "SDLEventReceiver.h"
 #include "cicadaEventListener.h"
-#include "NetWorkEventReceiver.h"
+#include <utils/frame_work_log.h>
 
 #include <media_player_error_def.h>
 
@@ -50,6 +51,11 @@ static void onPrepared(void *userData)
     cont->player->Start();
 }
 
+static void currentDownLoadSpeed(int64_t speed, void *userData)
+{
+    AF_LOGD("current speed is %f kbps\n", (float) speed / 1024);
+}
+
 static void onEvent(int64_t errorCode, const void *errorMsg, void *userData)
 {
     auto *cont = static_cast<cicadaCont *>(userData);
@@ -72,7 +78,7 @@ static void onEvent(int64_t errorCode, const void *errorMsg, void *userData)
                 msg.deleteItem("content");
                 msg.addValue("content", "hi");
                 msg.addValue("cmd", 0);
-                cont->player->InvokeComponent(msg.printJSON());
+                cont->player->InvokeComponent(msg.printJSON().c_str());
             }
             break;
         }
@@ -130,6 +136,7 @@ int main(int argc, char *argv[])
     pListener.EventCallback = onEvent;
     pListener.ErrorCallback = onError;
     pListener.Prepared = onPrepared;
+    pListener.CurrentDownLoadSpeed = currentDownLoadSpeed;
     cicadaEventListener eListener(player.get());
 #ifdef ENABLE_SDL
     SDLEventReceiver receiver(eListener);

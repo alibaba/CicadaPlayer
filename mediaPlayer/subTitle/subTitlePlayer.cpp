@@ -2,9 +2,11 @@
 // Created by moqi on 2019/10/31.
 //
 
+#define LOG_TAG "subTitlePlayer"
 #include "subTitlePlayer.h"
-#include <memory>
 #include <cassert>
+#include <memory>
+#include <utils/frame_work_log.h>
 
 using namespace std;
 namespace Cicada {
@@ -27,6 +29,13 @@ namespace Cicada {
 
     int subTitlePlayer::add(const std::string &uri)
     {
+        for (auto item = mSources.begin(); item != mSources.end();) {
+            if ((*item)->mSource->getUri() == uri) {
+                mListener.onAdded(uri, (*item)->mSource->getID());
+                return 0;
+            }
+            item++;
+        }
         auto *adding = new Adding();
         adding->mSource = unique_ptr<subTitleSource>(new subTitleSource(uri));
         subTitleSource *pSource = adding->mSource.get();
@@ -85,16 +94,7 @@ namespace Cicada {
                         ++mSelectNum;
                     } else {
                         --mSelectNum;
-
-                        if ((*item)->mPacket) {
-                            IAFPacket *packet = (*item)->mPacket.get();
-
-                            if (packet->getDiscard()) {
-                                mListener.onRender(false, (*item)->mPacket.release());
-                            }
-
-                            (*item)->mPacket = nullptr;
-                        }
+                        (*item)->mNeedFlush++;
                     }
                 }
 
@@ -114,13 +114,37 @@ namespace Cicada {
         }
     }
 
+    int subTitlePlayer::setDelayTime(int index, int64_t time)
+    {
+        bool found = false;
+        for (auto item = mSources.begin(); item != mSources.end();) {
+            if ((*item)->mSource->getID() == index) {
+                (*item)->mDelay = time;
+                found = true;
+                break;
+            }
+            ++item;
+        }
+        if (!found) {
+            AF_LOGE("setDelayTime no such stream\n");
+        }
+        return 0;
+    }
+
     bool subTitlePlayer::isActive()
     {
-        return mSelectNum > 0 && mEnable;
+        /*
+         * need flush async
+         */
+        return true;
+        // return mSelectNum > 0 && mEnable;
     }
 
     void subTitlePlayer::enable(bool bEnable)
     {
+        /*
+         *  TODO: flush when disable
+         */
         mEnable = bEnable;
     }
 
@@ -128,17 +152,8 @@ namespace Cicada {
     {
         for (auto item = mSources.begin(); item != mSources.end();) {
             if ((*item)->mSelected) {
-                (*item)->mSource->seek(pts);
-
-                if ((*item)->mPacket) {
-                    IAFPacket *packet = (*item)->mPacket.get();
-
-                    if (packet->getDiscard()) {
-                        mListener.onRender(false, (*item)->mPacket.release());
-                    }
-
-                    (*item)->mPacket = nullptr;
-                }
+                (*item)->mSource->seek(std::max(pts + (*item)->mDelay, (int64_t) 0));
+                (*item)->mNeedFlush++;
             }
 
             ++item;
@@ -149,34 +164,31 @@ namespace Cicada {
 
     void subTitlePlayer::render(subTitlePlayer::SourceInfo &info, int64_t pts)
     {
-        IAFPacket *packet = nullptr;
-
-        do {
-            int ret = info.getPacket(&packet);
-
-            if (packet == nullptr) {
-                break;
+        auto iter = info.mSubtitleShowedQueue.begin();
+        while (iter != info.mSubtitleShowedQueue.end()) {
+            if ((*iter) && ((*iter)->getInfo().pts + info.mDelay + (*iter)->getInfo().duration) <= pts) {
+                mListener.onRender(false, (*iter).release());
+                iter = info.mSubtitleShowedQueue.erase(iter);
+                continue;
             }
-
-            if (packet->getInfo().pts + packet->getInfo().duration <= pts) {
-                if (packet->getDiscard()) {
-                    mListener.onRender(false, info.mPacket.release());
-                }
-
-                info.mPacket = nullptr;
-            } else {
-                break;
-            }
-        } while (true);
-
-        if (packet == nullptr) {
-            return;
+            iter++;
         }
 
-        if (packet->getInfo().pts <= pts) {
-            if (!packet->getDiscard()) {
-                mListener.onRender(true, packet);
-                packet->setDiscard(true);
+        while (info.mSelected) {
+            IAFPacket *packet = nullptr;
+            info.getPacket(&packet);
+
+            if (packet && packet->getInfo().pts + info.mDelay <= pts) {
+
+                if (packet->getInfo().pts + info.mDelay + packet->getInfo().duration >= pts) {
+                    mListener.onRender(true, packet);
+                    info.mSubtitleShowedQueue.push_back(move(info.mPacket));
+                } else {
+                    AF_LOGD("drop the late subtitle %lld", packet->getInfo().pts);
+                    info.mPacket = nullptr;
+                }
+            } else {
+                break;
             }
         }
     }
@@ -184,6 +196,11 @@ namespace Cicada {
     void subTitlePlayer::update(int64_t pts)
     {
         for (auto item = mSources.begin(); item != mSources.end();) {
+            assert((*item)->mNeedFlush >= 0);
+            if ((*item)->mNeedFlush > 0) {
+                flushSource((*item).get());
+                (*item)->mNeedFlush--;
+            }
             if ((*item)->mSelected) {
                 render(*(*item), pts);
             }
@@ -191,4 +208,30 @@ namespace Cicada {
             ++item;
         }
     }
-}
+
+
+    void subTitlePlayer::flushSource(SourceInfo *source)
+    {
+        if (source == nullptr) {
+            return;
+        }
+        while (!source->mSubtitleShowedQueue.empty()) {
+            if (source->mSubtitleShowedQueue.front()) {
+                mListener.onRender(false, source->mSubtitleShowedQueue.front().release());
+            }
+            source->mSubtitleShowedQueue.pop_front();
+        }
+        source->mSubtitleShowedQueue.clear();
+        source->mPacket = nullptr;
+    }
+
+    void subTitlePlayer::flush()
+    {
+        for (auto item = mSources.begin(); item != mSources.end();) {
+            flushSource((*item).get());
+            //mNeedFlush is used for async flush
+            //            (*item)->mNeedFlush--;
+            ++item;
+        }
+    }
+}// namespace Cicada

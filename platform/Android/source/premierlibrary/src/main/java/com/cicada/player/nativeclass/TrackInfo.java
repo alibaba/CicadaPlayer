@@ -14,27 +14,28 @@ public class TrackInfo {
     public static final int AUTO_SELECT_INDEX = -1;
 
 
-    private int index;
-    private Type mType;
-    private String description;
+    public int index;
+    public Type mType;
+    public String description;
 
     //video
-    private int videoBitrate;
-    private int videoWidth;
-    private int videoHeight;
+    public int videoBitrate;
+    public int videoWidth;
+    public int videoHeight;
+    public VideoHDRType videoHDRType;
 
     //audio
-    private String audioLang;
-    private int audioChannels;
-    private int audioSampleRate;
-    private int audioSampleFormat;
+    public String audioLang;
+    public int audioChannels;
+    public int audioSampleRate;
+    public int audioSampleFormat;
 
     //subtitle
-    private String subtitleLang;
+    public String subtitleLang;
 
 
     //call from native
-    private void setType(int mType) {
+    public void setType(int mType) {
         if (mType == Type.TYPE_VIDEO.ordinal()) {
             this.mType = Type.TYPE_VIDEO;
         } else if (mType == Type.TYPE_AUDIO.ordinal()) {
@@ -42,6 +43,17 @@ public class TrackInfo {
         } else if (mType == Type.TYPE_SUBTITLE.ordinal()) {
             this.mType = Type.TYPE_SUBTITLE;
         }
+    }
+    public void setVideoHDRType(int type) {
+        if (type == VideoHDRType.VideoHDRType_SDR.ordinal()) {
+            this.videoHDRType = VideoHDRType.VideoHDRType_SDR;
+        } else if (type == VideoHDRType.VideoHDRType_HDR10.ordinal()) {
+            this.videoHDRType = VideoHDRType.VideoHDRType_HDR10;
+        }
+    }
+
+    private int nGetType(){
+        return mType.ordinal();
     }
 
     /**
@@ -73,6 +85,13 @@ public class TrackInfo {
          */
         TYPE_SUBTITLE,
     }
+
+
+    public enum VideoHDRType {
+        VideoHDRType_SDR,
+        VideoHDRType_HDR10
+      };
+
 
     /**
      * 获取流索引

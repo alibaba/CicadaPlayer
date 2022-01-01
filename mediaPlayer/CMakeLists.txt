@@ -35,13 +35,15 @@ include(${TOPDIR}/framework/${TARGET_PLATFORM}.cmake)
 
 set(CMAKE_CXX_STANDARD 11)
 
-include(../framework/module_config.cmake)
+message("COMMON_INC_DIR is ${COMMON_INC_DIR}")
 
 if (ENABLE_CACHE_MODULE)
     add_definitions(-DENABLE_CACHE_MODULE)
 endif ()
 
-message("COMMON_INC_DIR is ${COMMON_INC_DIR}")
+if (ENABLE_MUXER)
+    add_definitions(-DENABLE_MUXER)
+endif ()
 
 set(SOURCE_FILES
         analytics/IAnalyticsCollector.h
@@ -81,6 +83,8 @@ set(SOURCE_FILES
         native_cicada_player_def.h
         MediaPlayer.cpp
         MediaPlayerConfig.cpp
+        QueryListener.cpp
+        QueryListener.h
         abr/AbrManager.h
         abr/AbrManager.cpp
         abr/AbrRefererData.h
@@ -107,7 +111,34 @@ set(SOURCE_FILES
         mediaPlayerSubTitleListener.h
         playerOptions.cpp
         playerOptions.h
-        SMP_DCAManager.cpp)
+        SMP_DCAManager.cpp
+        CicadaPlayerPrototype.cpp
+        SMPAVDeviceManager.cpp
+        SMPAVDeviceManager.h
+        SMPRecorderSet.cpp
+        SMPRecorderSet.h
+        SMPMessageControllerListener.cpp
+        SMPMessageControllerListener.h)
+
+if(APPLE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fobjc-arc")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fobjc-arc")
+    set(SOURCE_FILES ${SOURCE_FILES}
+            externalPlayer/AppleAVPlayer.mm
+            externalPlayer/AppleAVPlayer.h
+            externalPlayer/AppleAVPlayerLayerProcessor.mm
+            externalPlayer/AppleAVPlayerLayerProcessor.h
+			externalPlayer/AppleAVPlayerHandler.h
+			externalPlayer/AppleAVPlayerHandler.mm
+			externalPlayer/AppleAVPlayerUtil.h
+			externalPlayer/AppleAVPlayerUtil.m
+            )
+#elseif(ANDROID)
+#    set(SOURCE_FILES ${SOURCE_FILES}
+#            externalPlayer/JNIPlayer.cpp
+#            externalPlayer/JNIPlayer.h
+#            )
+endif()
 if (TARGET_PLATFORM STREQUAL "Android")
     set(SOURCE_FILES ${SOURCE_FILES}
             TrafficStats.c

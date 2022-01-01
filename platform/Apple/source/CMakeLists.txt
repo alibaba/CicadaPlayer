@@ -133,6 +133,7 @@ set_target_properties(CicadaPlayerSDK PROPERTIES
         XCODE_ATTRIBUTE_LD_DYLIB_INSTALL_NAME "@rpath/CicadaPlayerSDK.framework/CicadaPlayerSDK"
         #        MACOSX_FRAMEWORK_INFO_PLIST Info.plist
         #XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
+        XCODE_ATTRIBUTE_EXCLUDED_ARCHS[sdk=iphonesimulator*] arm64
         XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS[variant=MinSizeRel] YES
         XCODE_ATTRIBUTE_ENABLE_BITCODE ${BITCODE_VALUE}
         XCODE_ATTRIBUTE_DEFINES_MODULE "YES"

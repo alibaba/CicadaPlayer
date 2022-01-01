@@ -199,6 +199,11 @@ if [[ -f "${CICADA_FFMPEG_CONFIG_FILE}" ]]; then
     cp "${CICADA_FFMPEG_CONFIG_FILE}" ./
 fi
 
+if [[ -f "${CICADA_GIT_SOURCE_LIST_FILE}" ]]; then
+    rm  player_git_source_list.sh
+    cp "${CICADA_GIT_SOURCE_LIST_FILE}" ./
+fi
+
 mkdir external
 cd external
 load_source

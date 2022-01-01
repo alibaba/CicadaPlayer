@@ -3,10 +3,9 @@ package com.cicada.player.utils;
 import android.graphics.SurfaceTexture;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 import android.view.Surface;
+
 import java.util.concurrent.CountDownLatch;
 
 @NativeUsed
@@ -37,7 +36,6 @@ public class DecoderSurfaceTexture implements SurfaceTexture.OnFrameAvailableLis
             mHandler = new Handler(mHandleThread.getLooper()) {
                 @Override
                 public void handleMessage(Message msg) {
-                    // TODO Auto-generated method stub
                     if (msg.what == CREATE_SURFACE_MSG) {
                         mSurfaceTexture = new SurfaceTexture(mTextureId);
                         mSurfaceTexture.setOnFrameAvailableListener((DecoderSurfaceTexture)msg.obj);

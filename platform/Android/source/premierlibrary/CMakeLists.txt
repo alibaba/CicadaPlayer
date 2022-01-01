@@ -37,6 +37,8 @@ add_library(CicadaPlayer SHARED
         src/main/jni/player/JavaTrackInfo.cpp
         src/main/jni/player/JavaMediaInfo.cpp
         src/main/jni/player/JavaGlobalSettings.cpp
+        src/main/jni/player/JavaExternalPlayer.cpp
+        src/main/jni/player/JavaOptions.cpp
         src/main/jni/utils/JavaLogger.cpp
 
         )
@@ -52,6 +54,7 @@ target_link_libraries(CicadaPlayer
         videodec
         framework_filter
         framework_utils
+        framework_drm
         alivcffmpeg
         GLESv2
         EGL

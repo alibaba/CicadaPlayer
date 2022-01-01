@@ -7,6 +7,8 @@ list(APPEND SRC_FILES
         video/vsync/timedVSync.h
         video/vsync/VSyncFactory.cpp
         video/vsync/VSyncFactory.h
+        video/AFActiveVideoRender.cpp
+        video/AFActiveVideoRender.h
         renderFactory.cpp
         renderFactory.h
         audio/filterAudioRender.cpp
@@ -33,6 +35,8 @@ if (ENABLE_SDL)
     list(APPEND SRC_FILES
             audio/SdlAFAudioRender.h
             audio/SdlAFAudioRender.cpp
+            audio/SdlAFAudioRender2.h
+            audio/SdlAFAudioRender2.cpp
             video/SdlAFVideoRender.cpp
             video/SdlAFVideoRender.h
             )
@@ -40,7 +44,6 @@ endif ()
 
 if (ENABLE_CHEAT_RENDER)
     list(APPEND SRC_FILES
-            video/CheaterVideoRender.cpp
             audio/CheaterAudioRender.cpp
             )
 endif ()
@@ -56,10 +59,17 @@ endif ()
 
 
 if (APPLE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fobjc-arc")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fobjc-arc")
     list(APPEND SRC_FILES
             audio/Apple/AudioRenderType.h
-            audio/Apple/AFAudioUnitRender.cpp
-            audio/Apple/AFAudioUnitRender.h
+            audio/Apple/AFAudioQueueRender.cpp
+            audio/Apple/AFAudioQueueRender.h
+            video/AVFoundation/AVFoundationVideoRender.mm
+            video/AVFoundation/AVFoundationVideoRender.h
+            video/AVFoundation/SampleDisplayLayerRender.mm
+            video/AVFoundation/SampleDisplayLayerRender.h
+            video/AVFoundation/DisplayLayerImpl-interface.h
             )
 endif ()
 

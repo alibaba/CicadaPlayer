@@ -5,20 +5,28 @@
 
 #include "ActiveDecoder.h"
 #include "utils/timer.h"
+#include <utils/frame_work_log.h>
 
 //TODO: can set
-#define MAX_INPUT_SIZE 16
+#define MAX_OUTPUT_SIZE 16
+
+/*
+ * input queue will hold all the packets in holding queue, so the input queue must
+ * big enough for now
+ */
+#define MAX_INPUT_SIZE (20 * 30)
+
+// TODO: use mHoldingQueue and mInputQueue in decode func, so we can decrease the MAX_INPUT_SIZE
 
 using namespace std;
 
-ActiveDecoder::ActiveDecoder() : mInputQueue(MAX_INPUT_SIZE), mOutputQueue(MAX_INPUT_SIZE)
+ActiveDecoder::ActiveDecoder() : mInputQueue(MAX_INPUT_SIZE), mOutputQueue(MAX_OUTPUT_SIZE)
 {
-    mFlags = 0;
 }
 
-int ActiveDecoder::open(const Stream_meta *meta, void *voutObsr, uint64_t flags)
+int ActiveDecoder::open(const Stream_meta *meta, void *voutObsr, uint64_t flags , const Cicada::DrmInfo *drmInfo)
 {
-    int ret = init_decoder(meta, voutObsr, flags);
+    int ret = init_decoder(meta, voutObsr, flags , drmInfo);
 
     if (ret < 0) {
         close();
@@ -159,7 +167,7 @@ bool ActiveDecoder::needDrop(IAFPacket *packet)
             keyPts = packet->getInfo().pts;
             return false;
         }
-    } else if (packet->getInfo().flags) {
+    } else if (packet->getInfo().flags & AF_PKT_FLAG_KEY) {
         keyPts = INT64_MIN;// get the next key frame, stop to check
     }
 
@@ -168,7 +176,7 @@ bool ActiveDecoder::needDrop(IAFPacket *packet)
         return false;
     }
 
-    if (packet->getInfo().pts < keyPts) {// after get the key frame, check the wrong frame use pts
+    if (packet->getInfo().pts != INT64_MIN && packet->getInfo().pts < keyPts) {// after get the key frame, check the wrong frame use pts
         AF_LOGW("key pts is %lld,pts is %lld\n", keyPts, packet->getInfo().pts);
         AF_LOGW("drop a error frame\n");
         return true;
@@ -219,7 +227,7 @@ int ActiveDecoder::thread_send_packet(unique_ptr<IAFPacket> &packet)
     unique_lock<mutex> uMutex(mMutex);
 
     if (bHolding) {
-        if (packet->getInfo().flags) {
+        if (packet->getInfo().flags & AF_PKT_FLAG_KEY) {
             while (!mHoldingQueue.empty()) {
                 mHoldingQueue.pop();
             }
@@ -234,7 +242,7 @@ int ActiveDecoder::thread_send_packet(unique_ptr<IAFPacket> &packet)
 
     //   AF_LOGD("mInputQueue.size() is %d\n",mInputQueue.size());
 
-    if ((mInputQueue.size() >= MAX_INPUT_SIZE) || (mOutputQueue.size() >= maxOutQueueSize)) {
+    if ((mInputQueue.size() >= maxInQueueSize) || (mOutputQueue.size() >= maxOutQueueSize)) {
         // TODO: wait for timeOut us
         status |= STATUS_RETRY_IN;
     } else {
@@ -311,9 +319,14 @@ ActiveDecoder::~ActiveDecoder()
 void ActiveDecoder::flush()
 {
 #if AF_HAVE_PTHREAD
-    bool running = mDecodeThread->getStatus() == afThread::THREAD_STATUS_RUNNING;
+    bool running = false;
+    if (mDecodeThread) {
+        running = mDecodeThread->getStatus() == afThread::THREAD_STATUS_RUNNING;
+    }
     mRunning = false;
-    mDecodeThread->pause();
+    if (mDecodeThread) {
+        mDecodeThread->pause();
+    }
 
     while (!mInputQueue.empty()) {
         delete mInputQueue.front();
@@ -335,7 +348,9 @@ void ActiveDecoder::flush()
     bInputEOS = false;
     bDecoderEOS = false;
     bSendEOS2Decoder = false;
-    mRunning = true;
+    if (running) {
+        mRunning = true;
+    }
     bNeedKeyFrame = true;
 #if AF_HAVE_PTHREAD
 
@@ -346,7 +361,7 @@ void ActiveDecoder::flush()
 #endif
 }
 
-void ActiveDecoder::preClose()
+void ActiveDecoder::prePause()
 {
 #if AF_HAVE_PTHREAD
     {
@@ -359,6 +374,29 @@ void ActiveDecoder::preClose()
         mDecodeThread->prePause();
     }
 
+#endif
+}
+
+void ActiveDecoder::pause(bool pause)
+{
+#if AF_HAVE_PTHREAD
+    if (pause) {
+        {
+            std::unique_lock<std::mutex> locker(mSleepMutex);
+            mRunning = false;
+        }
+        mSleepCondition.notify_one();
+
+        if (mDecodeThread) {
+            mDecodeThread->pause();
+        }
+        return;
+    } else {
+        mRunning = true;
+        if (mDecodeThread) {
+            mDecodeThread->start();
+        }
+    }
 #endif
 }
 
@@ -407,7 +445,9 @@ int ActiveDecoder::holdOn(bool hold)
     if (hold) {
 #if AF_HAVE_PTHREAD
         mRunning = false;
-        mDecodeThread->pause();
+        if (mDecodeThread) {
+            mDecodeThread->pause();
+        }
 #endif
         while (!mInputQueue.empty()) {
             mInputQueue.front()->setDiscard(true);
@@ -423,6 +463,9 @@ int ActiveDecoder::holdOn(bool hold)
         AF_LOGD("mHoldingQueue size is %d\n", mHoldingQueue.size());
         int64_t pts = 0;
 
+        if (mInputQueue.write_available() < mHoldingQueue.size()) {
+            AF_LOGW("mHoldingQueue is too big(%lld), please increase the input queue size\n", mHoldingQueue.size());
+        }
         while (!mHoldingQueue.empty()) {
             mHoldingQueue.front()->setDiscard(true);
 
@@ -441,7 +484,9 @@ int ActiveDecoder::holdOn(bool hold)
 #if AF_HAVE_PTHREAD
     mRunning = true;
 #endif
-    mDecodeThread->start();
+    if (mDecodeThread) {
+        mDecodeThread->start();
+    }
     return 0;
 }
 
@@ -449,6 +494,10 @@ int ActiveDecoder::getRecoverQueueSize()
 {
     unique_lock<mutex> uMutex(mMutex);
     return int(mHoldingQueue.size() + get_decoder_recover_size());
+}
+uint32_t ActiveDecoder::getInputPaddingSize()
+{
+    return mInputQueue.size();
 }
 
 #endif
