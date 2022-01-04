@@ -467,7 +467,7 @@ namespace Cicada {
          */
         bool canReuse = true;
 #if TARGET_OS_IPHONE
-        if (Cicada::GetIosVersion() >= 14.0 && Cicada::GetIosVersion() < 15.0) {
+        if (Cicada::GetIosVersion() >= 14.0 /* && Cicada::GetIosVersion() < 15.0*/) {
             if (meta->codec == AF_CODEC_ID_H264 || meta->codec == AF_CODEC_ID_HEVC) {
                 canReuse = false;
             }
