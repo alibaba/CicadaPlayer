@@ -98,7 +98,7 @@ namespace Cicada {
         }
 
         ret = pHandle->readSegment(buffer, size);
-        if (ret == 0) {
+        if (ret == 0 && !pHandle->mReopen) {
             MoveToNextPart move_ret = pHandle->moveToNextPartialSegment();
             if (move_ret == MoveToNextPart::moveSuccess) {
                 ret = pHandle->readSegment(buffer, size);
@@ -1081,14 +1081,19 @@ namespace Cicada {
             mIsDataEOS = true;
             return -EAGAIN;
         } else if (mPTracker->hasPreloadSegment()) {
-            mCurSeg = mPTracker->usePreloadSegment();
-            AF_LOGD("[lhls] use virtual segment of preload hint, uri=%s", mCurSeg->getDownloadUrl().c_str());
-            int ret = tryOpenSegment(mCurSeg);
-            AF_LOGD("[lhls] use virtual segment of preload hint, ret=%d", ret);
-            if (ret < 0) {
-                return -EAGAIN;
+            auto curSeg = mPTracker->getCurSegment(false);
+            bool hasUnuse = false;
+            if (curSeg && curSeg->isDownloadComplete(hasUnuse)) {
+                mCurSeg = mPTracker->usePreloadSegment();
+                AF_LOGD("[lhls] use virtual segment of preload hint, uri=%s", mCurSeg->getDownloadUrl().c_str());
+                int ret = tryOpenSegment(mCurSeg);
+                AF_LOGD("[lhls] use virtual segment of preload hint, ret=%d", ret);
+                if (ret < 0) {
+                    return -EAGAIN;
+                }
+                return 0;
             }
-            return 0;
+            return -EAGAIN;
         }
 
         return -EAGAIN;
@@ -1129,14 +1134,6 @@ namespace Cicada {
 
         if (ret == gen_framework_errno(error_class_network, network_errno_http_range)) {
             ret = 0;
-        }
-
-        if (ret == 0) {
-            MoveToNextPart move_ret = moveToNextPartialSegment();
-            if (move_ret == MoveToNextPart::moveSuccess || move_ret == MoveToNextPart::tryAgain) {
-                AF_LOGD("[lhls] move to next part segment in read");
-                return -EAGAIN;
-            }
         }
 
         if (ret == 0 || mReopen) {
@@ -1215,6 +1212,8 @@ namespace Cicada {
                         //skip this segment, to void decode cost too long time
                         mReopen = true;
                         packet = nullptr;
+                        // only skip one segment, to avoid the case segment not aligned
+                        mDiscardPts = INT64_MIN;
                         return -EAGAIN;
                     } else {
                         packet->setDiscard(true);
