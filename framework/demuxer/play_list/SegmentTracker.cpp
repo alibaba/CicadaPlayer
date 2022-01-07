@@ -319,7 +319,6 @@ namespace Cicada {
                     }
                     ret = mPDataSource->Open(0);
                 } else {
-                    mPDataSource->Close();
                     ret = mPDataSource->Open(uri);
                 }
             }
