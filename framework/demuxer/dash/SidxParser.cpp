@@ -10,6 +10,7 @@
 #endif
 #include "utils/frame_work_log.h"
 #include <string>
+#include <cstring>
 
 using namespace Cicada::Dash;
 

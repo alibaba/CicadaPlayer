@@ -45,6 +45,15 @@ namespace Cicada {
         {
             return 0;
         }
+        bool device_require_format(const IAFFrame::audioInfo &info) override
+        {
+            mInputInfo = info;
+            return true;
+        }
+        void device_mute(bool bMute)
+        {
+            return;
+        }
 
     private:
         af_clock mClock{};
