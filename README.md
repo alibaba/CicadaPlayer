@@ -1,14 +1,13 @@
 ![Cicada Logo](doc/Cicada.svg)
 
-[![HitCount](http://hits.dwyl.io/aliyun/CicadaPlayer.svg)](http://hits.dwyl.io/aliyun/CicadaPlayer)
-[![Build Status](https://api.travis-ci.org/alibaba/CicadaPlayer.svg?branch=develop)](https://travis-ci.org/alibaba/CicadaPlayer)
 [![coverity Status](https://scan.coverity.com/projects/20151/badge.svg?flat=1)](https://scan.coverity.com/projects/alibaba-cicadaplayer)
 [![codecov](https://codecov.io/gh/alibaba/CicadaPlayer/branch/develop/graph/badge.svg)](https://codecov.io/gh/alibaba/CicadaPlayer/branch/develop)
 [![LICENSE](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
 
-![iOS CI](https://github.com/alibaba/CicadaPlayer/workflows/iOS%20CI/badge.svg?branch=develop)
-![macOS CI](https://github.com/alibaba/CicadaPlayer/workflows/macOS%20CI/badge.svg?branch=develop)
-![Android CI](https://github.com/alibaba/CicadaPlayer/workflows/Android%20CI/badge.svg?branch=develop)
+[![iOS CI](https://github.com/alibaba/CicadaPlayer/actions/workflows/iOS.yml/badge.svg)](https://github.com/alibaba/CicadaPlayer/actions/workflows/iOS.yml)
+[![macOS CI](https://github.com/alibaba/CicadaPlayer/actions/workflows/macOS.yml/badge.svg)](https://github.com/alibaba/CicadaPlayer/actions/workflows/macOS.yml)
+[![Android CI](https://github.com/alibaba/CicadaPlayer/actions/workflows/Android.yml/badge.svg)](https://github.com/alibaba/CicadaPlayer/actions/workflows/Android.yml)
+[![Linux CI](https://github.com/alibaba/CicadaPlayer/actions/workflows/Linux.yml/badge.svg)](https://github.com/alibaba/CicadaPlayer/actions/workflows/Linux.yml)
 
 <h1 align="center">
   Keep the world free of difficult videos to play!
@@ -48,26 +47,25 @@ export CURL_GIT=https://gitee.com/mirrors/curl.git
 
 
 ## Features
-- HLS master play list support, seamless switch
- 
-   [HLS Support instructions](framework/demuxer/HLSSupport.md)
-
+- HLS LL-HLS master play list support, seamless switch
+- MPEG-DASH
+- WideVine
 - ABR
-- hardware decode on Android and iOS
+- hardware decode on Android and Apple platform
 - HEVC support
 - OpenGL render
+- HDR render
 - change volume by software
 - speed playback
 - snapshot
-- subtitle title support
-- external subtitle title support
+- subtitle title and external subtitle title
 - on playing cache
 - background video playback
 - http keep-alive
-- self ip resolve
+- customer ip resolve
 - video rotation
 - black list on Android hardware h264 decoder
-- plugin support
+- plugin supporting
 
 
 ## Contact
@@ -103,5 +101,8 @@ CicadaPlayerSDK using the projects:
 - BSL-1.0 license
 
   [boost](https://www.boost.org/)
+- MIT License
+
+  [libxml2](http://xmlsoft.org/)
 
 
