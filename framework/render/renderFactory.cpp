@@ -74,7 +74,7 @@ unique_ptr<IVideoRender> videoRenderFactory::create(uint64_t flags)
         return nullptr;
 #endif
     }
-#if defined(__APPLE__) && !defined(ENABLE_SDL)
+#if defined(__APPLE__) && !defined(ENABLE_SDL) && !defined(ENABLE_CHEAT_RENDER)
     return std::unique_ptr<IVideoRender>(new AVFoundationVideoRender());
 #endif
 
