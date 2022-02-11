@@ -177,6 +177,10 @@ void SdlAFVideoRender::recreateTextureIfNeed(int videoWidth, int videoHeight)
 
     {
         std::unique_lock<std::mutex> lock(mRenderMutex);
+        if (mVideoRender == nullptr) {
+            return;
+        }
+
         mInited = true;
 
         if (mVideoTexture != nullptr) {
@@ -306,13 +310,16 @@ int SdlAFVideoRender::setScale(Scale scale)
 SDL_Rect SdlAFVideoRender::getDestRet()
 {
     SDL_Rect dstRect{};
+    dstRect.x = 0;
+    dstRect.y = 0;
+    dstRect.w = 0;
+    dstRect.h = 0;
+    if (mVideoWindow == nullptr) {
+        return dstRect;
+    }
     SDL_GL_GetDrawableSize(mVideoWindow, &mWindowWidth, &mWindowHeight);
     if (mWindowWidth == 0 || mWindowHeight == 0 ||
             mVideoWidth == 0 || mVideoHeight == 0) {
-        dstRect.x = 0;
-        dstRect.y = 0;
-        dstRect.w = 0;
-        dstRect.h = 0;
         return dstRect;
     }
 
