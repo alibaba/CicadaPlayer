@@ -667,6 +667,10 @@ namespace Cicada {
 
     int avFormatDemuxer::readLoop()
     {
+        if (bExited) {
+            return -1;
+        }
+
         if (bPaused) {
             return 0;
         }
@@ -675,9 +679,7 @@ namespace Cicada {
             std::unique_lock<std::mutex> waitLock(mQueLock);
 
             if (bEOS) {
-                mQueCond.wait(waitLock, [this]() {
-                    return bPaused || mInterrupted;
-                });
+                mQueCond.wait(waitLock, [this]() { return bPaused || mInterrupted || bExited; });
             }
         }
 
@@ -692,9 +694,7 @@ namespace Cicada {
             std::unique_lock<std::mutex> waitLock(mQueLock);
 
             if (mPacketQueue.size() > MAX_QUEUE_SIZE) {
-                mQueCond.wait(waitLock, [this]() {
-                    return mPacketQueue.size() <= MAX_QUEUE_SIZE || bPaused || mInterrupted;
-                });
+                mQueCond.wait(waitLock, [this]() { return mPacketQueue.size() <= MAX_QUEUE_SIZE || bPaused || mInterrupted || bExited; });
             }
 
             mPacketQueue.push_back(std::move(pkt));
@@ -706,9 +706,7 @@ namespace Cicada {
             }
 
             std::unique_lock<std::mutex> waitLock(mQueLock);
-            mQueCond.wait_for(waitLock, std::chrono::milliseconds(10), [this]() {
-                return bPaused || mInterrupted;
-            });
+            mQueCond.wait_for(waitLock, std::chrono::milliseconds(10), [this]() { return bPaused || mInterrupted || bExited; });
         }
 
         return 0;
@@ -831,7 +829,7 @@ namespace Cicada {
     {
 #if AF_HAVE_PTHREAD
         std::unique_lock<std::mutex> waitLock(mQueLock);
-        bPaused = true;
+        bExited = true;
         mQueCond.notify_one();
 #endif
     }

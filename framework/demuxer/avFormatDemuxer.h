@@ -148,6 +148,7 @@ namespace Cicada {
         std::deque<unique_ptr<IAFPacket>> mPacketQueue{};
         std::atomic_bool bEOS{false};
         std::atomic_bool bPaused{false};
+        std::atomic_bool bExited{false};
         bool mNedParserPkt{false};
 
 #if AF_HAVE_PTHREAD
