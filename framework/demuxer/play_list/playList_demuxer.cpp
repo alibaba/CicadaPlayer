@@ -110,6 +110,13 @@ namespace Cicada {
         }
     }
 
+    void playList_demuxer::PreStop()
+    {
+        if (mPPlaylistManager) {
+            mPPlaylistManager->preStop();
+        }
+    }
+
     int64_t playList_demuxer::Seek(int64_t us, int flags, int index)
     {
         if (mPPlaylistManager) {

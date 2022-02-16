@@ -53,6 +53,8 @@ namespace Cicada {
 
         int start() override;
 
+        int preStop() override;
+
         int stop() override;
 
         int64_t seek(int64_t us, int flags) override;
@@ -170,6 +172,7 @@ namespace Cicada {
         int64_t mSeekPendingUs = -1;
         std::atomic<bool> mIsOpened_internal{false};
         std::atomic_bool mInterrupted{false};
+        std::atomic_bool mExited{false};
         afThread *mThreadPtr = nullptr;
         string mKeyUrl = "";
         uint8_t mKey[16];

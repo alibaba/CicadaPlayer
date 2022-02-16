@@ -879,6 +879,10 @@ namespace Cicada {
 
     int HLSStream::read_thread()
     {
+        if (mExited) {
+            return -1;
+        }
+
         int ret;
         // first seek is deal in open_internal
 
@@ -914,11 +918,10 @@ namespace Cicada {
 
         {
             std::unique_lock<std::mutex> waitLock(mDataMutex);
-            bool waitResult = mWaitCond.wait_for(waitLock, std::chrono::milliseconds(10), [this]() {
-                return mQueue.size() <= 1 || mInterrupted || mSwitchNeedBreak;
-            });
+            bool waitResult = mWaitCond.wait_for(waitLock, std::chrono::milliseconds(10),
+                                                 [this]() { return mQueue.size() <= 1 || mInterrupted || mSwitchNeedBreak || mExited; });
 
-            if (!waitResult || mInterrupted || mSwitchNeedBreak) {
+            if (!waitResult || mInterrupted || mSwitchNeedBreak || mExited) {
                 return 0;
             }
         }
@@ -1418,6 +1421,14 @@ namespace Cicada {
         }
 
         mThreadPtr->start();
+        return 0;
+    }
+
+    int HLSStream::preStop()
+    {
+        std::unique_lock<std::mutex> waitLock(mDataMutex);
+        mExited = true;
+        mWaitCond.notify_one();
         return 0;
     }
 

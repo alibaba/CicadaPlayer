@@ -41,6 +41,8 @@ namespace Cicada {
 
         virtual int start() = 0;
 
+        virtual int preStop() = 0;
+
         virtual int stop() = 0;
 
         virtual int64_t seek(int64_t us, int flags) = 0;

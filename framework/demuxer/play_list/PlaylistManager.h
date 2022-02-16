@@ -24,6 +24,8 @@ namespace Cicada{
 
         virtual void stop() = 0;
 
+        virtual void preStop() = 0;
+
         virtual int GetNbStreams() const = 0;
 
         virtual int GetStreamMeta(Stream_meta *meta, int index, bool sub) const = 0;

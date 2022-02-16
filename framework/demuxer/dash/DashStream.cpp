@@ -532,6 +532,10 @@ void DashStream::close()
 
 int DashStream::read_thread()
 {
+    if (mExited) {
+        return -1;
+    }
+
     int ret;
 
     if (mIsOpened && !mIsOpened_internal) {
@@ -557,9 +561,9 @@ int DashStream::read_thread()
     {
         std::unique_lock<std::mutex> waitLock(mDataMutex);
         bool waitResult = mWaitCond.wait_for(waitLock, std::chrono::milliseconds(10),
-                                             [this]() { return mQueue.size() <= 1 || mInterrupted || mSwitchNeedBreak; });
+                                             [this]() { return mQueue.size() <= 1 || mInterrupted || mSwitchNeedBreak || mExited; });
 
-        if (!waitResult || mInterrupted || mSwitchNeedBreak) {
+        if (!waitResult || mInterrupted || mSwitchNeedBreak || mExited) {
             return 0;
         }
     }
@@ -982,6 +986,14 @@ int DashStream::start()
     }
 
     mThreadPtr->start();
+    return 0;
+}
+
+int DashStream::preStop()
+{
+    std::unique_lock<std::mutex> waitLock(mDataMutex);
+    mExited = true;
+    mWaitCond.notify_one();
     return 0;
 }
 

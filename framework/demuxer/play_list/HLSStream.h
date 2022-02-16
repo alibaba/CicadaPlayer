@@ -75,6 +75,8 @@ namespace Cicada {
 
         int start() override;
 
+        int preStop() override;
+
         int stop() override;
 
         int64_t seek(int64_t us, int flags) override;
@@ -213,6 +215,7 @@ namespace Cicada {
         int64_t mSeekPendingUs = -1;
         bool mIsOpened_internal = false;
         std::atomic_bool mInterrupted{false};
+        std::atomic_bool mExited{false};
         afThread *mThreadPtr = nullptr;
         std::unique_ptr<ISegDecrypter> mSegDecrypter = nullptr;
         std::unique_ptr<HLSSampleAesDecrypter> mSampeAesDecrypter = nullptr;

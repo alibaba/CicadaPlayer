@@ -32,6 +32,8 @@ namespace Cicada {
 
         int init() override;
 
+        void preStop() override;
+
         void stop() override;
 
         int GetNbStreams() const override;

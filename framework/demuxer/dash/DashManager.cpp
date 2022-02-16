@@ -95,6 +95,15 @@ int DashManager::init()
     return 0;
 }
 
+void DashManager::preStop()
+{
+    for (auto &i : mStreamInfoList) {
+        if (i->mPStream->isOpened()) {
+            i->mPStream->preStop();
+        }
+    }
+}
+
 void DashManager::stop()
 {
     for (auto &i : mStreamInfoList) {

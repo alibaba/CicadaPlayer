@@ -80,6 +80,15 @@ namespace Cicada {
         return 0;
     }
 
+    void HLSManager::preStop()
+    {
+        for (auto &i : mStreamInfoList) {
+            if (i->mPStream->isOpened()) {
+                i->mPStream->preStop();
+            }
+        }
+    }
+
     void HLSManager::stop()
     {
         for (auto &i : mStreamInfoList) {
