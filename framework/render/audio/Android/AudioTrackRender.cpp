@@ -463,3 +463,17 @@ uint64_t AudioTrackRender::getDeviceQuequedDuration()
 
     return static_cast<uint64_t>((mSendSimples - playedSimples) / (float(mOutputInfo.sample_rate) / 1000000));
 }
+
+void AudioTrackRender::device_preClose()
+{
+
+    mRunning = false;
+
+    if (mWriteThread) {
+        if (std::this_thread::get_id() == mWriteThread->getId()) {
+            //same thread
+        } else {
+            mWriteThread->prePause();
+        }
+    }
+}
