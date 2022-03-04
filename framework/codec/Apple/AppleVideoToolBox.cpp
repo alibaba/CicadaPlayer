@@ -902,6 +902,7 @@ namespace Cicada {
         Stream_meta *pMeta = ((Stream_meta *) (*(mPInMeta)));
         pMeta->displayHeight = meta->displayHeight;
         pMeta->displayWidth = meta->displayWidth;
+        pMeta->color_info = meta->color_info;
     }
 
 }// namespace Cicada
