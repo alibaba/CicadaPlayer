@@ -3009,6 +3009,7 @@ void SuperMediaPlayer::FlushAudioPath()
     mAudioTime.deltaTime = 0;
     mAudioTime.deltaTimeTmp = 0;
     mAudioPacket = nullptr;
+    mAudioEOS = false;
 }
 
 void SuperMediaPlayer::FlushVideoPath()
@@ -3031,6 +3032,7 @@ void SuperMediaPlayer::FlushVideoPath()
     mVideoPacket = nullptr;
     dropLateVideoFrames = false;
     mVideoCatchingUp = false;
+    mVideoEOS = false;
 }
 
 void SuperMediaPlayer::FlushSubtitleInfo()
