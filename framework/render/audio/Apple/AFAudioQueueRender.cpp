@@ -46,7 +46,11 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
         inBuffer->mAudioDataByteSize = size;
 
         if (!pThis->mNeedFlush) {
-            pThis->mPlayedBufferSize -= inBuffer->mAudioDataByteSize;
+            if (pThis->mPlayedBufferSize >= inBuffer->mAudioDataByteSize) {
+                pThis->mPlayedBufferSize -= inBuffer->mAudioDataByteSize;
+            } else {
+                pThis->mPlayedBufferSize = 0;
+            }
         }
         memset((uint8_t *) inBuffer->mAudioData, 0, inBuffer->mAudioDataByteSize);
     }
