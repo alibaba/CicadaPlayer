@@ -269,7 +269,7 @@ namespace Cicada {
             return;
         }
 
-        auto *event = new player_event(0, mediaInfo, mListener.MediaInfoGet, true);
+        auto *event = new player_event(mediaInfo->mStreamInfoQueue.size(), mediaInfo, mListener.MediaInfoGet, true);
         pushEvent(event);
     }
 
