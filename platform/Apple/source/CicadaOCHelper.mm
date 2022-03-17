@@ -421,7 +421,7 @@ void CicadaOCHelper::onMediaInfoGet(int64_t count, const void *infos, void *user
         mediaInfo.totalBitrate = cMediaInfo->totalBitrate;
         auto &streamInfos = cMediaInfo->mStreamInfoQueue;
         NSMutableArray* tracks = [[NSMutableArray alloc] init];
-        for (int i = 0; i < count; ++i) {
+        for (int i = 0; i < streamInfos.size(); ++i) {
             CicadaTrackInfo* trackInfo = getCicadaTrackInfo(streamInfos[i]);
             [tracks addObject:trackInfo];
         }
