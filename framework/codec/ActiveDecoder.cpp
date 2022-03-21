@@ -346,6 +346,7 @@ void ActiveDecoder::flush()
     }
 
     while (!mOutputQueue.empty()) {
+        mOutputQueue.front()->setDiscard(true);
         delete mOutputQueue.front();
         mOutputQueue.pop();
     }
