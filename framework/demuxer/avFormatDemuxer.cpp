@@ -784,9 +784,13 @@ namespace Cicada {
         }
 #endif
 
-        AVProbeData pd = {uri.c_str(), const_cast<unsigned char *>(buffer), static_cast<int>(size)};
+        unsigned char *pbBuffer = static_cast<unsigned char *>(av_malloc(size + AVPROBE_PADDING_SIZE));
+        memcpy(pbBuffer, buffer, size);
+        memset(pbBuffer + size, 0, AVPROBE_PADDING_SIZE);
+        AVProbeData pd = {uri.c_str(), const_cast<unsigned char *>(pbBuffer), static_cast<int>(size)};
         int score = AVPROBE_SCORE_RETRY;
         AVInputFormat *fmt = av_probe_input_format2(&pd, 1, &score);
+        av_freep(&pbBuffer);
 
         if (fmt && (strcmp(fmt->name, "hls,applehttp") == 0 || strcmp(fmt->name, "webvtt") == 0 || strcmp(fmt->name, "srt") == 0)) {
             return false;
