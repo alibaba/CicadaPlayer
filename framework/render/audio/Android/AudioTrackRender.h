@@ -47,10 +47,7 @@ private:
         return A_FILTER_FLAG_VOLUME;
     }
 
-    void device_preClose() override
-    {
-        mRunning = false;
-    }
+    void device_preClose() override;
 
 private:
     AudioTrackRender(int dummy) : mFrameQueue(1)

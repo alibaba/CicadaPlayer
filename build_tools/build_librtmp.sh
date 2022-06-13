@@ -32,7 +32,7 @@ build_librtmp(){
         export HOST=i686-w64-mingw32
         shared=yes
     elif [ "$1" == "Darwin" ];then
-        print_warning "native build for $1"
+        print_warning "native build librtmp for $1"
     else
         echo "Unsupported platform"
         exit 1;

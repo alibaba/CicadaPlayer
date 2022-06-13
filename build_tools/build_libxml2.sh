@@ -28,10 +28,10 @@ function build_libxml2(){
         # only support shared lib for now
         shared="true"
     elif [[ "$1" == "Darwin" ]];then
-        print_warning "native build for $1"
+        print_warning "native build libxml2 for $1"
         native_build="yes"
     elif [[ "$1" == "Linux" ]];then
-        print_warning "native build for $1"
+        print_warning "native build libxml2 for $1"
         native_build="yes"
     else
         echo "Unsupported platform"

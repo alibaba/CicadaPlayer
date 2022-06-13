@@ -21,7 +21,7 @@ function build_fdk_aac(){
     elif [ "$1" == "win32" ];then
         cross_compile_set_platform_win32 $2
     elif [ "$1" == "Darwin" ];then
-        print_warning "native build for $1"
+        print_warning "native build fdkaac for $1"
         local native_build=yes
     else
         echo "Unsupported platform"

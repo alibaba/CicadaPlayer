@@ -31,11 +31,11 @@ function build_nghttp2(){
         cross_compile_set_platform_win32 $2
         export CFLAGS="-DNGHTTP2_STATICLIB"
     elif [[ "$1" == "Darwin" ]];then
-        print_warning "native build curl for $1 $2"
+        print_warning "native build nghttp2 for $1 $2"
         native_compile_set_platform_macOS $2
         export CFLAGS="${CFLAGS} $CPU_FLAGS"
     elif [[ "$1" == "Linux" ]];then
-        print_warning "native build for $1"
+        print_warning "native build nghttp2 for $1"
     elif [ "$1" == "maccatalyst" ];then
         cross_compile_set_platform_maccatalyst "$2"
         export CFLAGS="${CPU_FLAGS}"

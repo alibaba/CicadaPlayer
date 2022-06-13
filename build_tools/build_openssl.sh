@@ -50,7 +50,7 @@ function build_openssl(){
         fi
         local cross_compile_opt="--cross-compile-prefix="${CROSS_COMPILE}"-"
     elif [ "$1" == "Darwin" ];then
-        print_warning "native build for $1"
+        print_warning "native build openssl for $1"
         if [ "$2" == "x86_64" ];then
             config_platform="darwin64-x86_64-cc"
         else

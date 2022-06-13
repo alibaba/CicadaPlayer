@@ -72,7 +72,7 @@ function build_dav1d(){
         DAV1D_CPU="arm"
     elif [[ "$1" == "Darwin" ]]
     then
-        echo "native build for $1"
+        echo "native build dav1d for $1"
         nativeBuild=true;
     else
         echo "Unsupported platform"

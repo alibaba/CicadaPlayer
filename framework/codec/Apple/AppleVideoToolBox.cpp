@@ -473,17 +473,6 @@ namespace Cicada {
             }
         }
 #endif
-        /*
-         there are some bugs when reuse on iOS 14.x,eg h264 main profile to high profile
-         */
-        bool canReuse = true;
-#if TARGET_OS_IPHONE
-        if (Cicada::GetIosVersion() >= 14.0 /* && Cicada::GetIosVersion() < 15.0*/) {
-            if (meta->codec == AF_CODEC_ID_H264 || meta->codec == AF_CODEC_ID_HEVC) {
-                canReuse = false;
-            }
-        }
-#endif
 
         if (rv == 0) {
             if (!canReuse || !VTDecompressionSessionCanAcceptFormatDescription(mVTDecompressSessionRef, videoFormatDesRef)) {

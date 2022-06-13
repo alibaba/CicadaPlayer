@@ -8,6 +8,7 @@
 
 #include "CURLShareInstance.h"
 #include <cassert>
+#include <cstring>
 #include <mutex>
 #include <utils/UrlUtils.h>
 

@@ -79,7 +79,7 @@ function build_openssl_111(){
         fi
         export   CROSS_COMPILE=${CROSS_COMPILE}-
     elif [ "$1" == "Darwin" ];then
-        print_warning "native build for $1"
+        print_warning "native build openssl111 for $1"
         if [ "$2" == "x86_64" ];then
             config_platform="darwin64-x86_64-cc"
         elif [ "$2" == "arm64" ];then

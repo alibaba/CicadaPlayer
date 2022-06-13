@@ -54,9 +54,9 @@ jobs:
           cmake -DCODE_COVERAGE=ON -DTRAVIS=ON -DUSEASAN=ON -DCMAKE_BUILD_TYPE=Debug ../
           cmake --build . --config Debug -j8
 
-      - name: unit test
-        run: |
-          cd build/mediaPlayer/tests/
-          ctest -j8 --output-on-failure
-          cd ../../framework/tests/
-          ctest -j8 --output-on-failure
+      #- name: unit test
+      #  run: |
+      #    cd build/mediaPlayer/tests/
+      #    ctest -j8 --output-on-failure
+      #    cd ../../framework/tests/
+      #    ctest -j8 --output-on-failure

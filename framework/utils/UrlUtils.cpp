@@ -122,7 +122,7 @@ void UrlUtils::parseUrl(URLComponents &urlComponents, const std::string &url)
     urlComponents.port = port;
 }
 
-#ifdef WIN32
+#if defined(WIN32) || (defined(__linux__) && !defined(__ANDROID__))
 // from ffmpeg/avstring.c
 static size_t strlcpy(char *dst, const char *src, size_t size)
 {

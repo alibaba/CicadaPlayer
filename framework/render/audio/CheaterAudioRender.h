@@ -47,10 +47,6 @@ namespace Cicada {
             mInputInfo = info;
             return true;
         }
-        void device_mute(bool bMute)
-        {
-            return;
-        }
 
     private:
         class positionInfo {

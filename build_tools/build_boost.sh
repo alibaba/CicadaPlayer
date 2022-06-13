@@ -22,7 +22,7 @@ function build_boost() {
         export IPHONEOS_SDK_VERSION=${IPHONEOS_SDK_VERSION}
         export CPU_ARCH=${CPU_ARCH}
     elif [ "$1" == "Darwin" ];then
-       print_warning "native build for $1"
+       print_warning "native build boost for $1"
     else
         echo "unsupported platform"
         return 1;
