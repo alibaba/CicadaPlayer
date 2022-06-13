@@ -4,6 +4,8 @@
 
 #import "CicadaPlayer.h"
 #include "native_cicada_player_def.h"
+#import <render/subtitle/AppleCATextLayerRender.h>
+#include <utils/AssUtils.h>
 
 class CicadaOCHelper {
 public:
@@ -12,6 +14,10 @@ public:
 
     void setDelegate(__weak id<CicadaDelegate> innerDelegate) {
         mInnerDelegate = innerDelegate;
+    }
+    
+    void setView(CicadaView * innerView) {
+        mView = innerView;
     }
 
     static CicadaTrackInfo* getCicadaTrackInfo(const StreamInfo *info);
@@ -70,6 +76,7 @@ protected:
     static void onHideSubtitle(int64_t index, int64_t size, const void *content,void *userData);
 
     static void onSubtitleExtAdd(int64_t index, const void *url, void *userData);
+    static void onSubtitleHeader(int64_t index, const void *header, void *userData);
 
     static void
     onCaptureScreen(int64_t width, int64_t height, const void *buffer,/*void *extra,*/
@@ -77,9 +84,16 @@ protected:
 
     static CicadaStatus mapStatus(int64_t status);
 
+
 private:
     __weak CicadaPlayer * mPlayer = nullptr;
     __weak id<CicadaDelegate> mInnerDelegate = nil;
+    __weak CicadaView *mView = nullptr;
+
+    Cicada::AssHeader assHeader;
+
+    std::unique_ptr<Cicada::AppleCATextLayerRender> mSubtitleRender{};
+    int64_t mCurrentSubtitleRendingIndex{INT64_MIN};
 };
 
 

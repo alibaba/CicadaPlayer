@@ -48,6 +48,8 @@ namespace Cicada{
 
         void Stop() override;
 
+        void PreStop() override;
+
         int64_t Seek(int64_t us, int flags, int index) override;
 
         int GetNbStreams() const override;
@@ -72,6 +74,12 @@ namespace Cicada{
 
         int64_t getMaxGopTimeUs() override;
 
+        UTCTimer *getUTCTimer() override;
+
+        void setClientBufferLevel(client_buffer_level level) override;
+
+        int SetOption(const std::string &key, const int64_t value) override;
+
         void flush() override
         {
             // TODO:
@@ -92,6 +100,10 @@ namespace Cicada{
         {
             return true;
         }
+
+        int64_t getBufferDuration(int index) const override;
+
+        void setUrlToUniqueIdCallback(UrlHashCB cb, void *userData) override;
 
     private:
         explicit playList_demuxer(int dummy) : IDemuxer("")
@@ -126,6 +138,8 @@ namespace Cicada{
         proxyDataSource *mProxySource = nullptr;
 
         int64_t mFirstSeekPos = INT64_MIN;
+        UrlHashCB mUrlHashCb{nullptr};
+        void *mUrlHashCbUserData{nullptr};
     };
 }
 

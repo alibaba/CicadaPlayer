@@ -136,8 +136,7 @@ namespace Cicada {
         /*
          * need flush async
          */
-        return true;
-        // return mSelectNum > 0 && mEnable;
+        return mSelectNum > 0 && mEnable;
     }
 
     void subTitlePlayer::enable(bool bEnable)
@@ -233,5 +232,17 @@ namespace Cicada {
             //            (*item)->mNeedFlush--;
             ++item;
         }
+    }
+
+    std::string subTitlePlayer::getHeader(int index)
+    {
+        std::string ret;
+        for (auto item = mSources.begin(); item != mSources.end(); ++item) {
+            if ((*item)->mSource->getID() == index) {
+                ret = (*item)->mSource->getHeader();
+                break;
+            }
+        }
+        return ret;
     }
 }// namespace Cicada

@@ -58,6 +58,7 @@ namespace Cicada {
                     info->mPStream->setOptions(mOpts);
                     info->mPStream->setDataSourceConfig(mSourceConfig);
                     info->mPStream->setBitStreamFormat(mMergeVideoHeader, mMergerAudioHeader);
+                    info->mPStream->setUrlToUniqueIdCallback(mUrlHashCb, mUrlHashCbUserData);
                     mStreamInfoList.push_back(info);
                 }
             }
@@ -70,12 +71,22 @@ namespace Cicada {
             if (ret >= 0) {
                 mMuxedStream = (*mStreamInfoList.begin())->mPStream;
                 mMuxedStream->setExtDataSource(mExtDataSource);
+                mExtDataSource = nullptr;
             }
 
             //      mMuxedStream->start();
         }
 
         return 0;
+    }
+
+    void HLSManager::preStop()
+    {
+        for (auto &i : mStreamInfoList) {
+            if (i->mPStream->isOpened()) {
+                i->mPStream->preStop();
+            }
+        }
     }
 
     void HLSManager::stop()
@@ -196,6 +207,7 @@ namespace Cicada {
                     // TODO: don't block here
                     AF_LOGD("EOF %d\n", i->mPStream->getId());
 
+                    int64_t lastPts = i->mPStream->getLastPts();
                     if (i->stopOnSegEnd) {
                         i->mPStream->stop();
                         i->selected = false;
@@ -207,9 +219,28 @@ namespace Cicada {
                                 j->toStreamId = -1;
 
                                 if (i->mPStream->isLive()) {
+                                    std::vector<RenditionReport> renditions = i->mPStream->getCurRenditionInfo();
+                                    j->mPStream->setCurRenditionInfo(renditions);
+                                    std::string renditionStr;
+                                    for (auto &it : renditions) {
+                                        renditionStr += " uri=";
+                                        renditionStr += it.uri;
+                                        renditionStr += ",msn=";
+                                        renditionStr += std::to_string(it.lastMsn);
+                                        renditionStr += ",part=";
+                                        renditionStr += std::to_string(it.lastPart);
+                                        renditionStr += ";";
+                                    }
+                                    AF_LOGD("[lhls] rendition info: %s", renditionStr.c_str());
+
                                     uint64_t targetPosition = i->mPStream->getCurSegPosition() + 1;
-                                    AF_LOGE("set SegPosition to %llu\n", targetPosition);
-                                    j->mPStream->setCurSegPosition(targetPosition);
+                                    int64_t targetSegNo = i->mPStream->getCurSegNum() + 1;
+                                    AF_LOGE("set SegPosition to %llu ,targetSegNo  = %llu \n", targetPosition, targetSegNo);
+                                    AbstractStream::CurSegInfo curSegInfo{};
+                                    curSegInfo.segNum = targetSegNo;
+                                    curSegInfo.position = targetPosition;
+                                    j->mPStream->setCurSegInfo(curSegInfo);
+                                    j->mPStream->setDiscardPts(lastPts);
                                 } else {
                                     AF_LOGE("set SegNum to %llu\n",
                                             i->mPStream->getCurSegNum() + 1);
@@ -303,6 +334,12 @@ namespace Cicada {
             // TODO: select stream
             // mediaPlayList
             if (!(*mStreamInfoList.begin())->mPStream->isOpened()) {
+
+                if (mExtDataSource) {
+                    mMuxedStream->setExtDataSource(mExtDataSource);
+                    mExtDataSource = nullptr;
+                }
+
                 ret = (*mStreamInfoList.begin())->mPStream->open();
 
                 if (ret >= 0) {
@@ -318,7 +355,10 @@ namespace Cicada {
                         if (mFirstSeekPos != INT64_MIN) {
                             i->mPStream->seek(mFirstSeekPos, 0);
                         }
-
+                        if (mExtDataSource) {
+                            i->mPStream->setExtDataSource(mExtDataSource);
+                            mExtDataSource = nullptr;
+                        }
                         ret = i->mPStream->open();
                     }
 
@@ -360,7 +400,8 @@ namespace Cicada {
         AF_LOGD("CloseStream %d\n", id);
 
         if (mMuxedStream) {
-            // TODO: select stream
+            int subIndex = GEN_SUB_STREAM_ID(id);
+            mMuxedStream->CloseSubStream(subIndex);
             return;
         }
 
@@ -599,4 +640,18 @@ namespace Cicada {
 
         return targetDuration;
     }
+
+    int64_t HLSManager::getBufferDuration(int index) const
+    {
+        if (mMuxedStream) {
+            return mMuxedStream->getBufferDuration();
+        }
+        for (auto &i : mStreamInfoList) {
+            if (i->mPStream->getId() == index) {
+                return i->mPStream->getBufferDuration();
+            }
+        }
+        return 0;
+    }
+
 }

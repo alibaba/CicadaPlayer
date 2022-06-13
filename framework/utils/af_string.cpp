@@ -4,8 +4,8 @@
 
 #include "af_string.h"
 
+#include <cstring>
 #include <iterator>
-#include <regex>
 
 #ifndef __APPLE__
 char *strnstr(const char *s, const char *find, size_t slen)
@@ -19,12 +19,12 @@ char *strnstr(const char *s, const char *find, size_t slen)
         do {
             do {
                 if (slen-- < 1 || (sc = *s++) == '\0') {
-                    return (NULL);
+                    return nullptr;
                 }
             } while (sc != c);
 
             if (len > slen) {
-                return (NULL);
+                return nullptr;
             }
         } while (strncmp(s, find, len) != 0);
 
@@ -34,14 +34,24 @@ char *strnstr(const char *s, const char *find, size_t slen)
     return ((char *)s);
 }
 #endif
+using namespace std;
+static void split(vector<string> &tokens, const string &str, const string &delimiters = " ")
+{
+    string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+    string::size_type pos = str.find_first_of(delimiters, lastPos);
+
+    while (string::npos != pos || string::npos != lastPos) {
+        tokens.push_back(str.substr(lastPos, pos - lastPos));
+        lastPos = str.find_first_not_of(delimiters, pos);
+        pos = str.find_first_of(delimiters, lastPos);
+    }
+}
 
 std::vector<std::string> AfString::s_split(const std::string &in, const std::string &delim)
 {
-    std::regex re{delim};
-    return std::vector<std::string> {
-        std::sregex_token_iterator(in.begin(), in.end(), re, -1),
-        std::sregex_token_iterator()
-    };
+    vector<string> tokens;
+    split(tokens, in, delim);
+    return tokens;
 }
 
 
@@ -135,7 +145,7 @@ void c_make_absolute_url(char *buf, int size, const char *base, const char *rel)
         af_strlcpy(buf, rel, size);
         return;
     }
-#ifdef WIN32
+#ifdef _MSC_VER
     if (strnlen_s(rel, 3) >= 3 && isalpha(rel[0]) && rel[1] == ':' && rel[2] == '/') {
         af_strlcpy(buf, rel, size);
         return;

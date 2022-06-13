@@ -45,7 +45,7 @@ string CachePath::getCachedFilePath()
     //net file .
     string cachePath = getCachePath(mOriginalURL, mCacheConfig);
 
-    if (FileUtils::isFileExist(cachePath.c_str()) == FILE_TRUE) {
+    if (FileUtils::isFileExist(cachePath.c_str())) {
         return cachePath;
     } else {
         return "";

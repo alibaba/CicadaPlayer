@@ -92,8 +92,15 @@ void SDLEventReceiver::poll(bool &exit) {
                         mListener.onSpeedUp(event.key.keysym.sym == SDLK_F9);
                         break;
 
+                    case SDLK_F8:
+                        mListener.onSpeedReset();
+                        break;
+
                     case SDLK_p:
                         mListener.onPrePare();
+                        break;
+                    case SDLK_r:
+                        mListener.onReconnect();
                         break;
 
                     default:

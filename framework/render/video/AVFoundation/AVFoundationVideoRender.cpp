@@ -64,7 +64,7 @@ void AVFoundationVideoRender::setBackgroundColor(uint32_t color)
 }
 bool AVFoundationVideoRender::deviceRenderFrame(IAFFrame *frame)
 {
-    bool rendered = false;
+
     bool converted = false;
     if (frame) {
         if (mConvertor == nullptr) {
@@ -76,26 +76,30 @@ bool AVFoundationVideoRender::deviceRenderFrame(IAFFrame *frame)
             converted = true;
         }
     }
-    if (frame) {
 
-        if (mRenderingCb) {
-            CicadaJSONItem params{};
-            rendered = mRenderingCb(mRenderingCbUserData, frame, params);
-        }
+    if (frame == nullptr) {
+        return false;
+    }
 
-        if (rendered) {
-            return false;
-        }
+    bool rendered = false;
 
+    if (mRenderingCb) {
+        CicadaJSONItem params{};
+        rendered = mRenderingCb(mRenderingCbUserData, frame, params);
+    }
+
+    if (!rendered) {
         mRender->renderFrame(frame);
         rendered = true;
     }
+
     if (converted) {
         delete frame;
     }
 
     return rendered;
 }
+
 void AVFoundationVideoRender::device_captureScreen(std::function<void(uint8_t *, int, int)> func)
 {
     mRender->captureScreen(func);

@@ -6,6 +6,7 @@
 //  Copyright (c) 2019 Aliyun. All rights reserved.
 //
 #define LOG_TAG "MeidaPlayerUtil"
+
 #include "utils/frame_work_log.h"
 #include "MediaPlayerUtil.h"
 #include "utils/timer.h"
@@ -33,9 +34,13 @@ namespace Cicada {
         }
     }
 
-    void MediaPlayerUtil::render(int64_t pts)
+    void MediaPlayerUtil::videoRendered(bool rendered)
     {
         ++mTotalRenderCount;
+
+        if (!rendered) {
+            mDroppedRenderCount++;
+        }
 
         if (1 == mTotalRenderCount) {
             mFirstRenderTime = af_getsteady_ms();
@@ -47,10 +52,10 @@ namespace Cicada {
             if (1000 <= diff) {
                 mVideoRenderFps = (float) (mTotalRenderCount - mLastRenderCount) * 1000 / diff;
                 AF_LOGD("KPI test total fps:%0.1f, Current FPS:%0.1f",
-                        (float) (mTotalRenderCount - 1) * 1000 / (af_getsteady_ms() - mFirstRenderTime),
-                        mVideoRenderFps);
+                        (float) (mTotalRenderCount - 1) * 1000 / (af_getsteady_ms() - mFirstRenderTime), mVideoRenderFps);
                 mLastRenderCount = mTotalRenderCount;
                 mLastRenderTime = af_getsteady_ms();
+                AF_LOGD("%llu dropped of %llu video frames\n", mDroppedRenderCount.load(), mTotalRenderCount.load());
             }
         }
     }
@@ -64,6 +69,7 @@ namespace Cicada {
         }
 
         mTotalRenderCount = 0;
+        mDroppedRenderCount = 0;
         mLastRenderCount = 0;
         mFirstRenderTime = 0;
         mLastRenderTime = 0;
@@ -72,72 +78,6 @@ namespace Cicada {
         mVideoRenderFps = 0;
         mReadGotSize = 0;
         mCurrentDownloadSpeed = 0;
-    }
-
-    void MediaPlayerUtil::getPropertyJSONStr(const std::string &name, CicadaJSONArray &array, bool isArray,
-            std::deque<StreamInfo *> &streamInfoQueue, demuxer_service *service)
-    {
-        if (nullptr == service) {
-            return;
-        }
-
-        for (auto &it : streamInfoQueue) {
-            std::string str = service->GetProperty(it->streamIndex, name);
-
-            if (str.empty()) {
-                continue;
-            }
-
-            if (isArray) {
-                CicadaJSONArray subArray(str);
-
-                for (int i = 0; i < subArray.getSize(); ++i) {
-                    CicadaJSONItem &tempItem = subArray.getItem(i);
-                    addPropertyType(tempItem, it->type);
-                    array.addJSON(tempItem);
-                }
-            } else {
-                CicadaJSONItem loopItem(str);
-                addPropertyType(loopItem, it->type);
-                array.addJSON(loopItem);
-            }
-        }
-    }
-
-    void MediaPlayerUtil::addPropertyType(CicadaJSONItem &item, StreamType type)
-    {
-        switch (type) {
-            case ST_TYPE_VIDEO:
-                item.addValue("type", "video");
-                break;
-
-            case ST_TYPE_AUDIO:
-                item.addValue("type", "audio");
-                break;
-
-            case ST_TYPE_SUB:
-                item.addValue("type", "subtitle");
-                break;
-
-            default:
-                item.addValue("type", "unknown");
-                break;
-        }
-    }
-
-    void MediaPlayerUtil::addURLProperty(const std::string &name, CicadaJSONArray &array, IDataSource *dataSource)
-    {
-        if (dataSource) {
-            string str = dataSource->GetOption(name);
-
-            if (str.empty()) {
-                return;
-            }
-
-            CicadaJSONItem item(str);
-            item.addValue("type", "url");
-            array.addJSON(item);
-        }
     }
 
     void MediaPlayerUtil::notifyRead(enum readEvent event, uint64_t size)
@@ -149,7 +89,6 @@ namespace Cicada {
 
             case readEvent_Got:
                 mReadGotIndex++;
-                assert(size > 0);
                 mReadGotSize += size;
                 break;
 
@@ -159,6 +98,12 @@ namespace Cicada {
 
             case readEvent_Loop:
                 mReadLoopIndex++;
+                break;
+
+            case readEvent_Network:
+                assert(size > 0);
+                mReadGotSize += size;
+            default:
                 break;
         }
 
@@ -171,6 +116,7 @@ namespace Cicada {
 
             if (timeS > 1.0) {
                 mCurrentDownloadSpeed = (float) mReadGotSize * 8 / timeS;
+
                 AF_LOGD("mReadLoopIndex is \t %f\n", (float) mReadLoopIndex / timeS);
                 AF_LOGD("mReadAgainIndex is\t %f\n", (float) mReadAgainIndex / timeS);
                 AF_LOGD("mReadGotIndex is\t %f\n", (float) mReadGotIndex / timeS);
@@ -182,5 +128,4 @@ namespace Cicada {
             }
         }
     }
-
 }

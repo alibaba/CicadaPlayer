@@ -1,0 +1,41 @@
+From 2fd59795cde6ea303c7dbf144a4997c71e337844 Mon Sep 17 00:00:00 2001
+From: pingkai <pingkai010@gmail.com>
+Date: Mon, 28 Jun 2021 19:17:40 +0800
+Subject: [PATCH 10/10] build: export some func for windows
+
+Signed-off-by: pingkai <pingkai010@gmail.com>
+---
+ libavcodec/libavcodec.v   | 4 ++++
+ libavformat/libavformat.v | 1 +
+ 2 files changed, 5 insertions(+)
+
+diff --git a/libavcodec/libavcodec.v b/libavcodec/libavcodec.v
+index f1d5e5bc77..dbe3bfefe3 100644
+--- a/libavcodec/libavcodec.v
++++ b/libavcodec/libavcodec.v
+@@ -1,6 +1,10 @@
+ LIBAVCODEC_MAJOR {
+     global:
+         av*;
++        ff_h264_decode_extradata;
++        ff_h264_ps_uninit;
++        ff_hevc_decode_extradata;
++        ff_hevc_ps_uninit;
+     local:
+         *;
+ };
+diff --git a/libavformat/libavformat.v b/libavformat/libavformat.v
+index 20c3ed8795..da27ed8b36 100644
+--- a/libavformat/libavformat.v
++++ b/libavformat/libavformat.v
+@@ -6,6 +6,7 @@ LIBAVFORMAT_MAJOR {
+         ff_isom_write_*;
+         ffio_free_dyn_buf;
+         ffurl_*;
++        ff_compute_frame_duration;
+ 
+     local:
+         *;
+-- 
+2.25.1
+

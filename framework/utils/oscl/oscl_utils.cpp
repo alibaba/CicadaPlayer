@@ -15,11 +15,21 @@
 
 static std::mutex gMutex;
 
+static app_get_meminfo getMeminfo = nullptr;
+
+void setAppGetMemInfo(app_get_meminfo func)
+{
+    getMeminfo = func;
+}
+
 int AFGetSystemMemInfo(mem_info *pInfo)
 {
     // int ret;
     if (pInfo == NULL)
         return -1;
+    if (getMeminfo) {
+        return getMeminfo(pInfo);
+    }
 
 #if TARGET_OS_IPHONE || defined ANDROID
     std::lock_guard<std::mutex> lock(gMutex);

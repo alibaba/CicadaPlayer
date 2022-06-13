@@ -58,6 +58,8 @@ namespace Cicada {
         void switchSubTitle(int index);
         int openUrl();
 
+        void buildContainerInfo();
+
     private:
         SuperMediaPlayer &mPlayer;
     };

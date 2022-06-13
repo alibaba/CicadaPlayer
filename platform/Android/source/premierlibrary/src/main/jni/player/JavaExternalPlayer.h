@@ -106,6 +106,8 @@ public:
 
     void SetView(void *view) override;
 
+    void ClearScreen() override;
+
     void SetDataSource(const char *url) override;
 
 
@@ -184,7 +186,7 @@ public:
 
     void GetVideoRotation(int &rotation) override;
 
-    std::string GetPropertyString(PropertyKey key) override;
+    std::string GetPropertyString(PropertyKey key, const CicadaJSONItem &params) override;
 
     int64_t GetPropertyInt(PropertyKey key) override;
 
@@ -241,6 +243,9 @@ public:
     }
 
     void SetVideoRenderingCallBack(videoRenderingFrameCB cb, void *userData) override
+    {}
+
+    void SetUrlHashCB(UrlHashCB cb, void *userData) override
     {}
 
 public:

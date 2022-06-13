@@ -5,9 +5,10 @@
 #define LOG_TAG "GLRender_YUVContext"
 
 #include "YUVProgramContext.h"
-#include <utils/frame_work_log.h>
-#include <utils/AFMediaType.h>
+#include <base/media/TextureFrame.h>
 #include <render/video/glRender/base/utils.h>
+#include <utils/AFMediaType.h>
+#include <utils/frame_work_log.h>
 
 
 static const char YUV_VERTEX_SHADER[] = R"(
@@ -101,11 +102,13 @@ int YUVProgramContext::initProgram() {
 
     glUseProgram(mProgram);
     getShaderLocations();
-
-    glEnableVertexAttribArray(mPositionLocation);
-    glEnableVertexAttribArray(mTexCoordLocation);
+    glUseProgram(0);
 
     createYUVTextures();
+
+    if (mProcessTextureCb != nullptr) {
+        textureProcessInitRet = mProcessTextureCb->init(TextureFrame::TEXTURE_YUV);
+    }
 
     return 0;
 }
@@ -141,6 +144,8 @@ int YUVProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
         return -1;
     }
 
+    int *lineSize = nullptr;
+
     if (frame != nullptr) {
         IAFFrame::videoInfo &videoInfo = frame->getInfo().video;
         if (mFrameWidth != videoInfo.width || mFrameHeight != videoInfo.height ||
@@ -158,9 +163,13 @@ int YUVProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
             mCoordsChanged = true;
         }
 
-        int *lineSize = frame->getLineSize();
-        if (lineSize != nullptr && lineSize[0] != mYLineSize) {
-            mYLineSize = lineSize[0];
+        lineSize = frame->getLineSize();
+        if (lineSize != nullptr && lineSize[0] != mLineSize[0]) {
+
+            mLineSize[0] = lineSize[0];
+            mLineSize[1] = lineSize[1];
+            mLineSize[2] = lineSize[2];
+
             mCoordsChanged = true;
         }
 
@@ -205,6 +214,29 @@ int YUVProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
         mCoordsChanged = false;
     }
 
+    if (frame != nullptr) {
+        fillDataToYUVTextures(frame->getData(), frame->getLineSize(), frame->getInfo().video.format);
+    }
+
+    GLuint finalTextures[3]{mYUVTextures[0], mYUVTextures[1], mYUVTextures[2]};
+    if (textureProcessInitRet && mProcessTextureCb->needProcess()) {
+        auto *pFrame = new TextureFrame(TextureFrame::TEXTURE_YUV, mGLContext, reinterpret_cast<int *>(mYUVTextures), mLineSize,
+                                        mFrameWidth, mFrameHeight);
+        std::unique_ptr<IAFFrame> textureFrame = std::unique_ptr<TextureFrame>(pFrame);
+        bool success = mProcessTextureCb->push(textureFrame);
+        if (success) {
+        //TODO pull until no frame
+            success = mProcessTextureCb->pull(textureFrame);
+            if (success) {
+                int *outTexture = ((TextureFrame *) textureFrame.get())->getTexture();
+                finalTextures[0] = outTexture[0];
+                finalTextures[1] = outTexture[1];
+                finalTextures[2] = outTexture[2];
+            }
+        }
+    }
+
+    useProgram();
 
     glViewport(0, 0, mWindowWidth, mWindowHeight);
     if(mBackgroundColorChanged) {
@@ -215,19 +247,23 @@ int YUVProgramContext::updateFrame(std::unique_ptr<IAFFrame> &frame) {
     }
     glClear(GL_COLOR_BUFFER_BIT);
 
-    if (frame != nullptr) {
-        fillDataToYUVTextures(frame->getData(), frame->getLineSize(), frame->getInfo().video.format);
-    }
-
-    bindYUVTextures();
+    bindYUVTextures(finalTextures);
 
     glUniformMatrix4fv(mProjectionLocation, 1, GL_FALSE, (GLfloat *) mUProjection);
     glUniformMatrix3fv(mColorSpaceLocation, 1, GL_FALSE, (GLfloat *) mUColorSpace);
     glUniform3f(mColorRangeLocation, mUColorRange[0], mUColorRange[1], mUColorRange[2]);
+
     glVertexAttribPointer(mPositionLocation, 2, GL_FLOAT, GL_FALSE, 0, mDrawRegion);
+    glEnableVertexAttribArray(mPositionLocation);
     glVertexAttribPointer(mTexCoordLocation, 2, GL_FLOAT, GL_FALSE, 0, mFlipCoords);
+    glEnableVertexAttribArray(mTexCoordLocation);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glDisableVertexAttribArray(mPositionLocation);
+    glDisableVertexAttribArray(mTexCoordLocation);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glUseProgram(0);
 
     return 0;
 }
@@ -381,7 +417,7 @@ void YUVProgramContext::updateFlipCoords() {
 
     float leftX = 0.0f + leftCropPercent;
     // crop the extra data when draw.
-    float rightX = 1.0f - rightCropPercent - (mYLineSize - mFrameWidth) *1.0f / mFrameWidth;
+    float rightX = 1.0f - rightCropPercent - (mLineSize[0] - mFrameWidth) * 1.0f / mFrameWidth;
     float topY = 1.0f - topCropPercent;
     float bottomY = 0.0f + bottomCropPercent;
 
@@ -485,7 +521,6 @@ void YUVProgramContext::fillDataToYUVTextures(uint8_t **data, int *pLineSize, in
     glPixelStorei(GL_UNPACK_ROW_LENGTH, pLineSize[0] );
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, yWidth, mFrameHeight,
                  0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data[0]);
-    glUniform1i(mYTexLocation, 0);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
 //update u
@@ -493,7 +528,6 @@ void YUVProgramContext::fillDataToYUVTextures(uint8_t **data, int *pLineSize, in
     glPixelStorei(GL_UNPACK_ROW_LENGTH,  pLineSize[1]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, uvWidth, uvHeight ,
                  0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data[1]);
-    glUniform1i(mUTexLocation, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
 //update v
@@ -501,18 +535,23 @@ void YUVProgramContext::fillDataToYUVTextures(uint8_t **data, int *pLineSize, in
     glPixelStorei(GL_UNPACK_ROW_LENGTH,  pLineSize[2]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, uvWidth, uvHeight ,
                  0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data[2]);
-    glUniform1i(mVTexLocation, 2);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
 
-void YUVProgramContext::bindYUVTextures() {
-//    AF_LOGD("bindYUVTextures");
+void YUVProgramContext::bindYUVTextures(GLuint YUVTextures[3])
+{
+    //    AF_LOGD("bindYUVTextures");
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, mYUVTextures[0]);
+    glBindTexture(GL_TEXTURE_2D, YUVTextures[0]);
+    glUniform1i(mYTexLocation, 0);
+
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, mYUVTextures[1]);
+    glBindTexture(GL_TEXTURE_2D, YUVTextures[1]);
+    glUniform1i(mUTexLocation, 1);
+
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, mYUVTextures[2]);
+    glBindTexture(GL_TEXTURE_2D, YUVTextures[2]);
+    glUniform1i(mVTexLocation, 2);
 }
 
 void YUVProgramContext::updateColorRange() {

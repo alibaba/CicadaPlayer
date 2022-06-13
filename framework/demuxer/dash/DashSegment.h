@@ -37,6 +37,7 @@ namespace Cicada {
             int64_t endByte{INT64_MIN};
             std::vector<DashSegment *> subsegments;
             bool isInitSegment = false;
+            int64_t utcTime = INT64_MIN;
 
         protected:
             DashUrl sourceUrl;

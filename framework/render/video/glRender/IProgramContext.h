@@ -6,6 +6,7 @@
 #define SOURCE_IPROGRAMCONTEXT_H
 
 #include "render/video/IVideoRender.h"
+#include "render/video/glRender/platform/platform_config.h"
 
 #if TARGET_PLATFORM == PLATFORM_IOS
 
@@ -69,6 +70,11 @@ public:
         mRenderingCbUserData = userData;
     }
 
+    virtual void setVideoProcessTextureCb(IVideoRender::videoProcessTextureCb *cb)
+    {
+        mProcessTextureCb = cb;
+    }
+
     virtual void setGLContext(void *glContext)
     {
         mGLContext = glContext;
@@ -77,6 +83,8 @@ public:
 protected:
     videoRenderingFrameCB mRenderingCb{nullptr};
     void *mRenderingCbUserData{nullptr};
+
+    IVideoRender::videoProcessTextureCb *mProcessTextureCb{nullptr};
 
     void *mGLContext{nullptr};
 };

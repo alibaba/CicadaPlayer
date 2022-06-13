@@ -7,9 +7,10 @@
 
 #include "Representation.h"
 #include "data_source/IDataSource.h"
+#include "demuxer/IDemuxer.h"
 #include "utils/afThread.h"
-#include <mutex>
 #include <base/OptionOwner.h>
+#include <mutex>
 
 using namespace std;
 
@@ -28,7 +29,7 @@ namespace Cicada {
 
         std::shared_ptr<segment> getNextSegment();
 
-        std::shared_ptr<segment> getCurSegment();
+        std::shared_ptr<segment> getCurSegment(bool force);
 
         int getStreamType() const;
 
@@ -81,15 +82,29 @@ namespace Cicada {
         {
             return mSeeked.load();
         }
-        
-        bool isRealTimeStream() { return mRealtime; }
+
+        void setExtDataSource(IDataSource *source);
+
+        bool isRealTimeStream()
+        {
+            return mRealtime;
+        }
 
         void MoveToLiveStartSegment(const int64_t liveStartIndex);
 
         int64_t getTargetDuration();
 
+        vector<mediaSegmentListEntry> getSegmentList();
+
+        bool hasPreloadSegment();
+        void usePreloadSegment(std::string &uri, int64_t &rangeStart, int64_t &rangeEnd);
+        std::shared_ptr<segment> usePreloadSegment();
+
+        void setRenditionInfo(const std::vector<RenditionReport> &renditions);
+        std::vector<RenditionReport> getRenditionInfo();
+
     private:
-        int loadPlayList();
+        int loadPlayList(bool noSkip = false);
 
         int threadFunction();
 
@@ -124,12 +139,23 @@ namespace Cicada {
         std::atomic_int mPlayListStatus{0};
 
         std::atomic_bool mSeeked{false};
-        
+
         bool mRealtime = false;
 
         int64_t mReloadErrorStartTime{INT64_MIN};
+
+        std::atomic_bool mCanBlockReload{false};
+        std::atomic_bool mLoadingPlaylist{false};
+        int64_t mCurrentMsn{-1};
+        int64_t mCurrentPart{-1};
+        double mCanSkipUntil{0.0};
+        int64_t mLastPlaylistUpdateTime{0};
+        bool mNeedReloadWithoutSkip{false};
+        IDataSource *mExtDataSource{nullptr};
+        std::shared_ptr<segment> mPreloadSegment{nullptr};
+        std::vector<RenditionReport> mCurrentRenditions;
     };
-}
+}// namespace Cicada
 
 
-#endif //FRAMEWORK_SEGMENTTRACKER_H
+#endif//FRAMEWORK_SEGMENTTRACKER_H

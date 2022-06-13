@@ -1,0 +1,65 @@
+From 61168b5b8dde03f3b77ddf5e4b1b81c338c01746 Mon Sep 17 00:00:00 2001
+From: Stuart Carnie <stuart.carnie@gmail.com>
+Date: Sat, 4 Jul 2020 11:41:43 -0700
+Subject: [PATCH] Configuration: darwin64-arm64-cc for Apple silicon
+
+Reviewed-by: Matt Caswell <matt@openssl.org>
+Reviewed-by: Tim Hudson <tjh@openssl.org>
+Reviewed-by: Dmitry Belyavskiy <beldmit@gmail.com>
+Reviewed-by: Richard Levitte <levitte@openssl.org>
+(Merged from https://github.com/openssl/openssl/pull/12369)
+---
+ CHANGES                     | 3 +++
+ Configurations/10-main.conf | 8 ++++++++
+ config                      | 8 ++++----
+ 3 files changed, 15 insertions(+), 4 deletions(-)
+
+diff --git a/Configurations/10-main.conf b/Configurations/10-main.conf
+index eb92c24f4..cea4feb9a 100644
+--- a/Configurations/10-main.conf
++++ b/Configurations/10-main.conf
+@@ -1557,6 +1557,14 @@ my %targets = (
+         bn_ops           => "SIXTY_FOUR_BIT_LONG",
+         perlasm_scheme   => "macosx",
+     },
++    "darwin64-arm64-cc" => {
++        inherit_from     => [ "darwin-common", asm("aarch64_asm") ],
++        CFLAGS           => add("-Wall"),
++        cflags           => add("-arch arm64"),
++        lib_cppflags     => add("-DL_ENDIAN"),
++        bn_ops           => "SIXTY_FOUR_BIT_LONG",
++        perlasm_scheme   => "ios64",
++    },
+ 
+ ##### GNU Hurd
+     "hurd-x86" => {
+diff --git a/config b/config
+index f28828d48..26225ca2a 100755
+--- a/config
++++ b/config
+@@ -253,11 +253,8 @@ case "${SYSTEM}:${RELEASE}:${VERSION}:${MACHINE}" in
+ 	    Power*)
+ 		echo "ppc-apple-darwin${VERSION}"
+ 		;;
+-	    x86_64)
+-		echo "x86_64-apple-darwin${VERSION}"
+-		;;
+ 	    *)
+-		echo "i686-apple-darwin${VERSION}"
++		echo "${MACHINE}-apple-darwin${VERSION}"
+ 		;;
+ 	esac
+ 	exit 0
+@@ -497,6 +494,9 @@ case "$GUESSOS" in
+ 	else
+ 	    OUT="darwin64-x86_64-cc"
+ 	fi ;;
++  $MACHINE-apple-darwin*)
++	OUT="darwin64-$MACHINE-cc"
++	;;
+   armv6+7-*-iphoneos)
+ 	__CNF_CFLAGS="$__CNF_CFLAGS -arch armv6 -arch armv7"
+ 	__CNF_CXXFLAGS="$__CNF_CXXFLAGS -arch armv6 -arch armv7"
+-- 
+2.31.1
+

@@ -136,16 +136,17 @@ static void changeAudioFormat()
 int main(int argc, char *argv[])
 {
     string url;
+    setProperty("protected.network.http.http2", "ON");
 
     if (argc > 1) {
         url = argv[1];
     } else {
-        url = "http://player.alicdn.com/video/aliyunmedia.mp4";
+        url = "https://player.alicdn.com/video/aliyunmedia.mp4";
     }
 
     log_enable_color(1);
     log_set_level(AF_LOG_LEVEL_TRACE, 1);
-    //    setProperty("protected.audio.render.hw.tempo","OFF");
+    setProperty("protected.audio.render.hw.tempo", "OFF");
     //
     //    changeAudioFormat();
 
@@ -179,12 +180,13 @@ int main(int argc, char *argv[])
     player->SetIPResolveType(IpResolveWhatEver);
     player->SetFastStart(true);
     MediaPlayerConfig config = *(player->GetConfig());
-    config.mMaxBackwardBufferDuration = 20000;
+    //   config.mMaxBackwardBufferDuration = 20000;
     config.liveStartIndex = -3;
     player->SetConfig(&config);
     player->Prepare();
     player->SelectTrack(-1);
     player->SetOnRenderFrameCallback(CicadaOnRenderFrame, nullptr);
+    //    player->SetStreamDelayTime(-1, -200);
     bool quite = false;
 
     while (!quite && !cicada.error) {

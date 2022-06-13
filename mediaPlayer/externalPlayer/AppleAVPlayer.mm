@@ -84,6 +84,11 @@ void AppleAVPlayer::SetView(void *view)
     }
 }
 
+void AppleAVPlayer::ClearScreen()
+{
+    //TODO
+}
+
 void AppleAVPlayer::SetDataSource(const char *url)
 {
     //    this->sourceUrl = (char *)url;
@@ -611,9 +616,9 @@ void AppleAVPlayer::GetVideoResolution(int &width, int &height)
 void AppleAVPlayer::GetVideoRotation(int &rotation)
 {}
 
-std::string AppleAVPlayer::GetPropertyString(PropertyKey key)
+std::string AppleAVPlayer::GetPropertyString(PropertyKey key, const CicadaJSONItem &params)
 {
-    return ICicadaPlayer::GetPropertyString(key);
+    return ICicadaPlayer::GetPropertyString(key, params);
 }
 
 int64_t AppleAVPlayer::GetPropertyInt(PropertyKey key)

@@ -344,6 +344,33 @@ namespace Cicada {
         }
     }
 
+    void AnalyticsCollectorImpl::ReportLowMemory()
+    {
+        for (AnalyticsCollectorListener *iter : mListener) {
+            if (nullptr != iter) {
+                iter->OnLowMemory();
+            }
+        }
+    }
+
+    void AnalyticsCollectorImpl::ReportAutoSwitchBitrateStart(const std::string &changeInfo, const std::string &bufferInfo)
+    {
+        for (AnalyticsCollectorListener *iter : mListener) {
+            if (nullptr != iter) {
+                iter->OnAutoSwitchBitrateStart(changeInfo, bufferInfo);
+            }
+        }
+    }
+
+    void AnalyticsCollectorImpl::ReportAbrSwitchStatus(int status)
+    {
+        for (AnalyticsCollectorListener *iter : mListener) {
+            if (nullptr != iter) {
+                iter->OnAbrSwitchStatus(status);
+            }
+        }
+    }
+
     void AnalyticsCollectorImpl::ReportBlackInfo()
     {
         for (AnalyticsCollectorListener *iter : mListener) {

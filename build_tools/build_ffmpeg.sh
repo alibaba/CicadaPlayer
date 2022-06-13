@@ -5,7 +5,12 @@
 source ffmpeg_cross_compile_config.sh
 source ffmpeg_commands.sh
 function build_ffmpeg(){
-    use_openssl="TRUE"
+    if [[ "${FFMPEG_USE_OPENSSL}" != "TRUE" ]];then
+        use_openssl="FALSE"
+    else
+        use_openssl="TRUE"
+    fi
+
     ffmpeg_cross_compile_config_reset
     if [[ "$1" == "Android" ]]
     then
@@ -21,8 +26,8 @@ function build_ffmpeg(){
     elif [[ "$1" == "win32" ]];then
         ffmpeg_cross_compile_set_win32 $2
     elif [[ "$1" == "Darwin" ]];then
-        print_warning "native build for $1"
-        local native_build=yes
+        print_warning "native build ffmpeg for $1  $2"
+ #       local native_build=yes
         if [[ "${SSL_USE_NATIVE}" != "TRUE" ]];then
             ffmpeg_config_add_user "--disable-securetransport"
         else
@@ -30,11 +35,18 @@ function build_ffmpeg(){
         fi
         ffmpeg_config_add_extra_cflags "-fno-stack-check"
 
-        ffmpeg_native_compile_set_macOS
+        ffmpeg_native_compile_set_macOS $2
     elif [[ "$1" == "Linux" ]];then
         local native_build=yes
+    elif [ "$1" == "maccatalyst" ];then
+      if [[ "${SSL_USE_NATIVE}" != "TRUE" ]];then
+          ffmpeg_config_add_user "--disable-securetransport"
+      else
+          use_openssl="FALSE"
+      fi
+           ffmpeg_native_compile_set_maccatalyst "$2"
     else
-        echo "Unsupported platform"
+        echo "ffmpeg Unsupported platform $2"
         return -1;
     fi
 
@@ -56,6 +68,9 @@ function build_ffmpeg(){
         ffmpeg_config_add_user "--enable-libfdk-aac"
         ffmpeg_config_add_extra_cflags "-I${FDK_AAC_INSTALL_DIR}/include"
         ffmpeg_config_add_extra_ldflags "-L${FDK_AAC_INSTALL_DIR}/lib"
+        if [[ "$1" == "Android" ]];then
+            ffmpeg_config_add_extra_ldflags "-lm"
+        fi
     fi
 
     if [[ -n "${X264_INSTALL_DIR}" ]]; then

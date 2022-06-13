@@ -40,6 +40,8 @@ namespace Cicada {
             return mUrl;
         }
 
+        std::string getHeader();
+
 //    private:
 //        class dataSourceListener : public Cicada::IDataSource::Listener {
 //            NetWorkRetryStatus onNetWorkRetry(int error) override

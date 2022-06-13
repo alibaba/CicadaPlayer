@@ -47,7 +47,10 @@ private:
         return A_FILTER_FLAG_VOLUME;
     }
 
-    void device_preClose() override;
+    void device_preClose() override
+    {
+        mRunning = false;
+    }
 
 private:
     AudioTrackRender(int dummy) : mFrameQueue(1)
@@ -105,6 +108,8 @@ private:
     std::atomic<uint64_t> mAudioFlushPosition{0};
 
     std::atomic<uint64_t> mSendSimples{0};
+
+    std::atomic<uint64_t> mOverFlowPlayedSimples{0};
     int jBufferLen{0};
     jobject jbuffer{nullptr};
 

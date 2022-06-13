@@ -19,6 +19,12 @@ namespace Cicada {
 
         virtual int64_t OnAnalyticsGetCurrentPosition() = 0;
 
+        virtual std::string OnAnalyticsGetNetworkSpeed(int64_t from, int64_t to) = 0;
+
+        virtual std::string OnAnalyticsGetBufferInfo(int64_t from, int64_t to) = 0;
+
+        virtual std::string OnAnalyticsGetRequestInfos(int64_t from, int64_t to) = 0;
+
         virtual int64_t OnAnalyticsGetBufferedPosition() = 0;
         
         virtual int64_t OnAnalyticsGetDuration() = 0;

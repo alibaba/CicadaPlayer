@@ -160,7 +160,7 @@ void SegmentTimeline::pruneByPlaybackTime(int64_t time)
 size_t SegmentTimeline::pruneBySequenceNumber(uint64_t number)
 {
     size_t prunednow = 0;
-    while (elements.size()) {
+    while (!elements.empty()) {
         Element *el = elements.front();
         if (el->number >= number) {
             break;

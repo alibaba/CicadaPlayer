@@ -17,6 +17,7 @@
 #include "utils/frame_work_log.h"
 #include "utils/timer.h"
 #include <algorithm>
+#include <cassert>
 #include <utility>
 
 #define IS_LIVE (mRep && mRep->b_live)
@@ -27,6 +28,11 @@ namespace Cicada {
     SegmentTracker::SegmentTracker(Representation *rep, const IDataSource::SourceConfig &sourceConfig)
         : mRep(rep), mSourceConfig(sourceConfig)
     {
+        mCanBlockReload = mRep->mCanBlockReload;
+        if (mCanBlockReload && mTargetDuration > 0) {
+            mSourceConfig.connect_time_out_ms = 3 * mTargetDuration;
+        }
+        mCanSkipUntil = mRep->mCanSkipUntil;
         mThread = NEW_AF_THREAD(threadFunction);
     }
 
@@ -52,13 +58,16 @@ namespace Cicada {
         }
     }
 
-    std::shared_ptr<segment> SegmentTracker::getCurSegment()
+    std::shared_ptr<segment> SegmentTracker::getCurSegment(bool force)
     {
         std::unique_lock<std::recursive_mutex> locker(mMutex);
+        if (mPreloadSegment) {
+            return mPreloadSegment;
+        }
         shared_ptr<segment> seg = nullptr;
 
         if (mRep->GetSegmentList()) {
-            seg = mRep->GetSegmentList()->getSegmentByNumber(mCurSegNum);
+            seg = mRep->GetSegmentList()->getSegmentByNumber(mCurSegNum, force);
         }
 
         if (seg) {
@@ -75,11 +84,12 @@ namespace Cicada {
         mCurSegNum++;
 
         if (mRep->GetSegmentList()) {
-            seg = mRep->GetSegmentList()->getSegmentByNumber(mCurSegNum);
+            seg = mRep->GetSegmentList()->getSegmentByNumber(mCurSegNum, true);
         }
 
         if (seg) {
             mCurSegNum = seg->getSequenceNumber();
+            mPreloadSegment = nullptr;
         } else {
             mCurSegNum--;
         }
@@ -106,47 +116,37 @@ namespace Cicada {
             AF_LOGW("SegmentTracker::MoveToLiveStartSegment, segmentList is empty");
             return;
         }
+        auto segments = segList->getSegments();
         if (segList->hasLHLSSegments()) {
-            // lhls stream, liveStartIndex is partial segment index
-            auto segments = segList->getSegments();
-            if (liveStartIndex >= 0) {
-                int offset = liveStartIndex;
-                bool isFindPart = false;
-                for (auto iter = segments.begin(); iter != segments.end(); iter++) {
-                    const vector<SegmentPart> &segmentParts = (*iter)->getSegmentParts();
-                    if (offset >= segmentParts.size()) {
-                        offset -= segmentParts.size();
-                    } else {
-                        (*iter)->moveToNearestIndependentPart(offset);
-                        isFindPart = true;
-                        setCurSegNum((*iter)->getSequenceNumber());
-                        std::string segUrl = (*iter)->getDownloadUrl();
-                        AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
-                        break;
-                    }
-                }
-                if (!isFindPart) {
-                    // use last independent part
-                    auto iter = segments.back();
-                    iter->moveToNearestIndependentPart(iter->getSegmentParts().size() - 1);
-                    setCurSegNum(iter->getSequenceNumber());
-                    std::string segUrl = iter->getDownloadUrl();
-                    AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
-                }
-            } else {
-                int offset = -liveStartIndex - 1;
+            if (mRep->mPartHoldBack > 0.0) {
+                double duration = 0.0;
                 bool isFindPart = false;
                 for (auto iter = segments.rbegin(); iter != segments.rend(); iter++) {
                     const vector<SegmentPart> &segmentParts = (*iter)->getSegmentParts();
-                    if (offset >= segmentParts.size()) {
-                        offset -= segmentParts.size();
+                    if (segmentParts.size() > 0) {
+                        for (int i = segmentParts.size() - 1; i >= 0; i--) {
+                            duration += segmentParts[i].duration / 1000000.0f;
+                            if (duration >= mRep->mPartHoldBack) {
+                                (*iter)->moveToNearestIndependentPart(i);
+                                isFindPart = true;
+                                setCurSegNum((*iter)->getSequenceNumber());
+                                std::string segUrl = (*iter)->getDownloadUrl();
+                                AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
+                                break;
+                            }
+                        }
+                        if (isFindPart) {
+                            break;
+                        }
                     } else {
-                        (*iter)->moveToNearestIndependentPart(segmentParts.size() - 1 - offset);
-                        isFindPart = true;
-                        setCurSegNum((*iter)->getSequenceNumber());
-                        std::string segUrl = (*iter)->getDownloadUrl();
-                        AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
-                        break;
+                        duration += (*iter)->duration / 1000000.0f;
+                        if (duration >= mRep->mPartHoldBack) {
+                            isFindPart = true;
+                            setCurSegNum((*iter)->getSequenceNumber());
+                            std::string segUrl = (*iter)->getDownloadUrl();
+                            AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
+                            break;
+                        }
                     }
                 }
                 if (!isFindPart) {
@@ -157,58 +157,174 @@ namespace Cicada {
                     std::string segUrl = iter->getDownloadUrl();
                     AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
                 }
+            } else {
+                // playlist has no PART-HOLD-BACK, use liveStartIndex , liveStartIndex is partial segment index
+                if (liveStartIndex >= 0) {
+                    int offset = liveStartIndex;
+                    bool isFindPart = false;
+                    for (auto iter = segments.begin(); iter != segments.end(); iter++) {
+                        const vector<SegmentPart> &segmentParts = (*iter)->getSegmentParts();
+                        if (offset >= segmentParts.size()) {
+                            offset -= segmentParts.size();
+                        } else {
+                            (*iter)->moveToNearestIndependentPart(offset);
+                            isFindPart = true;
+                            setCurSegNum((*iter)->getSequenceNumber());
+                            std::string segUrl = (*iter)->getDownloadUrl();
+                            AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
+                            break;
+                        }
+                    }
+                    if (!isFindPart) {
+                        // use last independent part
+                        auto iter = segments.back();
+                        iter->moveToNearestIndependentPart(iter->getSegmentParts().size() - 1);
+                        setCurSegNum(iter->getSequenceNumber());
+                        std::string segUrl = iter->getDownloadUrl();
+                        AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
+                    }
+                } else {
+                    int offset = -liveStartIndex - 1;
+                    bool isFindPart = false;
+                    for (auto iter = segments.rbegin(); iter != segments.rend(); iter++) {
+                        const vector<SegmentPart> &segmentParts = (*iter)->getSegmentParts();
+                        if (offset >= segmentParts.size()) {
+                            offset -= segmentParts.size();
+                        } else {
+                            (*iter)->moveToNearestIndependentPart(segmentParts.size() - 1 - offset);
+                            isFindPart = true;
+                            setCurSegNum((*iter)->getSequenceNumber());
+                            std::string segUrl = (*iter)->getDownloadUrl();
+                            AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
+                            break;
+                        }
+                    }
+                    if (!isFindPart) {
+                        // use first independent part
+                        auto iter = segments.front();
+                        iter->moveToNearestIndependentPart(0);
+                        setCurSegNum(iter->getSequenceNumber());
+                        std::string segUrl = iter->getDownloadUrl();
+                        AF_LOGI("SegmentTracker::MoveToLiveStartSegment, segUrl=%s", segUrl.c_str());
+                    }
+                }
             }
         } else {
-            // hls stream, liveStartIndex is segment index
-            uint64_t curNum;
-            if (liveStartIndex >= 0) {
-                curNum = std::min(getFirstSegNum() + liveStartIndex, getLastSegNum());
-            } else {
-                int64_t targetSegNum = ((int64_t) getLastSegNum()) + liveStartIndex + 1;
-                if (targetSegNum < 0) {
-                    targetSegNum = 0;
+            uint64_t curNum = 0;
+            if (mRep->mHoldBack > 0.0) {
+                double duration = 0.0;
+                bool isFind = false;
+                for (auto iter = segments.rbegin(); iter != segments.rend(); iter++) {
+                    duration += (*iter)->duration / 1000000.0f;
+                    if (duration >= mRep->mHoldBack) {
+                        isFind = true;
+                        curNum = (*iter)->getSequenceNumber();
+                        setCurSegNum(curNum);
+                        AF_LOGI("SegmentTracker::MoveToLiveStartSegment, seg num=%llu", curNum);
+                        break;
+                    }
                 }
-                curNum = std::max((uint64_t) targetSegNum, getFirstSegNum());
+                if (!isFind) {
+                    // use first segment
+                    auto iter = segments.front();
+                    curNum = iter->getSequenceNumber();
+                    setCurSegNum(curNum);
+                    AF_LOGI("SegmentTracker::MoveToLiveStartSegment, seg num=%llu", curNum);
+                }
+            } else {
+                // playlist has no HOLD-BACK, use liveStartIndex , liveStartIndex is segment index
+                if (liveStartIndex >= 0) {
+                    curNum = std::min(getFirstSegNum() + liveStartIndex, getLastSegNum());
+                } else {
+                    int64_t targetSegNum = ((int64_t) getLastSegNum()) + liveStartIndex + 1;
+                    if (targetSegNum < 0) {
+                        targetSegNum = 0;
+                    }
+                    curNum = std::max((uint64_t) targetSegNum, getFirstSegNum());
+                }
+                setCurSegNum(curNum);
+                AF_LOGI("SegmentTracker::MoveToLiveStartSegment, seg num=%llu", curNum);
             }
-            setCurSegNum(curNum);
         }
     }
 
-    int SegmentTracker::loadPlayList()
+    int SegmentTracker::loadPlayList(bool noSkip)
     {
         int ret;
         string uri;
-        string *pUri;
+        bool useSkip = false;
 
         if (!mRep) {
             return -EINVAL;
         }
 
-        if (mLocation.empty()) {
+        {
             std::unique_lock<std::recursive_mutex> locker(mMutex);
-            uri = Helper::combinePaths(mRep->getPlaylist()->getPlaylistUrl(),
-                                       mRep->getPlaylistUrl());
-            pUri = &uri;
-        } else {
-            pUri = &mLocation;
+            if (mLocation.empty()) {
+                uri = Helper::combinePaths(mRep->getPlaylist()->getPlaylistUrl(), mRep->getPlaylistUrl());
+            } else {
+                uri = mLocation;
+            }
+            if (mCanBlockReload && mCurrentMsn >= 0) {
+                if (uri.find('?') == std::string::npos) {
+                    uri += "?";
+                } else {
+                    uri += "&";
+                }
+                uri += "_HLS_msn=";
+                uri += std::to_string(mCurrentMsn);
+                uri += "&_HLS_part=";
+                uri += std::to_string(mCurrentPart);
+            } else if (!mCurrentRenditions.empty()) {
+                std::string playListUrl = mRep->getPlaylistUrl();
+                for (auto &it : mCurrentRenditions) {
+                    if (it.uri == playListUrl && mCurSegNum >= it.lastMsn && mCurSegNum < it.lastMsn + 3) {
+                        if (uri.find('?') == std::string::npos) {
+                            uri += "?";
+                        } else {
+                            uri += "&";
+                        }
+                        uri += "_HLS_msn=";
+                        uri += std::to_string(mCurSegNum);
+                        AF_LOGD("[llhls] use rendition report to load playlist");
+                        break;
+                    }
+                }
+                mCurrentRenditions.clear();
+            }
+            if (!noSkip && mCanSkipUntil > 0.0 && af_getsteady_ms() - mLastPlaylistUpdateTime < mCanSkipUntil * 0.5 * 1000) {
+                if (uri.find('?') == std::string::npos) {
+                    uri += "?";
+                } else {
+                    uri += "&";
+                }
+                uri += "_HLS_skip=YES";
+                useSkip = true;
+            }
         }
 
-        AF_LOGD("uri is [%s]\n", pUri->c_str());
+        AF_LOGD("loadPlayList uri is [%s]\n", uri.c_str());
 
         if (mRep->mPlayListType == playList_demuxer::playList_type_hls) {
-            if (mPDataSource == nullptr) {
-                {
-                    std::unique_lock<std::recursive_mutex> locker(mMutex);
-                    mPDataSource = dataSourcePrototype::create(*pUri, mOpts);
-                    mPDataSource->Set_config(mSourceConfig);
-                    mPDataSource->Interrupt(mInterrupted);
-                }
-                ret = mPDataSource->Open(0);
+            mLoadingPlaylist = true;
+            if (mExtDataSource) {
+                ret = mExtDataSource->Open(uri);
             } else {
-                ret = mPDataSource->Open(*pUri);
+                if (mPDataSource == nullptr) {
+                    {
+                        std::unique_lock<std::recursive_mutex> locker(mMutex);
+                        mPDataSource = dataSourcePrototype::create(uri, mOpts);
+                        mPDataSource->Set_config(mSourceConfig);
+                        mPDataSource->Interrupt(mInterrupted);
+                    }
+                    ret = mPDataSource->Open(0);
+                } else {
+                    ret = mPDataSource->Open(uri);
+                }
             }
+            mLoadingPlaylist = false;
 
-            AF_LOGD("ret is %d\n", ret);
+            AF_LOGD("loadPlayList ret is %d\n", ret);
 
             if (ret < 0) {
                 AF_LOGE("open url error %s\n", framework_err2_string(ret));
@@ -228,12 +344,21 @@ namespace Cicada {
 
             if (mLocation.empty()) {
                 std::string location("location");
-                mLocation = mPDataSource->GetOption(location);
+                if (mExtDataSource) {
+                    mLocation = mExtDataSource->GetOption(location);
+                } else {
+                    assert(mPDataSource);
+                    mLocation = mPDataSource->GetOption(location);
+                }
             }
 
-            auto *parser = new HlsParser(pUri->c_str());
-            parser->setDataSourceIO(new dataSourceIO(mPDataSource));
-            playList *pPlayList = parser->parse(*pUri);
+            auto *parser = new HlsParser(uri.c_str());
+            if (mExtDataSource) {
+                parser->setDataSourceIO(new dataSourceIO(mExtDataSource));
+            } else {
+                parser->setDataSourceIO(new dataSourceIO(mPDataSource));
+            }
+            playList *pPlayList = parser->parse(uri);
 
             //  mPPlayList->dump();
             // mediaPlayList only have one Representation
@@ -248,17 +373,69 @@ namespace Cicada {
                 //  sList->print();
                 //live stream should always keeps the new lists.
                 if (pList) {
+                    if (useSkip) {
+                        uint64_t oldLastSegNum = pList->getLastSeqNum();
+                        uint64_t newFirstSegNum = sList->getFirstSeqNum();
+                        if (newFirstSegNum > oldLastSegNum + 1) {
+                            mNeedReloadWithoutSkip = true;
+                            delete pPlayList;
+                            delete parser;
+                            return 0;
+                        }
+                    }
                     pList->merge(sList);
                 } else {
                     mRep->SetSegmentList(sList);
                 }
 
+                mRep->mCanBlockReload = rep->mCanBlockReload;
+                mCanBlockReload = rep->mCanBlockReload;
+
+                SegmentList *currentSegList = mRep->GetSegmentList();
+                if (mCanBlockReload) {
+                    auto lastSeg = currentSegList->getSegmentByNumber(currentSegList->getLastSeqNum(), false);
+                    bool bHasUnusedParts;
+                    mCurrentMsn = lastSeg->getSequenceNumber();
+                    if (lastSeg->isDownloadComplete(bHasUnusedParts)) {
+                        mCurrentMsn++;
+                        mCurrentPart = 0;
+                    } else {
+                        mCurrentPart = lastSeg->getSegmentParts().size();
+                    }
+                }
+                if (mRep->mPreloadHint.used) {
+                    if (mPreloadSegment && currentSegList->getLastSeqNum() >= mPreloadSegment->getSequenceNumber()) {
+                        mPreloadSegment = nullptr;
+                    }
+                    if (rep->mPreloadHint.uri != mRep->mPreloadHint.uri && !currentSegList->containPartialSegment(mRep->mPreloadHint.uri)) {
+                        // TODO: cancel preload
+                    }
+                    uint64_t preloadSegNum;
+                    if (currentSegList->findPartialSegment(mRep->mPreloadHint.uri, preloadSegNum)) {
+                        if (mCurSegNum < preloadSegNum) {
+                            mCurSegNum = preloadSegNum;
+                            AF_LOGD("[lhls] move to preload segment, segNum=%llu, uri=%s", mCurSegNum, mRep->mPreloadHint.uri.c_str());
+                        }
+                        mRep->mPreloadHint.used = false;
+                    }
+                    auto curSeg = getCurSegment(false);
+                    if (curSeg) {
+                        curSeg->moveToPreloadSegment(mRep->mPreloadHint.uri);
+                    }
+                }
+                if (!mRep->mPreloadHint.used && mRep->mPreloadHint.uri != rep->mPreloadHint.uri) {
+                    mRep->mPreloadHint = rep->mPreloadHint;
+                }
+
                 rep->SetSegmentList(nullptr);
 
+                mRep->mRenditionReport = rep->mRenditionReport;
+                mRep->mCanSkipUntil = rep->mCanSkipUntil;
+                mCanSkipUntil = rep->mCanSkipUntil;
                 // update is live
                 mRep->b_live = rep->b_live;
 
-                if (pPlayList->getDuration() > 0) {
+                if (pPlayList->getDuration() > 0 && mPDataSource) {
                     mPDataSource->Close();
                     delete mPDataSource;
                     mPDataSource = nullptr;
@@ -270,6 +447,10 @@ namespace Cicada {
                 } else {
                     delete pPlayList;
                 }
+                mLastPlaylistUpdateTime = af_getsteady_ms();
+            } else {
+                delete parser;
+                return -EAGAIN;
             }
 
             // mRep->mStreamType = rep->mStreamType;
@@ -296,6 +477,12 @@ namespace Cicada {
                 ret = loadPlayList();
                 mLastLoadTime = af_gettime_relative();
 
+                mCanBlockReload = mRep->mCanBlockReload;
+                if (mCanBlockReload && mTargetDuration > 0) {
+                    mSourceConfig.connect_time_out_ms = 3 * mTargetDuration;
+                }
+                mCanSkipUntil = mRep->mCanSkipUntil;
+
                 if (ret < 0) {
                     AF_LOGE("loadPlayList error %d\n", ret);
                     return ret;
@@ -315,6 +502,17 @@ namespace Cicada {
             }
 
             mInited = true;
+        } else if (isLive()) {
+            ret = loadPlayList();
+            if (ret < 0) {
+                AF_LOGE("loadPlayList error %d\n", ret);
+                return ret;
+            }
+            mCanBlockReload = mRep->mCanBlockReload;
+            if (mCanBlockReload && mTargetDuration > 0) {
+                mSourceConfig.connect_time_out_ms = 3 * mTargetDuration;
+            }
+            mCanSkipUntil = mRep->mCanSkipUntil;
         }
 
         // start from a num
@@ -392,22 +590,31 @@ namespace Cicada {
     {
         //   AF_TRACE;
         if (IS_LIVE) {
-            int64_t time = af_gettime_relative();
 
-            //   AF_LOGD("mTargetDuration is %lld", (int64_t)mTargetDuration);
-            int64_t reloadInterval = 0;
-            if (mPartTargetDuration > 0) {
-                // lhls reload interval is 2 times part target duration
-                reloadInterval = mPartTargetDuration * 2;
-            } else {
-                // hls reload interval is half target dutaion
-                reloadInterval = mTargetDuration / 2;
-            }
-            if (time - mLastLoadTime > reloadInterval) {
+            if (mCanBlockReload) {
                 std::unique_lock<std::mutex> locker(mSegMutex);
-                mNeedUpdate = true;
-                mSegCondition.notify_all();
-                mLastLoadTime = time;
+                if (!mLoadingPlaylist) {
+                    mNeedUpdate = true;
+                    mSegCondition.notify_all();
+                }
+            } else {
+                int64_t time = af_gettime_relative();
+
+                //   AF_LOGD("mTargetDuration is %lld", (int64_t)mTargetDuration);
+                int64_t reloadInterval = 0;
+                if (mPartTargetDuration > 0) {
+                    // lhls reload interval is 2 times part target duration
+                    reloadInterval = mPartTargetDuration * 2;
+                } else {
+                    // hls reload interval is half target dutaion
+                    reloadInterval = mTargetDuration / 2;
+                }
+                if (time - mLastLoadTime > reloadInterval) {
+                    std::unique_lock<std::mutex> locker(mSegMutex);
+                    mNeedUpdate = true;
+                    mSegCondition.notify_all();
+                    mLastLoadTime = time;
+                }
             }
 
             return mPlayListStatus;
@@ -435,6 +642,10 @@ namespace Cicada {
 
             if (!mStopLoading) {
                 mPlayListStatus = loadPlayList();
+                if (mNeedReloadWithoutSkip) {
+                    mPlayListStatus = loadPlayList(true);
+                    mNeedReloadWithoutSkip = false;
+                }
                 if (!mRealtime && mRep != nullptr && mRep->GetSegmentList() != nullptr)
                 {
                     mRealtime = mRep->GetSegmentList()->hasLHLSSegments();
@@ -451,10 +662,17 @@ namespace Cicada {
     {
         std::unique_lock<std::recursive_mutex> locker(mMutex);
         mInterrupted = inter;
+        if (mExtDataSource) {
+            mExtDataSource->Interrupt(inter);
+        }
 
         if (mPDataSource) {
             mPDataSource->Interrupt(inter);
         }
+        mCurrentMsn = -1;
+        mCurrentPart = -1;
+        mCanBlockReload = false;
+        mCanSkipUntil = false;
     }
 
     bool SegmentTracker::isInited()
@@ -480,7 +698,7 @@ namespace Cicada {
             uint64_t firstSegNum = getFirstSegNum();
             uint64_t curSegNum = getCurSegNum();
             uint64_t position = curSegNum - firstSegNum - 1;
-            AF_LOGD("1206, getCurSegPosition <--- targetSegNum %llu ， firstSegNum = %llu ,curSegNum = %llu \n", position, firstSegNum, curSegNum);
+            AF_LOGD("1206, getCurSegPosition <--- targetSegNum %llu , firstSegNum = %llu ,curSegNum = %llu \n", position, firstSegNum, curSegNum);
             return position;
         } else {
             AF_LOGD("1206, getCurSegPosition  %llu\n", mCurSegPos);
@@ -520,5 +738,75 @@ namespace Cicada {
         } else {
             return mRep->targetDuration;
         }
+    }
+
+    vector<mediaSegmentListEntry> SegmentTracker::getSegmentList()
+    {
+        vector<mediaSegmentListEntry> ret;
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
+        if (mRep->GetSegmentList()) {
+            auto segments = mRep->GetSegmentList()->getSegments();
+
+            for (auto it = segments.begin(); it != segments.end(); it++) {
+                std::string uri = Helper::combinePaths(getBaseUri(), (*it)->getDownloadUrl());
+                ret.push_back(mediaSegmentListEntry(uri, (*it)->duration));
+            }
+        }
+        return ret;
+    }
+
+    bool SegmentTracker::hasPreloadSegment()
+    {
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
+        if (mRep && mRep->mPreloadHint.isPartialSegment && !mRep->mPreloadHint.uri.empty() && !mRep->mPreloadHint.used) {
+            return true;
+        }
+        return false;
+    }
+
+    void SegmentTracker::usePreloadSegment(std::string &uri, int64_t &rangeStart, int64_t &rangeEnd)
+    {
+        assert(mRep);
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
+        mRep->mPreloadHint.used = true;
+        uri = mRep->mPreloadHint.uri;
+        rangeStart = mRep->mPreloadHint.rangeStart;
+        rangeEnd = mRep->mPreloadHint.rangeEnd;
+    }
+
+    std::shared_ptr<segment> SegmentTracker::usePreloadSegment()
+    {
+        assert(mRep);
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
+        mRep->mPreloadHint.used = true;
+        mPreloadSegment = std::make_shared<segment>(0);
+        mPreloadSegment->sequence = mCurSegNum + 1;
+        mPreloadSegment->setSourceUrl("");
+        auto lastSeg = mRep->GetSegmentList()->getSegments().back();
+        if (lastSeg->startTime != UINT64_MAX) {
+            mPreloadSegment->startTime = lastSeg->startTime + lastSeg->duration;
+        }
+        if (lastSeg->utcTime >= 0) {
+            mPreloadSegment->utcTime = lastSeg->utcTime + lastSeg->duration;
+        }
+        SegmentPart part;
+        part.uri = mRep->mPreloadHint.uri;
+        mPreloadSegment->updateParts({part});
+        return mPreloadSegment;
+    }
+    void SegmentTracker::setExtDataSource(IDataSource *source)
+    {
+        std::unique_lock<std::recursive_mutex> locker(mMutex);
+        mExtDataSource = source;
+    }
+
+    void SegmentTracker::setRenditionInfo(const std::vector<RenditionReport> &renditions)
+    {
+        mCurrentRenditions = renditions;
+    }
+
+    std::vector<RenditionReport> SegmentTracker::getRenditionInfo()
+    {
+        return mRep->mRenditionReport;
     }
 }

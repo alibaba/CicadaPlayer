@@ -59,7 +59,6 @@ namespace Cicada {
         if (mSegType == SEG_NORMAL) {
             return mUri;
         } else if (mSegType == SEG_LHLS) {
-            std::lock_guard<std::recursive_mutex> lck(mMutex);
             return mDownloadUri;
         } else {
             assert(0);
@@ -67,11 +66,25 @@ namespace Cicada {
         }
     }
 
+    void segment::getDownloadRange(int64_t &start, int64_t &end)
+    {
+        std::lock_guard<std::recursive_mutex> lck(mMutex);
+        if (mSegType == SEG_NORMAL) {
+            start = rangeStart;
+            end = rangeEnd;
+        } else if (mSegType == SEG_LHLS) {
+            start = downloadRangeStart;
+            end = downloadRangeEnd;
+        } else {
+            assert(0);
+        }
+    }
+
     void segment::updateParts(const std::vector<SegmentPart> &parts)
     {
         std::lock_guard<std::recursive_mutex> lck(mMutex);
         mParts = parts;
-        if (mParts.size() > 0) {
+        if (!mParts.empty()) {
             mSegType = SEG_LHLS;
             if (mPartsNextIndex == 0) {
                 moveToNextPart();
@@ -81,7 +94,7 @@ namespace Cicada {
         }
     }
 
-    const vector<SegmentPart> &segment::getSegmentParts()
+    const std::vector<SegmentPart> &segment::getSegmentParts()
     {
         std::lock_guard<std::recursive_mutex> lck(mMutex);
         return mParts;
@@ -89,13 +102,14 @@ namespace Cicada {
 
     void segment::moveToNextPart()
     {
-        lock_guard<recursive_mutex> lck(mMutex);
-        std::string uri = "";
+        std::lock_guard<std::recursive_mutex> lck(mMutex);
 
         if (mUri.empty()) {
             // dose not have complete segment, use part
-            if (mParts.size() > 0 && mPartsNextIndex >= 0 && mPartsNextIndex < mParts.size()) {
-                uri = mParts[mPartsNextIndex].uri;
+            if (!mParts.empty() && mPartsNextIndex >= 0 && mPartsNextIndex < mParts.size()) {
+                mDownloadUri = mParts[mPartsNextIndex].uri;
+                downloadRangeStart = mParts[mPartsNextIndex].rangeStart;
+                downloadRangeEnd = mParts[mPartsNextIndex].rangeEnd;
                 ++mPartsNextIndex;
             } else {
                 AF_LOGD("Not have enough segment parts [%d] [%d]", mPartsNextIndex, (int) mParts.size());
@@ -104,25 +118,31 @@ namespace Cicada {
             // has complete segment
             if (mPartsNextIndex > 0) {
                 // has played part, use next part
-                if (mParts.size() > 0 && mPartsNextIndex >= 0 && mPartsNextIndex < mParts.size()) {
-                    uri = mParts[mPartsNextIndex].uri;
+                if (!mParts.empty() && mPartsNextIndex >= 0 && mPartsNextIndex < mParts.size()) {
+                    mDownloadUri = mParts[mPartsNextIndex].uri;
+                    downloadRangeStart = mParts[mPartsNextIndex].rangeStart;
+                    downloadRangeEnd = mParts[mPartsNextIndex].rangeEnd;
                     ++mPartsNextIndex;
                 } else {
                     AF_LOGD("Not have enough segment parts [%d] [%d]", mPartsNextIndex, (int) mParts.size());
                 }
             } else {
                 // has not been played, use complete segment
-                uri = mUri;
+                mDownloadUri = mUri;
+                downloadRangeStart = rangeStart;
+                downloadRangeEnd = rangeEnd;
                 mPartsNextIndex = -1;
             }
         }
 
-        mDownloadUri = uri;
     }
 
     void segment::moveToPart(int partIndex)
     {
-        lock_guard<recursive_mutex> lck(mMutex);
+        std::lock_guard<std::recursive_mutex> lck(mMutex);
+        if (mParts.empty()) {
+            return;
+        }
         int fixedPartIndex = partIndex;
         if (fixedPartIndex < 0) {
             fixedPartIndex = 0;
@@ -130,21 +150,25 @@ namespace Cicada {
         if (fixedPartIndex >= mParts.size()) {
             fixedPartIndex = mParts.size() - 1;
         }
-        std::string uri = "";
         if (!mUri.empty() && fixedPartIndex == 0) {
-            uri = mUri;
+            mDownloadUri = mUri;
+            downloadRangeStart = rangeStart;
+            downloadRangeEnd = rangeEnd;
             mPartsNextIndex = -1;
         } else {
-            uri = mParts[fixedPartIndex].uri;
+            mDownloadUri = mParts[fixedPartIndex].uri;
+            downloadRangeStart = mParts[fixedPartIndex].rangeStart;
+            downloadRangeEnd = mParts[fixedPartIndex].rangeEnd;
             mPartsNextIndex = fixedPartIndex + 1;
         }
-        
-        mDownloadUri = uri;
     }
 
     void segment::moveToNearestIndependentPart(int partIndex)
     {
-        lock_guard<recursive_mutex> lck(mMutex);
+        std::lock_guard<std::recursive_mutex> lck(mMutex);
+        if (mParts.empty()) {
+            return;
+        }
         int fixedIndex = partIndex;
         if (fixedIndex < 0) {
             fixedIndex = 0;
@@ -167,9 +191,21 @@ namespace Cicada {
 
     bool segment::isDownloadComplete(bool &bHasUnusedParts)
     {
-        lock_guard<recursive_mutex> lck(mMutex);
+        std::lock_guard<std::recursive_mutex> lck(mMutex);
         bool isComplete = !mUri.empty();
         bHasUnusedParts = (mPartsNextIndex < mParts.size());
         return isComplete;
+    }
+
+    void segment::moveToPreloadSegment(const std::string &segmentUri)
+    {
+        std::lock_guard<std::recursive_mutex> lck(mMutex);
+        for (int i = mPartsNextIndex; i < mParts.size(); i++) {
+            if (mParts[i].uri == segmentUri) {
+                AF_LOGD("[lhls] move to preload partial segment, index=%d, uri=%s", i, mParts[i].uri.c_str());
+                moveToPart(i);
+                break;
+            }
+        }
     }
 }// namespace Cicada

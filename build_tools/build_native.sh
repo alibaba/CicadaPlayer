@@ -50,7 +50,7 @@ function build_shared_framework(){
     export CPU_FLAGS=
     export LDFLAGS=
 
-    local support_libs="fdk-aac x264 curl librtmp cares dav1d"
+    local support_libs="fdk-aac x264 curl librtmp cares dav1d nghttp2"
 
     if [[ "${XML_USE_NATIVE}" == "FALSE" ]];then
         support_libs="${support_libs} libxml2"
@@ -59,14 +59,14 @@ function build_shared_framework(){
     if [[ "${SSL_USE_NATIVE}" != "TRUE" ]];then
         support_libs="${support_libs} openssl"
     fi
-
-    SRC_LIBRARIES_DIR="$CWD/install/ffmpeg/Darwin/x86_64/lib"
+    MAC_ARCH=$(uname -m)
+    SRC_LIBRARIES_DIR="$CWD/install/ffmpeg/Darwin/${MAC_ARCH}/lib"
 
     for support_lib in ${support_libs}
     do
-        if [ -d "install/${support_lib}/Darwin/x86_64/lib" ];then
-            SRC_LIBRARIES_DIR="$SRC_LIBRARIES_DIR $CWD/install/${support_lib}/Darwin/x86_64/lib"
-            local libs="$(cd install/${support_lib}/Darwin/x86_64/lib; ls *.a)"
+        if [ -d "install/${support_lib}/Darwin/${MAC_ARCH}/lib" ];then
+            SRC_LIBRARIES_DIR="$SRC_LIBRARIES_DIR $CWD/install/${support_lib}/Darwin/${MAC_ARCH}/lib"
+            local libs="$(cd install/${support_lib}/Darwin/${MAC_ARCH}/lib; ls *.a)"
             SRC_LIBRARIES="$SRC_LIBRARIES $libs"
         fi
     done
@@ -90,7 +90,11 @@ function build_shared_framework(){
     return;
 }
 
-build_libs $(uname) x86_64 #$((uname -m)) Travis use uname -m get a 0...
+if [[ "$(uname)" == "Darwin" ]];then
+  build_libs Darwin "${MACOS_ARCHS}"
+else
+  build_libs $(uname) x86_64 #$((uname -m)) Travis use uname -m get a 0...
+fi
 
 if [[ "$(uname)" == "Darwin"  &&  "${BUILD_SHARED_LIB}" != "FALSE" ]];then
     build_shared_framework

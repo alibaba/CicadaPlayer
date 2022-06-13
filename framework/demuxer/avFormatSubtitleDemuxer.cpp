@@ -7,8 +7,8 @@
 
 #include "avFormatSubtitleDemuxer.h"
 
-#include <utils/errors/framework_error.h>
 #include <base/media/AVAFPacket.h>
+#include <utils/errors/framework_error.h>
 
 namespace Cicada {
     avFormatSubtitleDemuxer avFormatSubtitleDemuxer::se(0);
@@ -55,7 +55,7 @@ namespace Cicada {
         int ret = avformat_open_input(&mCtx, mPath.c_str(), in_fmt, nullptr);
 
         if (ret < 0) {
-            AF_LOGE("avformat_open_input error %d,%s,", ret,  getErrorString(ret));
+            AF_LOGE("avformat_open_input error %d,%s,", ret, getErrorString(ret));
 
             if (ret == AVERROR_PROTOCOL_NOT_FOUND) {
                 return FRAMEWORK_ERR_PROTOCOL_NOT_SUPPORT;
@@ -73,7 +73,6 @@ namespace Cicada {
         do {
             ret = readPacketInternal();
         } while (ret >= 0);
-
         return 0;
     }
 
@@ -110,16 +109,13 @@ namespace Cicada {
     }
 
     void avFormatSubtitleDemuxer::Start()
-    {
-    }
+    {}
 
     void avFormatSubtitleDemuxer::Stop()
-    {
-    }
+    {}
 
     void avFormatSubtitleDemuxer::flush()
-    {
-    }
+    {}
 
     void avFormatSubtitleDemuxer::interrupt(int inter)
     {
@@ -152,8 +148,7 @@ namespace Cicada {
     }
 
     void avFormatSubtitleDemuxer::CloseStream(int index)
-    {
-    }
+    {}
 
     int64_t avFormatSubtitleDemuxer::Seek(int64_t us, int flags, int index)
     {
@@ -194,7 +189,7 @@ namespace Cicada {
         if (mCurrent != mPacketMap.end()) {
             packet = ((*(mCurrent)).second->clone());
             mCurrentPts = packet->getInfo().pts;
-            mCurrent++;
+            ++mCurrent;
         } else {
             return 0;
         }
@@ -216,7 +211,7 @@ namespace Cicada {
         if (err < 0) {
             if (err != AVERROR(EAGAIN)) {
                 if (mCtx->pb) {
-                    av_log(nullptr, AV_LOG_WARNING, "%s:%d: %s, ctx->pb->error=%d\n", __FILE__, __LINE__,  getErrorString(err),
+                    av_log(nullptr, AV_LOG_WARNING, "%s:%d: %s, ctx->pb->error=%d\n", __FILE__, __LINE__, getErrorString(err),
                            mCtx->pb->error);
                 }
             }
@@ -279,8 +274,7 @@ namespace Cicada {
 
 
     bool avFormatSubtitleDemuxer::is_supported(const string &uri, const uint8_t *buffer, int64_t size, int *type,
-            const Cicada::DemuxerMeta *meta,
-            const Cicada::options *opts)
+                                               const Cicada::DemuxerMeta *meta, const Cicada::options *opts)
     {
         unsigned char *pbBuffer = static_cast<unsigned char *>(av_malloc(size + AVPROBE_PADDING_SIZE));
         memcpy(pbBuffer, buffer, size);
@@ -301,5 +295,25 @@ namespace Cicada {
     {
         return static_cast<avFormatSubtitleDemuxer *>(opaque)->mInterrupted;
     }
+    const vector<IDemuxer::streamIndexEntryInfo> &avFormatSubtitleDemuxer::getStreamIndexEntryInfo()
+    {
+        if (mCtx == nullptr || !mEntryInfos.empty()) {
+            return mEntryInfos;
+        }
+        for (int i = 0; i < mCtx->nb_streams; ++i) {
+            AVIndexEntry *index_entries = mCtx->streams[i]->index_entries;
+            streamIndexEntryInfo entryInfo;
+            entryInfo.mDuration = mCtx->duration;
+            entryInfo.type = STREAM_TYPE_SUB;
+            for (int j = 0; j < mCtx->streams[i]->nb_index_entries; ++j) {
+                int64_t timestamp = av_rescale_q(index_entries[j].timestamp, mCtx->streams[i]->time_base, av_get_time_base_q());
+                streamIndexEntryInfo::entryInfo info(index_entries[j].pos, timestamp, index_entries[j].flags & AVINDEX_KEYFRAME,
+                                                     index_entries[j].flags & AVINDEX_DISCARD_FRAME, index_entries[j].size);
+                entryInfo.mEntry.push_back(info);
+            }
+            mEntryInfos.push_back(entryInfo);
+        }
+        return mEntryInfos;
+    }
 
-}
+}// namespace Cicada

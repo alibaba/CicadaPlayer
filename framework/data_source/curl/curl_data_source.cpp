@@ -6,14 +6,15 @@
 #include "curl_data_source.h"
 #include <pthread.h>
 
-#include <utils/frame_work_log.h>
-#include <utils/errors/framework_error.h>
-#include <thread>
-#include <utils/timer.h>
-#include "utils/CicadaJSON.h"
-#include "utils/AsyncJob.h"
-#include "data_source/DataSourceUtils.h"
 #include "CURLShareInstance.h"
+#include "data_source/DataSourceUtils.h"
+#include "utils/AsyncJob.h"
+#include "utils/CicadaJSON.h"
+#include <thread>
+#include <utils/errors/framework_error.h>
+#include <utils/frame_work_log.h>
+#include <utils/property.h>
+#include <utils/timer.h>
 
 #ifdef WIN32
     #include <winsock2.h>
@@ -47,16 +48,15 @@
 static pthread_once_t once = PTHREAD_ONCE_INIT;
 using namespace Cicada;
 
-static curl_sslbackend g_sslbackend = CURLSSLBACKEND_NONE;
-
 CurlDataSource CurlDataSource::se(0);
 using std::string;
 
 CURLConnection *CurlDataSource::initConnection()
 {
-    auto *pHandle = new CURLConnection(&mConfig);
-    pHandle->setSSLBackEnd(g_sslbackend);
-    pHandle->setSource(mLocation, headerList);
+    auto *pHandle = new CURLConnection(mLocation);
+    pHandle->setSSLBackEnd(CURLShareInstance::Instance()->getSslbakcend());
+    pHandle->setSourceConfig(&mConfig);
+    pHandle->setHeaderList(headerList);
     pHandle->setPost(mBPost, mPostSize, mPostData);
     return pHandle;
 }
@@ -113,7 +113,7 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
 
     if (CURLE_OK ==
             curl_easy_getinfo(pConnection->getCurlHandle(), CURLINFO_RESPONSE_CODE, &response)) {
-        AF_LOGI("CURLINFO_RESPONSE_CODE is %d", response);
+        CURL_LOGD("CURLINFO_RESPONSE_CODE is %d", response);
 
         if (response >= 400) {
             return gen_framework_http_errno((int) response);
@@ -121,36 +121,6 @@ int CurlDataSource::curl_connect(CURLConnection *pConnection, int64_t filePos)
     }
 
     return 0;
-}
-static curl_sslbackend getCurlSslBackend()
-{
-    const curl_ssl_backend **list;
-    CURLsslset result = curl_global_sslset((curl_sslbackend) -1, nullptr, &list);
-    assert(result == CURLSSLSET_UNKNOWN_BACKEND);
-
-    // we only build one ssl backend
-    if (list[0]) {
-        return list[0]->id;
-    }
-
-    return CURLSSLBACKEND_NONE;
-}
-
-static void init_curl()
-{
-    g_sslbackend = getCurlSslBackend();
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-//   openssl_thread_setup();
-#endif
-}
-
-static void clean_curl()
-{
-    curl_global_cleanup();
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-    //openssl_thread_cleanup()
-#endif
 }
 
 CurlDataSource::CurlDataSource(const string &url) : IDataSource(url)
@@ -162,16 +132,20 @@ CurlDataSource::CurlDataSource(const string &url) : IDataSource(url)
 
 CurlDataSource::~CurlDataSource()
 {
-    AF_LOGI("!~CurlDataSource");
-
+    AF_LOGI("~CurlDataSource");
     if (mBDummy) {
-        clean_curl();
         return;
     }
-    globalNetWorkManager::getGlobalNetWorkManager()->removeListener(this);
-
+    if (globalNetWorkManager::getGlobalNetWorkManager()) {
+        globalNetWorkManager::getGlobalNetWorkManager()->removeListener(this);
+    }
     Interrupt(true);
     Close();
+    if (headerList) {
+        curl_slist_free_all(headerList);
+        headerList = nullptr;
+    }
+    AF_LOGI("~!CurlDataSource");
 }
 
 int CurlDataSource::Open(int flags)
@@ -185,6 +159,10 @@ int CurlDataSource::Open(int flags)
     if (headerList) {
         curl_slist_free_all(headerList);
         headerList = nullptr;
+    }
+
+    if (getProperty("ro.network.http.globeHeader")) {
+        headerList = curl_slist_append(headerList, getProperty("ro.network.http.globeHeader"));
     }
 
     std::vector<std::string> &customHeaders = mConfig.customHeaders;
@@ -330,7 +308,7 @@ int64_t CurlDataSource::Seek(int64_t offset, int whence)
     //    CURL_LOGD("CurlDataSource::Seek position is %lld,when is %d", offset, whence);
     if (!mPConnection) {
         return -(ESPIPE);
-}
+    }
     if (whence == SEEK_SIZE) {
         return mFileSize;
     } else if ((whence == SEEK_CUR && offset == 0) ||
@@ -483,17 +461,21 @@ int CurlDataSource::Read(void *buf, size_t size)
         if (mNeedReconnect) {
             rangeStart = mPConnection->tell();
             Close();
-            Open(0);
+            Open(mLocation);
             mNeedReconnect = false;
         }
         ret = mPConnection->FillBuffer(1);
 
         if (ret < 0) {
+            AF_LOGE("CurlDataSource::Read ret=%d, size=%u", ret, size);
             return ret;
         }
     }
-
-    return mPConnection->readBuffer(buf, size);
+    ret = mPConnection->readBuffer(buf, size);
+    if (ret < 0) {
+        AF_LOGE("CurlDataSource::Read ret=%d, size=%u", ret, size);
+    }
+    return ret;
 }
 
 string CurlDataSource::GetOption(const string &key)
@@ -586,6 +568,9 @@ void CurlDataSource::fillConnectInfo()
 
 bool CurlDataSource::probe(const string &path)
 {
+    if (globalSettings::getSetting().getProperty("protected.network.http.http2") == "ON") {
+        return false;
+    }
     return CicadaUtils::startWith(path, {"http://", "https://"});
 }
 
@@ -601,7 +586,6 @@ void CurlDataSource::Interrupt(bool interrupt)
 CurlDataSource::CurlDataSource(int dummy) : IDataSource("")
 {
     mBDummy = true;
-    init_curl();
     addPrototype(this);
 }
 

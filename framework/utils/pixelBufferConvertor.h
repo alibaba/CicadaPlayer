@@ -13,7 +13,7 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 namespace Cicada {
-    class pixelBufferConvertor {
+    class CICADA_CPLUS_EXTERN pixelBufferConvertor {
     public:
         pixelBufferConvertor();
         ~pixelBufferConvertor();

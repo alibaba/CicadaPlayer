@@ -36,6 +36,8 @@ void CicadaSetVideoRenderingCallBack(playerHandle *pHandle, videoRenderingFrameC
 
 void CicadaSetUpdateViewCallback(playerHandle *pHandle, UpdateViewCB cb, void *userData);
 
+void CicadaSetUrlHashCallback(playerHandle *pHandle, UrlHashCB cb, void *userData);
+
 /*
  * set external component callback
  */
@@ -66,6 +68,8 @@ DecoderType CicadaGetDecoderType(playerHandle *player);
  *set player view
  */
 void CicadaSetView(playerHandle *player, void *view);
+
+void CicadaClearScreen(playerHandle *player);
 
 /*
  *set play url source
@@ -247,6 +251,28 @@ void CicadaSetAutoPlay(playerHandle *player, bool bAutoPlay);
  */
 bool CicadaIsAutoPLay(playerHandle *pHandle);
 
+
+/**
+ * Set filter config. call this before prepare. If want update filter config, call updateFilterConfig()
+ * @param filterConfig
+ */
+void CicadaSetFilterConfig(playerHandle *pHandle, const std::string &filterConfig);
+
+/**
+ * upadate filter config.
+ * @param target  Empty or not found, will make no effect. Should not be empty.
+ * @param options
+ */
+void CicadaUpdateFilterConfig(playerHandle *pHandle, const std::string &target, const std::string &options);
+
+/**
+ * disable/enable filter.
+ * @param target  if empty , disable all filters.
+ * @param invalid  true: enable(default); false: disable
+ */
+void CicadaSetFilterInvalid(playerHandle *pHandle, const std::string &target, bool invalid);
+
+
 void CicadaAddExtSubtitle(playerHandle *pHandle, const char *uri);
 
 void CicadaSelectExtSubtitle(playerHandle *pHandle, int index, bool select);
@@ -266,7 +292,7 @@ void CicadaGetVideoRotation(playerHandle *player, int &rotation);
 /*
  * get string property
  */
-std::string CicadaGetPropertyString(playerHandle *player, PropertyKey key);
+std::string CicadaGetPropertyString(playerHandle *player, PropertyKey key, const CicadaJSONItem &param);
 
 /*
  * get long property

@@ -26,6 +26,8 @@ namespace Cicada {
 
         void SetView(void *view) override;
 
+        void ClearScreen() override;
+
         void SetDataSource(const char *url) override;
 
         void Prepare() override;
@@ -103,7 +105,7 @@ namespace Cicada {
 
         void GetVideoRotation(int &rotation) override;
 
-        std::string GetPropertyString(PropertyKey key) override;
+        std::string GetPropertyString(PropertyKey key, const CicadaJSONItem &params) override;
 
         int64_t GetPropertyInt(PropertyKey key) override;
 
@@ -151,13 +153,16 @@ namespace Cicada {
         void SetUpdateViewCB(UpdateViewCB cb, void *userData) override
         {}
 
-        void setDrmRequestCallback(const std::function<DrmResponseData*(const DrmRequestParam& drmRequestParam)> &drmCallback) override
+        void setDrmRequestCallback(const std::function<DrmResponseData *(const DrmRequestParam &drmRequestParam)> &drmCallback) override
         {}
 
         float getCurrentDownloadSpeed() override
         {
             return 0;
         }
+
+        void SetUrlHashCB(UrlHashCB cb, void *userData) override
+        {}
 
     public:
         static bool is_supported(const options *opts)

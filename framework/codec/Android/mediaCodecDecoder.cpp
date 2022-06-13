@@ -39,6 +39,7 @@ namespace Cicada {
     }
 
     mediaCodecDecoder::~mediaCodecDecoder() {
+        mCSDList.clear();
         delete mDecoder;
     }
 
@@ -56,7 +57,10 @@ namespace Cicada {
         }
 
         if (atoi(version.c_str()) < 21) {
-            if (flags & DECFLAG_ADAPTIVE || codec == AF_CODEC_ID_HEVC || maxSize > 1920) {
+            if (flags & DECFLAG_ADAPTIVE || codec == AF_CODEC_ID_HEVC
+                //maxSize will be judged by the codec. Tianmao box supports large width/height.
+                /*|| maxSize > 1920*/
+            ) {
                 return false;
             }
         }
@@ -102,9 +106,9 @@ namespace Cicada {
 
         mMeta = *meta;
         mVideoOutObser = voutObsr;
+        updateCSD(meta, meta->extradata, meta->extradata_size);
 
         lock_guard<recursive_mutex> func_entry_lock(mFuncEntryMutex);
-        setCSD(meta);
 
         if (drmInfo != nullptr) {
             if (mRequireDrmHandlerCallback != nullptr) {
@@ -123,11 +127,12 @@ namespace Cicada {
         return configDecoder();
     }
 
-    int mediaCodecDecoder::setCSD(const Stream_meta *meta) {
+    void mediaCodecDecoder::updateCSD(const Stream_meta *meta, const uint8_t *extradata, int extradata_size)
+    {
         if (meta->codec == AF_CODEC_ID_HEVC) {
 
-            if (meta->extradata == nullptr || meta->extradata_size == 0) {
-                return -1;
+            if (extradata == nullptr || extradata_size == 0) {
+                return;
             }
 
             uint8_t *vps_data = nullptr;
@@ -137,15 +142,11 @@ namespace Cicada {
             int sps_data_size = 0;
             int pps_data_size = 0;
 
-            int ret = parse_h265_extraData(CodecID2AVCodecID(AF_CODEC_ID_HEVC),meta->extradata, meta->extradata_size,
-                                           &vps_data,&vps_data_size,
-                                           &sps_data,&sps_data_size,
-                                           &pps_data,&pps_data_size,
-                                           &naluLengthSize);
+            int ret = parse_h265_extraData(CodecID2AVCodecID(AF_CODEC_ID_HEVC), extradata, extradata_size, &vps_data, &vps_data_size,
+                                           &sps_data, &sps_data_size, &pps_data, &pps_data_size, &naluLengthSize);
             if (ret >= 0) {
-
-                std::list<CodecSpecificData> csdList{};
-                CodecSpecificData csd0{};
+                mCSDList.clear();
+                std::unique_ptr<CodecSpecificData> csd0 = std::unique_ptr<CodecSpecificData>(new CodecSpecificData());
 
                 const int data_size =
                         vps_data_size + sps_data_size + pps_data_size;
@@ -155,46 +156,41 @@ namespace Cicada {
                 memcpy(data + vps_data_size, sps_data, sps_data_size);
                 memcpy(data + vps_data_size + sps_data_size, pps_data, pps_data_size);
 
-                csd0.setScd("csd-0", data, data_size);
-                csdList.push_back(csd0);
-                mDecoder->setCodecSpecificData(csdList);
+                csd0->setScd("csd-0", data, data_size);
+                mCSDList.push_back(move(csd0));
 
-                csdList.clear();
+                av_free(vps_data);
+                av_free(sps_data);
+                av_free(pps_data);
             }
-
-            return ret;
         } else if (meta->codec == AF_CODEC_ID_H264) {
 
-            if (meta->extradata == nullptr || meta->extradata_size == 0) {
-                return -1;
+            if (extradata == nullptr || extradata_size == 0) {
+                return;
             }
-
             uint8_t *sps_data = nullptr;
             uint8_t *pps_data = nullptr;
             int sps_data_size = 0;
             int pps_data_size = 0;
 
-            int ret = parse_h264_extraData(CodecID2AVCodecID(AF_CODEC_ID_H264),meta->extradata, meta->extradata_size,
-                                           &sps_data,&sps_data_size,
-                                           &pps_data,&pps_data_size,
-                                           &naluLengthSize);
+            int ret = parse_h264_extraData(CodecID2AVCodecID(AF_CODEC_ID_H264), extradata, extradata_size, &sps_data, &sps_data_size,
+                                           &pps_data, &pps_data_size, &naluLengthSize);
+
             if (ret >= 0) {
+                mCSDList.clear();
+                std::unique_ptr<CodecSpecificData> csd0 = std::unique_ptr<CodecSpecificData>(new CodecSpecificData());
+                csd0->setScd("csd-0", sps_data, sps_data_size);
+                mCSDList.push_back(move(csd0));
+                std::unique_ptr<CodecSpecificData> csd1 = std::unique_ptr<CodecSpecificData>(new CodecSpecificData());
+                csd1->setScd("csd-1", pps_data, pps_data_size);
+                mCSDList.push_back(move(csd1));
 
-                std::list<CodecSpecificData> csdList{};
-                CodecSpecificData csd0{};
-                csd0.setScd("csd-0", sps_data, sps_data_size);
-                csdList.push_back(csd0);
-                CodecSpecificData csd1{};
-                csd1.setScd("csd-1", pps_data, pps_data_size);
-                csdList.push_back(csd1);
-                mDecoder->setCodecSpecificData(csdList);
-
-                csdList.clear();
+                av_free(sps_data);
+                av_free(pps_data);
             }
 
-            return ret;
         } else if (meta->codec == AF_CODEC_ID_AAC) {
-            if (meta->extradata == nullptr || meta->extradata_size == 0) {
+            if (extradata == nullptr || extradata_size == 0) {
                 isADTS = true;
                 //ADTS, has no extra data . MediaCodec MUST set csd when decode aac
 
@@ -212,34 +208,28 @@ namespace Cicada {
                     }
                 }
                 if (sampleIndex < 0) {
-                    return -1;
+                    return;
                 }
 
                 const size_t kCsdLength = 2;
-                char csd[kCsdLength];
+                char csd[kCsdLength] = {0};
                 csd[0] = (meta->profile + 1) << 3 | sampleIndex >> 1;
                 csd[1] = (sampleIndex & 0x01) << 7 | meta->channels << 3;
 
-                std::list<CodecSpecificData> csdList{};
-                CodecSpecificData csd0{};
-                csd0.setScd("csd-0", csd, kCsdLength);
-                csdList.push_back(csd0);
-                mDecoder->setCodecSpecificData(csdList);
-
-                csdList.clear();
+                mCSDList.clear();
+                std::unique_ptr<CodecSpecificData> csd0 = std::unique_ptr<CodecSpecificData>(new CodecSpecificData());
+                csd0->setScd("csd-0", csd, kCsdLength);
+                mCSDList.push_back(move(csd0));
             } else {
                 isADTS = false;
-                std::list<CodecSpecificData> csdList{};
-                CodecSpecificData csd0{};
-                csd0.setScd("csd-0", meta->extradata, meta->extradata_size);
-                csdList.push_back(csd0);
-                mDecoder->setCodecSpecificData(csdList);
-
-                csdList.clear();
+                mCSDList.clear();
+                std::unique_ptr<CodecSpecificData> csd0 = std::unique_ptr<CodecSpecificData>(new CodecSpecificData());
+                csd0->setScd("csd-0", (void *) extradata, extradata_size);
+                mCSDList.push_back(move(csd0));
             }
-            return 0;
+            return;
         } else {
-            return -1;
+            return;
         }
     }
 
@@ -302,6 +292,15 @@ namespace Cicada {
                     return ret;
                 }
             }
+        }
+
+        if (pPacket != nullptr && pPacket->getInfo().extra_data != nullptr) {
+            updateCSD(&mMeta, pPacket->getInfo().extra_data, pPacket->getInfo().extra_data_size);
+        }
+
+        if (!mCSDList.empty()) {
+            mDecoder->setCodecSpecificData(mCSDList);
+            mCSDList.clear();
         }
 
         int index = mDecoder->dequeueInputBufferIndex(1000);
@@ -497,6 +496,7 @@ namespace Cicada {
 
             // TODO: get the timePosition form input packet
             pFrame->getInfo().timePosition = INT64_MIN;
+            pFrame->getInfo().utcTime = INT64_MIN;
             return 0;
         } else {
             AF_LOGE("unknown error %d\n", index);

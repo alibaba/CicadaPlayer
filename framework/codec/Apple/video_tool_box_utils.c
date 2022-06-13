@@ -10,6 +10,7 @@
 #include <libavcodec/hevc_parse.h>
 #include <utils/ffmpeg_utils.h>
 #include <utils/frame_work_log.h>
+#include <TargetConditionals.h>
 
 #ifndef kVTVideoDecoderSpecification_RequireHardwareAcceleratedVideoDecoder
     #define kVTVideoDecoderSpecification_RequireHardwareAcceleratedVideoDecoder CFSTR("RequireHardwareAcceleratedVideoDecoder")
@@ -491,10 +492,12 @@ CFDictionaryRef videotoolbox_buffer_attributes_create(int width, int height, OST
     CFDictionarySetValue(buffer_attributes, kCVPixelBufferIOSurfacePropertiesKey, io_surface_properties);
     CFDictionarySetValue(buffer_attributes, kCVPixelBufferWidthKey, w);
     CFDictionarySetValue(buffer_attributes, kCVPixelBufferHeightKey, h);
+#if !TARGET_OS_MACCATALYST
 #if TARGET_OS_IPHONE
     CFDictionarySetValue(buffer_attributes, kCVPixelBufferOpenGLESCompatibilityKey, kCFBooleanTrue);
 #else
     CFDictionarySetValue(buffer_attributes, kCVPixelBufferIOSurfaceOpenGLTextureCompatibilityKey, kCFBooleanTrue);
+#endif
 #endif
     CFRelease(io_surface_properties);
     CFRelease(cv_pix_fmt);

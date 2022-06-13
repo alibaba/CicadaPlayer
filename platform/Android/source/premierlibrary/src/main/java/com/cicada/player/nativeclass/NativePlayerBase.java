@@ -16,6 +16,7 @@ import com.cicada.player.bean.ErrorInfo;
 import com.cicada.player.bean.InfoBean;
 import com.cicada.player.bean.InfoCode;
 import com.cicada.player.utils.Logger;
+import com.cicada.player.utils.NativeLoader;
 import com.cicada.player.utils.NativeUsed;
 import com.cicada.player.utils.media.DrmCallback;
 
@@ -34,9 +35,9 @@ public class NativePlayerBase {
     private MainHandler mCurrentThreadHandler;
 
     static {
-        System.loadLibrary("alivcffmpeg");
-        System.loadLibrary("CicadaPlayer");
+        NativeLoader.loadPlayer();
     }
+
 
     private static class MainHandler extends Handler {
         private WeakReference<NativePlayerBase> playerWeakReference;
@@ -1029,6 +1030,18 @@ public class NativePlayerBase {
             public void run() {
                 if (mOnSubtitleDisplayListener != null) {
                     mOnSubtitleDisplayListener.onSubtitleHide(trackIndex, id);
+                }
+            }
+        });
+    }
+
+    protected void onSubtitleHeader(final int trackIndex, final String header) {
+        Logger.v(TAG, "onSubtitleHeader  = " + trackIndex + " , header = " + header);
+        mCurrentThreadHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mOnSubtitleDisplayListener != null) {
+                    mOnSubtitleDisplayListener.onSubtitleHeader(trackIndex, header);
                 }
             }
         });

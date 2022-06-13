@@ -32,6 +32,10 @@ public:
         virtual void onPrePare() = 0;
 
         virtual void onFullScreen(bool full) = 0;
+
+        virtual void onSpeedReset() = 0;
+
+        virtual void onReconnect() = 0;
     };
 
     class IEvent {

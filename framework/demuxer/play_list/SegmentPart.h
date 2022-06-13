@@ -9,25 +9,30 @@
 #define SegmentPart_h
 
 #include <string>
-using namespace std;
 
-namespace Cicada
-{
-    typedef struct SegmentPart
-    {
-        int64_t duration;
-        string uri;
-        bool independent;
-        uint64_t sequence;
-        
-        SegmentPart()
-        {
-            duration = 0;
-            uri = "";
-            independent = false;
-            sequence = 0;
-        }
+namespace Cicada {
+    typedef struct SegmentPart {
+        bool independent{false};
+        int64_t duration{0};
+        uint64_t sequence{0};
+        int64_t rangeStart{INT64_MIN};
+        int64_t rangeEnd{INT64_MIN};
+        std::string uri;
     } SegmentPart;
-}
+
+    struct PreloadHint {
+        bool isPartialSegment{false};
+        bool used{false};
+        int64_t rangeStart{INT64_MIN};
+        int64_t rangeEnd{INT64_MIN};
+        std::string uri;
+    };
+
+    struct RenditionReport {
+        std::string uri;
+        int64_t lastMsn{-1};
+        int64_t lastPart{-1};
+    };
+}// namespace Cicada
 
 #endif /* SegmentPart_h */

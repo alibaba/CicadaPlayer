@@ -32,6 +32,9 @@ using namespace std;
 #include <cacheModule/CacheModule.h>
 #include <cacheModule/cache/CacheConfig.h>
 #include <codec/IDecoder.h>
+#ifdef ENABLE_VIDEO_FILTER
+#include <filter/FilterManager.h>
+#endif
 
 #ifdef __APPLE__
 
@@ -39,8 +42,9 @@ using namespace std;
 
 #endif
 
-#include "mediaPlayerSubTitleListener.h"
+#include "MediaPlayerAnalyticsUtil.h"
 #include "SMPRecorderSet.h"
+#include "mediaPlayerSubTitleListener.h"
 
 namespace Cicada {
     typedef struct streamTime_t {
@@ -73,6 +77,9 @@ namespace Cicada {
         LiveTimeSyncSlowDown
     };
 
+    const static float MIN_SPEED = 0.5;
+    const static float MAX_SPEED = 5;
+
     class SuperMediaPlayer : public ICicadaPlayer, private CicadaPlayerPrototype {
 
         friend class SuperMediaPlayerDataSourceListener;
@@ -99,6 +106,8 @@ namespace Cicada {
         void SetVideoRenderingCallBack(videoRenderingFrameCB cb, void *userData) override;
 
         void SetUpdateViewCB(UpdateViewCB cb, void *userData) override;
+
+        void SetUrlHashCB(UrlHashCB cb, void *userData) override;
 
         // TODO: use setParameters and setOpt to set
         void SetRefer(const char *refer) override;
@@ -166,6 +175,8 @@ namespace Cicada {
 
         void SetView(void *view) override;
 
+        void ClearScreen() override;
+
         void SetDataSource(const char *url) override;
 
         void setBitStreamCb(readCB read, seekCB seek, void *arg) override;
@@ -198,7 +209,7 @@ namespace Cicada {
 
         void Interrupt(bool inter);
 
-        std::string GetPropertyString(PropertyKey key) override;
+        std::string GetPropertyString(PropertyKey key, const CicadaJSONItem &param) override;
 
         int64_t GetPropertyInt(PropertyKey key) override;
 
@@ -211,6 +222,12 @@ namespace Cicada {
         void SetAutoPlay(bool bAutoPlay) override;
 
         bool IsAutoPlay() override;
+
+        void SetFilterConfig(const std::string &filterConfig) override;
+
+        void UpdateFilterConfig(const std::string &target, const std::string &options) override;
+
+        void SetFilterInvalid(const std::string &target, bool invalid) override;
 
         void addExtSubtitle(const char *uri) override;
 
@@ -226,6 +243,8 @@ namespace Cicada {
 
     private:
         void NotifyPosition(int64_t position);
+
+        void NotifyUtcTime();
 
         void OnTimer(int64_t curTime);
 
@@ -299,6 +318,10 @@ namespace Cicada {
 
         int64_t getAudioPlayTimeStamp();
 
+        bool push(std::unique_ptr<IAFFrame> &frame);
+
+        bool pull(int format, std::unique_ptr<IAFFrame> &frame);
+
         bool render();
 
         void RenderSubtitle(int64_t pts);
@@ -307,11 +330,11 @@ namespace Cicada {
 
         void releaseStreamInfo(const StreamInfo *info) const;
 
-        // mSeekFlag will be set when processing (after remove from mMessageControl), it have gap
+        // mClearFlag will be set when processing (after remove from mMessageControl), it have gap
         bool isSeeking()
         {
             return INT64_MIN != mSeekPos;
-        } //{return mSeekFlag || mMessageControl.findMsgByType(MSG_SEEKTO);}
+        }//{return mClearFlag || mMessageControl.findMsgByType(MSG_SEEKTO);}
 
 //        void setRotationMode(RotateMode rotateMode, MirrorMode mirrorMode) const;
 
@@ -322,6 +345,10 @@ namespace Cicada {
         int64_t getCurrentPosition();
 
         void checkEOS();
+
+        bool checkEOSAudio();
+
+        bool checkEOSVideo();
 
         void playCompleted();
 
@@ -340,6 +367,7 @@ namespace Cicada {
         int setUpAudioRender(const IAFFrame::audioInfo &info);
 
         std::atomic<int64_t> mCurrentPos{};
+        std::atomic<int64_t> mCurrentFrameUtcTime{};
 
         void printTimePosition(int64_t time) const;
 
@@ -355,11 +383,15 @@ namespace Cicada {
 
         static bool isWideVineVideo(const Stream_meta *meta);
 
+        void closeAudio();
+
         void closeVideo();
 
         void checkFirstRender();
 
         int setUpVideoRender(uint64_t renderFlags);
+
+        void updateBufferInfo(bool force);
 
         class ApsaraAudioRenderCallback : public IAudioRenderListener {
         public:
@@ -380,6 +412,23 @@ namespace Cicada {
             explicit ApsaraVideoRenderListener(SuperMediaPlayer &player) : mPlayer(player)
             {}
             void onFrameInfoUpdate(IAFFrame::AFFrameInfo &info, bool rendered) override;
+
+        private:
+            SuperMediaPlayer &mPlayer;
+        };
+
+        class ApsaraVideoProcessTextureCallback : public IVideoRender::videoProcessTextureCb {
+        public:
+            explicit ApsaraVideoProcessTextureCallback(SuperMediaPlayer &player) : mPlayer(player)
+            {}
+
+            bool init(int type) override;
+
+            bool needProcess() override;
+
+            bool push(std::unique_ptr<IAFFrame> &textureFrame) override;
+
+            bool pull(std::unique_ptr<IAFFrame> &textureFrame) override;
 
         private:
             SuperMediaPlayer &mPlayer;
@@ -416,6 +465,8 @@ namespace Cicada {
     private:
         IDataSource *mDataSource{nullptr};
         std::atomic_bool mCanceled{false};
+        std::atomic_bool mMainServiceCanceled{true};
+        std::atomic_bool mVideoRenderInited{false};
         std::unique_ptr<demuxer_service> mDemuxerService{nullptr};
         std::queue<unique_ptr<IAFFrame>> mVideoFrameQue{};
         std::deque<unique_ptr<IAFFrame>> mAudioFrameQue{};
@@ -428,6 +479,7 @@ namespace Cicada {
         std::unique_ptr<PlayerMessageControl> mMessageControl{nullptr};
         std::unique_ptr<ApsaraAudioRenderCallback> mAudioRenderCB{nullptr};
         std::unique_ptr<ApsaraVideoRenderListener> mVideoRenderListener{nullptr};
+        std::unique_ptr<ApsaraVideoProcessTextureCallback> mVideoProcessCb{nullptr};
         std::unique_ptr<BufferController> mBufferController{nullptr};
         std::mutex mAppStatusMutex;
         std::atomic<APP_STATUS> mAppStatus{APP_FOREGROUND};
@@ -459,6 +511,8 @@ namespace Cicada {
         int64_t mPlayedVideoPts{INT64_MIN}; // sync pts
         bool mVideoPtsRevert{false};
         bool mAudioPtsRevert{false};
+        bool mHaveVideoPkt{false};
+        bool mHaveAudioPkt{false};
         int64_t mPlayedAudioPts{INT64_MIN};
         int64_t mFirstVideoPts{INT64_MIN};
         int64_t mCurVideoPts{INT64_MIN};  // update from render cb
@@ -504,6 +558,7 @@ namespace Cicada {
         bitStreamParser *mVideoParser = nullptr;
         int64_t mPtsDiscontinueDelta{INT64_MIN};
         std::unique_ptr<MediaPlayerUtil> mUtil{};
+        std::unique_ptr<MediaPlayerAnalyticsUtil> mMPAUtil{};
         std::unique_ptr<SuperMediaPlayerDataSourceListener> mSourceListener{nullptr};
         std::unique_ptr<SMP_DCAManager> mDcaManager{nullptr};
         std::unique_ptr<SMPAVDeviceManager> mAVDeviceManager{nullptr};
@@ -511,6 +566,10 @@ namespace Cicada {
         std::unique_ptr<IAFPacket> mAudioPacket{};
         std::unique_ptr<mediaPlayerSubTitleListener> mSubListener;
         std::unique_ptr<subTitlePlayer> mSubPlayer;
+#ifdef ENABLE_VIDEO_FILTER
+        std::mutex mFilterManagerMutex{};
+        std::unique_ptr<FilterManager> mFilterManager;
+#endif
         bool dropLateVideoFrames = false;
         bool waitingForStart = false;
         bool mBRendingStart {false};
@@ -530,6 +589,9 @@ namespace Cicada {
         videoRenderingFrameCB mVideoRenderingCb{nullptr};
         void *mVideoRenderingCbUserData{nullptr};
 
+        UrlHashCB mUrlHashCb{nullptr};
+        void *mUrlHashCbUserData{nullptr};
+
         bool mIsDummy{false};
         readCB mBSReadCb = nullptr;
         seekCB mBSSeekCb = nullptr;
@@ -537,6 +599,15 @@ namespace Cicada {
         int64_t mSuggestedPresentationDelay = 0;
         LiveTimeSyncType mLiveTimeSyncType = LiveTimeSyncType::LiveTimeSyncNormal;
         bool mVideoCatchingUp{false};
+        bool mAudioEOS{false};
+        bool mVideoEOS{false};
+        int64_t mVideoDelayTime{0};
+        bool mCalculateSpeedUsePacket{true};
+        std::unique_ptr<CicadaJSONArray> mFilterConfig;
+        UTCTimer *mUtcTimer{nullptr};
+        bool mOpenAudioDeviceFailed{false};
+
+        std::string mContainerInfo{};
     };
 }// namespace Cicada
 #endif// CICADA_PLAYER_SERVICE_H

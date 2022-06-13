@@ -7,22 +7,22 @@
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
 
-#include <utils/CicadaDynamicLoader.h>
-#include <utils/frame_work_log.h>
-#include <utils/af_string.h>
-#include <utils/property.h>
-#include <native_cicada_player_def.h>
 #include <ErrorCodeMap.h>
 #include <EventCodeMap.h>
-#include <utils/Android/JniEnv.h>
-#include <utils/Android/NewStringUTF.h>
-#include <utils/Android/GetStringUTFChars.h>
-#include <utils/Android/JniException.h>
+#include <native_cicada_player_def.h>
 #include <utils/Android/FindClass.h>
-#include <utils/CicadaJSON.h>
-#include <utils/Android/NewByteArray.h>
+#include <utils/Android/GetStringUTFChars.h>
+#include <utils/Android/JniEnv.h>
+#include <utils/Android/JniException.h>
 #include <utils/Android/JniUtils.h>
+#include <utils/Android/NewByteArray.h>
+#include <utils/Android/NewStringUTF.h>
+#include <utils/CicadaDynamicLoader.h>
+#include <utils/CicadaJSON.h>
 #include <utils/CicadaUtils.h>
+#include <utils/af_string.h>
+#include <utils/frame_work_log.h>
+#include <utils/property.h>
 
 
 #include "NativeBase.h"
@@ -32,7 +32,7 @@
 #include "JavaMediaInfo.h"
 
 #ifdef USE_ARES
-    #include "ares.h"
+#include "ares.h"
 #endif
 
 jclass gj_NativePlayer_Class = nullptr;
@@ -46,6 +46,7 @@ jmethodID gj_NativePlayer_onCircleStart = nullptr;
 jmethodID gj_NativePlayer_onLoadingStart = nullptr;
 jmethodID gj_NativePlayer_onShowSubtitle = nullptr;
 jmethodID gj_NativePlayer_onHideSubtitle = nullptr;
+jmethodID gj_NativePlayer_onSubtitleHeader = nullptr;
 jmethodID gj_NativePlayer_onStatusChanged = nullptr;
 jmethodID gj_NativePlayer_onAutoPlayStart = nullptr;
 jmethodID gj_NativePlayer_onStreamInfoGet = nullptr;
@@ -67,18 +68,18 @@ jmethodID gj_NativePlayer_onAudioRendered = nullptr;
 jmethodID gj_NativePlayer_requestProvision = nullptr;
 jmethodID gj_NativePlayer_requestKey = nullptr;
 
-void NativeBase::java_Construct(JNIEnv *env, jobject instance , jstring name)
+void NativeBase::java_Construct(JNIEnv *env, jobject instance, jstring name)
 {
     AF_TRACE;
     PlayerPrivateData *privateData = new PlayerPrivateData();
     privateData->j_instance = env->NewGlobalRef(instance);
 
-    if(name != nullptr) {
+    if (name != nullptr) {
         GetStringUTFChars jName(env, name);
         CicadaJSONItem opts{};
         opts.addValue("name", jName.getChars());
         privateData->player = new MediaPlayer(opts.printJSON().c_str());
-    }else {
+    } else {
         privateData->player = new MediaPlayer();
     }
 
@@ -103,6 +104,7 @@ void NativeBase::java_Construct(JNIEnv *env, jobject instance , jstring name)
     listener.CaptureScreen = jni_onCaptureScreen;
     listener.SubtitleShow = jni_onShowSubtitle;
     listener.SubtitleHide = jni_onHideSubtitle;
+    listener.SubtitleHeader = jni_onSubTitleHeader;
     listener.EventCallback = jni_onEvent;
     listener.ErrorCallback = jni_onError;
     listener.Prepared = jni_onPrepared;
@@ -113,41 +115,36 @@ void NativeBase::java_Construct(JNIEnv *env, jobject instance , jstring name)
     listener.AudioRendered = jni_onAudioRendered;
     auto *apsaraPlayer = privateData->player;
     apsaraPlayer->SetListener(listener);
-    apsaraPlayer->setDrmRequestCallback([userData](
-                const Cicada::DrmRequestParam &drmRequestParam) -> Cicada::DrmResponseData * {
+    apsaraPlayer->setDrmRequestCallback([userData](const Cicada::DrmRequestParam &drmRequestParam) -> Cicada::DrmResponseData * {
+        if (drmRequestParam.mDrmType != "WideVine") {
+            return nullptr;
+        }
 
-            if (drmRequestParam.mDrmType != "WideVine") {
-                return nullptr;
-            }
+        auto *param = (CicadaJSONItem *) drmRequestParam.mParam;
+        assert(param != nullptr);
 
-            auto *param = (CicadaJSONItem *) drmRequestParam.mParam;
-            assert(param != nullptr);
+        string requestType = param->getString("requestType");
+        string requestUrl = param->getString("url");
+        char *requestData = nullptr;
+        int requestDataSize = CicadaUtils::base64dec(param->getString("data"), &requestData);
 
-            string requestType = param->getString("requestType");
-            string requestUrl = param->getString("url");
-            char *requestData = nullptr;
-            int requestDataSize = CicadaUtils::base64dec(param->getString("data"), &requestData);
+        char *responseData = nullptr;
+        int responseSize = 0;
+        if (requestType == "key") {
+            onRequestKeyCallback(&responseData, &responseSize, requestUrl.c_str(), requestData, requestDataSize, userData);
+        } else if (requestType == "provision") {
+            onRequestProvisionCallback(&responseData, &responseSize, requestUrl.c_str(), requestData, requestDataSize, userData);
+        }
 
-            char* responseData = nullptr;
-            int responseSize = 0;
-            if (requestType == "key") {
-                onRequestKeyCallback(&responseData, &responseSize,
-                                     requestUrl.c_str(), requestData, requestDataSize, userData);
-            } else if (requestType == "provision") {
-                onRequestProvisionCallback(&responseData, &responseSize,
-                                           requestUrl.c_str(),requestData, requestDataSize, userData);
-            }
+        if (responseData != nullptr && responseSize > 0) {
+            auto *drmResponseData = new DrmResponseData(responseData, responseSize);
+            free(responseData);
 
-            if(responseData != nullptr && responseSize > 0){
-                auto *drmResponseData = new DrmResponseData(responseData , responseSize);
-                free(responseData);
-
-                return drmResponseData;
-            }else {
-                return nullptr;
-            }
-
-        });
+            return drmResponseData;
+        } else {
+            return nullptr;
+        }
+    });
 }
 
 void NativeBase::java_SetConnectivityManager(JNIEnv *env, jobject instance, jobject connectManager)
@@ -161,8 +158,7 @@ void NativeBase::java_SetConnectivityManager(JNIEnv *env, jobject instance, jobj
 
 inline PlayerPrivateData *getPlayerPrivateData(JNIEnv *pEnv, jobject pJobject)
 {
-    jlong privatgeDataAddr = pEnv->CallLongMethod(pJobject,
-                             gj_NativePlayer_getNativeContext);
+    jlong privatgeDataAddr = pEnv->CallLongMethod(pJobject, gj_NativePlayer_getNativeContext);
     PlayerPrivateData *privateData = (PlayerPrivateData *) ((long) privatgeDataAddr);
     JniException::clearException(pEnv);
     return privateData;
@@ -191,8 +187,7 @@ void NativeBase::java_SetSpeed(JNIEnv *env, jobject instance, jfloat speed)
     player->SetSpeed(speed);
 }
 
-void NativeBase::java_EnableHardwareDecoder(JNIEnv *env, jobject instance,
-        jboolean enabled)
+void NativeBase::java_EnableHardwareDecoder(JNIEnv *env, jobject instance, jboolean enabled)
 {
     AF_TRACE;
     MediaPlayer *player = getPlayer(env, instance);
@@ -325,7 +320,7 @@ void NativeBase::java_SetMaxAccurateSeekDelta(JNIEnv *env, jobject instance, jin
         return;
     }
 
-    player->SetOption("maxAccurateSeekDelta", AfString::to_string((int)delta).c_str());
+    player->SetOption("maxAccurateSeekDelta", AfString::to_string((int) delta).c_str());
 }
 
 
@@ -736,6 +731,7 @@ void NativeBase::java_SetOption(JNIEnv *env, jobject instance, jstring key, jstr
     char *valueStr = tmpValue.getChars();
     player->SetOption(keyStr, valueStr);
 }
+
 int NativeBase::java_InvokeComponent(JNIEnv *env, jobject instance, jstring content)
 {
     AF_TRACE;
@@ -749,8 +745,7 @@ int NativeBase::java_InvokeComponent(JNIEnv *env, jobject instance, jstring cont
     return 0;
 }
 
-void NativeBase::java_SetAutoPlay(JNIEnv *env, jobject instance,
-                                  jboolean autoPlay)
+void NativeBase::java_SetAutoPlay(JNIEnv *env, jobject instance, jboolean autoPlay)
 {
     AF_TRACE;
     MediaPlayer *player = getPlayer(env, instance);
@@ -890,7 +885,7 @@ void NativeBase::java_SetIPResolveType(JNIEnv *env, jobject instance, jint type)
     MediaPlayer *player = getPlayer(env, instance);
 
     if (player != nullptr) {
-        player->SetIPResolveType(static_cast<IpResolveType>((int)type));
+        player->SetIPResolveType(static_cast<IpResolveType>((int) type));
     }
 }
 
@@ -912,8 +907,7 @@ jstring NativeBase::java_GetCacheFilePathByURL(JNIEnv *env, jobject instance, js
     if (player != nullptr) {
         GetStringUTFChars tmpURL(env, URL);
         char *ch_URL = tmpURL.getChars();
-        string fileName = player->GetCachePathByURL(
-                              ch_URL == nullptr ? "" : string(ch_URL));
+        string fileName = player->GetCachePathByURL(ch_URL == nullptr ? "" : string(ch_URL));
 
         if (fileName.empty()) {
             return nullptr;
@@ -932,7 +926,7 @@ void NativeBase::java_SetDefaultBandWidth(JNIEnv *env, jobject instance, jint de
     MediaPlayer *player = getPlayer(env, instance);
 
     if (player != nullptr) {
-        player->SetDefaultBandWidth((int)defaultBandWidth);
+        player->SetDefaultBandWidth((int) defaultBandWidth);
     }
 }
 
@@ -941,7 +935,7 @@ void NativeBase::java_SetVideoBackgroundColor(JNIEnv *env, jobject instance, jin
     MediaPlayer *player = getPlayer(env, instance);
 
     if (player == nullptr) {
-        return ;
+        return;
     }
 
     return player->SetVideoBackgroundColor((uint32_t) color);
@@ -949,59 +943,61 @@ void NativeBase::java_SetVideoBackgroundColor(JNIEnv *env, jobject instance, jin
 
 //callback...
 
- void NativeBase::onRequestProvisionCallback(char**responseData, int* responseSize, const char* url, const char *data, int size , void *userData){
-     if (userData == nullptr) {
-         return;
-     }
+void NativeBase::onRequestProvisionCallback(char **responseData, int *responseSize, const char *url, const char *data, int size,
+                                            void *userData)
+{
+    if (userData == nullptr) {
+        return;
+    }
 
-     JniEnv Jenv;
-     JNIEnv *mEnv = Jenv.getEnv();
+    JniEnv Jenv;
+    JNIEnv *mEnv = Jenv.getEnv();
 
-     if (mEnv == nullptr) {
-         return;
-     }
+    if (mEnv == nullptr) {
+        return;
+    }
 
-     NewStringUTF jUrl(mEnv , url);
-     NewByteArray jData(mEnv , data, size);
-     jobject response = mEnv->CallObjectMethod((jobject) userData, gj_NativePlayer_requestProvision,jUrl.getString(),jData.getArray());
-     if(response != nullptr) {
-         jbyteArray  responseArray = (jbyteArray)response;
-         *responseSize = mEnv->GetArrayLength(responseArray);
-         *responseData = JniUtils::jByteArrayToChars(mEnv, responseArray);
-         mEnv->DeleteLocalRef(response);
-     }else{
-         *responseData = nullptr;
-         *responseSize = 0;
-     }
-     JniException::clearException(mEnv);
-
+    NewStringUTF jUrl(mEnv, url);
+    NewByteArray jData(mEnv, data, size);
+    jobject response = mEnv->CallObjectMethod((jobject) userData, gj_NativePlayer_requestProvision, jUrl.getString(), jData.getArray());
+    if (response != nullptr) {
+        jbyteArray responseArray = (jbyteArray) response;
+        *responseSize = mEnv->GetArrayLength(responseArray);
+        *responseData = JniUtils::jByteArrayToChars(mEnv, responseArray);
+        mEnv->DeleteLocalRef(response);
+    } else {
+        *responseData = nullptr;
+        *responseSize = 0;
+    }
+    JniException::clearException(mEnv);
 }
- void NativeBase::onRequestKeyCallback(char**responseData, int* responseSize, const char* url, const char *data, int size , void *userData){
-     if (userData == nullptr) {
-         return;
-     }
 
-     JniEnv Jenv;
-     JNIEnv *mEnv = Jenv.getEnv();
+void NativeBase::onRequestKeyCallback(char **responseData, int *responseSize, const char *url, const char *data, int size, void *userData)
+{
+    if (userData == nullptr) {
+        return;
+    }
 
-     if (mEnv == nullptr) {
-         return;
-     }
+    JniEnv Jenv;
+    JNIEnv *mEnv = Jenv.getEnv();
 
-     NewStringUTF jUrl(mEnv , url);
-     NewByteArray jData(mEnv , data, size);
-     jobject response = mEnv->CallObjectMethod((jobject) userData, gj_NativePlayer_requestKey,
-                                               jUrl.getString(), jData.getArray());
-     if (response != nullptr) {
-         jbyteArray responseArray = (jbyteArray) response;
-         *responseSize = mEnv->GetArrayLength(responseArray);
-         *responseData = JniUtils::jByteArrayToChars(mEnv, responseArray);
-         mEnv->DeleteLocalRef(response);
-     } else {
-         *responseData = nullptr;
-         *responseSize = 0;
-     }
-     JniException::clearException(mEnv);
+    if (mEnv == nullptr) {
+        return;
+    }
+
+    NewStringUTF jUrl(mEnv, url);
+    NewByteArray jData(mEnv, data, size);
+    jobject response = mEnv->CallObjectMethod((jobject) userData, gj_NativePlayer_requestKey, jUrl.getString(), jData.getArray());
+    if (response != nullptr) {
+        jbyteArray responseArray = (jbyteArray) response;
+        *responseSize = mEnv->GetArrayLength(responseArray);
+        *responseData = JniUtils::jByteArrayToChars(mEnv, responseArray);
+        mEnv->DeleteLocalRef(response);
+    } else {
+        *responseData = nullptr;
+        *responseSize = 0;
+    }
+    JniException::clearException(mEnv);
 }
 
 void NativeBase::init(JNIEnv *env)
@@ -1009,87 +1005,40 @@ void NativeBase::init(JNIEnv *env)
     if (gj_NativePlayer_Class == nullptr) {
         FindClass cls(env, nativePlayerPath);
         gj_NativePlayer_Class = (jclass) env->NewGlobalRef(cls.getClass());
-        gj_NativePlayer_onError = env->GetMethodID(gj_NativePlayer_Class,
-                                  "onError",
-                                  "(ILjava/lang/String;Ljava/lang/Object;)V");
-        gj_NativePlayer_onEvent = env->GetMethodID(gj_NativePlayer_Class,
-                                  "onEvent",
-                                  "(ILjava/lang/String;Ljava/lang/Object;)V");
-        gj_NativePlayer_onSeekEnd = env->GetMethodID(gj_NativePlayer_Class,
-                                    "onSeekEnd",
-                                    "()V");
-        gj_NativePlayer_onPrepared = env->GetMethodID(gj_NativePlayer_Class,
-                                     "onPrepared",
-                                     "()V");
-        gj_NativePlayer_onLoadingEnd = env->GetMethodID(gj_NativePlayer_Class,
-                                       "onLoadingEnd",
-                                       "()V");
-        gj_NativePlayer_onCompletion = env->GetMethodID(gj_NativePlayer_Class,
-                                       "onCompletion",
-                                       "()V");
-        gj_NativePlayer_onCircleStart = env->GetMethodID(gj_NativePlayer_Class,
-                                        "onCircleStart",
-                                        "()V");
-        gj_NativePlayer_onShowSubtitle = env->GetMethodID(gj_NativePlayer_Class,
-                                         "onShowSubtitle",
-                                         "(IJLjava/lang/String;Ljava/lang/Object;)V");
-        gj_NativePlayer_onLoadingStart = env->GetMethodID(gj_NativePlayer_Class,
-                                         "onLoadingStart",
-                                         "()V");
-        gj_NativePlayer_onHideSubtitle = env->GetMethodID(gj_NativePlayer_Class,
-                                         "onHideSubtitle",
-                                         "(IJ)V");
-        gj_NativePlayer_onStatusChanged = env->GetMethodID(gj_NativePlayer_Class,
-                                          "onStatusChanged",
-                                          "(II)V");
-        gj_NativePlayer_onStreamInfoGet = env->GetMethodID(gj_NativePlayer_Class,
-                                          "onStreamInfoGet",
-                                          "(Lcom/cicada/player/nativeclass/MediaInfo;)V");
-        gj_NativePlayer_setNativeContext = env->GetMethodID(gj_NativePlayer_Class,
-                                           "setNativeContext",
-                                           "(J)V");
-        gj_NativePlayer_getNativeContext = env->GetMethodID(gj_NativePlayer_Class,
-                                           "getNativeContext",
-                                           "()J");
-        gj_NativePlayer_onFirstFrameShow = env->GetMethodID(gj_NativePlayer_Class,
-                                           "onFirstFrameShow",
-                                           "()V");
-        gj_NativePlayer_onLoadingProgress = env->GetMethodID(gj_NativePlayer_Class,
-                                            "onLoadingProgress",
-                                            "(F)V");
-        gj_NativePlayer_onSwitchStreamFail = env->GetMethodID(gj_NativePlayer_Class,
-                                             "onSwitchStreamFail",
-                                             "(Lcom/cicada/player/nativeclass/TrackInfo;ILjava/lang/String;)V");
-        gj_NativePlayer_onVideoSizeChanged = env->GetMethodID(gj_NativePlayer_Class,
-                                             "onVideoSizeChanged",
-                                             "(II)V");
-        gj_NativePlayer_onSwitchStreamSuccess = env->GetMethodID(gj_NativePlayer_Class,
-                                                "onSwitchStreamSuccess",
-                                                "(Lcom/cicada/player/nativeclass/TrackInfo;)V");
-        gj_NativePlayer_onBufferPositionUpdate = env->GetMethodID(gj_NativePlayer_Class,
-                "onBufferedPositionUpdate",
-                "(J)V");
-        gj_NativePlayer_onCurrentPositionUpdate = env->GetMethodID(gj_NativePlayer_Class,
-                "onCurrentPositionUpdate",
-                "(J)V");
-        gj_NativePlayer_onCaptureScreen = env->GetMethodID(gj_NativePlayer_Class,
-                                          "onCaptureScreen",
-                                          "(II[B)V");
-        gj_NativePlayer_onAutoPlayStart = env->GetMethodID(gj_NativePlayer_Class,
-                                          "onAutoPlayStart",
-                                          "()V");
-        gj_NativePlayer_onSubtitleExtAdded = env->GetMethodID(gj_NativePlayer_Class,
-                                             "onSubtitleExtAdded",
-                                             "(ILjava/lang/String;)V");
+        gj_NativePlayer_onError = env->GetMethodID(gj_NativePlayer_Class, "onError", "(ILjava/lang/String;Ljava/lang/Object;)V");
+        gj_NativePlayer_onEvent = env->GetMethodID(gj_NativePlayer_Class, "onEvent", "(ILjava/lang/String;Ljava/lang/Object;)V");
+        gj_NativePlayer_onSeekEnd = env->GetMethodID(gj_NativePlayer_Class, "onSeekEnd", "()V");
+        gj_NativePlayer_onPrepared = env->GetMethodID(gj_NativePlayer_Class, "onPrepared", "()V");
+        gj_NativePlayer_onLoadingEnd = env->GetMethodID(gj_NativePlayer_Class, "onLoadingEnd", "()V");
+        gj_NativePlayer_onCompletion = env->GetMethodID(gj_NativePlayer_Class, "onCompletion", "()V");
+        gj_NativePlayer_onCircleStart = env->GetMethodID(gj_NativePlayer_Class, "onCircleStart", "()V");
+        gj_NativePlayer_onShowSubtitle =
+                env->GetMethodID(gj_NativePlayer_Class, "onShowSubtitle", "(IJLjava/lang/String;Ljava/lang/Object;)V");
+        gj_NativePlayer_onLoadingStart = env->GetMethodID(gj_NativePlayer_Class, "onLoadingStart", "()V");
+        gj_NativePlayer_onHideSubtitle = env->GetMethodID(gj_NativePlayer_Class, "onHideSubtitle", "(IJ)V");
+        gj_NativePlayer_onSubtitleHeader = env->GetMethodID(gj_NativePlayer_Class, "onSubtitleHeader", "(ILjava/lang/String;)V");
+        gj_NativePlayer_onStatusChanged = env->GetMethodID(gj_NativePlayer_Class, "onStatusChanged", "(II)V");
+        gj_NativePlayer_onStreamInfoGet =
+                env->GetMethodID(gj_NativePlayer_Class, "onStreamInfoGet", "(Lcom/cicada/player/nativeclass/MediaInfo;)V");
+        gj_NativePlayer_setNativeContext = env->GetMethodID(gj_NativePlayer_Class, "setNativeContext", "(J)V");
+        gj_NativePlayer_getNativeContext = env->GetMethodID(gj_NativePlayer_Class, "getNativeContext", "()J");
+        gj_NativePlayer_onFirstFrameShow = env->GetMethodID(gj_NativePlayer_Class, "onFirstFrameShow", "()V");
+        gj_NativePlayer_onLoadingProgress = env->GetMethodID(gj_NativePlayer_Class, "onLoadingProgress", "(F)V");
+        gj_NativePlayer_onSwitchStreamFail = env->GetMethodID(gj_NativePlayer_Class, "onSwitchStreamFail",
+                                                              "(Lcom/cicada/player/nativeclass/TrackInfo;ILjava/lang/String;)V");
+        gj_NativePlayer_onVideoSizeChanged = env->GetMethodID(gj_NativePlayer_Class, "onVideoSizeChanged", "(II)V");
+        gj_NativePlayer_onSwitchStreamSuccess =
+                env->GetMethodID(gj_NativePlayer_Class, "onSwitchStreamSuccess", "(Lcom/cicada/player/nativeclass/TrackInfo;)V");
+        gj_NativePlayer_onBufferPositionUpdate = env->GetMethodID(gj_NativePlayer_Class, "onBufferedPositionUpdate", "(J)V");
+        gj_NativePlayer_onCurrentPositionUpdate = env->GetMethodID(gj_NativePlayer_Class, "onCurrentPositionUpdate", "(J)V");
+        gj_NativePlayer_onCaptureScreen = env->GetMethodID(gj_NativePlayer_Class, "onCaptureScreen", "(II[B)V");
+        gj_NativePlayer_onAutoPlayStart = env->GetMethodID(gj_NativePlayer_Class, "onAutoPlayStart", "()V");
+        gj_NativePlayer_onSubtitleExtAdded = env->GetMethodID(gj_NativePlayer_Class, "onSubtitleExtAdded", "(ILjava/lang/String;)V");
         gj_NativePlayer_onCurrentDownloadSpeed = env->GetMethodID(gj_NativePlayer_Class, "onCurrentDownloadSpeed", "(J)V");
         gj_NativePlayer_onVideoRendered = env->GetMethodID(gj_NativePlayer_Class, "onVideoRendered", "(JJ)V");
         gj_NativePlayer_onAudioRendered = env->GetMethodID(gj_NativePlayer_Class, "onAudioRendered", "(JJ)V");
-        gj_NativePlayer_requestProvision = env->GetMethodID(gj_NativePlayer_Class,
-                                             "requestProvision",
-                                             "(Ljava/lang/String;[B)[B");
-        gj_NativePlayer_requestKey = env->GetMethodID(gj_NativePlayer_Class,
-                                             "requestKey",
-                                             "(Ljava/lang/String;[B)[B");
+        gj_NativePlayer_requestProvision = env->GetMethodID(gj_NativePlayer_Class, "requestProvision", "(Ljava/lang/String;[B)[B");
+        gj_NativePlayer_requestKey = env->GetMethodID(gj_NativePlayer_Class, "requestKey", "(Ljava/lang/String;[B)[B");
         JniException::clearException(env);
     }
 }
@@ -1527,6 +1476,24 @@ void NativeBase::jni_onHideSubtitle(int64_t id, int64_t size, const void *conten
     mEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onHideSubtitle,
                          (jint) packet->getInfo().streamIndex,
                          (jlong) packet->getInfo().pts);
+    JniException::clearException(mEnv);
+}
+
+void NativeBase::jni_onSubTitleHeader(int64_t id, const void *header, void *userData)
+{
+    if (userData == nullptr) {
+        return;
+    }
+
+    JniEnv Jenv;
+    JNIEnv *mEnv = Jenv.getEnv();
+
+    if (mEnv == nullptr) {
+        return;
+    }
+
+    NewStringUTF jHeader(mEnv, (char *) header);
+    mEnv->CallVoidMethod((jobject) userData, gj_NativePlayer_onSubtitleHeader, (jint) id, jHeader.getString());
     JniException::clearException(mEnv);
 }
 

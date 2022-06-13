@@ -61,6 +61,7 @@ void IAFPacket::packetInfo::dump()
     AF_DUMP_INT(dts);
     AF_DUMP_INT(duration);
     AF_DUMP_INT(timePosition);
+    AF_DUMP_INT(utcTime);
     AF_DUMP_INT(flags);
     AF_LOGD("\n");
 }
@@ -76,6 +77,7 @@ IAFPacket::packetInfo &IAFPacket::packetInfo::operator=(const IAFPacket::packetI
     this->duration = a.duration;
     this->pos = a.pos;
     this->timePosition = a.timePosition;
+    this->utcTime = a.utcTime;
     this->seamlessPoint = a.seamlessPoint;
     setExtraData(a.extra_data, a.extra_data_size);
     return *this;

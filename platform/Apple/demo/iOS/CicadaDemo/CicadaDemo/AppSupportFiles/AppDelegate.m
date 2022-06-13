@@ -40,6 +40,13 @@
     //不熄灭屏幕
     [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
+
+#if TARGET_OS_MACCATALYST
+    UIWindowScene *windowScene = (UIWindowScene *) [UIApplication sharedApplication].connectedScenes.allObjects.firstObject;
+    windowScene.sizeRestrictions.minimumSize = CGSizeMake(MACCATALYST_WIDTH, MACCATALYST_HEIGHT);
+    windowScene.sizeRestrictions.maximumSize = CGSizeMake(MACCATALYST_WIDTH, MACCATALYST_HEIGHT);
+#endif
+
     return YES;
 }
 

@@ -5,23 +5,26 @@ set(MACOSX_DEPLOYMENT_TARGET 10.11)
 set(CMAKE_XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET ${MACOSX_DEPLOYMENT_TARGET})
 set(MAC_INSTALL_DIR ${CMAKE_CURRENT_LIST_DIR}/../external/install)
 
+set(MAC_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+
 set(COMMON_LIB_DIR ${COMMON_LIB_DIR}
-        ${MAC_INSTALL_DIR}/curl/Darwin/x86_64/lib
-        ${MAC_INSTALL_DIR}/librtmp/Darwin/x86_64/lib
-        ${MAC_INSTALL_DIR}/openssl/Darwin/x86_64/lib
-        ${MAC_INSTALL_DIR}/ffmpeg/Darwin/x86_64/lib
-        ${MAC_INSTALL_DIR}/fdk-aac/Darwin/x86_64/lib
-        ${MAC_INSTALL_DIR}/cares/Darwin/x86_64/lib
-        ${MAC_INSTALL_DIR}/dav1d/Darwin/x86_64/lib
+        ${MAC_INSTALL_DIR}/curl/Darwin/${MAC_ARCH}/lib
+        ${MAC_INSTALL_DIR}/librtmp/Darwin/${MAC_ARCH}/lib
+        ${MAC_INSTALL_DIR}/openssl/Darwin/${MAC_ARCH}/lib
+        ${MAC_INSTALL_DIR}/ffmpeg/Darwin/${MAC_ARCH}/lib
+        ${MAC_INSTALL_DIR}/fdk-aac/Darwin/${MAC_ARCH}/lib
+        ${MAC_INSTALL_DIR}/cares/Darwin/${MAC_ARCH}/lib
+        ${MAC_INSTALL_DIR}/dav1d/Darwin/${MAC_ARCH}/lib
+        ${MAC_INSTALL_DIR}/nghttp2/Darwin/${MAC_ARCH}/lib
         /opt/homebrew/lib/
         )
 set(COMMON_INC_DIR ${COMMON_INC_DIR}
-        ${MAC_INSTALL_DIR}/curl/Darwin/x86_64/include
-        ${MAC_INSTALL_DIR}/librtmp/Darwin/x86_64/include
-        ${MAC_INSTALL_DIR}/openssl/Darwin/x86_64/include
-        ${MAC_INSTALL_DIR}/ffmpeg/Darwin/x86_64/include
-        ${MAC_INSTALL_DIR}/cares/Darwin/x86_64/include
-        ${MAC_INSTALL_DIR}/../build/ffmpeg/Darwin/x86_64/
+        ${MAC_INSTALL_DIR}/curl/Darwin/${MAC_ARCH}/include
+        ${MAC_INSTALL_DIR}/librtmp/Darwin/${MAC_ARCH}/include
+        ${MAC_INSTALL_DIR}/openssl/Darwin/${MAC_ARCH}/include
+        ${MAC_INSTALL_DIR}/ffmpeg/Darwin/${MAC_ARCH}/include
+        ${MAC_INSTALL_DIR}/cares/Darwin/${MAC_ARCH}/include
+        ${MAC_INSTALL_DIR}/../build/ffmpeg/Darwin/${MAC_ARCH}/
         ${MAC_INSTALL_DIR}/../boost/
         ${MAC_INSTALL_DIR}/../external/ffmpeg/
         /opt/homebrew/include/

@@ -41,7 +41,8 @@ namespace Cicada {
         }
 
         mProxySource = new proxyDataSource();
-        mProxySource->setImpl(mReadCb, mSeekCb, mOpenCb, mInterruptCb, mUserArg);
+        mProxySource->setUri(mPath);
+        mProxySource->setImpl(mReadCb, mSeekCb, mOpenCb, mInterruptCb, mSetSegmentList, mGetBufferDuration, mEnableCache, mUserArg);
         mProxySource->setOptions(mOpts);
         PlaylistManager *playlistManager = nullptr;
         mParser->SetDataCallBack(mReadCb, mSeekCb, mUserArg);
@@ -67,6 +68,7 @@ namespace Cicada {
         playlistManager->setExtDataSource(mProxySource);
         playlistManager->setDataSourceConfig(sourceConfig);
         playlistManager->setBitStreamFormat(mMergeVideoHeader, mMergeAudioHeader);
+        playlistManager->setUrlToUniqueIdCallback(mUrlHashCb, mUrlHashCbUserData);
         mPPlaylistManager = playlistManager;
         ret = playlistManager->init();
 
@@ -105,6 +107,13 @@ namespace Cicada {
     {
         if (mPPlaylistManager) {
             mPPlaylistManager->stop();
+        }
+    }
+
+    void playList_demuxer::PreStop()
+    {
+        if (mPPlaylistManager) {
+            mPPlaylistManager->preStop();
         }
     }
 
@@ -173,6 +182,16 @@ namespace Cicada {
 
     const std::string playList_demuxer::GetProperty(int index, const string &key) const
     {
+        if (key == "containerName") {
+            if (mType == playList_type_hls) {
+                return "hls";
+            } else if (mType == playList_type_dash) {
+                return "dash";
+            } else {
+                return "N/A";
+            }
+        }
+
         if (mPPlaylistManager) {
             return mPPlaylistManager->GetProperty(index, key);
         }
@@ -255,5 +274,40 @@ namespace Cicada {
             return true;
         }
         return false;
+    }
+
+    int64_t playList_demuxer::getBufferDuration(int index) const
+    {
+        if (mPPlaylistManager) {
+            return mPPlaylistManager->getBufferDuration(index);
+        }
+        return 0;
+    }
+
+    void playList_demuxer::setUrlToUniqueIdCallback(UrlHashCB cb, void *userData)
+    {
+        mUrlHashCb = cb;
+        mUrlHashCbUserData = userData;
+    }
+    UTCTimer *playList_demuxer::getUTCTimer()
+    {
+        if (mPPlaylistManager) {
+            return mPPlaylistManager->getUTCTimer();
+        }
+        return nullptr;
+    }
+    void playList_demuxer::setClientBufferLevel(client_buffer_level level)
+    {
+        if (mPPlaylistManager) {
+            mPPlaylistManager->setClientBufferLevel(level);
+        }
+    }
+    int playList_demuxer::SetOption(const string &key, const int64_t value)
+    {
+        if (key == "preferAudio" && mPPlaylistManager) {
+            mPPlaylistManager->preferAudio(value);
+            return 0;
+        }
+        return IDemuxer::SetOption(key, value);
     }
 }

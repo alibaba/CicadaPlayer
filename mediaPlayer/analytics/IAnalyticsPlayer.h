@@ -46,7 +46,8 @@ namespace Cicada {
         ReportError(int errCode, const std::string &errMsg, const std::string &requestID) = 0;
 
         virtual void ReportUpdatePlaySession(const std::string &sessionId) = 0;
-
+        virtual void ReportAutoSwitchBitrateStart(const std::string &changeInfo, const std::string &bufferInfo) = 0;
+        virtual void ReportAbrSwitchStatus(int status) = 0;
     };
 
 }// namespace Cicada

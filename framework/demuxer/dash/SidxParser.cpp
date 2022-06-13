@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #endif
 #include "utils/frame_work_log.h"
+#include <cstring>
 #include <string>
 #include <cstring>
 

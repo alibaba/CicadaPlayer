@@ -9,7 +9,7 @@
 #include <cstring>
 #include <utils/frame_work_log.h>
 
-static char *nativePlayerPath = (char *) ("com/cicada/player/utils/Logger");
+static char *LoggerPath = (char *) ("com/cicada/player/utils/Logger");
 
 jclass gj_Logger_Class = nullptr;
 jmethodID gj_Logger_OnLogCallback = nullptr;
@@ -17,11 +17,9 @@ jmethodID gj_Logger_OnLogCallback = nullptr;
 void JavaLogger::init(JNIEnv *env)
 {
     if (gj_Logger_Class == nullptr) {
-        FindClass cls(env, nativePlayerPath);
+        FindClass cls(env, LoggerPath);
         gj_Logger_Class = (jclass) env->NewGlobalRef(cls.getClass());
-        gj_Logger_OnLogCallback = env->GetStaticMethodID(gj_Logger_Class,
-                                  "nOnLogCallback",
-                                  "(I[B)V");
+        gj_Logger_OnLogCallback = env->GetStaticMethodID(gj_Logger_Class, "nOnLogCallback", "(I[B)V");
     }
 
     log_set_back(JavaLogger::onLogCallback, nullptr);

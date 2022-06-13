@@ -67,6 +67,7 @@ namespace Cicada {
         drmMagicKey = "";
         sessionId = "";
         netWorkRetryCount = 0;
+        preferAudio = false;
     }
 }
 

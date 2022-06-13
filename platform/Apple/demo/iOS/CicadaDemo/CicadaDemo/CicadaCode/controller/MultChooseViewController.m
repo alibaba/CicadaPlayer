@@ -15,6 +15,7 @@
 @property (nonatomic,strong)UITableView *tableView;
 @property (nonatomic,strong)NSArray *dataArray;
 @property (nonatomic,strong)NSMutableArray *choosedArray;
+@property(nonatomic, strong) UIButton *toPlayButton;
 
 @end
 
@@ -32,12 +33,21 @@
     self.tableView.dataSource = self;
     self.tableView.tableFooterView = [UIView new];
     [self.view addSubview:self.tableView];
-    
-    UIButton *toPlayButton = [[UIButton alloc]initWithFrame:CGRectMake(20, CGRectGetMaxY(self.tableView.frame)+20, self.view.frame.size.width-40, 40)];
-    toPlayButton.backgroundColor = [UIColor darkGrayColor];
-    [toPlayButton setTitle:NSLocalizedString(@"进入播放" , nil) forState:UIControlStateNormal];
-    [toPlayButton addTarget:self action:@selector(gotoPlay) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:toPlayButton];
+
+    _toPlayButton =
+            [[UIButton alloc] initWithFrame:CGRectMake(20, CGRectGetMaxY(self.tableView.frame) + 20, self.view.frame.size.width - 40, 40)];
+    _toPlayButton.backgroundColor = [UIColor darkGrayColor];
+    [_toPlayButton setTitle:NSLocalizedString(@"进入播放", nil) forState:UIControlStateNormal];
+    [_toPlayButton addTarget:self action:@selector(gotoPlay) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:_toPlayButton];
+}
+
+- (void)viewWillLayoutSubviews
+{
+    [super viewWillLayoutSubviews];
+    self.tableView.frame =
+            CGRectMake(0, NAVIGATION_HEIGHT, self.view.frame.size.width, self.view.frame.size.height - NAVIGATION_HEIGHT - 80);
+    self.toPlayButton.frame = CGRectMake(20, CGRectGetMaxY(self.tableView.frame) + 20, self.view.frame.size.width - 40, 40);
 }
 
 - (void)gotoPlay {

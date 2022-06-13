@@ -3,6 +3,8 @@
 #include <EventCodeMap.h>
 #include <ErrorCodeMap.h>
 
+using namespace Cicada;
+
 CicadaImage * CicadaOCHelper::convertBitmapRGBA8ToUIImage(unsigned char *buffer, int width, int height) {
     size_t bufferLength = width * height * 4;
     CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, buffer, bufferLength, NULL);
@@ -168,6 +170,7 @@ void CicadaOCHelper::getListener(playerListener &listener)
     listener.CaptureScreen = onCaptureScreen;
     listener.SubtitleShow = onShowSubtitle;
     listener.SubtitleHide = onHideSubtitle;
+    listener.SubtitleHeader = onSubtitleHeader;
     listener.VideoRendered = onVideoRendered;
     listener.AudioRendered = onAudioRendered;
     listener.EventCallback = onEvent;
@@ -324,7 +327,6 @@ void CicadaOCHelper::onCurrentDownLoadSpeed(int64_t speed, void *userData)
     }
 }
 
-
 void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *data, void *userData) {
     __weak CicadaPlayer * player = getOCPlayer(userData);
 
@@ -335,10 +337,16 @@ void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *dat
     NSData* stringData = [[NSData alloc] initWithBytes:packet->getData() length:(unsigned int)packet->getSize()];
     NSString* str = [[NSString alloc] initWithData:stringData encoding:NSUTF8StringEncoding];
 
-    if(player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleShow:trackIndex:subtitleID:subtitle:)]){
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [player.delegate onSubtitleShow:player trackIndex:(int)subtitleIndex subtitleID:pts subtitle:str];
-        });
+    CicadaOCHelper *helper = (CicadaOCHelper *) userData;
+    if (helper->mSubtitleRender && helper->mCurrentSubtitleRendingIndex == subtitleIndex) {
+        const char *content = (const char *) packet->getData();
+        helper->mSubtitleRender->show(index,content);
+    } else {
+        if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleShow:trackIndex:subtitleID:subtitle:)]) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+              [player.delegate onSubtitleShow:player trackIndex:(int) subtitleIndex subtitleID:pts subtitle:str];
+            });
+        }
     }
 }
 
@@ -371,10 +379,17 @@ void CicadaOCHelper::onHideSubtitle(int64_t index, int64_t size, const void *dat
     int subtitleIndex = packet->getInfo().streamIndex;
     int64_t pts = packet->getInfo().pts;
 
-    if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleHide:trackIndex:subtitleID:)]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [player.delegate onSubtitleHide:player trackIndex:(int)subtitleIndex subtitleID:pts];
-        });
+    CicadaOCHelper *helper = (CicadaOCHelper *) userData;
+
+    if (helper->mSubtitleRender && helper->mCurrentSubtitleRendingIndex == subtitleIndex) {
+        const char *content = (const char *) packet->getData();
+        helper->mSubtitleRender->hide(index,content);
+    } else {
+        if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleHide:trackIndex:subtitleID:)]) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+              [player.delegate onSubtitleHide:player trackIndex:(int) subtitleIndex subtitleID:pts];
+            });
+        }
     }
 }
 
@@ -387,6 +402,43 @@ void CicadaOCHelper::onSubtitleExtAdd(int64_t index, const void *url, void *user
         dispatch_async(dispatch_get_main_queue(), ^{
             [player.delegate onSubtitleExtAdded:player trackIndex:(int)index URL:str];
         });
+    }
+}
+
+void CicadaOCHelper::onSubtitleHeader(int64_t index, const void *header, void *userData)
+{
+    __weak CicadaPlayer *player = getOCPlayer(userData);
+    NSString *str = [NSString stringWithUTF8String:(const char *) header];
+
+    if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleHeader:trackIndex:Header:)]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          [player.delegate onSubtitleHeader:player trackIndex:(int) index Header:str];
+        });
+    } else {
+        CicadaOCHelper *helper = (CicadaOCHelper *) userData;
+        if (str.length>0) {
+            helper->assHeader = AssUtils::parseAssHeader([str UTF8String]);
+            if (helper->assHeader.Type == SubtitleTypeAss) {
+                if(helper->mSubtitleRender!=nullptr){
+                    helper->mSubtitleRender->clear();
+                }
+                helper->mSubtitleRender = unique_ptr<AppleCATextLayerRender>(new AppleCATextLayerRender());
+                int ret = helper->mSubtitleRender->intHeader((const char *) header);
+                if (ret < 0) {
+                    NSLog(@"ass header parser error");
+                    helper->mSubtitleRender = nullptr;
+                }
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    CicadaView* view = helper->mView;
+                    if(view){
+                        helper->mSubtitleRender->setView((__bridge void *) view.layer);
+                        helper->mCurrentSubtitleRendingIndex = index;
+                    }else{
+                        NSLog(@"ass header parser error,there is no view ");
+                    }
+                });
+            }
+        }
     }
 }
 

@@ -69,7 +69,7 @@ public:
 
     static inline bool endWith(const std::string &str, const std::string &tail)
     {
-        return str.compare(str.size() - tail.size(), tail.size(), tail) == 0;
+        return str.size() >= tail.size() && str.compare(str.size() - tail.size(), tail.size(), tail) == 0;
     }
 
     static int indexOf(const char *hay, int haysize, const char *needle, int needlesize);

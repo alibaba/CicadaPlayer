@@ -73,7 +73,7 @@ void MediaPacketQueue::AddPacket(mediaPacket frame)
         mCurrent = mQueue.begin();
     }
     if (mCurrent == mQueue.end()) {
-        mCurrent--;
+        --mCurrent;
     }
 }
 
@@ -175,24 +175,24 @@ int64_t MediaPacketQueue::GetFirstTimePos()
     return (*mCurrent)->getInfo().timePosition;
 }
 
-int64_t MediaPacketQueue::GetKeyPTSBefore(int64_t pts)
+int64_t MediaPacketQueue::GetFirstKeyPTS(int64_t pts)
 {
     ADD_LOCK;
-    int64_t lastKeyPts = INT64_MIN;
+    int64_t firstKeyPts = INT64_MIN;
 
-    for (auto r_iter = mQueue.rbegin(); r_iter != mQueue.rend(); ++r_iter) {
-        IAFPacket *packet = (*r_iter).get();
+    for (auto &r_iter : mQueue) {
+        IAFPacket *packet = r_iter.get();
 
         if (packet && (packet->getInfo().flags & AF_PKT_FLAG_KEY) && packet->getInfo().pts <= pts) {
-            lastKeyPts = packet->getInfo().pts;
-            return lastKeyPts;
+            firstKeyPts = packet->getInfo().pts;
+            return firstKeyPts;
         }
         if (packet == (*mCurrent).get()) {
             break;
         }
     }
 
-    return lastKeyPts;
+    return firstKeyPts;
 }
 
 int64_t MediaPacketQueue::GetKeyTimePositionBefore(int64_t pts)
@@ -203,6 +203,25 @@ int64_t MediaPacketQueue::GetKeyTimePositionBefore(int64_t pts)
     for (auto r_iter = mQueue.rbegin(); r_iter != mQueue.rend(); ++r_iter) {
         IAFPacket *packet = (*r_iter).get();
         if (packet && (packet->getInfo().flags & AF_PKT_FLAG_KEY) && packet->getInfo().timePosition <= pts) {
+            lastKeyPos = packet->getInfo().timePosition;
+            return lastKeyPos;
+        }
+        if (packet == (*mCurrent).get()) {
+            break;
+        }
+    }
+
+    return lastKeyPos;
+}
+
+int64_t MediaPacketQueue::GetKeyTimePositionBeforeUTCTime(int64_t time)
+{
+    ADD_LOCK;
+    int64_t lastKeyPos = INT64_MIN;
+
+    for (auto r_iter = mQueue.rbegin(); r_iter != mQueue.rend(); ++r_iter) {
+        IAFPacket *packet = (*r_iter).get();
+        if (packet && (packet->getInfo().flags & AF_PKT_FLAG_KEY) && packet->getInfo().utcTime > 0 && packet->getInfo().utcTime <= time) {
             lastKeyPos = packet->getInfo().timePosition;
             return lastKeyPos;
         }
@@ -238,7 +257,7 @@ std::unique_ptr<IAFPacket> MediaPacketQueue::getPacket()
         }
     } else {
         packet = (*mCurrent)->clone();
-        mCurrent++;
+        ++mCurrent;
     }
 
     if (packet && packet->getInfo().duration > 0 && !packet->getDiscard()) {
@@ -293,7 +312,18 @@ void MediaPacketQueue::PopFrontPacket()
         mQueue.pop_front();
         mCurrent = mQueue.begin();
     } else {
-        mCurrent++;
+        ++mCurrent;
+    }
+
+    if (mDropedExtra_data && mDropedExtra_data_size > 0 && mCurrent != mQueue.end()) {
+        if ((*mCurrent)->getInfo().extra_data_size > 0) {
+            delete mDropedExtra_data;
+        } else {
+            (*mCurrent)->getInfo().extra_data = mDropedExtra_data;
+            (*mCurrent)->getInfo().extra_data_size = mDropedExtra_data_size;
+        }
+        mDropedExtra_data = nullptr;
+        mDropedExtra_data_size = 0;
     }
 
     if (mDropedExtra_data && mDropedExtra_data_size > 0 && mCurrent != mQueue.end()) {

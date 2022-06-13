@@ -8,8 +8,10 @@ function build_openssl_111(){
     local config_platform;
     local config_opt="no-tests";
     config_opt="${config_opt} no-afalgeng no-async no-autoalginit no-autoerrinit no-capieng
-     no-cms no-dgram no-dynamic-engine no-engine  no-ec2m no-filenames no-gost
-     no-hw-padlock no-nextprotoneg no-ocsp no-psk no-rfc3779 no-srp no-srtp no-ts" #ec is must for keyless server
+     no-cms no-dynamic-engine no-engine  no-ec2m no-filenames no-gost
+     no-hw-padlock no-nextprotoneg no-ocsp no-psk no-rfc3779 no-srp no-ts" #ec is must for keyless server
+     # no-dgram Don’t build support for datagram based BIOs. Selecting this option will also force the disabling of DTLS.
+     # no-srtp
      #  no-<prot>        Don't build support for negotiating the specified SSL/TLS
      #                   protocol (one of ssl, ssl3, tls, tls1, tls1_1, tls1_2,
      #                   tls1_3, dtls, dtls1 or dtls1_2). If "no-tls" is selected then
@@ -80,14 +82,24 @@ function build_openssl_111(){
         print_warning "native build for $1"
         if [ "$2" == "x86_64" ];then
             config_platform="darwin64-x86_64-cc"
-        else
-            config_platform="darwin-i386-cc"
+        elif [ "$2" == "arm64" ];then
+            config_platform="darwin64-arm64-cc"
         fi
         config_opt="${config_opt} no-shared"
-        native_compile_set_platform_macOS
+        native_compile_set_platform_macOS $2
         export CFLAGS="${CFLAGS} $CPU_FLAGS"
     elif [ "$1" == "Linux" ];then
         config_platform="linux-x86_64";
+    elif [ "$1" == "maccatalyst" ];then
+        cross_compile_set_platform_maccatalyst "$2"
+        if [ "$2" == "x86_64" ];then
+            config_platform="darwin64-x86_64-cc"
+        elif [ "$2" == "arm64" ];then
+            config_platform="darwin64-arm64-cc"
+        fi
+        export CFLAGS="$CPU_FLAGS"
+        export LDFLAGS=
+        config_opt="${config_opt} no-shared"
     else
         echo "Unsupported platform $1"
         exit 1;

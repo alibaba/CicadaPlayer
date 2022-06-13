@@ -83,7 +83,9 @@
     [super viewDidLoad];
     
     self.retryCount = 3;
+#if !TARGET_OS_MACCATALYST
     [self setScreenCanRotation:YES];
+#endif
     self.view.backgroundColor = [UIColor whiteColor];
     self.navigationItem.title = NSLocalizedString(@"播放" , nil);
     
@@ -91,17 +93,30 @@
     if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
         self.navigationController.interactivePopGestureRecognizer.enabled = NO;
     }
-    
-    self.CicadaView = [[CicadaDemoView alloc]initWithFrame:CGRectMake(0, NAVIGATION_HEIGHT, SCREEN_WIDTH, SCREEN_WIDTH/16*9+44)];
+
+    CGFloat screenW = SCREEN_WIDTH;
+    CGFloat screenH = SCREEN_HEIGHT;
+
+#if TARGET_OS_MACCATALYST
+    screenW = CGRectGetWidth(self.view.frame);
+    screenH = CGRectGetHeight(self.view.frame);
+#endif
+
+    self.CicadaView = [[CicadaDemoView alloc] initWithFrame:CGRectMake(0, NAVIGATION_HEIGHT, screenW, screenW / 16 * 9 + 44)];
     self.CicadaView.delegate = self;
     [self.view addSubview:self.CicadaView];
 
-    self.settingAndConfigView = [[CicadaSettingAndConfigView alloc]initWithFrame:CGRectMake(0, self.CicadaView.getMaxY, SCREEN_WIDTH, SCREEN_HEIGHT - self.CicadaView.getMaxY - SAFE_BOTTOM)];
+    self.settingAndConfigView = [[CicadaSettingAndConfigView alloc]
+            initWithFrame:CGRectMake(0, self.CicadaView.getMaxY, screenW, screenH - self.CicadaView.getMaxY - SAFE_BOTTOM)];
     self.settingAndConfigView.delegate = self;
     NSMutableArray *configArray = [CicadaTool getCicadaConfigArray];
     [self.settingAndConfigView setIshardwareDecoder:[CicadaTool isHardware]];
     [self.settingAndConfigView setConfigArray:configArray];
     [self.view addSubview:self.settingAndConfigView];
+
+#if TARGET_OS_MACCATALYST
+    self.settingAndConfigView.hidden = CGRectGetWidth(self.view.frame) > MACCATALYST_WIDTH;
+#endif
 
     [CicadaPlayer setAudioSessionDelegate:self];
     if (self.useFairPlay) {
@@ -119,10 +134,11 @@
     self.player.scalingMode = CICADA_SCALINGMODE_SCALEASPECTFIT;
     [self.settingAndConfigView setVolume:self.player.volume/2];
     [self setConfig];
-    
-    
-    
+
+#if !TARGET_OS_MACCATALYST
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationDidChangeFunc) name:UIDeviceOrientationDidChangeNotification object:nil];
+#endif
+
     // 添加检测app进入后台的观察者
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(applicationEnterBackground)
@@ -189,7 +205,9 @@
     [self.player stop];
     [self.player destroy];
     [CicadaPlayer setAudioSessionDelegate:nil];
+#if !TARGET_OS_MACCATALYST
     [self setScreenCanRotation:NO];
+#endif
 }
 
 - (void)setScreenCanRotation:(BOOL)canRotation {
@@ -198,6 +216,7 @@
 }
 
 - (void)orientationDidChangeFunc {
+#if !TARGET_OS_MACCATALYST
     if (IS_PORTRAIT) {
         UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
         bool iphonexLeft = (orientation == UIDeviceOrientationLandscapeLeft || orientation == UIDeviceOrientationLandscapeRight);
@@ -212,6 +231,7 @@
         self.settingAndConfigView.hidden = YES;
         self.navigationController.navigationBar.hidden = YES;
     }
+#endif
 }
 
 - (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
@@ -219,15 +239,40 @@
 }
 
 - (void)applicationEnterBackground {
+#if !TARGET_OS_MACCATALYST
     if (!self.settingAndConfigView.isPlayBackgournd) {
         [self.player pause];
     }
+#endif
 }
 
 - (void)applicationDidBecomeActive {
+#if !TARGET_OS_MACCATALYST
     if (!self.settingAndConfigView.isPlayBackgournd) {
         [self.player start];
     }
+#endif
+}
+
+- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
+{
+#if TARGET_OS_MACCATALYST
+    CGFloat screenW = size.width;
+    CGFloat screenH = size.height;
+    CGFloat duration = [coordinator transitionDuration];
+    [UIView animateWithDuration:duration
+                     animations:^{
+                       if (screenW > MACCATALYST_WIDTH) {
+                           self.settingAndConfigView.hidden = YES;
+                       } else {
+                           self.settingAndConfigView.hidden = NO;
+                       }
+                       self.CicadaView.frame = CGRectMake(0, NAVIGATION_HEIGHT, screenW, screenW / 16 * 9 + 44);
+
+                       self.settingAndConfigView.frame =
+                               CGRectMake(0, self.CicadaView.getMaxY, screenW, screenH - self.CicadaView.getMaxY - SAFE_BOTTOM);
+                     }];
+#endif
 }
 
 #pragma mark navigationPopback
@@ -239,7 +284,7 @@
  */
 - (BOOL)navigationShouldPopOnBackButton{
     //如果竖屏可以返回，如果横屏，先竖屏幕
-    if (IS_PORTRAIT) {
+    if (IS_PORTRAIT || TARGET_OS_MACCATALYST) {
         return YES;
     }
     NSNumber *value = [NSNumber numberWithInt:UIInterfaceOrientationPortrait];

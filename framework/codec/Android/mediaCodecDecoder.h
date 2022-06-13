@@ -50,7 +50,7 @@ namespace Cicada{
     private:
         static bool checkSupport(const Stream_meta &meta, uint64_t flags, int maxSize);
 
-        int setCSD(const Stream_meta *meta);
+        void updateCSD(const Stream_meta *meta, const uint8_t *extradata, int extradata_size);
 
         int initDrmHandler();
 
@@ -99,7 +99,7 @@ namespace Cicada{
 
         int codecType = CODEC_VIDEO;
         std::string mMime{};
-
+        std::list<std::unique_ptr<CodecSpecificData>> mCSDList{};
         MediaCodec_Decoder *mDecoder{nullptr};
 
         std::recursive_mutex mFuncEntryMutex;

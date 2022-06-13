@@ -2,10 +2,13 @@
 // Created by moqi on 2020/5/28.
 //
 #define LOG_TAG "ffmpegVideoFilter"
+
 #include "ffmpegVideoFilter.h"
 #include <base/media/AVAFPacket.h>
+#include <utils/ffmpeg_utils.h>
 #include <utils/frame_work_log.h>
 #include <utils/timer.h>
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavfilter/buffersink.h>
@@ -16,22 +19,31 @@ using namespace Cicada;
 using namespace std;
 #define MAX_INPUT_BUFFER_COUNT 2
 #define MAX_OUTPUT_BUFFER_COUNT 2
-ffmpegVideoFilter::ffmpegVideoFilter(const IVideoFilter::format &srcFormat, const IVideoFilter::format &dstFormat, bool active)
+
+ffmpegVideoFilter ffmpegVideoFilter::se(0);
+
+ffmpegVideoFilter::ffmpegVideoFilter() : IVideoFilter()
+{}
+
+ffmpegVideoFilter::ffmpegVideoFilter(const IAFFrame::videoInfo &srcFormat, const IAFFrame::videoInfo &dstFormat, bool active)
     : IVideoFilter(srcFormat, dstFormat, active)
 {
     avfilter_register_all();
 }
+
 ffmpegVideoFilter::~ffmpegVideoFilter()
 {
     delete mPThread;
     avfilter_graph_free(&m_pFilterGraph);
     flush();
 }
+
 bool ffmpegVideoFilter::setOption(const string &key, const string &value, const string &capacity)
 {
     return false;
 }
-int ffmpegVideoFilter::init()
+
+bool ffmpegVideoFilter::init(int type)
 {
     char args[512];
     int ret = 0;
@@ -116,9 +128,13 @@ end:
     avfilter_inout_free(&inputs);
     avfilter_inout_free(&outputs);
 
-    return ret;
-    ;
+    if (ret < 0) {
+        AF_LOGE("ffmpegVideoFilter::init fail %d (%s) ", ret, getErrorString(ret));
+    }
+
+    return ret >= 0;
 }
+
 int ffmpegVideoFilter::push(unique_ptr<IAFFrame> &frame, uint64_t timeOut)
 {
     if (mInPut.size() >= MAX_INPUT_BUFFER_COUNT || mOutPut.size() > MAX_OUTPUT_BUFFER_COUNT) {
@@ -134,6 +150,7 @@ int ffmpegVideoFilter::push(unique_ptr<IAFFrame> &frame, uint64_t timeOut)
 
     return 0;
 }
+
 int ffmpegVideoFilter::pull(unique_ptr<IAFFrame> &frame, uint64_t timeOut)
 {
     if (mOutPut.empty()) {
@@ -144,6 +161,7 @@ int ffmpegVideoFilter::pull(unique_ptr<IAFFrame> &frame, uint64_t timeOut)
     mOutPut.pop();
     return 0;
 }
+
 void ffmpegVideoFilter::flush()
 {
     if (mPThread) {
@@ -172,6 +190,7 @@ void ffmpegVideoFilter::flush()
         mPThread->start();
     }
 }
+
 int ffmpegVideoFilter::FilterLoop()
 {
     int ret;
@@ -197,7 +216,7 @@ int ffmpegVideoFilter::FilterLoop()
             //   std::lock_guard<std::mutex> uMutex(mMutexRate);
 
             if (m_pFilterGraph == nullptr) {
-                ret = init();
+                ret = init(0);
 
                 if (ret < 0) {
                     AF_LOGE("init error\n");
@@ -282,4 +301,36 @@ int ffmpegVideoFilter::FilterLoop()
     }
 
     return 0;
+}
+
+bool ffmpegVideoFilter::is_supported(const std::string &target, int width, int height, int format)
+{
+    return false;
+}
+
+Cicada::IVideoFilter *ffmpegVideoFilter::clone(IAFFrame::videoInfo srcFormat, IAFFrame::videoInfo dstFormat, bool active)
+{
+    return new ffmpegVideoFilter(srcFormat, dstFormat, active);
+}
+
+std::string ffmpegVideoFilter::getName()
+{
+    return "ffmpegVideoFilter";
+}
+
+bool ffmpegVideoFilter::isFeatureSupported(IVideoFilter::Feature feature)
+{
+    switch (feature) {
+        case Feature::Buffer:
+            return true;
+        case Texture:
+            return false;
+        case PassThrough:
+            return false;
+        case HDR:
+            return false;
+        case None:
+            break;
+    }
+    return false;
 }

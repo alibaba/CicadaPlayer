@@ -46,6 +46,10 @@ int DashStream::getStreamType() const
 
 int DashStream::GetRemainSegmentCount()
 {
+    if (mPreloadSucc) {
+        //AF_LOGI("GetRemainSegmentCount preload success");
+        return 1;
+    }
     return mPTracker->GetRemainSegmentCount();
 }
 
@@ -195,6 +199,27 @@ int64_t DashStream::getDurationToStartStream()
     return mPTracker->getDurationToStartStream();
 }
 
+vector<mediaSegmentListEntry> DashStream::getSegmentList()
+{
+    return mPTracker->getSegmentList();
+}
+
+void DashStream::enableCache(bool enalbe)
+{
+    mEnableCache = enalbe;
+}
+
+int64_t DashStream::getBufferDuration() const
+{
+    if (mExtDataSource) {
+        return mExtDataSource->getBufferDuration();
+    }
+    if (mPdataSource) {
+        return mPdataSource->getBufferDuration();
+    }
+    return 0;
+}
+
 static inline uint64_t getSize(const uint8_t *data, unsigned int len, unsigned int shift)
 {
     uint64_t size(0);
@@ -246,9 +271,7 @@ int DashStream::open_internal()
 
     mStopOnSegEnd = false;
     mCurSeg = nullptr;
-    if (!mPTracker->bufferingAvailable()) {
-        return -EAGAIN;
-    }
+    mIsStartSegment = true;
     mCurSeg = mPTracker->getStartSegment();
     int trySegmentTimes = 0;
 
@@ -410,7 +433,7 @@ int DashStream::tryOpenSegment(const string &uri, int64_t start, int64_t end)
         ret = openSegment(uri, start, end);
         retryTimes++;
 
-        if (retryTimes > 2) {
+        if (ret >= 0 || retryTimes > 2) {
             break;
         }
 
@@ -428,8 +451,16 @@ int DashStream::openSegment(const string &uri, int64_t start, int64_t end)
         fixEnd++;
     }
     if (mExtDataSource) {
+        if (mIsFirstOpen) {
+            mIsFirstOpen = false;
+            if (!mPTracker->isLive()) {
+                mExtDataSource->setSegmentList(getSegmentList());
+            }
+        }
         mExtDataSource->setRange(start, fixEnd);
-        return mExtDataSource->Open(uri);
+        int ret = mExtDataSource->Open(uri);
+        mExtDataSource->enableCache(uri, mEnableCache);
+        return ret;
     }
 
     if (mPdataSource == nullptr) {
@@ -439,6 +470,7 @@ int DashStream::openSegment(const string &uri, int64_t start, int64_t end)
     } else {
         mPdataSource->setRange(start, fixEnd);
         ret = mPdataSource->Open(uri);
+        mPdataSource->enableCache(uri, mEnableCache);
     }
 
     return ret;
@@ -464,9 +496,14 @@ void DashStream::recreateSource(const string &url)
 {
     resetSource();
     std::lock_guard<std::mutex> lock(mHLSMutex);
-    mPdataSource = dataSourcePrototype::create(url, mOpts);
+    mPdataSource = dataSourcePrototype::create(url, mOpts, DS_NEED_CACHE);
     mPdataSource->Set_config(mSourceConfig);
     mPdataSource->Interrupt(mInterrupted);
+    if (!mPTracker->isLive()) {
+        mPdataSource->setSegmentList(getSegmentList());
+    }
+    mPdataSource->setUrlToUniqueIdCallback(mUrlHashCb, mUrlHashCbUserData);
+    mPdataSource->enableCache(url, mEnableCache);
 }
 
 void DashStream::clearDataFrames()
@@ -495,6 +532,10 @@ void DashStream::close()
 
 int DashStream::read_thread()
 {
+    if (mExited) {
+        return -1;
+    }
+
     int ret;
 
     if (mIsOpened && !mIsOpened_internal) {
@@ -520,9 +561,9 @@ int DashStream::read_thread()
     {
         std::unique_lock<std::mutex> waitLock(mDataMutex);
         bool waitResult = mWaitCond.wait_for(waitLock, std::chrono::milliseconds(10),
-                                             [this]() { return mQueue.size() <= 1 || mInterrupted || mSwitchNeedBreak; });
+                                             [this]() { return mQueue.size() <= 1 || mInterrupted || mSwitchNeedBreak || mExited; });
 
-        if (!waitResult || mInterrupted || mSwitchNeedBreak) {
+        if (!waitResult || mInterrupted || mSwitchNeedBreak || mExited) {
             return 0;
         }
     }
@@ -602,19 +643,34 @@ int DashStream::read(unique_ptr<IAFPacket> &packet)
 
 int DashStream::updateSegment()
 {
-    if (!mPTracker->bufferingAvailable()) {
-        return -EAGAIN;
-    }
+    mIsStartSegment = false;
     Dash::DashSegment *seg = nullptr;
     AF_LOGD("getCurSegNum is %llu\n", mPTracker->getCurSegNum());
-    seg = mPTracker->getNextSegment();
+    if (mIsPreload) {
+        seg = mCurSeg;
+        mIsPreload = false;
+    } else {
+        seg = mPTracker->getNextSegment();
+    }
+    if (seg == nullptr) {
+        seg = mPTracker->getNextSegment();
+    }
 
     // if current segment time > live delay, discard it
     if (isLive()) {
         int64_t liveDelay = mPTracker->getLiveDelay();
         int64_t segmentDuration = mPTracker->getSegmentDuration();
-        while (mPTracker->getMinAheadTime() > liveDelay + segmentDuration) {
-            AF_LOGD("discard segment %llu because it is too late", mPTracker->getCurSegNum());
+        int64_t discardBuffer = liveDelay;
+        if (mPreferAudio) {
+            discardBuffer -= segmentDuration;
+        }
+        if (discardBuffer < 0) {
+            discardBuffer = 0;
+        }
+        
+        int64_t utcTime = af_get_utc_time();
+        while (seg && ((utcTime - (seg->fixedStartTime + mStreamStartTime)) > discardBuffer + segmentDuration)) {
+            AF_LOGD("DashStream %d, discard segment %llu because it is too late", mId, mPTracker->getCurSegNum());
             seg = mPTracker->getNextSegment();
         }
     }
@@ -626,11 +682,17 @@ int DashStream::updateSegment()
         do {
             mCurSeg = seg;
             std::string uri = mCurSeg->getUrlSegment().toString(mPTracker->getCurSegNum(), mPTracker->getCurrentRepresentation());
+
+            AF_LOGD("open segment %lld %lld, %lld", (af_get_utc_time() - (mCurSeg->fixedStartTime + mStreamStartTime)) / 1000,
+                    af_get_utc_time(), mCurSeg->fixedStartTime + mStreamStartTime);
+
             ret = tryOpenSegment(uri, seg->startByte, seg->endByte);
 
             if (isHttpError(ret) || isLocalFileError(ret)) {
                 resetSource();
                 if (!mPTracker->bufferingAvailable()) {
+                    mIsPreload = true;
+                    mPreloadSucc = false;
                     return -EAGAIN;
                 }
                 seg = mPTracker->getNextSegment();
@@ -656,6 +718,10 @@ int DashStream::updateSegment()
 
             resetSource();
             return ret;
+        } else {
+            if (!mPTracker->bufferingAvailable()) {
+                mPreloadSucc = true;
+            }
         }
         return 0;
     } else {
@@ -695,7 +761,7 @@ int DashStream::read_internal(std::unique_ptr<IAFPacket> &packet)
         return 0;
     }
 
-    if (ret == gen_framework_errno(error_class_network, network_errno_http_range)) {
+    if (ret == gen_framework_errno(error_class_network, network_errno_http_range) || ret == -EIO) {
         ret = 0;
     }
 
@@ -778,6 +844,9 @@ int DashStream::read_internal(std::unique_ptr<IAFPacket> &packet)
 
             for (int i = 0; i < nbStreams; i++) {
                 mStreamStartTimeMap[i].timePosition = mCurSeg->fixedStartTime;
+                if (mStreamStartTime >= 0) {
+                    mStreamStartTimeMap[i].utcTime = mStreamStartTime + mCurSeg->fixedStartTime;
+                }
                 mStreamStartTimeMap[i].seamlessPoint = true;
             }
 
@@ -790,6 +859,9 @@ int DashStream::read_internal(std::unique_ptr<IAFPacket> &packet)
         if (mStreamStartTimeMap[streamIndex].seamlessPoint) {
             if (packet->getInfo().pts != INT64_MIN) {
                 mStreamStartTimeMap[streamIndex].time2ptsDelta = mStreamStartTimeMap[streamIndex].timePosition - packet->getInfo().pts;
+                if (mStreamStartTimeMap[streamIndex].utcTime >= 0) {
+                    mStreamStartTimeMap[streamIndex].utc2ptsDelta = mStreamStartTimeMap[streamIndex].utcTime - packet->getInfo().pts;
+                }
             }
 
             mStreamStartTimeMap[streamIndex].seamlessPoint = false;
@@ -809,19 +881,26 @@ int DashStream::read_internal(std::unique_ptr<IAFPacket> &packet)
         } else {
             packet->getInfo().timePosition = INT64_MIN;
         }
+        if (packet->getInfo().pts != INT64_MIN && mStreamStartTimeMap[streamIndex].utc2ptsDelta != INT64_MIN) {
+            packet->getInfo().utcTime = packet->getInfo().pts + mStreamStartTimeMap[streamIndex].utc2ptsDelta;
+        } else {
+            packet->getInfo().utcTime = INT64_MIN;
+        }
 
         if (packet->getInfo().pts != INT64_MIN) {
             mStreamStartTimeMap[streamIndex].lastFramePts = packet->getInfo().pts;
         }
 
-        int64_t timePos = packet->getInfo().timePosition;
-        if (timePos == INT64_MIN) {
-            timePos = packet->getInfo().pts;
-        }
-        if (timePos >= 0 && mStreamStartTime >= 0 && mSuggestedPresentationDelay > 0) {
-            if (timePos < af_get_utc_time() - mStreamStartTime - mSuggestedPresentationDelay) {
-                //AF_LOGD("setDiscard timePos = %lld", timePos);
-                packet->setDiscard(true);
+        if (mIsStartSegment) {
+            int64_t timePos = packet->getInfo().timePosition;
+            if (timePos == INT64_MIN) {
+                timePos = packet->getInfo().pts;
+            }
+            if (timePos >= 0 && mStreamStartTime >= 0 && mSuggestedPresentationDelay > 0) {
+                if (timePos < af_get_utc_time() - mStreamStartTime - mSuggestedPresentationDelay) {
+                    // AF_LOGD("setDiscard timePos = %lld", timePos);
+                    packet->setDiscard(true);
+                }
             }
         }
 
@@ -907,6 +986,14 @@ int DashStream::start()
     }
 
     mThreadPtr->start();
+    return 0;
+}
+
+int DashStream::preStop()
+{
+    std::unique_lock<std::mutex> waitLock(mDataMutex);
+    mExited = true;
+    mWaitCond.notify_one();
     return 0;
 }
 
@@ -1213,4 +1300,10 @@ bool DashStream::isRealTimeStream()
     } else {
         return false;
     }
+}
+
+void DashStream::setPreferAudio(bool preferAudio)
+{
+    mPreferAudio = preferAudio;
+    AF_LOGI("DashStream %d, setPreferAudio, %ld", mId, (int32_t)preferAudio);
 }

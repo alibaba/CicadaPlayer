@@ -40,10 +40,14 @@ namespace Cicada {
 
         virtual void SetUpdateViewCB(UpdateViewCB cb, void *userData) = 0;
 
+        virtual void SetUrlHashCB(UrlHashCB cb, void *userData) = 0;
+
         /*
          *设置显示窗口
          */
         virtual void SetView(void *view) = 0;
+
+        virtual void ClearScreen() = 0;
 
         /*
          *设置播放url
@@ -192,7 +196,7 @@ namespace Cicada {
          */
         virtual void GetVideoRotation(int &rotation) = 0;
 
-        virtual std::string GetPropertyString(PropertyKey key)
+        virtual std::string GetPropertyString(PropertyKey key, const CicadaJSONItem &param)
         {
             return "";
         };
@@ -263,9 +267,19 @@ namespace Cicada {
 
         virtual bool IsAutoPlay() = 0;
 
+        virtual void SetFilterConfig(const std::string &filterConfig)
+        {}
+
+        virtual void UpdateFilterConfig(const std::string &target, const std::string &options)
+        {}
+
+        virtual void SetFilterInvalid(const std::string &target, bool invalid)
+        {}
+
         virtual int invokeComponent(std::string content) = 0;
 
         virtual float getCurrentDownloadSpeed() = 0;
+
 
     protected:
         playerMediaFrameCb mMediaFrameCb = nullptr;

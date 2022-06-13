@@ -56,7 +56,7 @@ jobject JniUtils::cmap2Jmap(JNIEnv *env, std::map<std::string, std::string> cmap
     jobject jmap = env->NewObject(jmapclass.getClass(), initMethod, "");
     std::map<std::string, std::string>::iterator it;
 
-    for (it = cmap.begin(); it != cmap.end(); it++) {
+    for (it = cmap.begin(); it != cmap.end(); ++it) {
         std::string key = it->first;
         std::string value = it->second;
         NewStringUTF jKey(env, key.c_str());

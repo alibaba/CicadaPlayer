@@ -160,16 +160,17 @@ namespace Cicada {
         rep->b_live = true;
         mtime_t totalduration = 0;
         mtime_t nzStartTime = 0;
-        mtime_t absReferenceTime = 0;
+        mtime_t absReferenceTime = INT64_MIN;
         uint64_t sequenceNumber = 0;
         uint64_t discontinuityNum = 0;
-        std::size_t prevbyterangeoffset = 0;
+        int64_t prevbyterangeoffset = 0;
         const SingleValueTag *ctx_byterange = nullptr;
         std::vector<SegmentEncryption> encryptionArray;
         const ValuesListTag *ctx_extinf = nullptr;
         std::list<Tag *>::const_iterator it;
         std::shared_ptr<segment> curInitSegment = nullptr;
         std::vector<SegmentPart> segmentParts;
+        int64_t prePartRangeOffset = 0;
         bool clearKeyArray = true;
 
         for (it = tagslist.begin(); it != tagslist.end(); ++it) {
@@ -198,10 +199,11 @@ namespace Cicada {
 
                     auto pSegment = std::make_shared<segment>(sequenceNumber++);
                     pSegment->setSourceUrl(uritag->getValue().value);
-                    if (segmentParts.size() > 0) {
+                    if (!segmentParts.empty()) {
                         pSegment->updateParts(segmentParts);
                         segmentParts.clear();
                     }
+                    prePartRangeOffset = 0;
 
                     //if ((unsigned) rep->getStreamFormat() == StreamFormat::UNKNOWN)
                     //    setFormatFromExtension(rep, uritag->getValue().value);
@@ -223,17 +225,17 @@ namespace Cicada {
                     pSegment->startTime = static_cast<uint64_t>(nzStartTime);
                     nzStartTime += nzDuration;
                     totalduration += nzDuration;
-                    //if (absReferenceTime > VLC_TS_INVALID) {
-                    //    segment->utcTime = absReferenceTime;
-                    //    absReferenceTime += nzDuration;
-                    //}
+                    if (absReferenceTime >= 0) {
+                        pSegment->utcTime = absReferenceTime;
+                        absReferenceTime += nzDuration;
+                    }
                     pSegment->init_section = curInitSegment;
                     segmentList->addSegment(pSegment);
 
                     if (ctx_byterange) {
-                        std::pair<std::size_t, std::size_t> range = ctx_byterange->getValue().getByteRange();
+                        std::pair<int64_t, int64_t> range = ctx_byterange->getValue().getByteRange();
 
-                        if (range.first == 0) { /* first == size, second = offset */
+                        if (range.first < 0) { /* first == size, second = offset */
                             range.first = prevbyterangeoffset;
                         }
 
@@ -257,18 +259,19 @@ namespace Cicada {
                 break;
 
                 case SingleValueTag::EXTXPLAYLISTTYPE:
-                    rep->b_live = (static_cast<const SingleValueTag *>(tag)->getValue().value != "VOD");
+                    rep->b_live = (dynamic_cast<const SingleValueTag *>(tag)->getValue().value != "VOD");
                     break;
 
                 case SingleValueTag::EXTXBYTERANGE:
-                    ctx_byterange = static_cast<const SingleValueTag *>(tag);
+                    ctx_byterange = dynamic_cast<const SingleValueTag *>(tag);
                     break;
 
-                case SingleValueTag::EXTXPROGRAMDATETIME:
-//                    rep->b_consistent = false;
-//                    absReferenceTime = VLC_TS_0 +
-//                                       UTCTime(static_cast<const SingleValueTag *>(tag)->getValue().value).mtime();
-                    break;
+                case SingleValueTag::EXTXPROGRAMDATETIME: {
+                    //rep->b_consistent = false;
+                    std::string timeValue = dynamic_cast<const SingleValueTag *>(tag)->getValue().value;
+                    absReferenceTime = UTCTime(timeValue).time();
+                }
+                break;
 
                 case AttributesTag::EXTXKEY: {
 
@@ -345,7 +348,7 @@ namespace Cicada {
                             const Attribute *byterangeAttr = keytag->getAttributeByName("BYTERANGE");
 
                             if (byterangeAttr) {
-                                const std::pair<std::size_t, std::size_t> range = byterangeAttr->unescapeQuotes().getByteRange();
+                                const std::pair<int64_t, int64_t> range = byterangeAttr->unescapeQuotes().getByteRange();
                                 //   initSegment->setByteRange(range.first, range.first + range.second - 1);
                             }
 
@@ -355,35 +358,50 @@ namespace Cicada {
                 }
                 break;
 
-                case AttributesTag::EXTXPART: {
-                    const auto *keytag = static_cast<const AttributesTag *>(tag);
-                    SegmentPart part;
-                    part.sequence = segmentParts.size();
+                case AttributesTag::EXTX_PART: {
+                    const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
+                    if (keytag) {
+                        SegmentPart part;
+                        part.sequence = segmentParts.size();
 
-                    if (keytag->getAttributeByName("DURATION")) {
-                        double duration = keytag->getAttributeByName("DURATION")->floatingPoint();
-                        const auto nzDuration = static_cast<const mtime_t>(CLOCK_FREQ * duration);
-                        part.duration = nzDuration;
+                        const Attribute *durationAttr = keytag->getAttributeByName("DURATION");
+                        if (durationAttr) {
+                            double duration = durationAttr->floatingPoint();
+                            const auto nzDuration = static_cast<const mtime_t>(CLOCK_FREQ * duration);
+                            part.duration = nzDuration;
+                        }
+                        if (part.duration > rep->partTargetDuration) {
+                            rep->partTargetDuration = part.duration;
+                        }
+
+                        const Attribute *uriAttr = keytag->getAttributeByName("URI");
+                        if (uriAttr) {
+                            part.uri = uriAttr->quotedString();
+                        }
+
+                        const Attribute *independentAttr = keytag->getAttributeByName("INDEPENDENT");
+                        if (independentAttr) {
+                            part.independent = (independentAttr->value == "YES");
+                        }
+
+                        const Attribute *rangeAttr = keytag->getAttributeByName("BYTERANGE");
+                        if (rangeAttr) {
+                            std::pair<int64_t, int64_t> range = rangeAttr->getByteRange();
+                            if (range.first < 0) {
+                                range.first = prePartRangeOffset;
+                            }
+                            prePartRangeOffset = range.first + range.second;
+                            part.rangeStart = range.first;
+                            part.rangeEnd = range.first + range.second - 1;
+                        }
+
+                        segmentParts.push_back(part);
                     }
-
-                    if (part.duration > rep->partTargetDuration) {
-                        rep->partTargetDuration = part.duration;
-                    }
-
-                    if (keytag->getAttributeByName("URI")) {
-                        part.uri = keytag->getAttributeByName("URI")->quotedString();
-                    }
-
-                    if (keytag->getAttributeByName("INDEPENDENT")) {
-                        part.independent = (keytag->getAttributeByName("INDEPENDENT")->value == "YES");
-                    }
-
-                    segmentParts.push_back(part);
                     break;
                 }
 
-                case AttributesTag::EXTXPARTINF: {
-                    const AttributesTag *keytag = static_cast<const AttributesTag *>(tag);
+                case AttributesTag::EXTX_PART_INF: {
+                    const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
                     const Attribute *partTargetAttr;
                     if (keytag && (partTargetAttr = keytag->getAttributeByName("PART-TARGET"))) {
                         double duration = partTargetAttr->floatingPoint();
@@ -392,6 +410,87 @@ namespace Cicada {
                     }
                     break;
                 }
+
+                case AttributesTag::EXTX_SERVER_CONTROL: {
+                    const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
+                    if (keytag) {
+                        const Attribute *blockReloadAttr = keytag->getAttributeByName("CAN-BLOCK-RELOAD");
+                        if (blockReloadAttr) {
+                            rep->mCanBlockReload = (blockReloadAttr->value == "YES");
+                        }
+                        const Attribute *skipAttr = keytag->getAttributeByName("CAN-SKIP-UNTIL");
+                        if (skipAttr) {
+                            rep->mCanSkipUntil = skipAttr->floatingPoint();
+                        }
+                        const Attribute *holdBackAttr = keytag->getAttributeByName("HOLD-BACK");
+                        if (holdBackAttr) {
+                            rep->mHoldBack = holdBackAttr->floatingPoint();
+                        }
+                        const Attribute *partHoldBackAttr = keytag->getAttributeByName("PART-HOLD-BACK");
+                        if (partHoldBackAttr) {
+                            rep->mPartHoldBack = partHoldBackAttr->floatingPoint();
+                        }
+                    }
+                }
+                break;
+
+                case AttributesTag::EXTX_PRELOAD_HINT: {
+                    if (!rep->mPreloadHint.isPartialSegment) {
+                        const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
+                        if (keytag) {
+                            PreloadHint preloadHit;
+                            const Attribute *typeAttr = keytag->getAttributeByName("TYPE");
+                            if (typeAttr) {
+                                preloadHit.isPartialSegment = (typeAttr->value == "PART");
+                            }
+                            const Attribute *uriAttr = keytag->getAttributeByName("URI");
+                            if (uriAttr) {
+                                preloadHit.uri = uriAttr->quotedString();
+                            }
+                            const Attribute *byteStartAttr = keytag->getAttributeByName("BYTERANGE-START");
+                            if (byteStartAttr) {
+                                preloadHit.rangeStart = byteStartAttr->decimal();
+                            }
+                            const Attribute *lengthAttr = keytag->getAttributeByName("BYTERANGE-LENGTH");
+                            if (lengthAttr) {
+                                preloadHit.rangeEnd = preloadHit.rangeStart + lengthAttr->decimal() - 1;
+                            }
+                            rep->mPreloadHint = preloadHit;
+                        }
+                    }
+                }
+                break;
+
+                case AttributesTag::EXTX_SKIP: {
+                    const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
+                    if (keytag) {
+                        const Attribute *skippedAttr = keytag->getAttributeByName("SKIPPED-SEGMENTS");
+                        if (skippedAttr) {
+                            sequenceNumber += skippedAttr->decimal();
+                        }
+                    }
+                }
+                break;
+
+                case AttributesTag::EXTX_RENDITION_REPORT: {
+                    const auto *keytag = dynamic_cast<const AttributesTag *>(tag);
+                    if (keytag) {
+                        RenditionReport rr;
+                        const Attribute *uriAttr = keytag->getAttributeByName("URI");
+                        if (uriAttr) {
+                            rr.uri = uriAttr->quotedString();
+                        }
+                        const Attribute *msnAttr = keytag->getAttributeByName("LAST-MSN");
+                        if (msnAttr) {
+                            rr.lastMsn = msnAttr->decimal();
+                        }
+                        const Attribute *partAttr = keytag->getAttributeByName("LAST-PART");
+                        if (partAttr) {
+                            rr.lastPart = partAttr->decimal();
+                        }
+                        rep->mRenditionReport.push_back(rr);
+                    }
+                } break;
 
                 case Tag::EXTXDISCONTINUITY:
                     discontinuityNum++;
@@ -405,25 +504,28 @@ namespace Cicada {
                     break;
             }
         }
-        
-        if (segmentParts.size() > 0) {
+
+        if (!segmentParts.empty()) {
             auto pSegment = std::make_shared<segment>(sequenceNumber);
             pSegment->setSourceUrl("");
             int64_t duration = 0;
 
-            for (auto part : segmentParts) {
+            for (const auto &part : segmentParts) {
                 duration += part.duration;
             }
-     
+
             pSegment->duration = duration;
             pSegment->startTime = static_cast<uint64_t>(nzStartTime);
+            if (absReferenceTime >= 0) {
+                pSegment->utcTime = absReferenceTime;
+            }
             pSegment->updateParts(segmentParts);
             totalduration += duration;
 
             if (ctx_byterange) {
-                std::pair<std::size_t, std::size_t> range = ctx_byterange->getValue().getByteRange();
+                std::pair<int64_t, int64_t> range = ctx_byterange->getValue().getByteRange();
                 
-                if (range.first == 0) {
+                if (range.first < 0) {
                     range.first = prevbyterangeoffset;
                 }
             
@@ -673,7 +775,7 @@ namespace Cicada {
 
         while (!stream->isEOF()) {
             stream->get_line(mBuffer, MAX_LINE_SIZE);
-            AF_LOGD("HLS: %s", mBuffer);
+            //  AF_LOGD("HLS: %s", mBuffer);
             if (*mBuffer == '#') {
                 if (!strncmp(mBuffer, "#EXT", 4)) { //tag
                     std::string key;

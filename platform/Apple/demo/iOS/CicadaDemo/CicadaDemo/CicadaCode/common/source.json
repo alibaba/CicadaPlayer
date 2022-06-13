@@ -75,6 +75,14 @@
         "cn": "https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/subtitles/cn/c8d7d959e85977bedf8a61dd25f85583.vtt",
         "en": "https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/subtitles/en-us/c8d7d959e85977bedf8a61dd25f85583.vtt"
       }
+    },
+    {
+      "url": "https://alivc-demo-vod.aliyuncs.com/843e668cdab74319925a6ca1dd9d583c/54b3e6f8999c46178e6e9db988d83cb4-bae708de42124ba164c1de3145dae743-fd.mp4",
+      "type": "url",
+      "name": "aas",
+      "subtitle": {
+        "aas": "https://alivc-demo-vod.aliyuncs.com/07563e259f544e69bc3e5454293fc06a/subtitles/cn/c8d7d959e85977bedf8a61dd25f85583.vtt",
+      }
     }
     ]
 }

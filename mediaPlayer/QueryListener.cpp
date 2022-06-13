@@ -24,6 +24,39 @@ int64_t QueryListener::OnAnalyticsGetCurrentPosition() {
     return -1;
 }
 
+std::string QueryListener::OnAnalyticsGetNetworkSpeed(int64_t from, int64_t to)
+{
+    if (mPlayer) {
+        CicadaJSONItem param{};
+        param.addValue("from", (long) from);
+        param.addValue("to", (long) to);
+        return mPlayer->GetPropertyString(PROPERTY_KEY_NETWORK_SPEED, param);
+    }
+    return "";
+}
+
+std::string QueryListener::OnAnalyticsGetBufferInfo(int64_t from, int64_t to)
+{
+    if (mPlayer) {
+        CicadaJSONItem param{};
+        param.addValue("from", (long) from);
+        param.addValue("to", (long) to);
+        return mPlayer->GetPropertyString(PROPERTY_KEY_BUFFER_INFO, param);
+    }
+    return "";
+}
+
+std::string QueryListener::OnAnalyticsGetRequestInfos(int64_t from, int64_t to)
+{
+    if (mPlayer) {
+        CicadaJSONItem param{};
+        param.addValue("from", (long) from);
+        param.addValue("to", (long) to);
+        return mPlayer->GetPropertyString(PROPERTY_KEY_NETWORK_REQUEST_LIST, param);
+    }
+    return "";
+}
+
 int64_t QueryListener::OnAnalyticsGetBufferedPosition() {
     if (mPlayer) {
         return mPlayer->GetBufferedPosition();

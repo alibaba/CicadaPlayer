@@ -14,6 +14,7 @@
 #include "utils/mediaFrame.h"
 #include <cassert>
 #include <cerrno>
+#include <utils/timer.h>
 
 #undef LOG_TAG
 #define LOG_TAG "DashManager"
@@ -41,6 +42,8 @@ int DashManager::init()
     int ret;
     std::list<Period *> &periodList = mPList->GetPeriods();
     int id = 0;
+    int videoStreamCount = 0;
+    uint64_t lowestBandwidth = std::numeric_limits<uint64_t>::max();
 
     for (auto &pit : periodList) {
         std::list<AdaptationSet *> adaptSetList = FindSuitableAdaptationSets(pit);
@@ -51,15 +54,34 @@ int DashManager::init()
             for (auto &rit : representList) {
                 rit->mPlayListType = playList_demuxer::playList_type_dash;
                 auto *pTracker = new DashSegmentTracker(ait, rit, mSourceConfig);
+                if (pTracker->getStreamType() == STREAM_TYPE_VIDEO) {
+                    videoStreamCount++;
+                    uint64_t bandwidth = 0;
+                    std::string lang;
+                    pTracker->getStreamInfo(nullptr, nullptr, &bandwidth, lang);
+                    if (lowestBandwidth > bandwidth) {
+                        lowestBandwidth = bandwidth;
+                        mLowestBandwidthVideoId = id;
+                    }
+                }
                 pTracker->setOptions(mOpts);
                 auto *info = new DashStreamInfo();
                 info->mPStream = new DashStream(pTracker, id++);
                 info->mPStream->setOptions(mOpts);
                 info->mPStream->setDataSourceConfig(mSourceConfig);
                 info->mPStream->setBitStreamFormat(mMergeVideoHeader, mMergerAudioHeader);
+                info->mPStream->setUrlToUniqueIdCallback(mUrlHashCb, mUrlHashCbUserData);
                 mStreamInfoList.push_back(info);
             }
         }
+    }
+
+    bool bEnableCache = videoStreamCount > 1 ? false : true;
+    if (mPList->isLive()) {
+        bEnableCache = false;
+    }
+    for (auto &i : mStreamInfoList) {
+        i->mPStream->enableCache(bEnableCache);
     }
 
     if (mStreamInfoList.size() == 1) {
@@ -71,6 +93,15 @@ int DashManager::init()
     }
 
     return 0;
+}
+
+void DashManager::preStop()
+{
+    for (auto &i : mStreamInfoList) {
+        if (i->mPStream->isOpened()) {
+            i->mPStream->preStop();
+        }
+    }
 }
 
 void DashManager::stop()
@@ -237,11 +268,26 @@ int DashManager::ReadPacket(unique_ptr<IAFPacket> &packet, int index)
         }
     }
 
+    if (index == -1 && mPList->isLive() && mPreferAudioEnabled && mBufferLevel == client_buffer_level_low) {
+        bool lowestVideo = false;
+        for (auto &i : mStreamInfoList) {
+            if (i->mPStream->isOpened() && i->selected && i->mPStream->getStreamType() == STREAM_TYPE_AUDIO && i->mPFrame) {
+                index = i->mPFrame->getInfo().streamIndex;
+                break;
+            } else if (i->mPStream->isOpened() && i->selected && i->mPStream->getStreamType() == STREAM_TYPE_VIDEO) {
+                lowestVideo = (i->mPStream->getId() == mLowestBandwidthVideoId);
+            }
+        }
+        if (!lowestVideo) {
+            index = -1;
+        }
+    }
+
     if (index != -1) {
         pFrameOut = nullptr;
 
         for (auto &i : mStreamInfoList) {
-            if (i->mPStream->isOpened() && i->selected && i->mPFrame == nullptr && !i->eos) {
+            if (i->mPStream->isOpened() && i->selected && i->mPFrame != nullptr && !i->eos) {
                 if (i->mPFrame->getInfo().streamIndex == index) {
                     pFrameOut = i->mPFrame.get();
                     packet = move(i->mPFrame);
@@ -295,6 +341,12 @@ int DashManager::OpenStream(int index)
                 }
                 i->selected = true;
                 i->mPStream->start();
+                if (index == mLowestBandwidthVideoId) {
+                    i->mPStream->setPreferAudio(mBufferLevel == client_buffer_level_low);
+                }
+                if (i->mPStream->getStreamType() == STREAM_TYPE_AUDIO) {
+                    mOpenAudioStreamCount++;
+                }
                 break;
             }
         }
@@ -342,6 +394,9 @@ void DashManager::CloseStream(int id)
             i->selected = false;
             i->mPStream->stop();
             i->mPFrame = nullptr;
+            if (i->mPStream->getStreamType() == STREAM_TYPE_AUDIO) {
+                mOpenAudioStreamCount--;
+            }
             break;
         }
     }
@@ -568,6 +623,19 @@ int64_t DashManager::getTargetDuration()
     return mPList->maxSegmentDuration;
 }
 
+int64_t DashManager::getBufferDuration(int index) const
+{
+    if (mMuxedStream) {
+        return mMuxedStream->getBufferDuration();
+    }
+    for (auto &i : mStreamInfoList) {
+        if (i->mPStream->getId() == index) {
+            return i->mPStream->getBufferDuration();
+        }
+    }
+    return 0;
+}
+
 std::list<AdaptationSet *> DashManager::FindSuitableAdaptationSets(Period* period)
 {
     std::list<AdaptationSet *> &adaptSetList = period->GetAdaptSets();
@@ -606,4 +674,29 @@ std::list<AdaptationSet *> DashManager::FindSuitableAdaptationSets(Period* perio
         ret.push_back(suitableAudio);
     }
     return ret;
+}
+UTCTimer *DashManager::getUTCTimer()
+{
+    return af_get_utc_timer();
+}
+void DashManager::setClientBufferLevel(client_buffer_level level)
+{
+    if (mPreferAudioEnabled) {
+        if (mBufferLevel == level) {
+            return;
+        }
+        mBufferLevel = level;
+        if (mOpenAudioStreamCount > 0) {
+            for (auto &i : mStreamInfoList) {
+                if (i->mPStream->getId() == mLowestBandwidthVideoId && i->mPStream->isOpened() && i->selected) {
+                    i->mPStream->setPreferAudio(level == client_buffer_level_low);
+                }
+            }
+        }
+    }
+}
+
+void DashManager::preferAudio(bool prefer)
+{
+    mPreferAudioEnabled = prefer;
 }

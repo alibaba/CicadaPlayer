@@ -18,6 +18,7 @@
 #include <condition_variable>
 #include <deque>
 #include <map>
+#include <set>
 #include <mutex>
 
 namespace Cicada {
@@ -68,9 +69,13 @@ namespace Cicada {
 
         int GetStreamMeta(Stream_meta *meta, int index, bool sub) const override;
 
+        bool CloseSubStream(int index) override;
+
         bool isOpened() override;
 
         int start() override;
+
+        int preStop() override;
 
         int stop() override;
 
@@ -87,6 +92,11 @@ namespace Cicada {
 
         int setCurSegPosition(uint64_t position) override;
 
+        int setCurSegInfo(CurSegInfo &curSegInfo) override;
+
+        void setCurRenditionInfo(const std::vector<RenditionReport> &renditions) override;
+        std::vector<RenditionReport> getCurRenditionInfo() override;
+
         bool isLive() override;
 
         int64_t getDuration() override;
@@ -101,6 +111,10 @@ namespace Cicada {
 
 
         int64_t getTargetDuration();
+
+        vector<mediaSegmentListEntry> getSegmentList();
+
+        int64_t getBufferDuration() const;
 
     private:
 
@@ -141,6 +155,8 @@ namespace Cicada {
 
         int tryOpenSegment(const string &uri, int64_t start, int64_t end);
 
+        int tryOpenSegment(std::shared_ptr<segment> seg);
+
         int createDemuxer();
 
         int readSegment(const uint8_t *buffer, int size);
@@ -159,7 +175,7 @@ namespace Cicada {
             SegNum, SegPosition
         };
 
-        int reopenSegment(uint64_t num, OpenType openType);
+        int reopenSegment(std::map<OpenType, uint64_t> &params);
 
         int64_t getPackedStreamPTS();
 
@@ -199,6 +215,7 @@ namespace Cicada {
         int64_t mSeekPendingUs = -1;
         bool mIsOpened_internal = false;
         std::atomic_bool mInterrupted{false};
+        std::atomic_bool mExited{false};
         afThread *mThreadPtr = nullptr;
         std::unique_ptr<ISegDecrypter> mSegDecrypter = nullptr;
         std::unique_ptr<HLSSampleAesDecrypter> mSampeAesDecrypter = nullptr;
@@ -210,6 +227,8 @@ namespace Cicada {
             bool seamlessPoint = false;
             int64_t timePosition = INT64_MIN;
             int64_t time2ptsDelta = INT64_MIN;
+            int64_t utcTime = INT64_MIN;
+            int64_t utc2ptsDelta = INT64_MIN;
             int64_t frameDuration = INT64_MIN;
             int64_t lastFramePts = INT64_MIN;
         };
@@ -230,6 +249,27 @@ namespace Cicada {
 
         std::string mDRMMagicKey{};
         SegmentEncryption mCurrentEncryption{};
+
+        std::atomic_bool mIsFirstOpen{true};
+
+        int64_t mLastPts{INT64_MIN};
+        int64_t mDiscardPts{INT64_MIN};
+        int discardCount{0};
+
+        std::set<int> mClosedSubStreams;
+
+        bool mSegmentOpened{false};
+
+    public:
+        int64_t getLastPts()
+        {
+            return mLastPts;
+        }
+
+        void setDiscardPts(int64_t pts)
+        {
+            mDiscardPts = pts;
+        }
     };
 }
 

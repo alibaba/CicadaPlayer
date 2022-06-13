@@ -1,20 +1,18 @@
 #!/usr/bin/env bash
 
 function clone_git() {
-
-if [[ -n "$3" ]];then
-    git clone $1 -b $2 $3
+  if [[ -n "$3" ]];then
+    git clone --single-branch -b $2 $1 $3
   else
-    git clone $1 -b $2
+    git clone --single-branch -b $2 $1
   fi
-
 }
 
 if [[ -z "${FFMPEG_GIT}" ]];then
     FFMPEG_GIT=https://github.com/FFmpeg/FFmpeg.git
 fi
 if [[ -z "${FFMPEG_BRANCH}" ]];then
-    FFMPEG_BRANCH=n4.2.1
+    FFMPEG_BRANCH=n4.3.1
 fi
 
 if [[ -z "${FFMPEG_NEED_PATCH}" ]];then
@@ -31,10 +29,17 @@ fi
 OPENSSL_BRANCH="OpenSSL_1_1_1g"
 clone_git $OPENSSL_GIT $OPENSSL_BRANCH
 
+
+if [ -z "${NGHTTP2_GIT}" ];then
+    NGHTTP2_GIT="https://github.com/nghttp2/nghttp2.git"
+fi
+NGHTTP2_BRANCH="v1.41.0"
+clone_git ${NGHTTP2_GIT} "${NGHTTP2_BRANCH}"
+
 if [ -z "${CURL_GIT}" ];then
     CURL_GIT="https://github.com/curl/curl.git"
 fi
-CURL_BRANCH="curl-7_76_1"
+CURL_BRANCH="curl-7_68_0"
 clone_git $CURL_GIT "$CURL_BRANCH"
 
 if [[ -z "${LIBXML2_GIT}" ]];then

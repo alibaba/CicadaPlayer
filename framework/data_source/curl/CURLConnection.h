@@ -14,7 +14,7 @@
 namespace Cicada {
     class CURLConnection {
     public:
-        explicit CURLConnection(Cicada::IDataSource::SourceConfig *pConfig);
+        explicit CURLConnection(const std::string &location);
 
         void setSSLBackEnd(curl_sslbackend sslbackend);
 
@@ -22,7 +22,9 @@ namespace Cicada {
 
         void disconnect();
 
-        void setSource(const std::string &location, struct curl_slist *headerList);
+        void setSourceConfig(Cicada::IDataSource::SourceConfig *pConfig);
+
+        void setHeaderList(struct curl_slist *headerList);
 
         void setPost(bool post, int64_t size, const uint8_t *data);
 
@@ -69,6 +71,8 @@ namespace Cicada {
 
         void debugHeader(bool in, char *data, size_t size);
 
+        void notifyNetworkEvent(IDataSource::Listener::NetworkEvent event, CicadaJSONItem &params);
+
     private:
         std::string uri;
         char *pOverflowBuffer = nullptr;
@@ -90,6 +94,7 @@ namespace Cicada {
         RingBuffer *pRbuf = nullptr;
         int still_running = 0;
         char *response = nullptr;
+        int64_t mWriteSize{0};
     };
 };
 

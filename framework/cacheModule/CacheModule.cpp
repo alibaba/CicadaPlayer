@@ -140,9 +140,9 @@ CacheRet CacheModule::start()
             const string &cachePath = mCachePath.getCachePath();
             string cacheTmpFilePath = cachePath + TMP_SUFFIX;
             if (success) {
-                int ret = FileUtils::Rename(cacheTmpFilePath.c_str(), cachePath.c_str());
+                bool ret = FileUtils::Rename(cacheTmpFilePath.c_str(), cachePath.c_str());
 
-                if (ret == 0) {
+                if (ret) {
                     mCacheRet = CacheStatus::success;
                 } else {
                     FileUtils::rmrf(cacheTmpFilePath.c_str());

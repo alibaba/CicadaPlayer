@@ -95,6 +95,8 @@ namespace Cicada {
 
         void flush();
 
+        std::string getHeader(int index);
+
     private:
         void render(subTitlePlayer::SourceInfo &info, int64_t pts);
         void flushSource(SourceInfo *source);

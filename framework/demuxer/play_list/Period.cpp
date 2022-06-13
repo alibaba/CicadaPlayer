@@ -7,31 +7,40 @@
 #include "AdaptationSet.h"
 #include "utils/frame_work_log.h"
 
-namespace Cicada {
+using namespace Cicada;
 
-    Period::Period(playList *playlist) : Dash::SegmentInformation(playlist)
-    {
-        mPlayList = playlist;
+Period::Period(playList *playlist) : Dash::SegmentInformation(playlist)
+{
+    mPlayList = playlist;
+}
+
+void Period::addAdaptationSet(AdaptationSet *adaptSet)
+{
+    mAdaptSetList.push_back(adaptSet);
+}
+
+void Period::print()
+{
+    AF_LOGD("startTime is %lld\n"
+            "have %d AdaptSets\n",
+            startTime, mAdaptSetList.size());
+}
+
+Period::~Period()
+{
+    for (auto &it : mAdaptSetList) {
+        delete it;
     }
 
-    void Period::addAdaptationSet(AdaptationSet *adaptSet)
-    {
-        mAdaptSetList.push_back(adaptSet);
-    }
+    mAdaptSetList.clear();
+}
 
-    void Period::print()
-    {
-        AF_LOGD("startTime is %lld\n"
-                "have %d AdaptSets\n",
-                startTime, mAdaptSetList.size());
-    }
+int64_t Period::getPeriodStart() const
+{
+    return startTime;
+}
 
-    Period::~Period()
-    {
-        for (auto &it : mAdaptSetList) {
-            delete it;
-        }
-
-        mAdaptSetList.clear();
-    }
+int64_t Period::getPeriodDuration() const
+{
+    return duration;
 }

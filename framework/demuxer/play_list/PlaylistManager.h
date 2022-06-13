@@ -24,6 +24,8 @@ namespace Cicada{
 
         virtual void stop() = 0;
 
+        virtual void preStop() = 0;
+
         virtual int GetNbStreams() const = 0;
 
         virtual int GetStreamMeta(Stream_meta *meta, int index, bool sub) const = 0;
@@ -74,12 +76,32 @@ namespace Cicada{
 
         virtual int64_t getTargetDuration() = 0;
 
+        virtual int64_t getBufferDuration(int index) const = 0;
+
+        virtual void setUrlToUniqueIdCallback(UrlHashCB cb, void *userData)
+        {
+            mUrlHashCb = cb;
+            mUrlHashCbUserData = userData;
+        }
+
+        virtual UTCTimer *getUTCTimer()
+        {
+            return nullptr;
+        }
+
+        virtual void setClientBufferLevel(client_buffer_level level)
+        {}
+        virtual void preferAudio(bool prefer)
+        {}
+
     protected:
         playList *mPList = nullptr;
         IDataSource *mExtDataSource = nullptr;
         IDataSource::SourceConfig mSourceConfig{};
         header_type mMergeVideoHeader = header_type::header_type_no_touch;
         header_type mMergerAudioHeader = header_type::header_type_no_touch;
+        UrlHashCB mUrlHashCb{nullptr};
+        void *mUrlHashCbUserData{nullptr};
     };
 }
 

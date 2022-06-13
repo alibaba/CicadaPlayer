@@ -90,8 +90,7 @@ pid_t gettid(void)
 #ifdef __APPLE__
     return pthread_mach_thread_np(pthread_self());
 #elif defined(WIN32)
-    //TODO: get current thread id in windows platform
-    return 0;
+    return GetCurrentThreadId();
 #else
     return pthread_self();
 #endif

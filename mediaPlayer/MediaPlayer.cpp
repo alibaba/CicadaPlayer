@@ -4,15 +4,16 @@
 //  Created by shiping.csp on 2018/11/12.
 //
 
-#include <muxer/ffmpegMuxer/FfmpegMuxer.h>
-#include <utils/frame_work_log.h>
-#include <utils/file/FileUtils.h>
-#include <utils/af_string.h>
-#include <utils/uuid.h>
 #include "MediaPlayer.h"
-#include "media_player_api.h"
-#include "abr/AbrManager.h"
 #include "abr/AbrBufferAlgoStrategy.h"
+#include "abr/AbrManager.h"
+#include "media_player_api.h"
+#include <muxer/ffmpegMuxer/FfmpegMuxer.h>
+#include <utils/af_string.h>
+#include <utils/file/FileUtils.h>
+#include <utils/frame_work_log.h>
+#include <utils/timer.h>
+#include <utils/uuid.h>
 
 #include "analytics/AnalyticsCollectorFactory.h"
 #include "analytics/AnalyticsQueryListener.h"
@@ -46,6 +47,7 @@ namespace Cicada {
         listener.VideoRendered = videoRenderedCallback;
         listener.AudioRendered = audioRenderedCallback;
         listener.PositionUpdate = currentPositionCallback;
+        listener.UtcTimeUpdate = currentUtcTimeCallback;
         listener.BufferPositionUpdate = bufferPositionCallback;
         listener.LoadingStart = loadingStartCallback;
         listener.LoadingEnd = loadingEndCallback;
@@ -56,6 +58,7 @@ namespace Cicada {
         listener.SubtitleShow = subtitleShowCallback;
         listener.SubtitleHide = subtitleHideCallback;
         listener.SubtitleExtAdd = subtitleExtAddedCallback;
+        listener.SubtitleHeader = subtitleHeaderCallback;
         listener.MediaInfoGet = mediaInfoGetCallback;
         listener.StreamSwitchSuc = streamChangedSucCallback;
         listener.StatusChanged = PlayerStatusChanged;
@@ -76,6 +79,11 @@ namespace Cicada {
         mAbrRefData = new AbrBufferRefererData(handle);
         mAbrAlgo->SetRefererData(mAbrRefData);
         mAbrManager->SetAbrAlgoStrategy(mAbrAlgo);
+        mAbrAlgo->SetSwitchStatusCallback([this](AbrAlgoStrategy::Status status) -> void {
+            if (mCollector != nullptr) {
+                mCollector->ReportAbrSwitchStatus((int) status);
+            }
+        });
 
         refreshPlayerSessionId();
     }
@@ -161,6 +169,19 @@ namespace Cicada {
         if (!mAbrManager->IsEnableAbr()) {
             return;
         }
+        std::string value{};
+        mAbrManager->GetOption("switchInfo", value);
+
+        int64_t toTime = af_gettime_relative();
+        int64_t fromTime = toTime - 10 * 1000000;
+        CicadaJSONItem params{};
+        params.addValue("from", (long)fromTime);
+        params.addValue("to", (long)toTime);
+        std::string playerBuffer = GetPropertyString(PropertyKey::PROPERTY_KEY_BUFFER_INFO, params);
+
+        if (mCollector != nullptr) {
+            mCollector->ReportAutoSwitchBitrateStart(value, playerBuffer);
+        }
 
         GET_PLAYER_HANDLE
         CicadaSwitchStreamIndex(handle, stream);
@@ -187,6 +208,12 @@ namespace Cicada {
     {
         GET_PLAYER_HANDLE
         CicadaSetView(handle, view);
+    }
+
+    void MediaPlayer::ClearScreen()
+    {
+        GET_PLAYER_HANDLE;
+        CicadaClearScreen(handle);
     }
 
     void MediaPlayer::SetDataSource(const char *url)
@@ -259,6 +286,11 @@ namespace Cicada {
         if (ST_TYPE_VIDEO == type) {
             mAbrManager->EnableAbr(false);
         }
+    }
+
+    bool MediaPlayer::IsEnableAbr()
+    {
+        return mAbrManager->IsEnableAbr();
     }
 
     void MediaPlayer::Prepare()
@@ -484,6 +516,7 @@ namespace Cicada {
         CicadaSetOption(handle, "timerInterval", to_string(playerConfig.mPositionTimerIntervalMs).c_str());
         CicadaSetOption(handle, "networkRetryCount", to_string(playerConfig.networkRetryCount).c_str());
         CicadaSetOption(handle, "maxBackwardBufferDuration", to_string(playerConfig.mMaxBackwardBufferDuration).c_str());
+        CicadaSetOption(handle, "preferAudio", playerConfig.preferAudio ? "1" : "0");
         if (playerConfig.pixelBufferOutputFormat != 0) {
             CicadaSetOption(handle, "pixelBufferOutputFormat", to_string(playerConfig.pixelBufferOutputFormat).c_str());
         }
@@ -632,7 +665,13 @@ namespace Cicada {
     std::string MediaPlayer::GetPropertyString(PropertyKey key)
     {
         GET_PLAYER_HANDLE
-        return CicadaGetPropertyString(handle, key);
+        return CicadaGetPropertyString(handle, key, {});
+    }
+
+    std::string MediaPlayer::GetPropertyString(PropertyKey key, const CicadaJSONItem &param)
+    {
+        GET_PLAYER_HANDLE
+        return CicadaGetPropertyString(handle, key, param);
     }
 
     void MediaPlayer::SetOption(const char *key, const char *value)
@@ -736,7 +775,7 @@ namespace Cicada {
 
                 if (sourceUrl != player->mPlayUrl) {
                     //remove wrong cache file, and try play original url.
-                    if (Cicada::FileUtils::rmrf(player->mPlayUrl.c_str()) == FILE_TRUE) {
+                    if (!Cicada::FileUtils::rmrf(player->mPlayUrl.c_str())) {
                         if (player->mListener.ErrorCallback) {
                             player->mListener.ErrorCallback(MEDIA_PLAYER_ERROR_DEMUXER_OPEN_CACHEFILE, errorMsg,
                                                             player->mListener.userData);
@@ -771,6 +810,10 @@ namespace Cicada {
                 player->mCacheManager->complete();
             }
 #endif
+        } else if (code == MediaPlayerEventType::MEDIA_PLAYER_EVENT_SYSTEM_LOW_MEMORY) {
+            if (player->mCollector) {
+                player->mCollector->ReportLowMemory();
+            }
         }
 
         if (player->mListener.EventCallback) {
@@ -816,6 +859,15 @@ namespace Cicada {
 
         if (player->mListener.PositionUpdate) {
             player->mListener.PositionUpdate(position, player->mListener.userData);
+        }
+    }
+
+    void MediaPlayer::currentUtcTimeCallback(int64_t time, void *userData)
+    {
+        GET_MEDIA_PLAYER
+
+        if (player->mListener.UtcTimeUpdate) {
+            player->mListener.UtcTimeUpdate(time, player->mListener.userData);
         }
     }
 
@@ -916,6 +968,15 @@ namespace Cicada {
         }
     }
 
+    void MediaPlayer::subtitleHeaderCallback(int64_t index, const void *header, void *userData)
+    {
+        GET_MEDIA_PLAYER
+
+        if (player->mListener.SubtitleHeader) {
+            player->mListener.SubtitleHeader(index, header, player->mListener.userData);
+        }
+    }
+
     void MediaPlayer::streamChangedSucCallback(int64_t type, const void *Info, void *userData)
     {
         GET_MEDIA_PLAYER
@@ -952,6 +1013,12 @@ namespace Cicada {
 
         //when seek, reset and open abrmanager
         player->mAbrManager->Reset();
+
+        StreamInfo *streamInfo = player->GetCurrentStreamInfo(ST_TYPE_VIDEO);
+        if (streamInfo != nullptr && streamInfo->videoBandwidth > 0) {
+            player->mAbrAlgo->SetCurrentBitrate(streamInfo->videoBandwidth);
+        }
+
         player->mAbrManager->Start();
         if (player->mCollector) {
             player->mCollector->ReportSeekEnd();
@@ -1081,6 +1148,25 @@ namespace Cicada {
 #endif
     }
 
+    void MediaPlayer::SetFilterConfig(const string &filterConfig)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaSetFilterConfig(handle, filterConfig);
+    }
+
+    void MediaPlayer::UpdateFilterConfig(const std::string &target, const std::string &options)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaUpdateFilterConfig(handle, target, options);
+    }
+
+    void MediaPlayer::SetFilterInvalid(const std::string &target, bool invalid)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaSetFilterInvalid(handle, target, invalid);
+    }
+
+
     string MediaPlayer::GetCachePathByURL(const string &URL)
     {
 #ifdef ENABLE_CACHE_MODULE
@@ -1168,6 +1254,12 @@ namespace Cicada {
     {
         GET_PLAYER_HANDLE;
         CicadaSetUpdateViewCallback(handle, cb, userData);
+    }
+
+    void MediaPlayer::SetUrlHashCallback(UrlHashCB cb, void *userData)
+    {
+        GET_PLAYER_HANDLE;
+        CicadaSetUrlHashCallback(handle, cb, userData);
     }
 
     void MediaPlayer::SetStreamTypeFlags(uint64_t flags)

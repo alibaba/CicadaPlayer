@@ -96,6 +96,14 @@ void CicadaSetUpdateViewCallback(playerHandle *pHandle, UpdateViewCB cb, void *u
     }
 }
 
+void CicadaSetUrlHashCallback(playerHandle *pHandle, UrlHashCB cb, void *userData)
+{
+    GET_PLAYER;
+    if (player) {
+        player->SetUrlHashCB(cb, userData);
+    }
+}
+
 void CicadaSetComponentCb(playerHandle *pHandle, player_component_type type, void *factory)
 {
     GET_PLAYER;
@@ -121,6 +129,14 @@ void CicadaSetView(playerHandle *pHandle, void *view)
     }
 }
 
+void CicadaClearScreen(playerHandle *pHandle)
+{
+    GET_PLAYER;
+
+    if (player) {
+        return player->ClearScreen();
+    }
+}
 
 void CicadaSetDataSourceWithUrl(playerHandle *pHandle, const char *url)
 {
@@ -509,6 +525,33 @@ bool CicadaIsAutoPLay(playerHandle *pHandle)
     return false;
 }
 
+void CicadaSetFilterConfig(playerHandle *pHandle, const std::string &filterConfig)
+{
+    GET_PLAYER;
+
+    if (player) {
+        player->SetFilterConfig(filterConfig);
+    }
+}
+
+void CicadaUpdateFilterConfig(playerHandle *pHandle, const std::string &target, const std::string &options)
+{
+    GET_PLAYER;
+
+    if (player) {
+        player->UpdateFilterConfig(target, options);
+    }
+}
+
+void CicadaSetFilterInvalid(playerHandle *pHandle, const std::string &target, bool invalid)
+{
+    GET_PLAYER;
+
+    if (player) {
+        player->SetFilterInvalid(target, invalid);
+    }
+}
+
 void CicadaSetDecoderType(playerHandle *pHandle, DecoderType type)
 {
     GET_PLAYER;
@@ -569,12 +612,12 @@ void CicadaGetVideoRotation(playerHandle *pHandle, int &rotation)
     }
 }
 
-std::string CicadaGetPropertyString(playerHandle *pHandle, PropertyKey key)
+std::string CicadaGetPropertyString(playerHandle *pHandle, PropertyKey key, const CicadaJSONItem &param)
 {
     GET_PLAYER;
 
     if (player) {
-        return player->GetPropertyString(key);
+        return player->GetPropertyString(key, param);
     }
 
     return "";

@@ -26,6 +26,13 @@ function patch_ffmpeg() {
     git_am_patch ../../contribute/ffmpeg/0007-build-libavformat-compile-avc.c-and-hevc.c-default.patch
     git_am_patch ../../contribute/ffmpeg/0008-avformat-flvdec-add-aliyun-extend-auio-codec-id.patch
     git_am_patch ../../contribute/ffmpeg/0009-chore-configure-xml2-use-check-lib.patch
+    git_am_patch ../../contribute/ffmpeg/0010-build-export-some-func-for-windows.patch
+    git_am_patch ../../contribute/ffmpeg/0011-libavformat-flvdec-add-flv_strict_header-option-to-d.patch
+}
+
+function patch_openssl() {
+    cd "${OPEN_SSL_SOURCE_DIR}" || exit
+    git_am_patch ../../contribute/openssl/0001-Configuration-darwin64-arm64-cc-for-Apple-silicon.patch
 }
 
 function patch_curl(){
@@ -73,6 +80,10 @@ function load_source() {
     if [[ -d ${LIBXML2_SOURCE_DIR} ]];then
         cd ${LIBXML2_SOURCE_DIR}
         git_am_patch ../../contribute/libxml2/0001-disable-check-libtool.patch
+    fi
+
+    if [[ -d ${OPEN_SSL_SOURCE_DIR} ]];then
+        patch_openssl
     fi
 
     if [[ -d ${CURL_SOURCE_DIR} ]];then
@@ -245,6 +256,8 @@ elif [[ "$1" == "Linux" ]];then
     ../build_tools/build_native.sh
 elif [[ "$1" == "Windows" ]];then
     ../build_tools/build_win32.sh
+elif [[ "$1" == "maccatalyst" ]];then
+    ../build_tools/build_maccatalyst.sh
 fi
 
 

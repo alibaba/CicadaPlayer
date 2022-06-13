@@ -21,13 +21,15 @@ namespace Cicada{
         static CURLShareInstance *Instance();
 
         curl_slist *getHosts(const string &url, CURLSH **sh);
+        curl_sslbackend getSslbakcend();
+
     private:
         CURLShareInstance();
 
         ~CURLShareInstance();
 
     private:
-        static CURLShareInstance sInstance;
+        curl_sslbackend mSslbackend;
         std::unique_ptr<curlShare> mShareWithDNS{};
         std::unique_ptr<curlShare> mShare{};
     };

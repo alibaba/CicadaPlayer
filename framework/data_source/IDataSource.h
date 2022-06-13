@@ -5,17 +5,36 @@
 #ifndef FRAMEWORK_DATASOUTCE_H
 #define FRAMEWORK_DATASOUTCE_H
 
-#include <string>
+#include <atomic>
 #include <base/OptionOwner.h>
+#include <string>
+#include <utils/CicadaJSON.h>
 #include <utils/CicadaType.h>
 #include <vector>
-#include <atomic>
 
 namespace Cicada {
 
     enum {
         SEEK_SIZE = 0x10000,
     };
+
+    struct mediaSegmentListEntry {
+        std::string url;
+        int64_t duration = 0;
+
+        mediaSegmentListEntry(const std::string &_url, int64_t _duration) : url(_url), duration(_duration)
+        {}
+    };
+
+    class IMediaInfoProvider {
+    public:
+        virtual int64_t estimateExclusiveEndPositionBytes(const std::string &url, int64_t timeMicSec, int64_t totalLength) = 0;
+        virtual int64_t estimatePlayTimeMicSec(const std::string &url, int64_t filePosition, int64_t totalLength) = 0;
+        virtual std::pair<int64_t, int64_t> estimatePlayTimeMicSecRange(const std::pair<int64_t, int64_t> &fileRange) = 0;
+        virtual bool isStreamsEncodedSeparately(const std::string &url) = 0;
+    };
+
+    typedef std::string (*UrlHashCB)(const char *, void *userData);
 
     class IDataSource : public OptionOwner {
     public:
@@ -27,10 +46,36 @@ namespace Cicada {
 //                NetWorkRetryStatusAbort,
             };
 
+            enum bitStreamType {
+                bitStreamTypeMedia,
+            };
+
+
+            enum NetworkEvent {
+                networkEvent_startConnect,
+                networkEvent_connected,
+                networkEvent_disconnect,
+                networkEvent_error,
+                networkEvent_eos,
+                networkEvent_retry,
+                networkEvent_resume,
+                networkEvent_exit,
+            };
+
+            virtual void onNetworkEvent(const std::string &url, const CicadaJSONItem &eventParams)
+            {}
+
             virtual NetWorkRetryStatus onNetWorkRetry(int error) = 0;
 
             virtual void onNetWorkConnected()
             {
+            }
+            /*
+             * return, whether stop report to other
+             */
+            virtual bool onNetWorkInPut(uint64_t size, bitStreamType type)
+            {
+                return false;
             }
         };
 
@@ -61,12 +106,15 @@ namespace Cicada {
             std::string toString();
         };
 
+        const static uint64_t flag_report_speed = 1 << 0;
 
         explicit IDataSource(std::string url);
 
         virtual ~IDataSource() = default;
 
         virtual int setRange(int64_t start, int64_t end);
+
+        virtual void setMediaInfoProvider(IMediaInfoProvider *provider);
 
         virtual void setPost(bool post, int64_t size, const uint8_t *data);
 
@@ -94,12 +142,37 @@ namespace Cicada {
 
         virtual std::string GetUri();
 
+        virtual std::string GetOriginUri();
+
         virtual speedLevel getSpeedLevel();
 
+        virtual void setSegmentList(const std::vector<mediaSegmentListEntry> &segments)
+        {}
+
+        virtual void enableCache(const std::string &originUrl, bool enable)
+        {}
+        virtual uint64_t getFlags()
+        {
+            return 0;
+        }
+
+        virtual int64_t getBufferDuration()
+        {
+            return 0;
+        }
+
+        virtual void setUrlToUniqueIdCallback(UrlHashCB onUrlHash, void *userData)
+        {}
+
+        virtual void clearCache()
+        {}
 
     protected:
         std::atomic_bool mInterrupt{false};
         SourceConfig mConfig{};
+        /**
+         * the main/first url
+         */
         std::string mUri{};
         int64_t rangeStart{INT64_MIN};
         int64_t rangeEnd{INT64_MIN};
@@ -108,6 +181,7 @@ namespace Cicada {
         const uint8_t *mPostData{nullptr};
         int64_t mPostSize{0};
 
+        IMediaInfoProvider *mMediaInfoProvider{nullptr};
     };
 }
 

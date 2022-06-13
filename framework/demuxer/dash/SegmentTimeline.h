@@ -6,7 +6,7 @@
 #define DEMUXER_DASH_SEGMENT_TIMELINE_H
 
 #include "InheritablesAttrs.h"
-
+#include <cstddef>
 namespace Cicada {
     namespace Dash {
         class SegmentTimeline : public AttrsNode {

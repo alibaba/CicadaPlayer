@@ -32,6 +32,8 @@ namespace Cicada {
 
         int init() override;
 
+        void preStop() override;
+
         void stop() override;
 
         int GetNbStreams() const override;
@@ -64,12 +66,24 @@ namespace Cicada {
 
         int64_t getTargetDuration() override;
 
+        int64_t getBufferDuration(int index) const override;
+
+        UTCTimer *getUTCTimer() override;
+
+        void setClientBufferLevel(client_buffer_level level) override;
+
+        void preferAudio(bool prefer) override;
+
     private:
         std::list<AdaptationSet *> FindSuitableAdaptationSets(Period* period);
         std::list<DashStreamInfo *> mStreamInfoList{};
         DashStream *mMuxedStream = nullptr;
         bool mStarted = false;
         int64_t mFirstSeekPos = INT64_MIN;
+        bool mPreferAudioEnabled{false};
+        client_buffer_level mBufferLevel{client_buffer_level_unknown};
+        int32_t mOpenAudioStreamCount{0};
+        int32_t mLowestBandwidthVideoId{-1};
     };
 }// namespace Cicada
 

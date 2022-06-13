@@ -46,11 +46,7 @@ void AFAudioQueueRender::OutputCallback(void *inUserData, AudioQueueRef inAQ, Au
         inBuffer->mAudioDataByteSize = size;
 
         if (!pThis->mNeedFlush) {
-            if (pThis->mPlayedBufferSize >= inBuffer->mAudioDataByteSize) {
-                pThis->mPlayedBufferSize -= inBuffer->mAudioDataByteSize;
-            } else {
-                pThis->mPlayedBufferSize = 0;
-            }
+            pThis->mPlayedBufferSize -= inBuffer->mAudioDataByteSize;
         }
         memset((uint8_t *) inBuffer->mAudioData, 0, inBuffer->mAudioDataByteSize);
     }
@@ -150,6 +146,9 @@ AFAudioQueueRender::~AFAudioQueueRender()
     AFAudioSessionWrapper::removeObserver(this);
 #endif
     mRunning = false;
+    if (mAQLoop) {
+        CFRunLoopStop(mAQLoop);
+    }
     if (mAudioQueueThread) {
         mAudioQueueThread->stop();
     }
@@ -264,14 +263,36 @@ int AFAudioQueueRender::start_device()
 {
     if (!mPlaying) {
         mPlaying = true;
-        if (_audioQueueRef) {
-            mStartStatus = AudioQueueStart(_audioQueueRef, nullptr);
-            if (mStartStatus != AVAudioSessionErrorCodeNone) {
-                AF_LOGE("AudioQueue: AudioQueueStart failed (%d)\n", (int) mStartStatus);
-            }
-        }
+        startDeviceWorkAround();
     }
     return 0;
+}
+/*
+ * 1. AudioQueueStart will use more than 2s when play rate > 1 on MacOS or iOS use airpods.
+ * 2. AudioQueueStart will lost lots of data to play after flush when rate < 1 on macOS.
+ * So disable timePitch before AudioQueueStart and reset the timePitch after start to work
+ * around those problems.
+ */
+void AFAudioQueueRender::startDeviceWorkAround()
+{
+    if (!_audioQueueRef) {
+        return;
+    }
+    if (fabsf(mQueueSpeed - 1.0f) > 0.000001) {
+        UInt32 timePitchBypass = 1;
+        AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchBypass, &timePitchBypass, sizeof(timePitchBypass));
+        AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_PlayRate, 1.0f);
+    }
+    mStartStatus = AudioQueueStart(_audioQueueRef, nullptr);
+    if (mStartStatus != AVAudioSessionErrorCodeNone) {
+        AF_LOGE("AudioQueue: AudioQueueStart failed (%d)\n", (int) mStartStatus);
+    }
+
+    if (fabsf(mQueueSpeed - 1.0f) > 0.000001) {
+        UInt32 timePitchBypass = 0;
+        AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_TimePitchBypass, &timePitchBypass, sizeof(timePitchBypass));
+        AudioQueueSetParameter(_audioQueueRef, kAudioQueueParam_PlayRate, mQueueSpeed);
+    }
 }
 
 void AFAudioQueueRender::flush_device()
@@ -303,7 +324,7 @@ void AFAudioQueueRender::flushAudioQueue()
     mReadOffset = 0;
     mPlayedBufferSize = 0;
     if (mPlaying) {
-        AudioQueueStart(_audioQueueRef, nullptr);
+        startDeviceWorkAround();
     }
 }
 
@@ -330,8 +351,17 @@ int64_t AFAudioQueueRender::device_get_position()
 
 int AFAudioQueueRender::device_write(unique_ptr<IAFFrame> &frame)
 {
-    if (mNeedFlush || mInPut.write_available() <= 0) {
+    int duration = (frame->getInfo().audio.nb_samples * 1000000) / frame->getInfo().audio.sample_rate;
+    int maxInputCount = min(MAX_INPUT_DURATION / duration, (int) MAX_INPUT_SIZE);
+
+    if (mNeedFlush || mInPut.write_available() <= 0 || mInPut.size() >= maxInputCount) {
         return -EAGAIN;
+    }
+    if (mStartStatus != AVAudioSessionErrorCodeNone && mPlaying) {
+        AF_LOGW("try start AudioQueue in error status %d\n", mStartStatus);
+        if (_audioQueueRef) {
+            startDeviceWorkAround();
+        }
     }
     if (mBufferCount == 0) {
         //FIXME: for low latency stream, queue another more buffer
@@ -360,6 +390,7 @@ int AFAudioQueueRender::audioQueueLoop()
         mInitStatus = -1;
         return -1;
     }
+    mAQLoop = CFRunLoopGetCurrent();
     UInt32 propValue = 1;
     AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_EnableTimePitch, &propValue, sizeof(propValue));
     propValue = 1;
@@ -399,7 +430,6 @@ int AFAudioQueueRender::audioQueueLoop()
             layout.mChannelLayoutTag = kAudioChannelLayoutTag_Stereo;
             break;
     }
-
     AudioQueueSetProperty(_audioQueueRef, kAudioQueueProperty_ChannelLayout, &layout, sizeof(AudioChannelLayout));
     mInitStatus = 1;
 
@@ -409,37 +439,42 @@ int AFAudioQueueRender::audioQueueLoop()
             mNeedFlush = false;
         }
 
-        if (mBufferAllocatedCount < mBufferCount && mInPut.size() >= mBufferCount) {
+        while (mBufferAllocatedCount < mBufferCount && mInPut.size() > 0 && mRunning) {
             assert(mAudioDataByteSize > 0);
             assert(mBufferCount <= MAX_QUEUE_SIZE);
-            while (mBufferAllocatedCount < mBufferCount && mRunning) {
-                AudioQueueBuffer *buffer = nullptr;
-                OSStatus err = AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &buffer);
-                if (err != noErr) {
-                    AF_LOGE("AudioQueueAllocateBuffer error %d \n", err);
-                    break;
-                }
-                _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
-                UInt32 miniBufferSize = getMiniBufferSize(buffer->mAudioDataBytesCapacity);
-                buffer->mAudioDataByteSize = copyAudioData(buffer, miniBufferSize);
-                assert(buffer->mAudioDataByteSize > 0);
-                err = AudioQueueEnqueueBuffer(_audioQueueRef, buffer, 0, nullptr);
-                if (err != noErr) {
-                    AF_LOGE("AudioQueueEnqueueBuffer error %d \n", err);
-                    assert(0);
-                }
-                mBufferAllocatedCount++;
+            AudioQueueBuffer *buffer = nullptr;
+            OSStatus err = AudioQueueAllocateBuffer(_audioQueueRef, mAudioDataByteSize, &buffer);
+            if (err != noErr) {
+                AF_LOGE("AudioQueueAllocateBuffer error %d \n", err);
+                break;
             }
+            _audioQueueBufferRefArray[mBufferAllocatedCount] = buffer;
+            UInt32 miniBufferSize = getMiniBufferSize(buffer->mAudioDataBytesCapacity);
+            buffer->mAudioDataByteSize = copyAudioData(buffer, miniBufferSize);
+            assert(buffer->mAudioDataByteSize > 0);
+            err = AudioQueueEnqueueBuffer(_audioQueueRef, buffer, 0, nullptr);
+            if (err != noErr) {
+                AF_LOGE("AudioQueueEnqueueBuffer error %d \n", err);
+                assert(0);
+            }
+            mBufferAllocatedCount++;
         }
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.2, 1);
+
+        if (mBufferAllocatedCount < mBufferCount) {
+            af_msleep(10);
+            continue;
+        }
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.01, 1);
         if (mInPut.empty())
             mQueueDuration = 0;
         else
             mQueueDuration = mInPut.size() * mInPut.front()->getInfo().duration;
     }
+    AF_TRACE;
     if (_audioQueueRef) {
-        AudioQueueStop(_audioQueueRef, true);
-        AudioQueueDispose(_audioQueueRef, true);
+        //        AF_TRACE;
+        //  AudioQueueStop(_audioQueueRef, true);
+        AudioQueueDispose(_audioQueueRef, false);
     }
     return -1;
 }

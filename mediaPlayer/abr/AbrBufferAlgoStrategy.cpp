@@ -7,10 +7,11 @@
 #define LOG_TAG "AbrBufferAlgoStrategy"
 #include "AbrBufferAlgoStrategy.h"
 #include "AbrBufferRefererData.h"
-#include <utils/frame_work_log.h>
-#include <utils/timer.h>
 #include <cassert>
 #include <utility>
+#include <utils/CicadaJSON.h>
+#include <utils/frame_work_log.h>
+#include <utils/timer.h>
 #define LOWER_SWITCH_VALUE_MS (15 * 1000)
 #define UPPER_SWITCH_VALUE_MS (30 * 1000)
 #define MAX_BUFFER_STATICS_SIZE 10
@@ -62,7 +63,7 @@ void AbrBufferAlgoStrategy::ComputeBufferTrend(int64_t curTime)
     int64_t bufferDuration = mRefererData->GetCurrentPacketBufferLength() / 1000;
     bool bufferFull = (bufferDuration >= (maxBufferDuration - 1000));
 
-    if (mDurationMS == 0) {
+    if (!bufferFull && mDurationMS == 0) {
         //        AF_LOGI("BA connect %d full:%d", connect, bufferFull);
         if (mRefererData->GetIsConnected()) {
             bufferFull = mRefererData->GetRemainSegmentCount() == 0;
@@ -164,6 +165,7 @@ void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpe
 
     if (up) {
         if (currentIndex >= (count - 1)) {
+            updateSwitchStatus(Status::Highest_Already, false);
             return;
         }
         bitrate = mBitRates[currentIndex + 1];
@@ -184,6 +186,7 @@ void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpe
     } else {
         if (currentIndex == 0) {
             // lowest already
+            updateSwitchStatus(Status::Lowest_Already, false);
             return;
         }
 
@@ -191,7 +194,7 @@ void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpe
             bitrate = mBitRates[currentIndex - 1];
         } else {
             for (int i = currentIndex - 1; i >= 0; --i) {
-                if (maxSpeed >= mBitRates[i]) {
+                if (speed >= mBitRates[i]) {
                     bitrate = mBitRates[i];
                     break;
                 }
@@ -205,6 +208,7 @@ void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpe
 
     if (bitrate != -1 && mCurrentBitrate != bitrate) {
         AF_LOGI("BA switch to bitrate:%d", bitrate);
+        mPreBitrate = mCurrentBitrate;
         mCurrentBitrate = bitrate;
         auto iter = mStreamIndexBitrateMap.find(mCurrentBitrate);
 
@@ -224,6 +228,7 @@ void AbrBufferAlgoStrategy::SwitchBitrate(bool up, int64_t speed, int64_t maxSpe
                 mIsUpHistory.pop_front();
             }
 
+            updateSwitchStatus(Status::Switch, true);
             mFunc(index);
         }
     }
@@ -235,4 +240,41 @@ void AbrBufferAlgoStrategy::ProcessAbrAlgo()
         return;
     }
     ComputeBufferTrend(af_getsteady_ms());
+}
+
+void AbrBufferAlgoStrategy::updateSwitchStatus(Status newStatus, bool forceCb)
+{
+    AF_LOGD("BA switch status:%d", newStatus);
+
+    Status oldStatus = mSwitchStatus;
+    mSwitchStatus = newStatus;
+    if (oldStatus != newStatus || forceCb) {
+        if (mStatusCallback) {
+            mStatusCallback(newStatus);
+        }
+    }
+}
+
+void AbrBufferAlgoStrategy::GetOption(const std::string &key, std::string &value)
+{
+
+    if (key == "switchInfo") {
+        CicadaJSONItem result{};
+        result.addValue("fb", (int) mPreBitrate);
+        result.addValue("tb", (int) mCurrentBitrate);
+
+        CicadaJSONArray speedInfos{};
+        for (auto &speedItem : mDownloadSpeed) {
+            speedInfos.addInt64(speedItem);
+        }
+        result.addArray("spd", speedInfos);
+
+        CicadaJSONArray bufferInfos{};
+        for (auto &bufferItem : mBufferStatics) {
+            bufferInfos.addInt64(bufferItem);
+        }
+        result.addArray("buf", bufferInfos);
+
+        value = result.printJSON();
+    }
 }

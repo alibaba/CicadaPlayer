@@ -26,16 +26,7 @@
 #define NTP_TIMESTAMP_DELTA 2208988800ull
 using namespace Cicada;
 using namespace std;
-class UTCTime {
-public:
-    explicit UTCTime(const string &);
-    explicit UTCTime(uint64_t);
-    uint64_t mtime() const;
-    uint64_t time() const;
 
-private:
-    uint64_t t;//us
-};
 typedef struct ntp_packet_t {
 
     uint8_t li_vn_mode;// Eight bits. li, vn, and mode.
@@ -102,13 +93,13 @@ UTCTime::UTCTime(const string &str)
                 in >> tzspec;
 
                 if (tzspec.length() >= 4) {
-                    tz = sign * std::strtoul(tzspec.substr(0, 2).c_str(), nullptr, 0) * 60;
+                    tz = sign * std::strtoul(tzspec.substr(0, 2).c_str(), nullptr, 10) * 60;
                     if (tzspec.length() == 5 && tzspec.find(':') == 2)
-                        tz += sign * std::strtoul(tzspec.substr(3, 2).c_str(), nullptr, 0);
+                        tz += sign * std::strtoul(tzspec.substr(3, 2).c_str(), nullptr, 10);
                     else
-                        tz += sign * std::strtoul(tzspec.substr(2, 2).c_str(), nullptr, 0);
+                        tz += sign * std::strtoul(tzspec.substr(2, 2).c_str(), nullptr, 10);
                 } else {
-                    tz = sign * std::strtoul(tzspec.c_str(), nullptr, 0) * 60;
+                    tz = sign * std::strtoul(tzspec.c_str(), nullptr, 10) * 60;
                 }
                 values[UTCTIME_TZ] = tz;
             }

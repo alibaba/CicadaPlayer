@@ -29,6 +29,8 @@ namespace Cicada{
 
         int init() override;
 
+        void preStop() override;
+
         void stop() override;
 
         int GetNbStreams() const override;
@@ -58,6 +60,8 @@ namespace Cicada{
         bool isRealTimeStream(int index) override;
 
         int64_t getTargetDuration() override;
+
+        int64_t getBufferDuration(int index) const override;
 
     private:
         std::list<HLSStreamInfo*> mStreamInfoList{};

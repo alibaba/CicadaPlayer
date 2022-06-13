@@ -26,7 +26,7 @@ namespace Cicada{
 
             std::vector<uint8_t> hexSequence() const;
 
-            std::pair<std::size_t, std::size_t> getByteRange() const;
+            std::pair<int64_t, int64_t> getByteRange() const;
 
             std::pair<int, int> getResolution() const;
 
@@ -82,8 +82,12 @@ namespace Cicada{
                 EXTXMAP,
                 EXTXMEDIA,
                 EXTXSTREAMINF,
-                EXTXPART,
-                EXTXPARTINF,
+                EXTX_PART,
+                EXTX_PART_INF,
+                EXTX_SERVER_CONTROL,
+                EXTX_PRELOAD_HINT,
+                EXTX_SKIP,
+                EXTX_RENDITION_REPORT,
             };
 
             AttributesTag(int, const std::string &);

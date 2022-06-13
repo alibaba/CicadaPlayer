@@ -54,6 +54,7 @@ namespace Cicada {
     private:
         SuperMediaPlayer &mPlayer;
         std::unique_ptr<SMP_DCAObserver> mDemuxerObserver{nullptr};
+        std::unique_ptr<SMP_DCAObserver> mFilterObserver{nullptr};
         std::queue<std::string> mEventQue;
         std::mutex mMutex;
     };

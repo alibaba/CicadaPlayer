@@ -9,11 +9,13 @@
  * AbstractStream is a single stream proved form playList file,
  * maybe a ts muxed with one or more es stream,or a aac file
  */
+#include "SegmentPart.h"
 #include "utils/AFMediaType.h"
 #include <base/OptionOwner.h>
 #include <demuxer/demuxer_service.h>
 
-namespace Cicada{
+namespace Cicada {
+
     class AbstractStream : public OptionOwner {
     public:
         AbstractStream();
@@ -30,9 +32,16 @@ namespace Cicada{
 
         virtual int GetStreamMeta(Stream_meta *meta, int index, bool sub) const = 0;
 
+        virtual bool CloseSubStream(int index)
+        {
+            return false;
+        }
+
         virtual bool isOpened() = 0;
 
         virtual int start() = 0;
+
+        virtual int preStop() = 0;
 
         virtual int stop() = 0;
 
@@ -41,6 +50,25 @@ namespace Cicada{
         virtual uint64_t getCurSegNum() = 0;
 
         virtual int stopOnSegEnd(bool stop) = 0;
+
+        class CurSegInfo {
+        public:
+            uint64_t segNum{0};
+            uint64_t position{0};
+        };
+
+        virtual int setCurSegInfo(CurSegInfo &curSegInfo)
+        {
+            return 0;
+        };
+
+        virtual void setCurRenditionInfo(const std::vector<RenditionReport> &renditions)
+        {}
+
+        virtual std::vector<RenditionReport> getCurRenditionInfo()
+        {
+            return {};
+        }
 
         virtual int SetCurSegNum(uint64_t num) = 0;
 
@@ -73,13 +101,21 @@ namespace Cicada{
             mMergerAudioHeader = aMergeHeader;
         }
 
+        virtual void setUrlToUniqueIdCallback(UrlHashCB cb, void *userData)
+        {
+            mUrlHashCb = cb;
+            mUrlHashCbUserData = userData;
+        }
+
     protected:
         IDataSource *mExtDataSource = nullptr;
         IDataSource::SourceConfig mSourceConfig{};
         header_type mMergeVideoHeader = header_type::header_type_no_touch;
         header_type mMergerAudioHeader = header_type::header_type_no_touch;
+        UrlHashCB mUrlHashCb{nullptr};
+        void *mUrlHashCbUserData{nullptr};
     };
-}
+}// namespace Cicada
 
 
-#endif //FRAMEWORK_ABSTRACTSTREAM_H
+#endif//FRAMEWORK_ABSTRACTSTREAM_H

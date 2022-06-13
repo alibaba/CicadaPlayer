@@ -136,6 +136,7 @@ enum AFPixelFormat {
     AF_PIX_FMT_APPLE_PIXEL_BUFFER = 1000,
     AF_PIX_FMT_CICADA_AF,         //framework VideoFrame
     AF_PIX_FMT_CICADA_MEDIA_CODEC,//Android mediacodec buffer index
+    AF_PIX_FMT_CICADA_TEXTURE,    //texture frame
 };
 
 /**

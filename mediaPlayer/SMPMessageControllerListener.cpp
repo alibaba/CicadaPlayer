@@ -10,7 +10,9 @@
 #include <climits>
 #include <data_source/dataSourcePrototype.h>
 #include <utils/CicadaUtils.h>
+#include <utils/UrlUtils.h>
 #include <utils/af_string.h>
+#include <utils/file/FileUtils.h>
 #include <utils/timer.h>
 
 #define HAVE_VIDEO (mPlayer.mCurrentVideoIndex >= 0)
@@ -69,8 +71,8 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         AF_LOGD("ProcessPrepareMsg status is %d", mPlayer.mPlayStatus.load());
         return;
     }
-
-    mPlayer.mPlayStatus = PLAYER_PREPARINIT;
+    mPlayer.ChangePlayerStatus(PLAYER_PREPARINIT);
+    //   mPlayer.mPlayStatus = PLAYER_PREPARINIT;
     bool noFile = false;
 
     if (!(mPlayer.mBSReadCb != nullptr && mPlayer.mBSSeekCb != nullptr && mPlayer.mBSCbArg != nullptr)) {
@@ -89,6 +91,10 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
                 } else {
                     mPlayer.NotifyError(ret);
                     return;
+                }
+            } else {
+                if (mPlayer.mDataSource->getFlags() & IDataSource::flag_report_speed) {
+                    mPlayer.mCalculateSpeedUsePacket = false;
                 }
             }
         }
@@ -117,11 +123,18 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
 
     //prepare之前seek
     if (mPlayer.mSeekPos > 0) {
+        mPlayer.mPNotifier->NotifySeeking(false);
         mPlayer.mDemuxerService->Seek(mPlayer.mSeekPos, 0, -1);
         mPlayer.mSeekFlag = true;
     } else {
         mPlayer.ResetSeekStatus();
     }
+
+#ifdef ENABLE_VIDEO_FILTER
+    if (mPlayer.mFilterManager) {
+        mPlayer.mFilterManager->clearBuffer();
+    }
+#endif
 
     AF_LOGD("initOpen start");
     ret = mPlayer.mDemuxerService->createDemuxer((mPlayer.mBSReadCb || noFile) ? demuxer_type_bit_stream : demuxer_type_unknown);
@@ -133,6 +146,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
 #else
         mPlayer.mDemuxerService->getDemuxerHandle()->setBitStreamFormat(header_type::header_type_merge, header_type::header_type_merge);
 #endif
+        mPlayer.mDemuxerService->getDemuxerHandle()->setUrlToUniqueIdCallback(mPlayer.mUrlHashCb, mPlayer.mUrlHashCbUserData);
         if (noFile) {
             IDataSource::SourceConfig config;
             mPlayer.mDataSource->Get_config(config);
@@ -144,6 +158,7 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         mPlayer.mDcaManager->createObservers();
         mPlayer.sendDCAMessage();
     }
+
 
     //step2: Demuxer init and getstream index
     ret = mPlayer.mDemuxerService->initOpen((mPlayer.mBSReadCb || noFile) ? demuxer_type_bit_stream : demuxer_type_unknown);
@@ -162,16 +177,22 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
     int bandWidthNearStreamIndex = -1;
     int minBandWidthDelta = INT_MAX;
     int mDefaultBandWidth = mPlayer.mSet->mDefaultBandWidth;
+    int videoStreamCount = 0;
 
     for (int i = 0; i < nbStream; ++i) {
         mPlayer.mDemuxerService->GetStreamMeta(pMeta, i, false);
         auto *meta = (Stream_meta *) (pMeta.get());
+
+        if (mPlayer.mDuration < 0) {
+            mPlayer.mDuration = meta->duration;
+        }
 
         if (meta->type == STREAM_TYPE_MIXED) {
             mPlayer.mMixMode = true;
         }
 
         if (meta->type == STREAM_TYPE_MIXED || meta->type == STREAM_TYPE_VIDEO) {
+            videoStreamCount++;
             int metaBandWidth = (int) meta->bandwidth;
 
             if (abs(mDefaultBandWidth - metaBandWidth) < minBandWidthDelta) {
@@ -181,14 +202,28 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
         }
     }
 
+    if (mPlayer.mDuration == 0) {
+        //live should not be cached
+        if (mPlayer.mDataSource) {
+            mPlayer.mDataSource->enableCache(mPlayer.mSet->url, false);
+        }
+    } else {
+        if (mPlayer.mDemuxerService->isPlayList() && videoStreamCount > 1) {
+            if (mPlayer.mDataSource) {
+                mPlayer.mDataSource->enableCache(mPlayer.mSet->url, false);
+            }
+        } else {
+            if (mPlayer.mDataSource) {
+                mPlayer.mDataSource->enableCache(mPlayer.mSet->url, true);
+            }
+        }
+    }
+
     for (int i = 0; i < nbStream; ++i) {
         int openStreamRet = 0;
         mPlayer.mDemuxerService->GetStreamMeta(pMeta, i, false);
         auto *meta = (Stream_meta *) (pMeta.get());
 
-        if (mPlayer.mDuration < 0) {
-            mPlayer.mDuration = meta->duration;
-        }
         mPlayer.mSuggestedPresentationDelay = meta->suggestedPresentationDelay;
         AF_LOGD("mSuggestedPresentationDelay %lld\n", meta->suggestedPresentationDelay);
 
@@ -224,7 +259,6 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
                     openStreamRet = mPlayer.mDemuxerService->OpenStream(i);
                     mPlayer.mCurrentVideoIndex = i;
                     mPlayer.updateVideoMeta();
-                    mPlayer.mDemuxerService->GetStreamMeta(mPlayer.mCurrentVideoMeta, i, false);
                 }
             }
         } else if (!mPlayer.mSet->bDisableAudio && meta->type == STREAM_TYPE_AUDIO) {
@@ -270,6 +304,10 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
                 AF_LOGD("get a subtitle stream\n");
                 openStreamRet = mPlayer.mDemuxerService->OpenStream(i);
                 mPlayer.mCurrentSubtitleIndex = i;
+                if (meta->extradata && meta->extradata_size > 0) {
+                    meta->extradata[meta->extradata_size] = 0;
+                    mPlayer.mPNotifier->NotifySubtitleHeader(mPlayer.mCurrentSubtitleIndex, (const char *) meta->extradata);
+                }
             }
         } else if (meta->type == STREAM_TYPE_MIXED) {
             info->type = ST_TYPE_VIDEO;
@@ -303,6 +341,8 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
     mPlayer.mDemuxerService->GetMediaMeta(&pMediaMeta);
     mPlayer.mMediaInfo.totalBitrate = pMediaMeta.totalBitrate;
 
+    buildContainerInfo();
+
     // TODO: why ?
     /*
     if (!HAVE_VIDEO) {
@@ -315,6 +355,40 @@ void SMPMessageControllerListener::ProcessPrepareMsg()
     mPlayer.ChangePlayerStatus(PLAYER_PREPARING);
     mPlayer.mTimeoutStartTime = INT64_MIN;
 }
+
+void SMPMessageControllerListener::buildContainerInfo()
+{
+
+    CicadaJSONItem containerInfo{};
+
+    URLComponents urlComponents{};
+    UrlUtils::parseUrl(urlComponents, mPlayer.mSet->url);
+
+    std::string finalProto = urlComponents.proto;
+    if (urlComponents.proto.empty()) {
+        if (FileUtils::isFileExist(mPlayer.mSet->url.c_str())) {
+            finalProto = "file";
+        } else {
+            finalProto = "N/A";
+        }
+    }
+    containerInfo.addValue("protocol", finalProto);
+
+    int videoStreamCount = 0;
+    for (StreamInfo *item : mPlayer.mMediaInfo.mStreamInfoQueue) {
+        if (item->type == StreamType::ST_TYPE_VIDEO) {
+            videoStreamCount++;
+        }
+    }
+    containerInfo.addValue("isMultiBitrate", videoStreamCount > 1 ? "1" : "0");
+
+    IDemuxer *demuxer = mPlayer.mDemuxerService->getDemuxerHandle();
+    std::string containerName = demuxer->GetProperty(-1, "containerName");
+    containerInfo.addValue("containerName", containerName);
+
+    mPlayer.mContainerInfo = containerInfo.printJSON();
+}
+
 void SMPMessageControllerListener::ProcessStartMsg()
 {
     if (mPlayer.mPlayStatus == PLAYER_PAUSED || mPlayer.mPlayStatus == PLAYER_PREPARED || mPlayer.mPlayStatus == PLAYER_COMPLETION) {
@@ -373,10 +447,6 @@ void SMPMessageControllerListener::ProcessSetVideoBackgroundColor()
 
 void SMPMessageControllerListener::ProcessSetViewMsg(void *view)
 {
-    if (view == mPlayer.mSet->mView) {
-        return;
-    }
-
     mPlayer.mSet->mView = view;
     std::unique_lock<std::mutex> uMutex(mPlayer.mCreateMutex);
 
@@ -399,7 +469,10 @@ void SMPMessageControllerListener::ProcessSetBitStreamMsg(readCB read, seekCB se
         mPlayer.mBSReadCb = read;
         mPlayer.mBSSeekCb = seek;
         mPlayer.mBSCbArg = arg;
-        mPlayer.ChangePlayerStatus(PLAYER_INITIALZED);
+
+        if (read != nullptr) {
+            mPlayer.ChangePlayerStatus(PLAYER_INITIALZED);
+        }
     }
 }
 
@@ -475,6 +548,12 @@ void SMPMessageControllerListener::ProcessSeekToMsg(int64_t seekPos, bool bAccur
     mPlayer.FlushVideoPath();
     mPlayer.FlushAudioPath();
     mPlayer.FlushSubtitleInfo();
+
+#ifdef ENABLE_VIDEO_FILTER
+    if (mPlayer.mFilterManager) {
+        mPlayer.mFilterManager->clearBuffer();
+    }
+#endif
 
     if (mPlayer.mSubPlayer) {
         mPlayer.mSubPlayer->seek(seekPos);
@@ -579,9 +658,13 @@ void SMPMessageControllerListener::ProcessRenderedMsg(StreamType type, IAFFrame:
             return;
         }
         mPlayer.mDemuxerService->SetOption("A_FRAME_RENDERED", info.pts);
-
-        if (!mPlayer.isSeeking() && info.timePosition >= 0) {
-            mPlayer.mCurrentPos = info.timePosition;
+        if (!mPlayer.isSeeking()) {
+            if (info.timePosition >= 0) {
+                mPlayer.mCurrentPos = info.timePosition;
+            }
+            if (info.utcTime >= 0) {
+                mPlayer.mCurrentFrameUtcTime = info.utcTime;
+            }
         }
         if (mPlayer.mSet->bEnableVRC) {
             mPlayer.mPNotifier->NotifyAudioRendered(timeMs, info.pts);
@@ -592,11 +675,23 @@ void SMPMessageControllerListener::ProcessRenderedMsg(StreamType type, IAFFrame:
 
     if (type == ST_TYPE_VIDEO) {
 
-        if (mPlayer.mCurrentAudioIndex < 0 && info.timePosition >= 0 && !mPlayer.isSeeking()) {
-            mPlayer.mCurrentPos = info.timePosition;
+        if ((mPlayer.mCurrentAudioIndex < 0 || mPlayer.mAudioEOS) && !mPlayer.isSeeking()) {
+            if (info.timePosition >= 0) {
+                mPlayer.mCurrentPos = info.timePosition;
+            } else if (!mPlayer.mDemuxerService->getDemuxerHandle()->isTSDiscontinue() && info.pts >= 0) {
+                mPlayer.mCurrentPos = info.pts;
+            }
+            if (info.utcTime >= 0) {
+                mPlayer.mCurrentFrameUtcTime = info.utcTime;
+            }
         }
-
-        //   mPlayer.mUtil->render(info.pts);
+        /*
+         * exclude dropped by seeking
+         */
+        if (!mPlayer.mSeekFlag || rendered) {
+            mPlayer.mUtil->videoRendered(rendered);
+            mPlayer.mMPAUtil->videoRendered(rendered);
+        }
         if (rendered) {
             mPlayer.checkFirstRender();
         }
@@ -669,6 +764,11 @@ void SMPMessageControllerListener::ProcessSetSpeed(float speed)
         mPlayer.mAVDeviceManager->setSpeed(speed);
         mPlayer.mSet->rate = speed;
         mPlayer.mMasterClock.SetScale(speed);
+#ifdef ENABLE_VIDEO_FILTER
+        if (mPlayer.mFilterManager) {
+            mPlayer.mFilterManager->setSpeed(speed);
+        }
+#endif
     }
 }
 
@@ -703,6 +803,10 @@ void SMPMessageControllerListener::ProcessSelectExtSubtitleMsg(int index, bool s
 
     if (select) {
         mPlayer.mSubPlayer->seek(mPlayer.getCurrentPosition());
+        std::string header = mPlayer.mSubPlayer->getHeader(index);
+        if (!header.empty()) {
+            mPlayer.mPNotifier->NotifySubtitleHeader(index, header.c_str());
+        }
     }
 }
 
@@ -804,6 +908,14 @@ void SMPMessageControllerListener::switchSubTitle(int index)
     mPlayer.mSubtitleChangedFirstPts = INT64_MAX;
     mPlayer.mDemuxerService->CloseStream(mPlayer.mCurrentSubtitleIndex);
     mPlayer.mCurrentSubtitleIndex = index;
+    unique_ptr<streamMeta> Meta = nullptr;
+    mPlayer.mDemuxerService->GetStreamMeta(Meta, index, true);
+    if (Meta) {
+        Stream_meta *meta = ((Stream_meta *) (*Meta));
+        if (meta->extradata && meta->extradata_size > 0) {
+            mPlayer.mPNotifier->NotifySubtitleHeader(mPlayer.mCurrentSubtitleIndex, (const char *) meta->extradata);
+        }
+    }
     mPlayer.mBufferController->ClearPacket(BUFFER_TYPE_SUBTITLE);
     mPlayer.mEof = false;
     mPlayer.mSubtitleEOS = false;
@@ -843,10 +955,11 @@ int SMPMessageControllerListener::openUrl()
 
     {
         std::lock_guard<std::mutex> locker(mPlayer.mCreateMutex);
-        mPlayer.mDataSource = dataSourcePrototype::create(mPlayer.mSet->url, &(mPlayer.mSet->mOptions));
+        mPlayer.mDataSource = dataSourcePrototype::create(mPlayer.mSet->url, &(mPlayer.mSet->mOptions), DS_NEED_CACHE);
     }
 
     if (mPlayer.mDataSource) {
+        mPlayer.mDataSource->setUrlToUniqueIdCallback(mPlayer.mUrlHashCb, mPlayer.mUrlHashCbUserData);
         mPlayer.mDataSource->Set_config(config);
         int ret = mPlayer.mDataSource->Open(0);
         return ret;

@@ -36,7 +36,8 @@ namespace Cicada {
         class AVStreamCtx {
         public:
             std::unique_ptr<IAVBSF> bsf{};
-            bool opened = true;
+            bool opened{true};
+            bool bsfInited{false};
         };
 
     public:
@@ -82,6 +83,10 @@ namespace Cicada {
 
         bool isTSDiscontinue() override;
 
+        const vector<streamIndexEntryInfo> &getStreamIndexEntryInfo() override;
+
+        int64_t getBufferDuration(int index)  const override;
+
     protected:
         explicit avFormatDemuxer(int dummy);
 
@@ -110,7 +115,7 @@ namespace Cicada {
 
         void init();
 
-        int createBsf(int index);
+        int createBsf(AVPacket *pkt, int index);
 
         int ReadPacketInternal(std::unique_ptr<IAFPacket> &packet);
 
@@ -133,16 +138,17 @@ namespace Cicada {
         int MAX_QUEUE_SIZE = 60; // about 500ms  video and audio packet
         bool mSecretDemxuer{false};
         std::string mDrmMagicKey{};
-
-    private:
         std::atomic_bool mInterrupted{false};
-        std::map<int, std::unique_ptr<AVStreamCtx>> mStreamCtxMap{};
-        AVIOContext *mPInPutPb = nullptr;
         bool bOpened{false};
         int64_t mStartTime = INT64_MIN;
+
+    private:
+        std::map<int, std::unique_ptr<AVStreamCtx>> mStreamCtxMap{};
+        AVIOContext *mPInPutPb = nullptr;
         std::deque<unique_ptr<IAFPacket>> mPacketQueue{};
         std::atomic_bool bEOS{false};
         std::atomic_bool bPaused{false};
+        std::atomic_bool bExited{false};
         bool mNedParserPkt{false};
 
 #if AF_HAVE_PTHREAD

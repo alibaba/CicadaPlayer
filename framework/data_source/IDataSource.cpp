@@ -33,6 +33,11 @@ namespace Cicada {
         return mUri;
     }
 
+    std::string IDataSource::GetOriginUri()
+    {
+        return mUri;
+    }
+
     void IDataSource::Set_config(SourceConfig &config)
     {
         mConfig = config;
@@ -84,6 +89,11 @@ namespace Cicada {
         rangeStart = start;
         rangeEnd = end;
         return 0;
+    }
+
+    void IDataSource::setMediaInfoProvider(IMediaInfoProvider *provider)
+    {
+        mMediaInfoProvider = provider;
     }
 
     void IDataSource::setPost(bool post, int64_t size, const uint8_t *data) {

@@ -104,6 +104,9 @@ namespace Cicada{
 
         void AppDidBecomeActive() override;
 
+        inline bool isErrorPoc(int poc, bool keyFrame) const;
+        inline void resetPocInfo();
+
 #if 0
         void outputByPoc(VideoFrame *CM_NULLABLE beCachedFrame, int poc);
 #endif

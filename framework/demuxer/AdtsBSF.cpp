@@ -32,7 +32,7 @@ AdtsBSF::~AdtsBSF()
 
 int AdtsBSF::init(const std::string &name, AVCodecParameters *codecpar)
 {
-    if (name != "aacAdts") {
+    if (name != "latm2Adts") {
         return -EINVAL;
     }
 

@@ -214,6 +214,18 @@ namespace Cicada {
         pushEvent(event);
     }
 
+    void PlayerNotifier::NotifyUtcTime(int64_t time)
+    {
+        AF_LOGD("NotifyUtcTime() :%lld", time);
+
+        if (!mEnable || mListener.UtcTimeUpdate == nullptr) {
+            return;
+        }
+
+        auto *event = new player_event(time, mListener.UtcTimeUpdate);
+        pushEvent(event);
+    }
+
     void PlayerNotifier::NotifyBufferPosition(int64_t pos)
     {
         if (!mEnable || mListener.BufferPositionUpdate == nullptr) {
@@ -314,6 +326,22 @@ namespace Cicada {
             return;
         }
 
+        pushEvent(event);
+    }
+
+    void PlayerNotifier::NotifySubtitleHeader(int64_t index, const char *header)
+    {
+        if (!mEnable) {
+            return;
+        }
+
+        player_event *event = nullptr;
+        if (mListener.SubtitleHeader) {
+            event = new player_event(index, strdup(header), mListener.SubtitleHeader);
+        }
+        if (event == nullptr) {
+            return;
+        }
         pushEvent(event);
     }
 

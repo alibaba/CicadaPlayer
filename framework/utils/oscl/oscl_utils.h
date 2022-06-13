@@ -10,6 +10,10 @@ typedef struct {
     uint64_t self_useram;
 } mem_info;
 
+typedef int (*app_get_meminfo)(mem_info *info);
+
+void setAppGetMemInfo(app_get_meminfo func);
+
 #ifdef __cplusplus
 extern "C" {
 #endif

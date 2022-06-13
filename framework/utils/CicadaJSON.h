@@ -44,6 +44,7 @@ public:
     double getDouble(const std::string& name, double defaultValue) const;
     bool getBool(const std::string& name, bool defaultValue) const;
     CicadaJSONItem getItem(const std::string& name) const;
+    CicadaJSONArray getArray(const std::string& name) const;
     std::string getStringOfObject(const std::string& name) const;
 
     bool hasItem(const std::string& name) const;
@@ -75,6 +76,7 @@ public:
     CicadaJSONArray(const std::string& JSONString);
 
     CicadaJSONArray(CicadaJSONItem jsonItem);
+    CicadaJSONArray(const CicadaJSONArray &);
 
     ~CicadaJSONArray();
 
@@ -91,20 +93,25 @@ public:
     void addJSON(const CicadaJSONItem &JSON);
 
 
+    void addInt64(int64_t value);
+
     // add JSON object unsafely, better performance, but the JSON param will became invalid.
     //void addAssignJSON(CicadaJSONItem &JSON);
 
     std::string printJSON() const;
 private:
     friend class CicadaJSONItem;
+    // init with outside JSON, JSONOutSide will not be deleted in CicadaJSONItemtem
+    CicadaJSONArray(cJSON *JSONOutSide);
+
     cJSON *getJSONCopy() const;
     //cJSON *getJSON();
 
-    CicadaJSONArray(const CicadaJSONArray &);
     const CicadaJSONArray &operator=(const CicadaJSONArray &);
 
 private:
     cJSON *mArray = nullptr;
+    bool mShouldRelease = true;
     std::vector<CicadaJSONItem*> items;
 
     mutable std::mutex mMutex;

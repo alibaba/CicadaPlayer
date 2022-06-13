@@ -44,6 +44,20 @@ bool Cicada::DOMParser::parse(const char *buffer, int size)
     return mRoot != nullptr;
 }
 
+bool Cicada::DOMParser::parseFile(const char *filePath, int size)
+{
+    mReader = xmlReaderForFile(filePath, nullptr, 0);
+    if (!mReader) {
+        return false;
+    }
+    mRoot = processNode();
+    xmlFreeTextReader(mReader);
+
+    print();
+
+    return mRoot != nullptr;
+}
+
 Node *Cicada::DOMParser::processNode()
 {
     const char *data;

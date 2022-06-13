@@ -9,6 +9,18 @@
 #include "af_clock.h"
 #include <string>
 namespace Cicada {
+
+    class UTCTime {
+    public:
+        explicit UTCTime(const std::string &);
+        explicit UTCTime(uint64_t);
+        uint64_t mtime() const;
+        uint64_t time() const;
+
+    private:
+        uint64_t t;//us
+    };
+
     class UTCTimer {
     public:
         explicit UTCTimer(const std::string &time);

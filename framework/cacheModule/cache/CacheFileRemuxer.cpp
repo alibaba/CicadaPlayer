@@ -61,14 +61,14 @@ void CacheFileRemuxer::addFrame(const IAFPacket *frame, StreamType type)
 
 bool CacheFileRemuxer::prepare()
 {
-    if (FileUtils::isFileExist(mDestFilePath.c_str()) == FILE_TRUE) {
+    if (FileUtils::isFileExist(mDestFilePath.c_str())) {
         //???
-        if (FileUtils::rmrf(mDestFilePath.c_str()) != FILE_TRUE) {
+        if (!FileUtils::rmrf(mDestFilePath.c_str())) {
             return false;
         }
     }
 
-    if (FileUtils::touch(mDestFilePath.c_str()) != FILE_TRUE) {
+    if (!FileUtils::touch(mDestFilePath.c_str())) {
         return false;
     }
 
@@ -214,7 +214,7 @@ void CacheFileRemuxer::stop()
         mMuxThread = nullptr;
     }
 
-    if (FileUtils::isFileExist(mDestFilePath.c_str()) == FILE_TRUE) {
+    if (FileUtils::isFileExist(mDestFilePath.c_str())) {
         FileUtils::rmrf(mDestFilePath.c_str());
     }
 

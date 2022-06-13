@@ -41,6 +41,8 @@ namespace Cicada {
 
         void NotifyPosition(int64_t pos);
 
+        void NotifyUtcTime(int64_t time);
+
         void NotifyCurrentDownloadSpeed(float speed);
 
         void NotifyBufferPosition(int64_t pos);
@@ -52,6 +54,8 @@ namespace Cicada {
         void NotifyMediaInfo(MediaInfo *mediaInfo);
 
         void NotifySubtitleEvent(subTitle_event id, IAFPacket *packet, int64_t index, const char *url);
+
+        void NotifySubtitleHeader(int64_t index, const char *header);
 
         void NotifyError(int code, const char *desc);
 

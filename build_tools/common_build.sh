@@ -12,6 +12,7 @@ source build_librtmp.sh
 source build_ares.sh
 source build_boost.sh
 source build_libxml2.sh
+source build_nghttp2.sh
 
 function apply_ffmpeg_config(){
     ffmpeg_config_reset
@@ -33,7 +34,7 @@ function build_static_lib(){
     cd ${CWD}
 
     local build_xml="true"
-    if [[ "$1" == "iOS" ]] || [[ "$1" == "Darwin" ]];then
+    if [[ "$1" == "iOS" ]] || [[ "$1" == "Darwin" ]] || [[ "$1" == "maccatalyst" ]];then
         if [[ "${XML_USE_NATIVE}" == "TRUE" ]];then
             build_xml="false"
         fi
@@ -59,7 +60,7 @@ function build_static_lib(){
     fi
 
     local build_openssl="true"
-    if [[ "$1" == "iOS" ]] || [[ "$1" == "Darwin" ]];then
+    if [[ "$1" == "iOS" ]] || [[ "$1" == "Darwin" ]] || [[ "$1" == "maccatalyst" ]];then
         if [[ "${SSL_USE_NATIVE}" == "TRUE" ]] && [[ "$CRYPTO_USE_OPENSSL" != "TRUE" ]];then
             build_openssl="false"
         fi
@@ -87,6 +88,16 @@ function build_static_lib(){
         fi
     else
         print_warning "RTMPDUM source not found"
+    fi
+
+    if [[ -d "$NGHTTP2_SOURCE_DIR" ]];then
+
+        build_nghttp2  $1 ${arch}
+        if [[ $? -ne 0 ]]; then
+            echo "build_nghttp2 build failed"
+            exit -1
+        fi
+
     fi
 
     if [[ -d "${CURL_SOURCE_DIR}" ]];then
@@ -232,6 +243,10 @@ function link_shared_lib_Android(){
         ldflags="$ldflags -lxml2 -L${LIBXML2_INSTALL_DIR}/lib/"
     fi
 
+    if [[ -d "${NGHTTP2_INSTALL_DIR}" ]];then
+        ldflags="$ldflags -lnghttp2 -L${NGHTTP2_INSTALL_DIR}/lib/"
+    fi
+
     cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
     sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
 
@@ -275,9 +290,9 @@ function link_shared_lib_win32(){
 
     local ldflags=""
 
-#    if [[ -d "${CURL_INSTALL_DIR}" ]];then
-#        ldflags="$ldflags -lcurl -L${CURL_INSTALL_DIR}/lib/"
-#    fi
+    if [[ -d "${CURL_INSTALL_DIR}" ]];then
+        ldflags="$ldflags -lcurl -L${CURL_INSTALL_DIR}/lib/"
+    fi
 #
 #    if [[ -d "${ARES_INSTALL_DIR}" ]];then
 #        ldflags="$ldflags -lcares -L${ARES_INSTALL_DIR}/lib/"
@@ -290,11 +305,9 @@ function link_shared_lib_win32(){
 #    if [[ -d "${FDK_AAC_INSTALL_DIR}" ]];then
 #        ldflags="$ldflags -lfdk-aac -L${FDK_AAC_INSTALL_DIR}/lib/"
 #    fi
-#
-#    if [[ -d "${OPENSSL_INSTALL_DIR}" ]];then
-#        ldflags="$ldflags -lssl -lcrypto -L${OPENSSL_INSTALL_DIR}/lib/"
-#    fi
-#
+    if [[ -d "${OPENSSL_INSTALL_DIR}" ]];then
+        ldflags="$ldflags -lssl -lcrypto -L${OPENSSL_INSTALL_DIR}/lib/"
+    fi
 #    if [[ -d "${DAV1D_INSTALL_DIR}" ]];then
 #        ldflags="$ldflags -ldav1d -L${DAV1D_INSTALL_DIR}/lib/"
 #    fi
@@ -306,7 +319,11 @@ function link_shared_lib_win32(){
 #    if [[ -d "${LIBXML2_INSTALL_DIR}" ]];then
 #        ldflags="$ldflags -lxml2 -L${LIBXML2_INSTALL_DIR}/lib/"
 #    fi
+    if [[ -d "${NGHTTP2_INSTALL_DIR}" ]];then
+        ldflags="$ldflags -lnghttp2 -L${NGHTTP2_INSTALL_DIR}/lib/"
+    fi
 
+    echo ldflags is ${ldflags}
     cp ${BUILD_TOOLS_DIR}/src/build_version.cpp ./
     sh ${BUILD_TOOLS_DIR}/gen_build_version.sh > version.h
 
@@ -315,7 +332,7 @@ function link_shared_lib_win32(){
     ${objs} \
     -o ${install_dir}/lib${LIB_NAME}.dll \
     -Wl,--kill-at,--out-implib=${install_dir}/lib${LIB_NAME}.lib   \
-    -Wl,--whole-archive   ${ldflags} -Wl,--no-whole-archive -Wl,--build-id=sha1 -lws2_32 -lbcrypt
+    -Wl,--whole-archive   ${ldflags} -Wl,--no-whole-archive -Wl,--build-id=sha1 -lws2_32 -lbcrypt -lcrypt32
 
     rm build_version.cpp version.h
 }

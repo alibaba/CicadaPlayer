@@ -101,6 +101,7 @@ typedef struct playerListener_t {
     playerType1Callback Seeking;
     playerType1Callback SeekEnd;
     playerType1Callback PositionUpdate;
+    playerType1Callback UtcTimeUpdate;
     playerType1Callback BufferPositionUpdate;
     playerType1Callback LoadingProgress;
     playerType1Callback CurrentDownLoadSpeed;
@@ -120,6 +121,7 @@ typedef struct playerListener_t {
     playerType123Callback SubtitleHide;
     playerType123Callback SubtitleShow;
     playerType13Callback SubtitleExtAdd;
+    playerType13Callback SubtitleHeader;
     void *userData;
 } playerListener;
 
@@ -162,6 +164,12 @@ typedef enum PropertyKey {
     PROPERTY_KEY_HLS_KEY_URL = 10,
     PROPERTY_KEY_RE_BUFFERING,
     PROPERTY_KEY_DOWNLOAD_COMPLETED,
+    PROPERTY_KEY_VIDEO_DROPPED_INFO,
+    PROPERTY_KEY_NETWORK_SPEED,
+    PROPERTY_KEY_BUFFER_INFO,
+    PROPERTY_KEY_NETWORK_REQUEST_LIST,
+    PROPERTY_KEY_RENDER_INFO,
+    PROPERTY_KEY_CONTAINER_INFO,
 } PropertyKey;
 
 typedef enum VideoTag {
@@ -186,6 +194,8 @@ typedef int64_t(*clockRefer)(void *arg);
 typedef bool (*onRenderFrame)(void *userData, IAFFrame *frame);
 
 typedef bool (*UpdateViewCB)(int videoType, void *userData);
+
+typedef std::string (*UrlHashCB)(const char *url, void *userData);
 
 class ErrorConverter {
 public:

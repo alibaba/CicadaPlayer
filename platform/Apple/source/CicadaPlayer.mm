@@ -20,6 +20,8 @@
 #import "utils/CicadaDynamicLoader.h"
 #import "utils/af_string.h"
 #import "utils/frame_work_log.h"
+#import <memory>
+#import <render/subtitle/AppleCATextLayerRender.h>
 #import <utils/globalNetWorkManager.h>
 
 using namespace std;
@@ -57,13 +59,14 @@ typedef int64_t(^CicadaReferClockFun) ();
 @interface CicadaPlayer () <CicadaPlayerViewDelegate>
 {
 #if TARGET_OS_OSX
-    CicadaPlayerView* mView;
+    NSView *mView;
 #else
     UIView *mView;
 #endif
     CicadaConfig* mConfig;
     CicadaMediaInfo* mMediaInfo;
     CicadaOCHelper* mHelper;
+    std::unique_ptr<AppleCATextLayerRender> mSubtitleRender;
 }
 
 #if ENABLE_CONAN
@@ -138,7 +141,8 @@ static int logOutput = 1;
         self.mCurrentStatus = CicadaStatusIdle;
         mView = nil;
         self.playerView = nil;
-        
+        mSubtitleRender = nil;
+
         mConfig = [[CicadaConfig alloc] init];
         mMediaInfo = [[CicadaMediaInfo alloc] init];
 
@@ -329,14 +333,17 @@ static int logOutput = 1;
 
     if (showView != nil) {
         if (mView == nil) {
-            mView = [[CicadaPlayerView alloc] initWithFrame:showView.bounds];
+            mView = [[NSView alloc] initWithFrame:showView.bounds];
             mView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
             [showView addSubview:mView];
-            mView.delegate = self;
-            mView.wantsBestResolutionOpenGLSurface = YES;
+            [mView setWantsLayer:YES];
+            //            mView.wantsBestResolutionOpenGLSurface = YES;
+            if (mHelper!=nullptr) {
+                mHelper->setView(mView);
+            }
 
             if (self.player) {
-                self.player->SetView((__bridge void*)mView);
+                self.player->SetView((__bridge void *) mView.layer);
             }
         }
         else {
@@ -358,9 +365,11 @@ static int logOutput = 1;
         if(mView == nil) {
             mView = [[UIView alloc] initWithFrame:showView.bounds];
             mView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-
             [showView addSubview:mView];
             [showView bringSubviewToFront:mView];
+            if (mHelper!=nullptr) {
+                mHelper->setView(mView);
+            }
             if(self.player){
                 self.player->SetView((__bridge void*)mView.layer);
             }
@@ -414,11 +423,6 @@ static int logOutput = 1;
 {
     if (self.player) {
         [self stop];
-#if TARGET_OS_OSX
-        if (mView) {
-            mView.delegate = nil;
-        }
-#endif
         if (self.player){
             self.player->SetView(nil);
         }
@@ -461,11 +465,6 @@ static int logOutput = 1;
 
 -(void)destroy
 {
-#if TARGET_OS_OSX
-    if (mView) {
-        mView.delegate = nil;
-    }
-#endif
     if (self.player) {
         delete self.player;
         self.player = nullptr;
@@ -480,15 +479,6 @@ static int logOutput = 1;
         [mView removeFromSuperview];
         mView = nil;
     }
-
-#if ENABLE_CONAN
-//    NSLog(@"conan destroy start");
-    if (self.conan) {
-        [self.conan destroy];
-        self.conan = nil;
-    }
-//    NSLog(@"conan destroy end");
-#endif
 }
 
 -(void)seekToTime:(int64_t)time seekMode:(CicadaSeekMode)seekMode

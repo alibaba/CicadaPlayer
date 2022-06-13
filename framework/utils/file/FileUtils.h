@@ -6,38 +6,54 @@
 #define CICADA_FILEUTILS_H
 
 #include "utils/CicadaType.h"
+#include <cstdint>
+#include <string>
 
-#ifdef _WIN32
-#define PATH_SEPARATION   '\\'
-#else
-#define PATH_SEPARATION   '/'
-#endif
+#define PATH_SEPARATION '/'
 
-#define FILE_TRUE 0
 #define UTILS_PATH_MAX 4096
+#include <dirent.h>
+#include <functional>
 
 namespace Cicada {
 
     class CICADA_CPLUS_EXTERN FileUtils {
-        public:
-        static int isFileExist(const char *file_path);
+    public:
+        static bool isFileExist(const char *file_path);
 
-        static int isDirExist(const char *dirAbsPath);
+        static bool isDirExist(const char *dirAbsPath);
 
-        static long getFileLength(const char *filePath);
+        static int64_t getFileLength(const char *filePath);
 
-        static int touch(const char *fileAbsPath);
+        static long getFileTime(const char *filePath, int64_t &mtimeSec, int64_t &atimeSec);
 
-        static int mkdirs(const char *dirAbsPath);
+        static bool touch(const char *fileAbsPath);
 
-        static int rmrf(const char *targetPath);
+        static bool mkdirs(const char *dirAbsPath);
 
-        static char * path_normalize(const char *path);
+        static bool rmrf(const char *targetPath);
 
-        static long getFileCreateTime(const char* filePath);
+        static char *path_normalize(const char *path);
 
-        static int Rename(const char* oldName, const char* newName);
+        static int64_t getFileCreateTime(const char *filePath);
+
+        static bool Rename(const char *oldName, const char *newName);
+
+        static uint64_t getDirSize(const char *path);
+
+        static void forEachDir(const char *path, const std::function<void(struct dirent *entry)> &);
+
+        static bool getDiskSpaceInfo(const char *path, uint64_t &availableBytes, uint64_t &totalBytes);
+
+        static inline bool isExist(const std::string &path)
+        {
+            return isFileExist(path.c_str());
+        }
+
+        static bool isDir(const std::string &path);
+
+        static bool isRegularFile(const std::string &path);
     };
-}
+}// namespace Cicada
 
-#endif //CICADA_FILEUTILS_H
+#endif//CICADA_FILEUTILS_H

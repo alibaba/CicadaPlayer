@@ -108,4 +108,32 @@ namespace Cicada {
         return mId;
     }
 
+    std::string subTitleSource::getHeader()
+    {
+        std::string ret;
+
+        if (mDemuxer == nullptr) {
+            return ret;
+        }
+        int nbStream = mDemuxer->GetNbStreams();
+        if (nbStream <= 0) {
+            return ret;
+        }
+
+        unique_ptr<streamMeta> smeta;
+        for (int i = 0; i < nbStream; ++i) {
+            mDemuxer->GetStreamMeta(smeta, i, false);
+            auto *meta = (Stream_meta *) (*(smeta.get()));
+
+            if (meta->type == STREAM_TYPE_SUB) {
+                if (meta->extradata_size > 0) {
+                    ret.assign((char *) meta->extradata, meta->extradata_size);
+                }
+                break;
+            }
+        }
+
+        return ret;
+    }
+
 }

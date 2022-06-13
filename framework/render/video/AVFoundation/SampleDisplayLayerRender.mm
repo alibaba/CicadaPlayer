@@ -10,6 +10,8 @@
 #include <utility>
 #if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
+#elif TARGET_OS_OSX
+#import <AppKit/AppKit.h>
 #endif
 #include <utils/frame_work_log.h>
 
@@ -139,11 +141,8 @@ void DisplayLayerImpl::setBackgroundColor(uint32_t color)
 
 void DisplayLayerImpl::captureScreen(std::function<void(uint8_t *, int, int)> func)
 {
-#if TARGET_OS_IPHONE
     void *img = [(__bridge id) renderHandle captureScreen];
     func((uint8_t *) img, -1, -1);
-//    CFRelease(img);
-#endif
 }
 void DisplayLayerImpl::reDraw()
 {
@@ -402,6 +401,79 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
     UIGraphicsEndImageContext();
     return image ?: img;
 }
+#elif TARGET_OS_OSX
+- (NSImage *)imageFromPixelBuffer:(CVPixelBufferRef)pixelBufferRef
+{
+    CGSize newSize = CGSizeMake(self.displayLayer.bounds.size.width, self.displayLayer.bounds.size.height);
+    
+    CVImageBufferRef imageBuffer = pixelBufferRef;
+
+    //    CVPixelBufferLockBaseAddress(imageBuffer, 0);
+    //    void *baseAddress = CVPixelBufferGetBaseAddress(imageBuffer);
+    size_t width = CVPixelBufferGetWidth(imageBuffer);
+    size_t height = CVPixelBufferGetHeight(imageBuffer);
+    CIImage *coreImage = [CIImage imageWithCVPixelBuffer:pixelBufferRef];
+    CIContext *temporaryContext = [CIContext contextWithOptions:nil];
+    
+    CGSize disPlaySize = [self getVideoSize];
+//    if (self.displayLayer.videoGravity == AVLayerVideoGravityResize) {
+//        // function imageTransform() will apply all transforms we applied to displayLayer,
+//        // so here we use the displayLayer's origin size
+//        disPlaySize = self.displayLayer.bounds.size;
+//    }
+
+    CGImageRef videoImage = [temporaryContext createCGImage:coreImage fromRect:CGRectMake(0, 0,width,height)];
+    NSImage *image = [[NSImage alloc] initWithSize:CGSizeMake(newSize.width, newSize.height)];
+    //    CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
+    // TODO: imageTransform
+    NSBitmapImageRep* rep = [[NSBitmapImageRep alloc]
+                                initWithBitmapDataPlanes:NULL
+                                              pixelsWide:newSize.width
+                                              pixelsHigh:newSize.height
+                                           bitsPerSample:8
+                                         samplesPerPixel:4
+                                                hasAlpha:YES
+                                                isPlanar:NO
+                                          colorSpaceName:NSCalibratedRGBColorSpace
+                                             bytesPerRow:0
+                                            bitsPerPixel:0];
+
+    [image addRepresentation:rep];
+
+    [image lockFocus];
+
+    if (!_bGColour) {
+        _bGColour = [NSColor blackColor].CGColor;
+    }
+    
+    CGContextRef ctx = [[NSGraphicsContext currentContext] CGContext];
+    CGContextClearRect(ctx, NSMakeRect(0, 0, newSize.width, newSize.height));
+    CGContextSetFillColorWithColor(ctx,_bGColour);
+    CGContextFillRect(ctx, NSMakeRect(0, 0, newSize.width, newSize.height));
+    
+    CGContextTranslateCTM(ctx, newSize.width / 2.0, newSize.height / 2.0);
+    CGContextConcatCTM(ctx, CATransform3DGetAffineTransform(self.displayLayer.transform));
+//    CGContextScaleCTM(ctx, 1, -1);
+    CGPoint origin = CGPointMake(-(newSize.width / 2.0), -(newSize.height / 2.0));
+    CGRect rect = CGRectZero;
+    rect.origin = origin;
+    rect.size = image.size;
+    CGContextDrawImage(ctx, rect, videoImage);
+
+    [image unlockFocus];
+    
+    return image;
+}
+
+
+- (void *)captureScreen
+{
+    if (renderingBuffer && self.displayLayer) {
+        NSImage *image = [self imageFromPixelBuffer:renderingBuffer];
+        return (void *) CFBridgingRetain(image);
+    }
+    return nullptr;
+}
 
 #endif
 
@@ -417,7 +489,11 @@ void DisplayLayerImpl::setRotate(IVideoRender::Rotate rotate)
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *, id> *)change context:(void *)context
 {
     if ([keyPath isEqualToString:@"bounds"]) {
+#if TARGET_OS_IPHONE
         CGRect bounds = [change[NSKeyValueChangeNewKey] CGRectValue];
+#elif TARGET_OS_OSX
+        NSRect bounds = [change[@"new"] rectValue];
+#endif
         self.displayLayer.frame = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
         self.displayLayer.bounds = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
         [self getVideoSize];

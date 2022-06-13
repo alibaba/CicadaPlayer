@@ -18,6 +18,9 @@
 #define SAFE_BOTTOM        (IS_IPHONEX ? 34 : 0)
 #define NAVIGATION_HEIGHT  (IS_IPHONEX ? 88 : 64)
 
+#define MACCATALYST_WIDTH 1000
+#define MACCATALYST_HEIGHT 1000
+
 #endif /* CicadaMacro_h */
 
 

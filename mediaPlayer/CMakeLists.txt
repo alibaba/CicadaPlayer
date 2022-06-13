@@ -45,6 +45,10 @@ if (ENABLE_MUXER)
     add_definitions(-DENABLE_MUXER)
 endif ()
 
+if(ENABLE_VIDEO_FILTER)
+    add_definitions(-DENABLE_VIDEO_FILTER)
+endif()
+
 set(SOURCE_FILES
         analytics/IAnalyticsCollector.h
         analytics/IAnalyticsPlayer.h
@@ -62,6 +66,8 @@ set(SOURCE_FILES
         analytics/AnalyticsUtils.cpp
         MediaPlayerUtil.h
         MediaPlayerUtil.cpp
+        MediaPlayerAnalyticsUtil.h
+        MediaPlayerAnalyticsUtil.cpp
         MediaPlayer.h
         media_player_error_def.h
         media_player_api.h

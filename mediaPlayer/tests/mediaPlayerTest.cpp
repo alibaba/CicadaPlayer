@@ -9,8 +9,6 @@ using namespace Cicada;
 
 
 #ifdef ENABLE_SDL
-
-#include <SDL2/SDL.h>
 #include <utils/timer.h>
 
 enum CicadaSDLViewType { CicadaSDLViewType_SDL_WINDOW, CicadaSDLViewType_NATIVE_WINDOW };
@@ -20,7 +18,7 @@ typedef struct CicadaSDLView_t {
     CicadaSDLViewType type;
 } CicadaSDLView;
 
-static SDL_Window *getView()
+SDL_Window *getView()
 {
     SDL_Window *window = nullptr;
     SDL_Renderer *mVideoRender = nullptr;
@@ -32,7 +30,7 @@ static SDL_Window *getView()
     return window;
 }
 
-static void releaseView(SDL_Window *window)
+void releaseView(SDL_Window *window)
 {
     if (window != nullptr) {
         SDL_Renderer *render = SDL_GetRenderer(window);

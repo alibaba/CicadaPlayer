@@ -56,7 +56,8 @@ namespace Cicada {
             return new ContentDataSource(uri);
         };
 
-        bool is_supported(const std::string &uri) override {
+        bool is_supported(const std::string &uri, int flags) override
+        {
             return probe(uri);
         };
 

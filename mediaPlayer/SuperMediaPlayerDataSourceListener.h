@@ -21,7 +21,11 @@ namespace Cicada {
 
         NetWorkRetryStatus onNetWorkRetry(int error) override;
 
-        void onNetWorkConnected()override ;
+        bool onNetWorkInPut(uint64_t size, bitStreamType type) override;
+
+        void onNetworkEvent(const std::string &url, const CicadaJSONItem &eventParams) override;
+
+        void onNetWorkConnected() override;
 
         void enableRetry();
 
@@ -47,7 +51,7 @@ namespace Cicada {
         std::atomic_bool mNetworkConnected{false};
         int mRetryCount{0};
     };
-}
+}// namespace Cicada
 
 
-#endif //SOURCE_CICADADATASOURCELISTENER_H
+#endif//SOURCE_CICADADATASOURCELISTENER_H

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -16,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.cicada.player.CicadaPlayer;
@@ -35,6 +37,7 @@ import com.cicada.player.demo.util.OrientationWatchDog;
 import com.cicada.player.demo.util.ScreenUtils;
 import com.cicada.player.demo.util.SharedPreferenceUtils;
 import com.cicada.player.demo.util.VcPlayerLog;
+import com.cicada.player.utils.ass.AssSubtitleView;
 import com.cicada.player.demo.view.control.ControlView;
 import com.cicada.player.demo.view.gesture.GestureView;
 import com.cicada.player.demo.view.guide.GuideView;
@@ -47,6 +50,7 @@ import com.cicada.player.nativeclass.MediaInfo;
 import com.cicada.player.nativeclass.PlayerConfig;
 import com.cicada.player.nativeclass.TrackInfo;
 import com.cicada.player.utils.Logger;
+import com.cicada.player.utils.ass.AssHeader;
 import com.cicada.player.utils.media.DrmCallback;
 
 import org.json.JSONException;
@@ -55,6 +59,8 @@ import org.json.JSONObject;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.cicada.player.demo.view.subtitle.LocationStyle.Location_CenterH;
 import static com.cicada.player.demo.view.subtitle.LocationStyle.Location_Top;
@@ -73,7 +79,7 @@ import static com.cicada.player.demo.view.subtitle.LocationStyle.Location_Top;
  * view 的初始化是在{@link #initVideoView}方法中实现的。
  * 然后是对各个view添加监听方法，处理对应的操作，从而实现与播放器的共同操作
  */
-public class CicadaVodPlayerView extends FrameLayout {
+public class CicadaVodPlayerView extends RelativeLayout {
 
     private static final String TAG = CicadaVodPlayerView.class.getSimpleName();
 
@@ -188,6 +194,11 @@ public class CicadaVodPlayerView extends FrameLayout {
     private int mPreviewTrackIndex;
 
     /**
+     * 外挂字幕类型
+     */
+    private Map<Integer,AssHeader.SubtitleType> mSubtitleTypeMap = new HashMap<>();
+
+    /**
      * 对外的各种事件监听
      */
     private CicadaPlayer.OnInfoListener mOutInfoListener = null;
@@ -204,6 +215,7 @@ public class CicadaVodPlayerView extends FrameLayout {
      * seek模式,默认为非精准模式
      */
     private CicadaPlayer.SeekMode mSeekMode = CicadaPlayer.SeekMode.Inaccurate;
+    private AssSubtitleView assSubtitleView;
 
 
     public CicadaVodPlayerView(Context context) {
@@ -717,7 +729,13 @@ public class CicadaVodPlayerView extends FrameLayout {
         builder.setLocation(Location_Top | Location_CenterH);
         subtitleView.setDefaultValue(builder);
         subtitleView.setId(R.id.cicada_player_subtitle);
+
         addSubView(subtitleView);
+
+        assSubtitleView = new AssSubtitleView(getContext());
+        assSubtitleView.setId(R.id.cicada_player_ass_subtitle);
+//        assSubtitleView.setBackgroundColor(Color.parseColor("#3cffff00"));
+        addSubViewByCenter(assSubtitleView);
     }
 
     /**
@@ -1070,12 +1088,13 @@ public class CicadaVodPlayerView extends FrameLayout {
 
                     //防止黑屏
                     mCicadaVodPlayer.redraw();
+                    updateVideoRenderSize();
                 }
             }
 
             @Override
             public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-
+                updateVideoRenderSize();
             }
 
             @Override
@@ -1129,7 +1148,7 @@ public class CicadaVodPlayerView extends FrameLayout {
                 }
 
                 byte[] requestData = HttpClientHelper.post(defaultUrl, data);
-                Log.d(TAG , "requestKey data = " + requestData);
+                Log.d(TAG, "requestKey data = " + requestData);
                 return requestData;
             }
         });
@@ -1317,28 +1336,49 @@ public class CicadaVodPlayerView extends FrameLayout {
 
             @Override
             public void onSubtitleExtAdded(int trackIndex, String url) {
-
+                mSubtitleTypeMap.put(trackIndex, AssHeader.SubtitleType.SubtitleTypeSsa);
                 VcPlayerLog.e(TAG, "onSubtitleExtAdded : " + " --- trackIndex = " + trackIndex + " --- url = " + url);
                 if (mOutSubtitleDisplayListener != null) {
                     mOutSubtitleDisplayListener.onSubtitleExtAdded(trackIndex, url);
                 }
-
             }
 
             @Override
             public void onSubtitleShow(int trackIndex, long id, String data) {
-                SubtitleView.Subtitle subtitle = new SubtitleView.Subtitle();
-                subtitle.id = id + "";
-                subtitle.content = data;
-                subtitleView.show(subtitle);
+                if(mSubtitleTypeMap.get(trackIndex) == AssHeader.SubtitleType.SubtitleTypeAss){
+                    assSubtitleView.show(id,data);
+                }else{
+                    SubtitleView.Subtitle subtitle = new SubtitleView.Subtitle();
+                    subtitle.id = id + "";
+                    subtitle.content = data;
+                    subtitleView.show(subtitle);
+                }
             }
 
             @Override
             public void onSubtitleHide(int trackIndex, long id) {
-                subtitleView.dismiss(id + "");
+                if(mSubtitleTypeMap.get(trackIndex) == AssHeader.SubtitleType.SubtitleTypeAss){
+                    assSubtitleView.dismiss(id);
+                }else{
+                    subtitleView.dismiss(id + "");
+                }
+            }
+
+            @Override
+            public void onSubtitleHeader(int trackIndex, String header) {
+                mSubtitleTypeMap.put(trackIndex, AssHeader.SubtitleType.SubtitleTypeAss);
+                assSubtitleView.setAssHeader(header);
             }
         });
-
+        mCicadaVodPlayer.setOnVideoSizeChangedListener(new CicadaPlayer.OnVideoSizeChangedListener() {
+            @Override
+            public void onVideoSizeChanged(int width, int height) {
+                updateVideoRenderSize();
+                if(mOnVideoSizeChangedListener != null) {
+                    mOnVideoSizeChangedListener.onVideoSizeChanged(width, height);
+                }
+            }
+        });
         //track变化
         mCicadaVodPlayer.setOnTrackChangedListener(new CicadaPlayer.OnTrackChangedListener() {
             @Override
@@ -1402,7 +1442,65 @@ public class CicadaVodPlayerView extends FrameLayout {
             }
         });
 
-        mCicadaVodPlayer.setScaleMode(CicadaPlayer.ScaleMode.SCALE_ASPECT_FIT);
+        setScaleMode(CicadaPlayer.ScaleMode.SCALE_ASPECT_FIT);
+    }
+
+
+    private void updateVideoRenderSize() {
+
+        int videoWidth = mCicadaVodPlayer.getVideoWidth();
+        int videoHeight = mCicadaVodPlayer.getVideoHeight();
+        //TODO
+//        int videoRotation = mAliyunVodPlayer.getVideoRotation();
+//        if (videoRotation == 90 || videoRotation == 270) {
+//            videoWidth = mAliyunVodPlayer.getVideoHeight();
+//            videoHeight = mAliyunVodPlayer.getVideoWidth();
+//        }
+        if (videoHeight == 0 || videoWidth == 0) {
+            return;
+        }
+
+        int viewWidth = getWidth();
+        int viewHeight = getHeight();
+
+        if (viewWidth == 0 || viewHeight == 0) {
+            return;
+        }
+
+
+        int videoRenderWidth = 0;
+        int videoRenderHeight = 0;
+
+
+        CicadaPlayer.ScaleMode scaleMode = mCicadaVodPlayer.getScaleMode();
+
+        if (scaleMode == CicadaPlayer.ScaleMode.SCALE_TO_FILL) {
+            videoRenderWidth = viewWidth;
+            videoRenderHeight = viewHeight;
+        } else if (scaleMode == CicadaPlayer.ScaleMode.SCALE_ASPECT_FILL) {
+
+            videoRenderWidth = viewWidth;
+            videoRenderHeight = viewHeight;
+
+            if (videoWidth * videoRenderHeight > videoRenderWidth * videoHeight) {
+                videoRenderWidth = (int) (videoRenderHeight * 1.0f * videoWidth / videoHeight);
+            } else if (videoWidth * videoRenderHeight < videoRenderWidth * videoHeight) {
+                videoRenderHeight = (int) (videoRenderWidth * 1.0f * videoHeight / videoWidth);
+            }
+        } else {
+            videoRenderWidth = viewWidth;
+            videoRenderHeight = viewHeight;
+
+            if (videoWidth * videoRenderHeight < videoRenderWidth * videoHeight) {
+                videoRenderWidth = (int) (videoRenderHeight * 1.0f * videoWidth / videoHeight);
+            } else if (videoWidth * videoRenderHeight > videoRenderWidth * videoHeight) {
+                videoRenderHeight = (int) (videoRenderWidth * 1.0f * videoHeight / videoWidth);
+            }
+        }
+//        assSubtitleView.setBackgroundColor(Color.parseColor("#3cFF0000"));
+//        Log.d(TAG, "setVideoRenderSize width = " + videoRenderWidth + " , height = " + videoRenderHeight);
+
+        assSubtitleView.setVideoRenderSize(videoRenderWidth, videoRenderHeight);
     }
 
     private int currentPlayState = CicadaPlayer.idle;
@@ -1572,7 +1670,7 @@ public class CicadaVodPlayerView extends FrameLayout {
      */
     private void addTextureView(View view) {
         LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-        params.gravity = Gravity.CENTER;
+        params.addRule(RelativeLayout.CENTER_IN_PARENT);
         //添加到布局中
         addView(view, params);
     }
@@ -1582,7 +1680,7 @@ public class CicadaVodPlayerView extends FrameLayout {
      */
     private void addSubViewByCenter(View view) {
         LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        params.gravity = Gravity.CENTER;
+        params.addRule(RelativeLayout.CENTER_IN_PARENT);
         addView(view, params);
     }
 
@@ -1731,15 +1829,15 @@ public class CicadaVodPlayerView extends FrameLayout {
         }
     }
 
+
+    private CicadaPlayer.OnVideoSizeChangedListener mOnVideoSizeChangedListener = null;
     /**
      * 设置视频宽高变化监听
      *
      * @param onVideoSizeChangedListener 视频宽高变化监听
      */
     public void setOnVideoSizeChangedListener(CicadaPlayer.OnVideoSizeChangedListener onVideoSizeChangedListener) {
-        if (mCicadaVodPlayer != null) {
-            mCicadaVodPlayer.setOnVideoSizeChangedListener(onVideoSizeChangedListener);
-        }
+        mOnVideoSizeChangedListener = onVideoSizeChangedListener;
     }
 
     /**
@@ -1775,9 +1873,7 @@ public class CicadaVodPlayerView extends FrameLayout {
      * @param scallingMode 缩放模式
      */
     public void setVideoScalingMode(CicadaPlayer.ScaleMode scallingMode) {
-        if (mCicadaVodPlayer != null) {
-            mCicadaVodPlayer.setScaleMode(scallingMode);
-        }
+        setScaleMode(scallingMode);
     }
 
     /**
@@ -2097,6 +2193,7 @@ public class CicadaVodPlayerView extends FrameLayout {
     public void setScaleMode(CicadaPlayer.ScaleMode scaleMode) {
         if (mCicadaVodPlayer != null) {
             mCicadaVodPlayer.setScaleMode(scaleMode);
+            updateVideoRenderSize();
             Toast.makeText(getContext(), getContext().getString(R.string.cicada_scale) + scaleMode, Toast.LENGTH_SHORT).show();
         }
     }

@@ -43,6 +43,7 @@ target_link_libraries(dataSourceTest PRIVATE
         xml2
         z
         curl
+        nghttp2
         gtest_main)
 
 

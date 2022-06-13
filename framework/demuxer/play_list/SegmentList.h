@@ -22,7 +22,7 @@ namespace Cicada{
 
         std::list<std::shared_ptr<segment>> &getSegments();
 
-        std::shared_ptr<segment> getSegmentByNumber(uint64_t number);
+        std::shared_ptr<segment> getSegmentByNumber(uint64_t number, bool force);
 
         bool getSegmentNumberByTime(uint64_t &time, uint64_t &num);
 
@@ -41,10 +41,14 @@ namespace Cicada{
 
         uint64_t getFirstSeqNum() const;
         uint64_t getLastSeqNum() const;
-        
+
         bool hasLHLSSegments();
 
         int64_t getTargetDuration();
+
+        bool containPartialSegment(const std::string &segmentUri);
+
+        bool findPartialSegment(const std::string &segmentUri, uint64_t &segNum);
 
     private:
         void updateLastLHLSSegment(const std::shared_ptr<segment> &seg);

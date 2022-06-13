@@ -9,14 +9,9 @@
 #ifndef ApsaraPlayerUtil_h
 #define ApsaraPlayerUtil_h
 
-#include <deque>
+#include <atomic>
 #include <string>
-#include "demuxer/demuxer_service.h"
-#include "utils/AFMediaType.h"
-#include "native_cicada_player_def.h"
 //#include "render_engine/math/geometry.h"
-
-using namespace Cicada;
 
 class CicadaJSONItem;
 
@@ -29,8 +24,8 @@ namespace Cicada {
             readEvent_Again,
             readEvent_Got,
             readEvent_timeOut,
-            readEvent_Loop
-
+            readEvent_Loop,
+            readEvent_Network,
         };
 
         MediaPlayerUtil() = default;
@@ -41,28 +36,30 @@ namespace Cicada {
 
         void notifyRead(enum readEvent event, uint64_t size);
 
-        void render(int64_t pts);
+        void videoRendered(bool rendered);
 
         void reset();
 
+        void getVideoDroppedInfo(uint64_t &total, uint64_t &dropped)
+        {
+            total = mTotalRenderCount;
+            dropped = mDroppedRenderCount;
+        }
+
         float getVideoRenderFps()
-        { return mVideoRenderFps; }
+        {
+            return mVideoRenderFps;
+        }
 
         float getCurrentDownloadSpeed() const
         {
             return mCurrentDownloadSpeed;
         }
 
-        static void getPropertyJSONStr(const std::string &name, CicadaJSONArray &array, bool isArray,
-                                       std::deque<StreamInfo *> &streamInfoQueue, demuxer_service *service);
-
-        static void addPropertyType(CicadaJSONItem &item, StreamType type);
-
-        static void addURLProperty(const std::string &name, CicadaJSONArray &array, IDataSource *dataSource);
-
     private:
-        int mTotalRenderCount = 0;
-        int mLastRenderCount = 0;
+        std::atomic<uint64_t> mTotalRenderCount{0};
+        std::atomic<uint64_t> mDroppedRenderCount{0};
+        uint64_t mLastRenderCount = 0;
         int64_t mFirstRenderTime = 0;
         int64_t mLastRenderTime = 0;
 
@@ -74,12 +71,11 @@ namespace Cicada {
         int64_t mReadGotIndex = 0;
         int64_t mReadTimeOutIndex = 0;
         int64_t mLastReadTime = 0;
-        uint64_t mReadGotSize{0};
-
+        std::atomic<uint64_t> mReadGotSize{0};
         float mCurrentDownloadSpeed{0};
-
         float mVideoRenderFps = 0;
+
     };
-}
+}// namespace Cicada
 
 #endif /* ApsaraPlayerUtil_h */

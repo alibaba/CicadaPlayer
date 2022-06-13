@@ -1156,6 +1156,9 @@ public interface CicadaPlayer {
          */
         void onSubtitleHide(int trackIndex, long id);
 
+
+        void onSubtitleHeader(int trackIndex , String header);
+
     }
 
     /**

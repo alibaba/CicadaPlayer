@@ -197,7 +197,7 @@ AttrsNode *AttrsNode::matchPath(std::list<AbstractAttr::Type> &path)
 {
     AttrsNode *pn = this;
     std::list<AbstractAttr::Type>::const_iterator it;
-    for (it = path.begin(); it != path.end(); it++) {
+    for (it = path.begin(); it != path.end(); ++it) {
         AbstractAttr *p = pn->getAttribute(*it);
         if (!p || !p->isValid()) {
             return nullptr;

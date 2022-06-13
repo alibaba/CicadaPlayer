@@ -8,6 +8,7 @@ X264_SOURCE_DIR=$TOP_DIR/external/x264/
 OPEN_SSL_SOURCE_DIR=$TOP_DIR/external/openssl/
 CURL_SOURCE_DIR=$TOP_DIR/external/curl
 LIBXML2_SOURCE_DIR=$TOP_DIR/external/libxml2
+NGHTTP2_SOURCE_DIR=$TOP_DIR/external/nghttp2
 #DAV1D_SOURCE_DIR=$TOP_DIR/external/dav1d
 #ARES_SOURCE_DIR=$TOP_DIR/external/cares
 #RTMPDUMP_SOURCE_DIR=$TOP_DIR/external/rtmpdump/

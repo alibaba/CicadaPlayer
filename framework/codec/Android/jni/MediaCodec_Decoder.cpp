@@ -115,7 +115,8 @@ MediaCodec_Decoder::~MediaCodec_Decoder() {
     }
 }
 
-void MediaCodec_Decoder::setCodecSpecificData(std::list<CodecSpecificData > csds) {
+void MediaCodec_Decoder::setCodecSpecificData(const std::list<std::unique_ptr<CodecSpecificData>> &csds)
+{
     JniEnv jniEnv{};
 
     JNIEnv *env = jniEnv.getEnv();
@@ -129,16 +130,14 @@ void MediaCodec_Decoder::setCodecSpecificData(std::list<CodecSpecificData > csds
 
     NewHashMap csdMap(env);
 
-    for (CodecSpecificData & data: csds) {
-        std::string key = data.key;
-
+    for (auto &data : csds) {
+        std::string key = data->key;
         NewStringUTF keyStr(env, key.c_str());
-        NewByteArray csdData(env , data.buffer, data.len);
-        csdMap.put(keyStr.getString(),csdData.getArray());
+        NewByteArray csdData(env, data->buffer, data->len);
+        csdMap.put(keyStr.getString(), csdData.getArray());
     }
 
     env->CallVoidMethod(mMediaCodec, jMediaCodec_setCodecSpecificData, csdMap.getMap());
-
 }
 
 int MediaCodec_Decoder::setDrmInfo(const std::string &uuid, const void *sessionId, int size) {
@@ -412,7 +411,7 @@ int MediaCodec_Decoder::getOutput(int index, mc_out *out, bool readBuffer) {
             jobject bufferInfo = env->CallObjectMethod(mMediaCodec, jMediaCodec_getOutBuffer,
                                                        (jint) index);
             if (bufferInfo != nullptr) {
-                uint8_t *ptr = (uint8_t *) env->GetDirectBufferAddress(bufferInfo);
+                auto *ptr = (uint8_t *) env->GetDirectBufferAddress(bufferInfo);
                 int offset = outputBufferInfo.bufferOffset;
                 out->buf.p_ptr = ptr + offset;
                 out->buf.size = outputBufferInfo.bufferSize;

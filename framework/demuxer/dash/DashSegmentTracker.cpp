@@ -727,7 +727,12 @@ int64_t DashSegmentTracker::getBufferingOffset(const playList *p) const
 
 int64_t DashSegmentTracker::getLiveDelay(const playList *p) const
 {
-    int64_t delay = std::strtoll(mOpts->get("RTMaxDelayTime").c_str(), nullptr, 0);
+    int64_t delay = getMinBuffering(p);
+
+    if (mOpts != nullptr) {
+        delay = std::strtoll(mOpts->get("RTMaxDelayTime").c_str(), nullptr, 0);
+    }
+
     if (p == nullptr) {
         return delay;
     }
@@ -749,7 +754,12 @@ int64_t DashSegmentTracker::getMaxBuffering(const playList *p) const
         return getMinBuffering(p);
     }
 
-    int64_t buffering = std::strtoll(mOpts->get("maxBufferDuration").c_str(), nullptr, 0);
+    int64_t buffering = getMinBuffering(p);
+
+    if (mOpts != nullptr) {
+        buffering = std::strtoll(mOpts->get("maxBufferDuration").c_str(), nullptr, 0);
+    }
+
     if (p->isLive()) {
         buffering = std::min(buffering, getLiveDelay(p));
     }
@@ -765,7 +775,11 @@ int64_t DashSegmentTracker::getMinBuffering(const playList *p) const
         return BUFFERING_LOWEST_LIMIT;
     }
 
-    int64_t buffering = std::strtoll(mOpts->get("highLevelBufferDuration").c_str(), nullptr, 0);
+    int64_t buffering = BUFFERING_LOWEST_LIMIT;
+    if (mOpts != nullptr) {
+        buffering = std::strtoll(mOpts->get("highLevelBufferDuration").c_str(), nullptr, 0);
+    }
+
     if (p->minBufferTime > 0) {
         buffering = std::max(buffering, p->minBufferTime);
     }
@@ -809,12 +823,36 @@ int64_t DashSegmentTracker::getLiveDelay() const
 
 int64_t DashSegmentTracker::getDurationToStartStream() const
 {
-    if (mPPlayList == nullptr || mRep == nullptr) {
+    if (mPPlayList == nullptr || mRep == nullptr || mPPlayList->availabilityStartTime < 0) {
         return -1;
     }
     int64_t minavailtime = mPPlayList->availabilityStartTime + mRep->getPeriodStart();
     int64_t duration = af_get_utc_time() - (minavailtime + getLiveDelay());
     return duration;
+}
+
+vector<mediaSegmentListEntry> DashSegmentTracker::getSegmentList()
+{
+    if (isLive()) {
+        return {};
+    }
+    Dash::SegmentBase *segmentBase = mRep->inheritSegmentBase();
+    if (segmentBase) {
+        return {};
+    }
+    uint64_t startNumber = getStartSegmentNumber(mRep);
+    bool b_gap = false;
+    Dash::DashSegment *segment = nullptr;
+    vector<mediaSegmentListEntry> ret;
+    do {
+        segment = mRep->getNextMediaSegment(startNumber, &startNumber, &b_gap);
+        if (segment) {
+            std::string uri = segment->getUrlSegment().toString(startNumber, getCurrentRepresentation());
+            ret.push_back(mediaSegmentListEntry(uri, getSegmentDuration()));
+        }
+        startNumber++;
+    } while (segment);
+    return ret;
 }
 
 int64_t DashSegmentTracker::getSegmentDuration() const
@@ -835,7 +873,7 @@ int64_t DashSegmentTracker::getSegmentDuration() const
 
 int64_t DashSegmentTracker::getStreamStartTime() const
 {
-    if (mPPlayList == nullptr || mRep == nullptr) {
+    if (mPPlayList == nullptr || mRep == nullptr || mPPlayList->availabilityStartTime < 0) {
         return -1;
     }
     return mPPlayList->availabilityStartTime + mRep->getPeriodStart();

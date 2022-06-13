@@ -39,6 +39,10 @@ namespace Cicada {
         void Interrupt(bool interrupt) override;
 
         std::string GetUri() override;
+        uint64_t getFlags() override
+        {
+            return flag_report_speed;
+        }
 
     private:
 
@@ -58,8 +62,11 @@ namespace Cicada {
             return new Cicada::CurlDataSource(uri);
         }
 
-        bool is_supported(const std::string &uri) override
+        bool is_supported(const std::string &uri, int flags) override
         {
+            if (flags != 0) {
+                return false;
+            }
             return probe(uri);
         }
 

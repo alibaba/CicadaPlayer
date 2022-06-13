@@ -41,12 +41,14 @@ namespace Cicada{
 
         // Low-Latency HLS
         std::string getDownloadUrl();
+        void getDownloadRange(int64_t &start, int64_t &end);
         void updateParts(const std::vector<SegmentPart> &parts);
         const std::vector<SegmentPart> &getSegmentParts();
         void moveToNextPart();
         void moveToPart(int partIndex);
         void moveToNearestIndependentPart(int partIndex);
         bool isDownloadComplete(bool &bHasUnusedParts);
+        void moveToPreloadSegment(const std::string &segmentUri);
         
     public:
         std::string mUri = "";
@@ -57,8 +59,7 @@ namespace Cicada{
         static const int SEQUENCE_INVALID;
         static const int SEQUENCE_FIRST;
         std::vector<SegmentEncryption> encryptions;
-        int64_t rangeStart {INT64_MIN};
-        int64_t rangeEnd {INT64_MIN};
+
 
         std::shared_ptr<segment> init_section{nullptr};
 
@@ -68,6 +69,14 @@ namespace Cicada{
         int mPartsNextIndex = 0;
         std::recursive_mutex mMutex;
         std::string mDownloadUri = "";
+
+        int64_t utcTime = INT64_MIN;
+
+    private:
+        int64_t rangeStart{INT64_MIN};
+        int64_t rangeEnd{INT64_MIN};
+        int64_t downloadRangeStart{INT64_MIN};
+        int64_t downloadRangeEnd{INT64_MIN};
     };
 }
 

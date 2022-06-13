@@ -55,6 +55,11 @@ namespace Cicada {
         delete mBufferSource;
     }
 
+    void cachedSource::setSourceConfig(const IDataSource::SourceConfig &config)
+    {
+        mSourceConfig = config;
+    }
+
     int cachedSource::Open(int flags)
     {
         std::lock_guard<std::mutex> uMutex(mMutex);
@@ -63,10 +68,7 @@ namespace Cicada {
             return 0;
         }
 
-        IDataSource::SourceConfig config{};
-        config.low_speed_time_ms = 15000;
-        config.connect_time_out_ms = 15000;
-        mDataSource->Set_config(config);
+        mDataSource->Set_config(mSourceConfig);
         int ret = mDataSource->Open(flags);
 
         if (ret < 0) {

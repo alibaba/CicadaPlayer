@@ -159,7 +159,7 @@ void afThread::pause()
 
 void afThread::stop()
 {
-    AF_TRACE;
+    AF_LOGD("%s:%d(%s) %s \n", __FILE__, __LINE__, __func__, mName.c_str());
     std::lock_guard<std::mutex> guard(mMutex);
     mTryPaused = false;
     {
@@ -178,7 +178,7 @@ void afThread::stop()
 
     delete mThreadPtr;
     mThreadPtr = nullptr;
-    AF_TRACE;
+    AF_LOGD("%s:%d(%s) %s \n", __FILE__, __LINE__, __func__, mName.c_str());
 }
 
 void afThread::forceStop()

@@ -16,8 +16,8 @@ message("xxxxxxxxxxxxxxxxxxxxxxxx TOP_DIR is ${TOP_DIR}")
 
 if ("${TARGET_PLATFORM}" STREQUAL "iOS")
     find_library(ALIVCFFMPEG alivcffmpeg
-            ${TOP_DIR}/apsaraPlayer/external/install/ffmpeg/iOS/Xcode/OS/_builds/ NO_DEFAULT_PATH)
-    set(ALIVCFFMPEG ${TOP_DIR}/apsaraPlayer/external/install/ffmpeg/iOS/Xcode/OS/_builds/alivcffmpeg.framework)
+            ${TOP_DIR}/apsaraPlayer/external/install/ffmpeg/${PATH_NAME}/Xcode/OS/_builds/ NO_DEFAULT_PATH)
+    set(ALIVCFFMPEG ${TOP_DIR}/apsaraPlayer/external/install/ffmpeg/${PATH_NAME}/Xcode/OS/_builds/alivcffmpeg.framework)
     message("CONAN is ${CONAN}")
     find_library(UIKIT UIKit)
     find_library(OPENGLES OpenGLES)
@@ -51,7 +51,7 @@ set(ALI_SRC_LIBRARIES
 
 set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES} "-framework CoreMedia -framework CoreVideo -framework VideoToolbox -framework CoreFoundation -framework CoreGraphics -framework AudioToolbox -framework CoreAudio -framework OpenAl -framework CoreImage -framework AVFoundation -framework QuartzCore")
 if (IOS)
-    set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES} "-framework UIKit -framework OpenGLES")
+    set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES} "-framework UIKit")
 else ()
     set(ALI_SRC_LIBRARIES ${ALI_SRC_LIBRARIES} "-framework AppKit -framework OpenGl")
 endif ()

@@ -99,6 +99,7 @@ namespace Cicada {
         av_dict_set_int(&mInputOpts, "safe", 0, 0);
         av_dict_set(&mInputOpts, "protocol_whitelist", "file,http,https,tcp,tls", 0);
         av_dict_set_int(&mInputOpts, "usetoc", 1, 0);
+        av_dict_set_int(&mInputOpts, "flv_strict_header", 1, 0);
         /*If a url with mp4 ext name, but is not a mp4 file, the mp4 demuxer will be matched
          * by ext name , mp4 demuxer will try to find moov box, it will ignore the return value
          * of the avio_*, and don't check interrupt flag, if the url is a network file, here will
@@ -158,8 +159,15 @@ namespace Cicada {
         }
 
         mCtx->flags |= AVFMT_FLAG_GENPTS;
-        // TODO: add a opt to set fps probe
-        mCtx->fps_probe_size = 0;
+        /* normal mp4 already have fps after avformat_open_input, so probe fps will not cost additional time
+         * special mp4 (https://ll-hls-test.apple.com/llhls1/media1/lowLatencyHLS.m3u8 some front packets don't have duration)
+         * does not have fps after open, so need to set fps_probe_size to probe fps in avformat_find_stream_info. if not set, 
+         * steam will not have fps after avformat_find_stream_info, and lead to wrong packet duration in av_read_frame */
+        if (strcmp(mCtx->iformat->name, "mov,mp4,m4a,3gp,3g2,mj2") != 0) {
+            mCtx->fps_probe_size = 0;
+        } else {
+            mCtx->fps_probe_size = 5;
+        }
         // TODO: only find ts and flv's info?
 
         if (mMetaInfo) {
@@ -321,8 +329,7 @@ namespace Cicada {
         if (mNedParserPkt) {
             int old_duration = pkt->duration;
             av_compute_pkt_fields(mCtx, mCtx->streams[pkt->stream_index], nullptr, pkt, AV_NOPTS_VALUE, AV_NOPTS_VALUE);
-            // the algorithm of duration was incorrect for mpegts, so restore it
-            pkt->duration = old_duration;
+            assert(old_duration <= 0 || pkt->duration > 0);
         }
 
         if (pkt->pts == AV_NOPTS_VALUE) {
@@ -335,16 +342,12 @@ namespace Cicada {
 
         int streamIndex = pkt->stream_index;
 
-        int encryption_info_size;
-        const uint8_t *new_encryption_info = av_packet_get_side_data(pkt,
-                                                                     AV_PKT_DATA_ENCRYPTION_INFO,
-                                                                     &encryption_info_size);
-        if (encryption_info_size > 0 && new_encryption_info != nullptr) {
-            mStreamCtxMap[streamIndex]->bsf = nullptr;
-        } else {
-            if (mStreamCtxMap[streamIndex]->bsf == nullptr) {
-                createBsf(streamIndex);
-            }
+        // If is drm encrypted, should not create bsf.
+        // But can not know if stream is encrypted when open stream,
+        // so create bsf here when got first pkt.
+        if (!mStreamCtxMap[pkt->stream_index]->bsfInited) {
+            createBsf(pkt, streamIndex);
+            mStreamCtxMap[pkt->stream_index]->bsfInited = true;
         }
 
         bool needUpdateExtraData = false;
@@ -360,10 +363,7 @@ namespace Cicada {
             codecpar->extradata = static_cast<uint8_t *>(av_malloc(new_extradata_size + AV_INPUT_BUFFER_PADDING_SIZE));
             memcpy(codecpar->extradata, new_extradata, new_extradata_size);
             codecpar->extradata_size = new_extradata_size;
-
-            if (mStreamCtxMap[streamIndex]->bsf) {
-                createBsf(streamIndex);
-            }
+            createBsf(pkt, streamIndex);
             needUpdateExtraData = true;
         }
         /*
@@ -445,6 +445,7 @@ namespace Cicada {
 
         mStreamCtxMap[index] = unique_ptr<AVStreamCtx>(new AVStreamCtx());
         mStreamCtxMap[index]->opened = true;
+        mStreamCtxMap[index]->bsfInited = false;
         return 0;
     }
 
@@ -462,8 +463,14 @@ namespace Cicada {
         mStreamCtxMap[index]->opened = false;
     }
 
-    int avFormatDemuxer::createBsf(int index)
+    int avFormatDemuxer::createBsf(AVPacket *pkt, int index)
     {
+        int encryption_info_size;
+        const uint8_t *new_encryption_info = av_packet_get_side_data(pkt, AV_PKT_DATA_ENCRYPTION_INFO, &encryption_info_size);
+        if (encryption_info_size > 0 && new_encryption_info != nullptr) {
+            return 0;
+        }
+
         string bsfName{};
         int ret = 0;
         const AVCodecParameters *codecpar = mCtx->streams[index]->codecpar;
@@ -660,6 +667,10 @@ namespace Cicada {
 
     int avFormatDemuxer::readLoop()
     {
+        if (bExited) {
+            return -1;
+        }
+
         if (bPaused) {
             return 0;
         }
@@ -668,9 +679,7 @@ namespace Cicada {
             std::unique_lock<std::mutex> waitLock(mQueLock);
 
             if (bEOS) {
-                mQueCond.wait(waitLock, [this]() {
-                    return bPaused || mInterrupted;
-                });
+                mQueCond.wait(waitLock, [this]() { return bPaused || mInterrupted || bExited; });
             }
         }
 
@@ -685,9 +694,7 @@ namespace Cicada {
             std::unique_lock<std::mutex> waitLock(mQueLock);
 
             if (mPacketQueue.size() > MAX_QUEUE_SIZE) {
-                mQueCond.wait(waitLock, [this]() {
-                    return mPacketQueue.size() <= MAX_QUEUE_SIZE || bPaused || mInterrupted;
-                });
+                mQueCond.wait(waitLock, [this]() { return mPacketQueue.size() <= MAX_QUEUE_SIZE || bPaused || mInterrupted || bExited; });
             }
 
             mPacketQueue.push_back(std::move(pkt));
@@ -699,9 +706,7 @@ namespace Cicada {
             }
 
             std::unique_lock<std::mutex> waitLock(mQueLock);
-            mQueCond.wait_for(waitLock, std::chrono::milliseconds(10), [this]() {
-                return bPaused || mInterrupted;
-            });
+            mQueCond.wait_for(waitLock, std::chrono::milliseconds(10), [this]() { return bPaused || mInterrupted || bExited; });
         }
 
         return 0;
@@ -745,6 +750,18 @@ namespace Cicada {
     {
         if (key == "probeInfo") {
             return mProbeString;
+        } else if (key == "containerName") {
+            std::lock_guard<std::mutex> uLock(mCtxMutex);
+            if (mCtx == nullptr) {
+                return "N/A";
+            } else {
+                string formatName = mCtx->iformat->name;
+                if (formatName.find("mp4") != string::npos) {
+                    return "mp4";
+                } else {
+                    return formatName;
+                }
+            }
         }
 
         return "";
@@ -792,7 +809,8 @@ namespace Cicada {
         AVInputFormat *fmt = av_probe_input_format2(&pd, 1, &score);
         av_freep(&pbBuffer);
 
-        if (fmt && (strcmp(fmt->name, "hls,applehttp") == 0 || strcmp(fmt->name, "webvtt") == 0 || strcmp(fmt->name, "srt") == 0)) {
+        if (fmt && (strcmp(fmt->name, "hls,applehttp") == 0 || strcmp(fmt->name, "webvtt") == 0 || strcmp(fmt->name, "srt") == 0 ||
+                    strcmp(fmt->name, "ass") == 0)) {
             return false;
         }
 
@@ -815,7 +833,7 @@ namespace Cicada {
     {
 #if AF_HAVE_PTHREAD
         std::unique_lock<std::mutex> waitLock(mQueLock);
-        bPaused = true;
+        bExited = true;
         mQueCond.notify_one();
 #endif
     }
@@ -844,4 +862,54 @@ namespace Cicada {
         }
         return true;
     }
+    const vector<IDemuxer::streamIndexEntryInfo> &avFormatDemuxer::getStreamIndexEntryInfo()
+    {
+        if (mCtx == nullptr || !mEntryInfos.empty()) {
+            return mEntryInfos;
+        }
+        for (int i = 0; i < mCtx->nb_streams; ++i) {
+            AVIndexEntry *index_entries = mCtx->streams[i]->index_entries;
+            streamIndexEntryInfo entryInfo;
+            entryInfo.mDuration = mCtx->duration;
+            switch (mCtx->streams[i]->codecpar->codec_type) {
+                case AVMEDIA_TYPE_VIDEO:
+                    entryInfo.type = STREAM_TYPE_VIDEO;
+                    break;
+                case AVMEDIA_TYPE_AUDIO:
+                    entryInfo.type = STREAM_TYPE_AUDIO;
+                    break;
+                case AVMEDIA_TYPE_SUBTITLE:
+                    entryInfo.type = STREAM_TYPE_SUB;
+                    break;
+                default:
+                    break;
+            }
+            for (int j = 0; j < mCtx->streams[i]->nb_index_entries; ++j) {
+                int64_t timestamp = av_rescale_q(index_entries[j].timestamp, mCtx->streams[i]->time_base, av_get_time_base_q());
+                streamIndexEntryInfo::entryInfo info(index_entries[j].pos, timestamp, index_entries[j].flags & AVINDEX_KEYFRAME,
+                                                     index_entries[j].flags & AVINDEX_DISCARD_FRAME, index_entries[j].size);
+                entryInfo.mEntry.push_back(info);
+            }
+            mEntryInfos.push_back(entryInfo);
+        }
+        //        int index = 0;
+        //        for (const auto& item:mEntryInfos) {
+        //            AF_LOGD("stream %d %d duration %lld\n",index,item.type,item.mDuration);
+        //
+        //            for (const auto& item1: mEntryInfos[index].mEntry) {
+        //                AF_LOGD("time %lld pos %lld\n",item1.mTimestamp,item1.mPos);
+        //            }
+        //            index++;
+        //        }
+        return mEntryInfos;
+    }
+
+    int64_t avFormatDemuxer::getBufferDuration(int index) const
+    {
+        if (mGetBufferDuration) {
+            return mGetBufferDuration(mUserArg, 0);
+        }
+        return 0;
+    }
+
 }

@@ -32,3 +32,7 @@ ffmpeg_config_add_filters atempo aresample aformat volume
 if [[ "$TARGET_PLATFORM" != "Android" ]];then
     ffmpeg_config_add_protocols udp
 fi
+
+if [[ "${FFMPEG_USE_OPENSSL}" != "TRUE" ]];then
+  FFMPEG_USE_OPENSSL="FALSE"
+fi

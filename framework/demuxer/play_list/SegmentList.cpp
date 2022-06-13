@@ -18,7 +18,7 @@ namespace Cicada {
         segments.clear();
     }
 
-    list<std::shared_ptr<segment>> &SegmentList::getSegments()
+    std::list<std::shared_ptr<segment>> &SegmentList::getSegments()
     {
         return segments;
     }
@@ -37,20 +37,34 @@ namespace Cicada {
         return i;
     }
 
-    shared_ptr<segment> SegmentList::getSegmentByNumber(uint64_t number)
+    /*
+     * return the next segment if the segment with @param number not exist when force is true
+     */
+
+    std::shared_ptr<segment> SegmentList::getSegmentByNumber(uint64_t number, bool force)
     {
         std::lock_guard<std::mutex> uMutex(segmetsMuxtex);
 
+        if (number == UINT64_MAX) {
+            return nullptr;
+        }
+
         for (auto &segment : segments) {
-            if (segment->getSequenceNumber() >= number) {
-                return segment;
+            if (force) {
+                if (segment->getSequenceNumber() >= number) {
+                    return segment;
+                }
+            } else {
+                if (segment->getSequenceNumber() == number) {
+                    return segment;
+                }
             }
         }
 
         return nullptr;
     }
 
-    void SegmentList::addSegment(const shared_ptr<segment> &seg)
+    void SegmentList::addSegment(const std::shared_ptr<segment> &seg)
     {
         if (mFirstSeqNum < 0) {
             mFirstSeqNum = seg->sequence;
@@ -187,4 +201,30 @@ namespace Cicada {
         }
         return mRep->targetDuration;
     }
+
+    bool SegmentList::containPartialSegment(const std::string &segmentUri)
+    {
+        for (auto seg : segments) {
+            for (auto part : seg->getSegmentParts()) {
+                if (part.uri == segmentUri) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    bool SegmentList::findPartialSegment(const std::string &segmentUri, uint64_t &segNum)
+    {
+        for (auto seg : segments) {
+            for (auto part : seg->getSegmentParts()) {
+                if (part.uri == segmentUri) {
+                    segNum = seg->sequence;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 }// namespace Cicada

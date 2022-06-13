@@ -5,6 +5,7 @@
 #ifndef FRAMEWORK_REPRESENTATION_H
 #define FRAMEWORK_REPRESENTATION_H
 
+#include "SegmentPart.h"
 #include "demuxer/dash/SegmentInformation.h"
 #include "utils/AFMediaType.h"
 #include <ctime>
@@ -77,6 +78,12 @@ namespace Cicada{
         std::string mLang = "";
         std::list<std::string> codecs;
         std::string mimeType;
+        bool mCanBlockReload{false};
+        PreloadHint mPreloadHint;
+        double mCanSkipUntil{0.0};
+        double mHoldBack{0.0};
+        double mPartHoldBack{0.0};
+        std::vector<RenditionReport> mRenditionReport;
 
     private:
         SegmentList *mPSegList = nullptr;

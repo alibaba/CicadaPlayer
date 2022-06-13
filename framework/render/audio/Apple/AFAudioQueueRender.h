@@ -86,16 +86,20 @@ namespace Cicada {
 
         void flushAudioQueue();
 
+        void startDeviceWorkAround();
+
 #if TARGET_OS_IPHONE
         void onInterrupted(Cicada::AF_AUDIO_SESSION_STATUS status) override;
 
 #endif
     private:
 #define MAX_QUEUE_SIZE 4
+#define MAX_INPUT_SIZE 20
+#define MAX_INPUT_DURATION (200 * 1000)
         AudioQueueBufferRef _audioQueueBufferRefArray[MAX_QUEUE_SIZE]{};
         AudioQueueRef _audioQueueRef{nullptr};
         AudioStreamBasicDescription mAudioFormat{};
-        SpscQueue<IAFFrame *> mInPut{10};
+        SpscQueue<IAFFrame *> mInPut{MAX_INPUT_SIZE};
         int64_t mPlayedBufferSize{0};
         uint8_t mBufferAllocatedCount{0};
         bool mNeedFlush{false};
@@ -111,6 +115,7 @@ namespace Cicada {
         float mVolume{1.0};
         bool mMute{false};
         std::atomic<uint64_t> mQueueDuration{0};
+        CFRunLoopRef mAQLoop{nullptr};
     };
 }// namespace Cicada
 

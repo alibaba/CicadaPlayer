@@ -2,25 +2,30 @@
 
 #define LOG_TAG "JNI"
 #define NOLOGD
+
 #include <utils/frame_work_log.h>
 
-#include <render/video/vsync/AndroidVSync.h>
-#include <render/video/glRender/platform/android/decoder_surface.h>
-#include <utils/Android/JniEnv.h>
+#include "player/JavaCacheConfig.h"
+#include "player/JavaExternalPlayer.h"
+#include "player/JavaGlobalSettings.h"
+#include "player/JavaMediaInfo.h"
+#include "player/JavaOptions.h"
+#include "player/JavaPlayerConfig.h"
+#include "player/JavaTrackInfo.h"
+#include "player/NativeBase.h"
+#include "utils/JavaLogger.h"
+#include "utils/ass/JavaAssDialogue.h"
+#include "utils/ass/JavaAssHeader.h"
+#include "utils/ass/JavaAssStyle.h"
+#include "utils/ass/JavaAssUtils.h"
+#include <codec/Android/jni/JEncryptionInfo.h>
+#include <codec/Android/jni/MediaCodec_Decoder.h>
+#include <codec/Android/jni/OutputBufferInfo.h>
 #include <data_source/ContentDataSource.h>
 #include <drm/WideVineDrmHandler.h>
-#include <codec/Android/jni/JEncryptionInfo.h>
-#include <codec/Android/jni/OutputBufferInfo.h>
-#include <codec/Android/jni/MediaCodec_Decoder.h>
-#include "player/JavaOptions.h"
-#include "player/JavaExternalPlayer.h"
-#include "utils/JavaLogger.h"
-#include "player/JavaPlayerConfig.h"
-#include "player/JavaCacheConfig.h"
-#include "player/JavaMediaInfo.h"
-#include "player/JavaTrackInfo.h"
-#include "player/JavaGlobalSettings.h"
-#include "player/NativeBase.h"
+#include <render/video/glRender/platform/android/decoder_surface.h>
+#include <render/video/vsync/AndroidVSync.h>
+#include <utils/Android/JniEnv.h>
 
 using namespace Cicada;
 
@@ -42,6 +47,10 @@ int initJavaInfo(JNIEnv *env)
     WideVineDrmHandler::init(env);
     OutputBufferInfo::init(env);
     JEncryptionInfo::init(env);
+    JavaAssUtils::init(env);
+    JavaAssStyle::init(env);
+    JavaAssHeader::init(env);
+    JavaAssDialogue::init(env);
 
     int result = NativeBase::registerMethod(env);
 
@@ -73,6 +82,12 @@ int initJavaInfo(JNIEnv *env)
         return JNI_FALSE;
     }
 
+    result = JavaAssUtils::registerMethod(env);
+
+    if (result == JNI_FALSE) {
+        return JNI_FALSE;
+    }
+
     return JNI_TRUE;
 }
 
@@ -94,10 +109,13 @@ void unInitJavaInfo(JNIEnv *env)
     OutputBufferInfo::unInit(env);
     JEncryptionInfo::unInit(env);
     WideVineDrmHandler::unInit(env);
+    JavaAssUtils::unInit(env);
+    JavaAssStyle::unInit(env);
+    JavaAssHeader::unInit(env);
+    JavaAssDialogue::unInit(env);
 }
 
-extern "C"
-JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved)
+extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved)
 {
     AF_LOGE("0328 JNI_OnLoad");
     JniEnv::init(vm);
@@ -113,8 +131,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved)
 }
 
 
-extern "C"
-JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved)
+extern "C" JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved)
 {
     AF_LOGE("0328 JNI_OnUnload");
     JniEnv Jenv;

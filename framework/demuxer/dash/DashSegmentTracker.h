@@ -6,9 +6,10 @@
 #define DEMUXER_DASH_DASH_SEGMENT_TRACKER_H
 
 #include "data_source/IDataSource.h"
+#include "demuxer/IDemuxer.h"
 #include "utils/afThread.h"
-#include <mutex>
 #include <base/OptionOwner.h>
+#include <mutex>
 
 namespace Cicada {
 
@@ -86,6 +87,7 @@ namespace Cicada {
         int64_t getDurationToStartStream() const;
         int64_t getSegmentDuration() const;
         int64_t getStreamStartTime() const;
+        vector<mediaSegmentListEntry> getSegmentList();
 
     private:
         int loadPlayList();

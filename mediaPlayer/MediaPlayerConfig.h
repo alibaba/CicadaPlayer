@@ -48,6 +48,9 @@ namespace Cicada {
 
         int mPositionTimerIntervalMs;
         uint64_t mMaxBackwardBufferDuration;
+        int maxBufferMemoryKB;
+        std::string localCacheDir;
+        bool preferAudio;
 
     public:
         std::string toString() const;

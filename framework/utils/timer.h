@@ -5,8 +5,9 @@
 #ifndef FRAMEWORK_TIMER_H
 #define FRAMEWORK_TIMER_H
 
-#include <stdint.h>
 #include "CicadaType.h"
+#include "UTCTimer.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,6 +30,7 @@ extern "C" {
     CICADA_EXTERN void af_init_utc_time(const char *time);
     CICADA_EXTERN void af_init_utc_time_ms(int64_t timeMs);
     CICADA_EXTERN int64_t af_get_utc_time();
+    CICADA_EXTERN Cicada::UTCTimer *af_get_utc_timer();
 
 #ifdef __cplusplus
 };

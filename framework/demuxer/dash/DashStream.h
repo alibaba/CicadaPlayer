@@ -53,6 +53,8 @@ namespace Cicada {
 
         int start() override;
 
+        int preStop() override;
+
         int stop() override;
 
         int64_t seek(int64_t us, int flags) override;
@@ -83,6 +85,14 @@ namespace Cicada {
         int UpdateInitSection();
 
         int64_t getDurationToStartStream();
+
+        vector<mediaSegmentListEntry> getSegmentList();
+
+        void enableCache(bool enalbe);
+
+        int64_t getBufferDuration() const;
+
+        void setPreferAudio(bool preferAudio);
 
     private:
 
@@ -162,6 +172,7 @@ namespace Cicada {
         int64_t mSeekPendingUs = -1;
         std::atomic<bool> mIsOpened_internal{false};
         std::atomic_bool mInterrupted{false};
+        std::atomic_bool mExited{false};
         afThread *mThreadPtr = nullptr;
         string mKeyUrl = "";
         uint8_t mKey[16];
@@ -171,6 +182,8 @@ namespace Cicada {
             bool seamlessPoint = false;
             int64_t timePosition = INT64_MIN;
             int64_t time2ptsDelta = INT64_MIN;
+            int64_t utcTime = INT64_MIN;
+            int64_t utc2ptsDelta = INT64_MIN;
             int64_t frameDuration = INT64_MIN;
             int64_t lastFramePts = INT64_MIN;
         };
@@ -185,7 +198,12 @@ namespace Cicada {
 
         int64_t mStreamStartTime = 0;
         int64_t mSuggestedPresentationDelay = 0;
-
+        atomic_bool mIsFirstOpen{true};
+        bool mEnableCache{false};
+        bool mIsStartSegment{false};
+        bool mIsPreload{false};
+        bool mPreloadSucc{false};
+        std::atomic<bool> mPreferAudio{false};
     };
 }
 

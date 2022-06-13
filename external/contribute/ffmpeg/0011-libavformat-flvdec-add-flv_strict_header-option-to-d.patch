@@ -1,0 +1,97 @@
+From 14b53f5685a906814cca6dfe58f031c39c62323b Mon Sep 17 00:00:00 2001
+From: Linjie Fu <linjie.justin.fu@gmail.com>
+Date: Wed, 17 Nov 2021 16:21:30 +0800
+Subject: [PATCH] libavformat/flvdec: add flv_strict_header option to demux flv
+ strictly according to header
+
+Demux flv strictly according to header, discarding AVFMTCTX_NOHEADER
+flags if flv header only specifies a single audio/video stream. This
+speeds up avformat_find_stream_info(), and gets the first frame decoded
+quickly. Otherwise this takes max_analyze_duration to find enough stream
+info.
+
+Prompt warnings if the type of flv packets doesn't match the flags in
+flv header.
+
+./ffmpeg -flv_strict_header 0 -i fate-suite//nellymoser/nellymoser-discont.flv
+    Stream #0:0: Video: h264 (Main), yuv420p(tv, smpte170m/smpte170m/bt709, progressive), 640x340, 1133 kb/s, 1k fps, 24 tbr, 1k tbn
+    Stream #0:1: Audio: nellymoser, 44100 Hz, mono, flt
+Unexpected audio packets received according to flv headers: 1.
+
+./ffmpeg -flv_strict_header 1 -i fate-suite//nellymoser/nellymoser-discont.flv
+    Stream #0:0: Video: h264 (Main), yuv420p(tv, smpte170m/smpte170m/bt709, progressive), 640x340, 1133 kb/s, 1k fps, 24 tbr, 1k tbn
+
+Signed-off-by: Linjie Fu <linjie.justin.fu@gmail.com>
+---
+ libavformat/flvdec.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/libavformat/flvdec.c b/libavformat/flvdec.c
+index 8fa855e9..a9585c77 100644
+--- a/libavformat/flvdec.c
++++ b/libavformat/flvdec.c
+@@ -77,6 +77,8 @@ typedef struct FLVContext {
+     int64_t last_ts;
+     int64_t time_offset;
+     int64_t time_pos;
++    int     av_flags;
++    int     strict_header;
+ } FLVContext;
+ 
+ /* AMF date type */
+@@ -170,7 +172,9 @@ static AVStream *create_stream(AVFormatContext *s, int codec_type)
+                            && s->streams[0]->codecpar->codec_type != AVMEDIA_TYPE_SUBTITLE
+                            && s->streams[1]->codecpar->codec_type != AVMEDIA_TYPE_SUBTITLE
+                            && s->streams[0]->codecpar->codec_type != AVMEDIA_TYPE_DATA
+-                           && s->streams[1]->codecpar->codec_type != AVMEDIA_TYPE_DATA))
++                           && s->streams[1]->codecpar->codec_type != AVMEDIA_TYPE_DATA)
++                         ||(   s->nb_streams == 1 && flv->strict_header
++                           && (flv->av_flags ^(FLV_HEADER_FLAG_HASVIDEO | FLV_HEADER_FLAG_HASAUDIO))))
+         s->ctx_flags &= ~AVFMTCTX_NOHEADER;
+     if (codec_type == AVMEDIA_TYPE_AUDIO) {
+         st->codecpar->bit_rate = flv->audio_bit_rate;
+@@ -182,7 +186,6 @@ static AVStream *create_stream(AVFormatContext *s, int codec_type)
+         st->avg_frame_rate = flv->framerate;
+     }
+ 
+-
+     avpriv_set_pts_info(st, 32, 1, 1000); /* 32 bit pts in ms */
+     flv->last_keyframe_stream_index = s->nb_streams - 1;
+     add_keyframes_index(s);
+@@ -797,6 +800,7 @@ static int flv_read_header(AVFormatContext *s)
+     avio_skip(s->pb, 4);
+     flags = avio_r8(s->pb);
+ 
++    flv->av_flags = flags;
+     flv->missing_streams = flags & (FLV_HEADER_FLAG_HASVIDEO | FLV_HEADER_FLAG_HASAUDIO);
+ 
+     s->ctx_flags |= AVFMTCTX_NOHEADER;
+@@ -1080,6 +1084,8 @@ retry:
+     next = size + avio_tell(s->pb);
+ 
+     if (type == FLV_TAG_TYPE_AUDIO) {
++        if (!(flv->av_flags & FLV_HEADER_FLAG_HASAUDIO))
++            av_log(NULL, AV_LOG_WARNING, "Unexpected audio packets received according to flv headers: %d.\n", flv->av_flags);
+         stream_type = FLV_STREAM_TYPE_AUDIO;
+         flags    = avio_r8(s->pb);
+         size--;
+@@ -1088,6 +1094,8 @@ retry:
+             size--;
+         }
+     } else if (type == FLV_TAG_TYPE_VIDEO) {
++        if (!(flv->av_flags & FLV_HEADER_FLAG_HASVIDEO))
++            av_log(NULL, AV_LOG_WARNING, "Unexpected video packets received according to flv headers: %d.\n", flv->av_flags);
+         stream_type = FLV_STREAM_TYPE_VIDEO;
+         flags    = avio_r8(s->pb);
+         size--;
+@@ -1398,6 +1406,7 @@ static const AVOption options[] = {
+     { "flv_full_metadata", "Dump full metadata of the onMetadata", OFFSET(dump_full_metadata), AV_OPT_TYPE_BOOL, { .i64 = 0 }, 0, 1, VD },
+     { "flv_ignore_prevtag", "Ignore the Size of previous tag", OFFSET(trust_datasize), AV_OPT_TYPE_BOOL, { .i64 = 0 }, 0, 1, VD },
+     { "missing_streams", "", OFFSET(missing_streams), AV_OPT_TYPE_INT, { .i64 = 0 }, 0, 0xFF, VD | AV_OPT_FLAG_EXPORT | AV_OPT_FLAG_READONLY },
++    { "flv_strict_header", "Flv header strictly specifies audio/video streams", OFFSET(strict_header), AV_OPT_TYPE_BOOL, { .i64 = 0 }, 0, 1, VD },
+     { NULL }
+ };
+ 
+-- 
+2.34.0
+

@@ -43,6 +43,8 @@ namespace Cicada {
         virtual void ReportBlackInfo() = 0;
 
         virtual void ReportSwitchToSoftDecode() = 0;
+
+        virtual void ReportLowMemory() = 0;
     };
 
 }// namespace Cicada

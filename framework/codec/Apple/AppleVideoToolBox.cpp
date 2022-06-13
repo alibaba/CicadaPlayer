@@ -29,9 +29,6 @@ namespace Cicada {
 #if TARGET_OS_SIMULATOR
         mVTOutFmt = AF_PIX_FMT_YUV420P;
 #endif
-#elif TARGET_OS_OSX
-        mVTOutFmt = AF_PIX_FMT_YUV420P;
-        outPutFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
 #endif
         mName = "VideoToolBox";
         mFlags = DECFLAG_PASSTHROUGH_INFO | DECFLAG_HW;
@@ -115,6 +112,7 @@ namespace Cicada {
             }
         }
 
+        resetPocInfo();
         return 0;
     }
 
@@ -125,19 +123,26 @@ namespace Cicada {
         }
 
         mPInMeta = unique_ptr<streamMeta>(new streamMeta(meta));
-        ((Stream_meta *) (*(mPInMeta)))->extradata = new uint8_t[meta->extradata_size];
-        memcpy(((Stream_meta *) (*(mPInMeta)))->extradata, meta->extradata, ((Stream_meta *) (*(mPInMeta)))->extradata_size);
-        ((Stream_meta *) (*(mPInMeta)))->lang = nullptr;
-        ((Stream_meta *) (*(mPInMeta)))->description = nullptr;
-        ((Stream_meta *) (*(mPInMeta)))->meta = nullptr;
-        ((Stream_meta *) (*(mPInMeta)))->keyUrl = nullptr;
-        ((Stream_meta *) (*(mPInMeta)))->keyFormat = nullptr;
+        Stream_meta *pInmeta = (Stream_meta *) (*(mPInMeta));
+        pInmeta->extradata = new uint8_t[meta->extradata_size];
+        memcpy(pInmeta->extradata, meta->extradata, pInmeta->extradata_size);
+        pInmeta->lang = nullptr;
+        pInmeta->description = nullptr;
+        pInmeta->meta = nullptr;
+        pInmeta->keyUrl = nullptr;
+        pInmeta->keyFormat = nullptr;
+
+        parserInfo info{0};
+        if (parser_extradata(pInmeta->extradata, pInmeta->extradata_size, &info, pInmeta->codec) >= 0) {
+            pInmeta->width = info.width;
+            pInmeta->height = info.height;
+        }
 
         mInputCount = 0;
 
-        if (meta->codec == AF_CODEC_ID_H264 /*|| meta->codec == AF_CODEC_ID_HEVC*/) {
+        if (meta->codec == AF_CODEC_ID_H264 || meta->codec == AF_CODEC_ID_HEVC) {
             mParser = unique_ptr<bitStreamParser>(new bitStreamParser());
-            int ret = mParser->init((Stream_meta *) (*(mPInMeta)));
+            int ret = mParser->init(pInmeta);
 
             if (ret < 0) {
                 mParser = nullptr;
@@ -468,6 +473,18 @@ namespace Cicada {
             }
         }
 #endif
+        /*
+         there are some bugs when reuse on iOS 14.x,eg h264 main profile to high profile
+         */
+        bool canReuse = true;
+#if TARGET_OS_IPHONE
+        if (Cicada::GetIosVersion() >= 14.0 /* && Cicada::GetIosVersion() < 15.0*/) {
+            if (meta->codec == AF_CODEC_ID_H264 || meta->codec == AF_CODEC_ID_HEVC) {
+                canReuse = false;
+            }
+        }
+#endif
+
         if (rv == 0) {
             if (!canReuse || !VTDecompressionSessionCanAcceptFormatDescription(mVTDecompressSessionRef, videoFormatDesRef)) {
                 flushReorderQueue();
@@ -485,7 +502,7 @@ namespace Cicada {
                 }
             }
 
-            mPocDelta = 2;
+            resetPocInfo();
         } else {
             if (videoFormatDesRef) {
                 CFRelease(videoFormatDesRef);
@@ -595,6 +612,25 @@ namespace Cicada {
         return 0;
     }
 
+    bool AFVTBDecoder::isErrorPoc(int poc, bool keyFrame) const
+    {
+        if (mVideoCodecType == kCMVideoCodecType_HEVC) {
+            return false;
+        }
+        // for h264
+        return poc < 0 || (poc == 0 && !keyFrame);
+    }
+    void AFVTBDecoder::resetPocInfo()
+    {
+        if (mVideoCodecType == kCMVideoCodecType_HEVC) {
+            mPocDelta = 1;
+            mOutputPoc = INT64_MIN;
+        } else {
+            mPocDelta = 2;
+            mOutputPoc = 0;
+        }
+    }
+
     void AFVTBDecoder::onDecoded(IAFPacket *packet, std::unique_ptr<PBAFFrame> frame, OSStatus status)
     {
         if (packet == nullptr) {
@@ -613,13 +649,20 @@ namespace Cicada {
         bool keyFrame = (packet->getInfo().flags & AF_PKT_FLAG_KEY);
         int64_t mapKey = packet->getInfo().pts;
 
+        bool bIDRFrame = keyFrame;
         // must parser poc
         if (mBUsePoc && mPocErrorCount < MAX_POC_ERROR) {
             assert(mParser != nullptr);
             mParser->parser(packet->getData(), packet->getSize());
             int poc = mParser->getPOC();
 
-            if (poc < 0 || (poc == 0 && !keyFrame)) {
+            // for h265, set mOutputPoc to poc -1, to let out put this frame immediately
+            if (mOutputPoc == INT64_MIN && keyFrame) {
+                mOutputPoc = poc - 1;
+            }
+            // 265 IDR poc is 0
+            bIDRFrame = poc == 0;
+            if (isErrorPoc(poc, keyFrame)) {
                 AF_LOGI("error poc is %d\n", poc);
                 if (++mPocErrorCount >= MAX_POC_ERROR) {
                     AF_LOGE("too much poc error, disable reorder use poc\n");
@@ -627,7 +670,7 @@ namespace Cicada {
                 push_to_recovery_queue(unique_ptr<IAFPacket>(packet));
                 return;
             }
-
+            // for h264
             if (poc == 1) {
                 mPocDelta = 1;
             }
@@ -644,22 +687,25 @@ namespace Cicada {
 
             return;
         }
+        assert(!mBUsePoc || bIDRFrame || mOutputPoc < mapKey);
         frame->getInfo().timePosition = packet->getInfo().timePosition;
+        frame->getInfo().utcTime = packet->getInfo().utcTime;
 
-        if (mVideoCodecType != kCMVideoCodecType_HEVC && keyFrame && mPocErrorCount < MAX_POC_ERROR) {
+        if (bIDRFrame && mPocErrorCount < MAX_POC_ERROR) {
             flushReorderQueue();
-
             if (mVTOutFmt == AF_PIX_FMT_YUV420P) {
                 auto *avframe = (AVAFFrame *) (*frame);
                 avframe->getInfo().timePosition = packet->getInfo().timePosition;
+                avframe->getInfo().utcTime = packet->getInfo().utcTime;
                 std::unique_lock<std::mutex> uMutex(mReorderMutex);
                 mReorderedQueue.push(unique_ptr<IAFFrame>(avframe));
             } else {
                 std::unique_lock<std::mutex> uMutex(mReorderMutex);
                 mReorderedQueue.push(move(frame));
             }
-
-            mOutputPoc = 0;
+            if (mBUsePoc) {
+                mOutputPoc = mapKey;
+            }
         } else {
             std::unique_lock<std::mutex> uMutex(mReorderMutex);
             mReorderFrameMap[mapKey] = move(frame);
@@ -696,7 +742,7 @@ namespace Cicada {
 
         int64_t duration = presentationDuration.value * (1000000.0 / presentationDuration.timescale);
         int64_t pts = presentationTimeStamp.value * (1000000.0 / presentationTimeStamp.timescale);
-        pbafFrame = unique_ptr<PBAFFrame>(new PBAFFrame(imageBuffer, pts, duration));
+        pbafFrame = unique_ptr<PBAFFrame>(new PBAFFrame(imageBuffer, pts, duration, ((Stream_meta *) (*(decoder->mPInMeta)))->color_info));
         return decoder->onDecoded(packet, move(pbafFrame), status);
     }
 
@@ -718,9 +764,13 @@ namespace Cicada {
 
             int64_t poc = (*mReorderFrameMap.begin()).first;
 
-            if (poc < 0 || mOutputPoc < 0 || (mReorderFrameMap.size() >= IOS_OUTPUT_CACHE_FOR_B_FRAMES) ||
-                (poc - mOutputPoc == mPocDelta)) {
+            if (isErrorPoc((int) poc, true) || isErrorPoc((int) mOutputPoc, true) ||
+                (mReorderFrameMap.size() >= IOS_OUTPUT_CACHE_FOR_B_FRAMES) || (poc - mOutputPoc == mPocDelta)) {
+                if (mReorderFrameMap.size() >= IOS_OUTPUT_CACHE_FOR_B_FRAMES) {
+                    AF_LOGW("mReorderFrameMap.size() is %lld\n", mReorderFrameMap.size());
+                }
                 mOutputPoc = poc;
+                //AF_LOGD("out put poc is %lld -- %lld\n", mOutputPoc.load(), mReorderFrameMap.size());
             } else {
                 return -EAGAIN;
             }
@@ -773,7 +823,6 @@ namespace Cicada {
     void AFVTBDecoder::flushReorderQueue()
     {
         std::unique_lock<std::mutex> uMutex(mReorderMutex);
-
         while (!mReorderFrameMap.empty()) {
             if (mVTOutFmt == AF_PIX_FMT_YUV420P) {
                 PBAFFrame *pbafFrame = (*(mReorderFrameMap.begin())).second.get();
@@ -814,6 +863,7 @@ namespace Cicada {
             mReorderedQueue.pop();
         }
         mPocErrorCount = 0;
+        resetPocInfo();
     }
 
     void AFVTBDecoder::AppWillResignActive()
@@ -862,6 +912,7 @@ namespace Cicada {
         Stream_meta *pMeta = ((Stream_meta *) (*(mPInMeta)));
         pMeta->displayHeight = meta->displayHeight;
         pMeta->displayWidth = meta->displayWidth;
+        pMeta->color_info = meta->color_info;
     }
 
 }// namespace Cicada

@@ -11,6 +11,7 @@
 #include <utils/errors/framework_error.h>
 #include <utils/frame_work_log.h>
 #include <utils/globalSettings.h>
+#include <utils/property.h>
 #include <utils/timer.h>
 
 using namespace std;
@@ -18,6 +19,7 @@ using namespace Cicada;
 
 int main(int argc, char **argv)
 {
+    setProperty("protected.network.http.http2", "ON");
     ::testing::InitGoogleTest(&argc, argv);
     log_set_level(AF_LOG_LEVEL_TRACE, 1);
     ignore_signal(SIGPIPE);
@@ -73,7 +75,7 @@ TEST(dns, https)
     // https://dnschecker.org/
     string url = "https://player.alicdn.com/video/aliyunmedia.mp4";
     //  string ip = "120.77.195.15";
-    string ip = "117.27.140.249";
+    string ip = "140.249.89.252";
     globalSettings::getSetting().addResolve("player.alicdn.com:443", ip);
     unique_ptr<IDataSource> source = unique_ptr<IDataSource>(dataSourcePrototype::create(url));
     int ret = source->Open(0);
@@ -92,7 +94,7 @@ TEST(dns, http)
     // https://dnschecker.org/
     string url = "http://player.alicdn.com/video/aliyunmedia.mp4";
     //  string ip = "120.77.195.15";
-    string ip = "117.27.140.249";
+    string ip = "140.249.89.252";
     globalSettings::getSetting().addResolve("player.alicdn.com:80", ip);
     unique_ptr<IDataSource> source = unique_ptr<IDataSource>(dataSourcePrototype::create(url));
     int ret = source->Open(0);
@@ -223,5 +225,51 @@ TEST(https, ipList)
         int ret = source->Open(0);
         ASSERT_GE(ret, 0);
         ASSERT_EQ(source->Seek(0, SEEK_SIZE), ipListFileSize);
+    }
+}
+
+void UrlDataSourceCheckData(const string &url, int64_t fileSize)
+{
+    unique_ptr<IDataSource> source = static_cast<unique_ptr<IDataSource>>(dataSourcePrototype::create(url));
+    int ret = source->Open(0);
+    ASSERT_GE(ret, 0);
+    int64_t size = source->Seek(0, SEEK_SIZE);
+    ASSERT_EQ(size, fileSize);
+    uint8_t c;
+    int count = 100;
+    for (int i = 0; i < count; ++i) {
+        int64_t pos = llabs(random()) % (size);
+        ret = source->Seek(pos, SEEK_SET);
+        ASSERT_EQ(ret, pos);
+        ret = source->Read(&c, 1);
+        if (pos < size) {
+            ASSERT_EQ(c, pos % 256);
+        } else {
+            ASSERT_EQ(ret, 0);// eos
+        }
+    }
+}
+
+int UrlDataSourceCheckDataThead()
+{
+    string url = "https://alivc-demo-vod.aliyuncs.com/sv/2e731281-17b5885d5af/2e731281-17b5885d5af.mp4";
+    int64_t fileSize = 268435456;
+    UrlDataSourceCheckData(url, fileSize);
+    return -1;
+}
+
+TEST(UrlDataSource, check)
+{
+    setProperty("protected.network.http.http2", "ON");
+    afThread *threads[3];
+    for (auto &thread : threads) {
+        thread = new afThread(UrlDataSourceCheckDataThead);
+        thread->start();
+    }
+    for (auto &thread : threads) {
+        thread->stop();
+    }
+    for (auto &thread : threads) {
+        delete thread;
     }
 }
