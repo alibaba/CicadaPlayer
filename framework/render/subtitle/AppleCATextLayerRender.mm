@@ -452,6 +452,7 @@ static CGSize getSubTitleHeight(NSMutableAttributedString *attrStr, CGFloat view
         if ([dic objectForKey:NSStrokeWidthAttributeName]) {
             CATextLayer *strokeLayer = [[CATextLayer alloc] init];
             strokeLayer.frame = textLayer.bounds;
+            strokeLayer.contentsScale = textLayer.contentsScale;
 
             NSArray *arr = [self buildAttributedStrBySubtitle:subtitle defaultstyle:assStyle factor:factorY showOutline:NO];
 
