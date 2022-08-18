@@ -676,7 +676,7 @@ namespace Cicada {
 
             return;
         }
-        assert(!mBUsePoc || bIDRFrame || mOutputPoc < mapKey);
+//        assert(!mBUsePoc || bIDRFrame || mOutputPoc < mapKey);
         frame->getInfo().timePosition = packet->getInfo().timePosition;
         frame->getInfo().utcTime = packet->getInfo().utcTime;
 
