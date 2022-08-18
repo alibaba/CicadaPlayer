@@ -339,8 +339,9 @@ void CicadaOCHelper::onShowSubtitle(int64_t index, int64_t size, const void *dat
 
     CicadaOCHelper *helper = (CicadaOCHelper *) userData;
     if (helper->mSubtitleRender && helper->mCurrentSubtitleRendingIndex == subtitleIndex) {
-        const char *content = (const char *) packet->getData();
-        helper->mSubtitleRender->show(index,content);
+        dispatch_async(dispatch_get_main_queue(), ^{
+          helper->mSubtitleRender->show(index, [str UTF8String]);
+        });
     } else {
         if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleShow:trackIndex:subtitleID:subtitle:)]) {
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -378,12 +379,15 @@ void CicadaOCHelper::onHideSubtitle(int64_t index, int64_t size, const void *dat
     IAFPacket *packet = (IAFPacket *) (data);
     int subtitleIndex = packet->getInfo().streamIndex;
     int64_t pts = packet->getInfo().pts;
-
     CicadaOCHelper *helper = (CicadaOCHelper *) userData;
 
+    NSData *stringData = [[NSData alloc] initWithBytes:packet->getData() length:(unsigned int) packet->getSize()];
+    NSString *str = [[NSString alloc] initWithData:stringData encoding:NSUTF8StringEncoding];
+
     if (helper->mSubtitleRender && helper->mCurrentSubtitleRendingIndex == subtitleIndex) {
-        const char *content = (const char *) packet->getData();
-        helper->mSubtitleRender->hide(index,content);
+        dispatch_async(dispatch_get_main_queue(), ^{
+          helper->mSubtitleRender->hide(index, [str UTF8String]);
+        });
     } else {
         if (player.delegate && [player.delegate respondsToSelector:@selector(onSubtitleHide:trackIndex:subtitleID:)]) {
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -419,23 +423,23 @@ void CicadaOCHelper::onSubtitleHeader(int64_t index, const void *header, void *u
         if (str.length>0) {
             helper->assHeader = AssUtils::parseAssHeader([str UTF8String]);
             if (helper->assHeader.Type == SubtitleTypeAss) {
-                if(helper->mSubtitleRender!=nullptr){
-                    helper->mSubtitleRender->clear();
-                }
-                helper->mSubtitleRender = unique_ptr<AppleCATextLayerRender>(new AppleCATextLayerRender());
-                int ret = helper->mSubtitleRender->intHeader((const char *) header);
-                if (ret < 0) {
-                    NSLog(@"ass header parser error");
-                    helper->mSubtitleRender = nullptr;
-                }
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    CicadaView* view = helper->mView;
-                    if(view){
-                        helper->mSubtitleRender->setView((__bridge void *) view.layer);
-                        helper->mCurrentSubtitleRendingIndex = index;
-                    }else{
-                        NSLog(@"ass header parser error,there is no view ");
-                    }
+                  if (helper->mSubtitleRender != nullptr) {
+                      helper->mSubtitleRender->clear();
+                  }
+                  helper->mSubtitleRender = unique_ptr<AppleCATextLayerRender>(new AppleCATextLayerRender());
+                  int ret = helper->mSubtitleRender->intHeader([str UTF8String]);
+                  if (ret < 0) {
+                      NSLog(@"ass header parser error");
+                      helper->mSubtitleRender = nullptr;
+                  }
+                  CicadaView *view = helper->mView;
+                  if (view) {
+                      helper->mSubtitleRender->setView((__bridge void *) view.layer);
+                      helper->mCurrentSubtitleRendingIndex = index;
+                  } else {
+                      NSLog(@"ass header parser error,there is no view ");
+                  }
                 });
             }
         }
