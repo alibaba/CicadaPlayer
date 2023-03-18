@@ -86,7 +86,7 @@ function build_shared_framework(){
     export CPU_FLAGS=
     export LDFLAGS=
 
-    local support_libs="fdk-aac x264 curl  librtmp cares dav1d"
+    local support_libs="fdk-aac x264 curl  librtmp cares dav1d nghttp2"
 
     if [[ "${XML_USE_NATIVE}" == "FALSE" ]];then
         support_libs="${support_libs} libxml2"
@@ -145,7 +145,6 @@ function build_shared_framework(){
 
     return;
 }
-set -e
 iOS_check_env.sh
 
 build_libs maccatalyst "${MACCATALYST_ARCHS}"
