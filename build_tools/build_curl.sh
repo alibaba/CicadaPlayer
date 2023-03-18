@@ -42,19 +42,29 @@ function build_curl(){
         fi
     elif [[ "$1" == "win32" ]];then
         cross_compile_set_platform_win32 $2
+        export CFLAGS="-DNGHTTP2_STATICLIB"
     elif [[ "$1" == "Darwin" ]];then
         LIBSDEPEND="LIBS=-lresolv"
         if [[ "${SSL_USE_NATIVE}" == "TRUE" ]];then
             ssl_opt="--with-darwinssl"
         fi
-        print_warning "native build curl for $1"
+        print_warning "native build curl for $1 $2"
         native_compile_set_platform_macOS $2
         export CFLAGS="${CFLAGS} $CPU_FLAGS"
     elif [[ "$1" == "Linux" ]];then
         LIBSDEPEND="LIBS=-lresolv"
-        print_warning "native build curl for $1"
+        print_warning "native build for $1"
+    elif [ "$1" == "maccatalyst" ];then
+        LIBSDEPEND="LIBS=-lresolv"
+        if [[ "${SSL_USE_NATIVE}" == "TRUE" ]];then
+            ssl_opt="--with-darwinssl"
+        fi
+        cross_compile_set_platform_maccatalyst "$2"
+        export CFLAGS="${CPU_FLAGS}"
+        export LDFLAGS="${CPU_LDFLAGS}"
+        export CC=clang
     else
-        echo "Unsupported platform"
+        echo "curl Unsupported platform $1"
         exit 1;
     fi
 
@@ -84,8 +94,7 @@ function build_curl(){
                 --without-librtmp \
                 --without-brotli \
                 --without-libidn \
-
-                --without-nghttp2"
+                --without-zstd"
     local build_dir="${CWD}/build/curl/$1/$2"
     local install_dir="${CWD}/install/curl/$1/$2"
 
@@ -106,7 +115,13 @@ function build_curl(){
             local rtmp_opt="--with-librtmp=${LIBRTMP_INSTALL_DIR}"
         fi
 
-        ${CURL_SOURCE_DIR}/configure -host=${CROSS_COMPILE} CC="${CC}" ${ssl_opt} ${resolver_opt} ${config} ${rtmp_opt} --prefix=${install_dir} ${LIBSDEPEND} || exit 1
+        if [[ -d "${NGHTTP2_INSTALL_DIR}" ]];then
+            local nghttp2_opt="--with-nghttp2=${NGHTTP2_INSTALL_DIR}"
+         else
+            local nghttp2_opt="--without-nghttp2"
+        fi
+
+        ${CURL_SOURCE_DIR}/configure -host=${CROSS_COMPILE} CC="${CC}" ${ssl_opt} ${resolver_opt} ${config} ${rtmp_opt} ${nghttp2_opt} --prefix=${install_dir} ${LIBSDEPEND} || exit 1
         make -j8 install V=1 || exit 1
         cd -
     fi
