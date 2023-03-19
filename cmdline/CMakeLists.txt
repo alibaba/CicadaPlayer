@@ -15,6 +15,7 @@ endif ()
 
 include(../framework/code_coverage.cmake)
 add_subdirectory(../mediaPlayer mediaPlayer.out)
+add_subdirectory(../plugin plugin.out)
 
 include(../framework/${TARGET_PLATFORM}.cmake)
 
