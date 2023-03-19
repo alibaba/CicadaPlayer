@@ -4,14 +4,14 @@
 #define LOG_TAG "BiDataSource"
 
 #include "BiDataSource.h"
-#include <cerrno>
-#include <string>
-#include <utils/frame_work_log.h>
-#include <utils/errors/framework_error.h>
-#include <cstdlib>
+#include "utils/errors/framework_error.h"
+#include "utils/frame_work_log.h"
 #include <cassert>
+#include <cerrno>
+#include <cstdlib>
+#include <string>
 
-#define header  "bitp://"
+#define header "bitp://"
 
 using namespace std;
 
@@ -29,13 +29,10 @@ std::string BiDataSource::createUrl(const std::string &first, const std::string 
 }
 
 BiDataSource::BiDataSource(const std::string &url) : IDataSource(url)
-{
-}
+{}
 
 BiDataSource::~BiDataSource()
-{
-
-}
+{}
 
 int BiDataSource::Open(int flags)
 {
@@ -51,7 +48,7 @@ int BiDataSource::Open(int flags)
     for (int i = 0; i < 2; ++i) {
         unique_ptr<source> pSource = unique_ptr<source>(new source());
         pSource->mUri = CicadaUtils::base64dec(strs[i]);
-        pSource->mDataSource = unique_ptr<IDataSource>(dataSourcePrototype::create(pSource->mUri,mOpts));
+        pSource->mDataSource = unique_ptr<IDataSource>(dataSourcePrototype::create(pSource->mUri, mOpts));
         if (pSource->mDataSource->getSpeedLevel() == speedLevel_local) {
             int ret = pSource->mDataSource->Open(0);
             if (ret >= 0) {
@@ -68,8 +65,7 @@ int BiDataSource::Open(int flags)
     }
 
     assert(!mSources.empty());
-    if (mSources.empty())
-        return -EINVAL;
+    if (mSources.empty()) return -EINVAL;
     if (mSources.size() == 1) {
         assert(mSources[0]->mDataSource->getSpeedLevel() != speedLevel_local);
         if (mSources[0]->mDataSource->getSpeedLevel() == speedLevel_local) {
@@ -114,9 +110,8 @@ int BiDataSource::Open(const std::string &url)
 
 void BiDataSource::Close()
 {
-    for (auto &item: mSources) {
-        if (item->mIsOpened)
-            item->mDataSource->Close();
+    for (auto &item : mSources) {
+        if (item->mIsOpened) item->mDataSource->Close();
     }
 }
 
@@ -147,16 +142,14 @@ int64_t BiDataSource::Seek(int64_t offset, int whence)
 {
     int64_t ret;
 
-    if (mCurrent == nullptr)
-        return -EINVAL;
+    if (mCurrent == nullptr) return -EINVAL;
 
     if (whence == SEEK_SIZE) {
         if (fileSize == 0) {
             fileSize = getFileSize();
         }
         return fileSize;
-    } else if ((whence == SEEK_CUR && offset == 0) ||
-               (whence == SEEK_SET && offset == fileSize)) {
+    } else if ((whence == SEEK_CUR && offset == 0) || (whence == SEEK_SET && offset == fileSize)) {
         if (fileSize == 0) {
             fileSize = getFileSize();
         }
@@ -171,8 +164,7 @@ int64_t BiDataSource::Seek(int64_t offset, int whence)
         if (fileSize == 0) {
             fileSize = getFileSize();
         }
-        if (fileSize < 0)
-            return -EINVAL;
+        if (fileSize < 0) return -EINVAL;
         offset += fileSize;
     } else if (whence != SEEK_SET) {
         return FRAMEWORK_ERR(EINVAL);
@@ -190,20 +182,19 @@ int64_t BiDataSource::Seek(int64_t offset, int whence)
         mCurrent = nullptr;
     }
 
-    if (mCurrent == nullptr) { // first try local
+    if (mCurrent == nullptr) {// first try local
         source *local = mSources[0]->mDataSource->getSpeedLevel() == speedLevel_local ? mSources[0].get() : mSources[1].get();
         if (local->mRange.end > offset) {
             mCurrent = local;
         }
     }
-    if (mCurrent == nullptr) { //change current to remote
+    if (mCurrent == nullptr) {//change current to remote
         mCurrent = mSources[0]->mDataSource->getSpeedLevel() == speedLevel_remote ? mSources[0].get() : mSources[1].get();
     }
 
     if (!mCurrent->mIsOpened) {
         ret = mCurrent->mDataSource->Open(0);
-        if (ret < 0)
-            return ret;
+        if (ret < 0) return ret;
         mCurrent->mIsOpened = true;
     }
     ret = mCurrent->mDataSource->Seek(offset, SEEK_SET);
@@ -215,8 +206,7 @@ int64_t BiDataSource::Seek(int64_t offset, int whence)
 
 int BiDataSource::Read(void *buf, size_t nbyte)
 {
-    if (mCurrent == nullptr)
-        return -EINVAL;
+    if (mCurrent == nullptr) return -EINVAL;
     int ret = mCurrent->mDataSource->Read(buf, nbyte);
     if (ret > 0) {
         filePos += ret;
@@ -232,8 +222,7 @@ int BiDataSource::Read(void *buf, size_t nbyte)
     // local file
     if (fileSize == 0) {
         fileSize = getFileSize();
-        if (fileSize <= 0)
-            return 0;
+        if (fileSize <= 0) return 0;
     }
 
     if (filePos >= mCurrent->mRange.end) {
@@ -242,23 +231,19 @@ int BiDataSource::Read(void *buf, size_t nbyte)
         if (!mCurrent->mIsOpened) {
             ret = mCurrent->mDataSource->Open(0);
             mCurrent->mIsOpened = true;
-            if (ret < 0)
-                return ret;
+            if (ret < 0) return ret;
         }
         ret = static_cast<int>(mCurrent->mDataSource->Seek(filePos, SEEK_SET));
-        if (ret < 0)
-            return ret;
+        if (ret < 0) return ret;
         ret = mCurrent->mDataSource->Read(buf, nbyte);
     }
-    if (ret > 0)
-        filePos += ret;
+    if (ret > 0) filePos += ret;
     return ret;
 }
 
 std::string BiDataSource::GetOption(const std::string &key)
 {
-    if (mCurrent)
-        return mCurrent->mDataSource->GetOption(key);
+    if (mCurrent) return mCurrent->mDataSource->GetOption(key);
     return IDataSource::GetOption(key);
 }
 
@@ -270,7 +255,7 @@ bool BiDataSource::probe(const std::string &uri)
 void BiDataSource::Interrupt(bool interrupt)
 {
     std::unique_lock<std::mutex> uMutex(mSourceMutex);
-    for (auto &item :mSources) {
+    for (auto &item : mSources) {
         if ((*item).mDataSource) {
             (*item).mDataSource->Interrupt(interrupt);
         }

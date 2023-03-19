@@ -5,15 +5,14 @@
 #ifndef CICADAPLAYERSDK_BIDATASOURCE_H
 #define CICADAPLAYERSDK_BIDATASOURCE_H
 
-#include <data_source/dataSourcePrototype.h>
-#include <utils/CicadaUtils.h>
-#include <vector>
-#include <mutex>
+#include "data_source/dataSourcePrototype.h"
+#include "utils/CicadaUtils.h"
 #include <memory>
+#include <mutex>
+#include <vector>
 
 class BiDataSource : public Cicada::IDataSource, private dataSourcePrototype {
 public:
-
     explicit BiDataSource(const std::string &url);
 
     ~BiDataSource();
@@ -37,7 +36,6 @@ public:
     void Interrupt(bool interrupt) override;
 
 private:
-
     explicit BiDataSource(int dummy) : IDataSource("")
     {
         addPrototype(this);
@@ -88,4 +86,4 @@ private:
 };
 
 
-#endif //CICADAPLAYERSDK_BIDATASOURCE_H
+#endif//CICADAPLAYERSDK_BIDATASOURCE_H

@@ -8,7 +8,7 @@
 #include "curl/curl_data_source2.h"
 #include "data_source/curl/curl_data_source.h"
 #endif
-#include "../../plugin/BiDataSource.h"
+#include "../../plugin/BiDataSource/BiDataSource.h"
 #include "ffmpeg_data_source.h"
 
 using namespace Cicada;
