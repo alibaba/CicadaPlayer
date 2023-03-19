@@ -9,6 +9,7 @@
 #include <cassert>
 #include <cerrno>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 
 #define header "bitp://"
