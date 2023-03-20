@@ -52,7 +52,6 @@ target_link_libraries(CicadaPlayer
         cacheModule
         muxer
         demuxer
-        plugin
         data_source
         render
         videodec
