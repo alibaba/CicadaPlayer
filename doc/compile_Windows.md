@@ -7,7 +7,7 @@
 
 ```bash
 sudo apt install git make autoconf libtool yasm
-sudo apt install g++-mingw-w64-x86-64 gcc-mingw-w64-i686 mingw-w64-tools
+sudo apt install gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 gcc-mingw-w64-i686 g++-mingw-w64-i686
 ```
 
 ## macOS
